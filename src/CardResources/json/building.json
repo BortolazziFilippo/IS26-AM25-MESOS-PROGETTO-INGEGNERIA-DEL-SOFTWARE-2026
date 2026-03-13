@@ -1,0 +1,149 @@
+[
+  {
+    "buildingID": 1,
+    "foodCost": 4,
+    "endGamePP": 3,
+    "applyOn": "END_ROUND",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 2,
+    "foodCost": 4,
+    "endGamePP": 4,
+    "applyOn": "SUSTENANCE",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 3,
+    "foodCost": 5,
+    "endGamePP": 3,
+    "applyOn": "SUSTENANCE",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 4,
+    "foodCost": 5,
+    "endGamePP": 2,
+    "applyOn": "SHAMANIC_RIT",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 5,
+    "foodCost": 3,
+    "endGamePP": 3,
+    "applyOn": "END_ROUND",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 6,
+    "foodCost": 3,
+    "endGamePP": 4,
+    "applyOn": "END_ROUND",
+    "era": "ERA_I"
+  },
+  {
+    "buildingID": 7,
+    "foodCost": 7,
+    "endGamePP": 0,
+    "applyOn": "SHAMANIC_RIT",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 8,
+    "foodCost": 6,
+    "endGamePP": 4,
+    "applyOn": "SHAMANIC_RIT",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 9,
+    "foodCost": 7,
+    "endGamePP": 4,
+    "applyOn": "SUSTENANCE",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 10,
+    "foodCost": 7,
+    "endGamePP": 2,
+    "applyOn": "HUNT",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 11,
+    "foodCost": 6,
+    "endGamePP": 4,
+    "applyOn": "END_GAME",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 12,
+    "foodCost": 5,
+    "endGamePP": 6,
+    "applyOn": "PAINTINGS",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 13,
+    "foodCost": 5,
+    "endGamePP": 6,
+    "applyOn": "END_GAME",
+    "era": "ERA_II"
+  },
+  {
+    "buildingID": 14,
+    "foodCost": 8,
+    "endGamePP": 8,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 15,
+    "foodCost": 7,
+    "endGamePP": 6,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 16,
+    "foodCost": 7,
+    "endGamePP": 4,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 17,
+    "foodCost": 6,
+    "endGamePP": 3,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 18,
+    "foodCost": 7,
+    "endGamePP": 4,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 19,
+    "foodCost": 6,
+    "endGamePP": 6,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 20,
+    "foodCost": 9,
+    "endGamePP": 3,
+    "applyOn": "END_ROUND",
+    "era": "ERA_III"
+  },
+  {
+    "buildingID": 21,
+    "foodCost": 10,
+    "endGamePP": 0,
+    "applyOn": "END_GAME",
+    "era": "ERA_III"
+  }
+]

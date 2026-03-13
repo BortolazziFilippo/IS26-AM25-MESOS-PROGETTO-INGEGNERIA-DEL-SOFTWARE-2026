@@ -1,0 +1,442 @@
+[
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "LEATHER"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "ROPE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "FLUTE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "BOWL"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "ARROW"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "BREAD"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_I",
+    "invIcon": "STONE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "ROPE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "BAIT"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "FLUTE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "BOWL"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "GHOST"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "BREAD"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "BAIT"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "GHOST"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "NECKLACE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "NECKLACE"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "ARROW"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_III",
+    "invIcon": "STONE"
+
+  },
+
+
+
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_II"
+  },
+
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_III"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_III"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_III"
+  },
+  {
+    "cardType": "ARTIST",
+    "era": "ERA_III"
+  },
+
+
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_I"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_II"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_III"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_III"
+  },
+  {
+    "cardType": "GATHERER",
+    "era": "ERA_III"
+  },
+
+
+  {
+    "cardType":"SHAMAN" ,
+    "era": "ERA_I",
+    "starNumber": "ONE"
+  },
+  {
+    "cardType":"SHAMAN" ,
+    "era": "ERA_I",
+    "starNumber": "ONE"
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_I",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_I",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_II",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_II",
+    "starNumber": "ONE"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_II",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_II",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_III",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_III",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_III",
+    "starNumber": "TWO"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_III",
+    "starNumber": "THREE"
+
+  },
+  {
+    "cardType": "SHAMAN",
+    "era": "ERA_III",
+    "starNumber": "THREE"
+
+  },
+
+
+
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_I",
+    "foodDiscount": 1,
+    "finalPrestigePoint":3
+
+  },
+  {
+    "cardType":"BUILDER" ,
+    "era":"ERA_I",
+    "foodDiscount": 2,
+    "finalPrestigePoint": 0
+
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_I",
+    "foodDiscount":1 ,
+    "finalPrestigePoint": 2
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_I",
+    "foodDiscount":2 ,
+    "finalPrestigePoint": 1
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_II",
+    "foodDiscount":1,
+    "finalPrestigePoint":4
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_II",
+    "foodDiscount":1,
+    "finalPrestigePoint":2
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_II",
+    "foodDiscount":2,
+    "finalPrestigePoint":1
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_II",
+    "foodDiscount":2,
+    "finalPrestigePoint":3
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_III",
+    "foodDiscount":1,
+    "finalPrestigePoint":5
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_III",
+    "foodDiscount":2,
+    "finalPrestigePoint":3
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_III",
+    "foodDiscount":2,
+    "finalPrestigePoint":2
+  },
+  {
+    "cardType": "BUILDER",
+    "era":"ERA_III",
+    "foodDiscount":1,
+    "finalPrestigePoint":4
+  },
+
+
+
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_I",
+    "hasIcon": false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_I",
+    "hasIcon": false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_I",
+    "hasIcon": false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_I",
+    "hasIcon": true
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_I",
+    "hasIcon":true
+  },
+
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_II",
+    "hasIcon":true
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_II",
+    "hasIcon":true
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_II",
+    "hasIcon": false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_II",
+    "hasIcon":false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_III",
+    "hasIcon":false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_III",
+    "hasIcon":false
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_III",
+    "hasIcon":true
+  },
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_III",
+    "hasIcon":true
+  }
+]
