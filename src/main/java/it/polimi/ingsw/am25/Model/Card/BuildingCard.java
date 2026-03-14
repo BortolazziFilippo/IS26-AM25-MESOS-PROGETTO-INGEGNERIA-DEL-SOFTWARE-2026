@@ -5,7 +5,7 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
-public class BuildingCard extends Card{
+public class BuildingCard extends Card {
     private final int buildingID;
     private final BuildingEffect buildingEffect;
     private final int foodCost;
@@ -13,7 +13,7 @@ public class BuildingCard extends Card{
     private final EVENT_TYPE applyOn;
 
     public BuildingCard(ERA era, int buildingID, BuildingEffect buildingEffect, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
-        this.era=era;
+        this.era = era;
         this.buildingID = buildingID;
         this.buildingEffect = buildingEffect;
         this.foodCost = foodCost;
@@ -40,7 +40,8 @@ public class BuildingCard extends Card{
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
-    public void applyEventEffect(Player player){
+
+    public void applyEventEffect(Player player) {
         this.buildingEffect.applyEffect(player);
     }
 }
