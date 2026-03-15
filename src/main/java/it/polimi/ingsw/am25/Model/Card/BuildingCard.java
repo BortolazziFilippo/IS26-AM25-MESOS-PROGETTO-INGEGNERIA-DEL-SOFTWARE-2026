@@ -7,20 +7,22 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class BuildingCard extends Card {
     private final int buildingID;
-    private final BuildingEffect buildingEffect;
+    private  BuildingEffect buildingEffect;
     private final int foodCost;
     private final int endgamePP;
     private final EVENT_TYPE applyOn;
 
-    public BuildingCard(ERA era, int buildingID, BuildingEffect buildingEffect, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
-        this.era = era;
+    public BuildingCard(ERA era,int buildingID, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
+        this.era=era;
         this.buildingID = buildingID;
-        this.buildingEffect = buildingEffect;
+
         this.foodCost = foodCost;
         this.endgamePP = endgamePP;
         this.applyOn = applyOn;
     }
-
+    public void setBuildingEffect(BuildingEffect buildingEffect){
+        this.buildingEffect=buildingEffect;
+    }
     public int getBuildingID() {
         return buildingID;
     }
