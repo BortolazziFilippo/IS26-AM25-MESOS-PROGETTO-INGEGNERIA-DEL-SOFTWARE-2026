@@ -23,7 +23,7 @@ public class BuildingFactory {
         List<BuildingCard> tempList =new ArrayList<>();
         List<BuildingCard> listToReturn=new ArrayList<>();
         List<Integer> randomNumber=new ArrayList<>();
-        InputStream inputStream = BuildingFactory.class.getResourceAsStream("/building.json");
+        InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
         if(inputStream==null) {
             throw new RuntimeException("Errore apertura file building.json");
         }
@@ -38,67 +38,67 @@ public class BuildingFactory {
             case 2:
                 //ERA 1
                 randomNumber=randomNumerList(1,6);
-                listToReturn.add(tempList.get(randomNumber.getFirst()));
+                listToReturn.add(tempList.get(randomNumber.getFirst()-1));
                 //ERA 2
                 randomNumber=randomNumerList(7,13);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 3
                 randomNumber=randomNumerList(14,21);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 break;
             case 3:
                 //ERA 1
                 randomNumber=randomNumerList(1,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 2
                 randomNumber=randomNumerList(7,13);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 3
                 randomNumber=randomNumerList(14,21);
                 for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 break;
             case 4:
                 //ERA 1
                 randomNumber=randomNumerList(1,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 2
                 randomNumber=randomNumerList(7,13);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 3
                 randomNumber=randomNumerList(14,21);
                 for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 break;
             case 5:
                 //ERA 1
                 randomNumber=randomNumerList(1,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 2
                 randomNumber=randomNumerList(7,13);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 3
                 randomNumber=randomNumerList(14,21);
                 for (int i = 0; i < 5; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
+                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 break;
             default:
