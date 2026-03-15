@@ -1,4 +1,69 @@
 package it.polimi.ingsw.am25.Model.Player;
 
+import it.polimi.ingsw.am25.Model.Card.BuildingCard;
+import it.polimi.ingsw.am25.Model.Card.Card;
+import it.polimi.ingsw.am25.Model.Card.ShamanCard;
+import it.polimi.ingsw.am25.Model.Enums.COLOR;
+import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Player {
+    private String nickname;
+    /* private Totem totem;  manca la classe Totem */
+    private int food;
+    private int prestigePoint;
+    private List<Card> tribe;
+    private List<BuildingCard> buildingCards; /* modificare UML */
+    CONNECTION_STATUS connectionStatus;
+
+    public Player(String nickname, COLOR color) {
+            this.nickname = nickname;
+            this.tribe = new ArrayList<Card>();
+            /* bisogna firnirlo dopo la classe totem !! */
+
+    }
+
+    public void manageFood(int foodAmount){
+        if(foodAmount < 0){
+            if( (this.food += foodAmount) < 0){
+                this.food += foodAmount;
+                int temp = this.food*2;
+                managePP(temp);
+                this.food = 0;
+            }
+        }
+        else{
+            this.food += foodAmount;
+        }
+    }
+
+    public void managePP(int PPamount){
+        this.prestigePoint += PPamount;
+    }
+
+    public CONNECTION_STATUS getConnection() {
+        return CONNECTION_STATUS.CONNECTED;
+    }
+
+    public void setConnection(CONNECTION_STATUS connectionStatus) {
+        this.connectionStatus = connectionStatus;
+    }
+
+    public void addCardToTribe(Card card){
+        this.tribe.add(card);
+    }
+
+    public int getShamanStarTotal(){
+        int countStar = 0;
+        for(Card card : this.tribe){
+            if(card instanceof ShamanCard){
+                countStar= countStar + ((ShamanCard) card).getStarNumber();
+
+            }
+        }
+        return countStar;
+    }
+
 }

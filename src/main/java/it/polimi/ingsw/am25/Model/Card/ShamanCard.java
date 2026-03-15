@@ -11,7 +11,17 @@ public class ShamanCard extends Card{
         this.starNumber = starNumber;
     }
 
-    public SHAMAN_STAR getStarNumber() {
-        return starNumber;
+    public int getStarNumber() {
+        switch (starNumber){
+            case ONE:
+                return 1;
+            case TWO:
+                return 2;
+            case THREE:
+                return 3;
+            default:
+                System.err.println("Errore");
+                return -1;
+        }
     }
 }
