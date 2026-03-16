@@ -17,7 +17,7 @@ public class Player {
     private int prestigePoint;
     private List<Card> tribe;
     private List<BuildingCard> buildingCards; /* modificare UML */
-    CONNECTION_STATUS connectionStatus;
+    private CONNECTION_STATUS connectionStatus;
 
     public Player(String nickname, COLOR color) {
             this.nickname = nickname;
