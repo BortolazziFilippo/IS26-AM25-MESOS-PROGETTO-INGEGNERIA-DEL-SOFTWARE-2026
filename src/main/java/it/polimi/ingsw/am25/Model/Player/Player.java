@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Player;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Card.ShamanCard;
+import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
 
@@ -58,9 +59,8 @@ public class Player {
     public int getShamanStarTotal(){
         int countStar = 0;
         for(Card card : this.tribe){
-            if(card instanceof ShamanCard){
+            if(card.getCardType()== CARD_TYPE.SHAMAN){
                 countStar= countStar + ((ShamanCard) card).getStarNumber();
-
             }
         }
         return countStar;
