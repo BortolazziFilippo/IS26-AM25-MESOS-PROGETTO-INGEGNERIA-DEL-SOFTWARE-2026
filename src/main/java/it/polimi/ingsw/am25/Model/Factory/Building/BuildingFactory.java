@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.Model.Factory.Building;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
-import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Effect.Building.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Factory.DTO.BuildingDTO;
@@ -18,11 +17,10 @@ public class BuildingFactory {
     }
 
     public List<BuildingCard> createBuildingDeck (int playerNumber){
-        int randomCardId;
-        Random random=new Random();
+
         List<BuildingCard> tempList =new ArrayList<>();
         List<BuildingCard> listToReturn=new ArrayList<>();
-        List<Integer> randomNumber=new ArrayList<>();
+        List<Integer> randomNumber;
         InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
         if(inputStream==null) {
             throw new RuntimeException("Errore apertura file building.json");
@@ -31,7 +29,7 @@ public class BuildingFactory {
         Gson gson= new Gson();
         BuildingDTO[] tempCatalogue= gson.fromJson(reader, BuildingDTO[].class);
         for (BuildingDTO dto : tempCatalogue){
-            tempList.add(new BuildingCard(dto.getEra(),dto.getBuildingID(),dto.getFoodCost(),dto.getEndGamePP(),dto.getApplyOn()));
+            tempList.add(new BuildingCard(dto.getEra(),CARD_TYPE.BUILDING,dto.getBuildingID(),dto.getFoodCost(),dto.getEndGamePP(),dto.getApplyOn()));
         }
 
         switch (playerNumber){
@@ -102,7 +100,7 @@ public class BuildingFactory {
                 }
                 break;
             default:
-                System.err.println("Parametro PlayerNumber non valido" );
+                System.err.println(getClass() + ": Parametro PlayerNumber non valido" );
         }
         for (BuildingCard n:listToReturn){
             n.setBuildingEffect(returnCorrectBuildingEffect(n));
