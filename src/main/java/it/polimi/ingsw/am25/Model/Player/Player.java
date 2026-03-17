@@ -16,7 +16,7 @@ public class Player {
     private int food;
     private int prestigePoint;
     private List<Card> tribe;
-    private List<BuildingCard> buildingCards; /* modificare UML */
+    private List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
 
     public Player(String nickname, COLOR color) {
@@ -64,6 +64,21 @@ public class Player {
             }
         }
         return countStar;
+    }
+
+    public int getBuilderDiscount(){
+
+        return 0;
+    }
+
+    public int getGatherDiscount(){
+
+        return 0;
+    }
+
+    public int getArtistNumber(){
+
+        return 0;
     }
 
 }
