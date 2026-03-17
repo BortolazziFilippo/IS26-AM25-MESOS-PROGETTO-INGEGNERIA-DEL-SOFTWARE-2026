@@ -3,8 +3,10 @@ package it.polimi.ingsw.am25.Model.Factory.Deck;
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.DTO.BuildingDTO;
 import it.polimi.ingsw.am25.Model.Factory.DTO.CardDTO;
+import it.polimi.ingsw.am25.Model.Factory.Event.EventFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -68,6 +70,9 @@ public class DeckFactory {
                     System.err.println(getClass()+ ": Errore creazione carte" + temp.getCardType().toString());
             }
         }
+
+        List<EventCard> listEventToMerge = new EventFactory().createEvent(playerNumber);
+        cardToReturn.addAll(listEventToMerge);
         return cardToReturn;
 
     }

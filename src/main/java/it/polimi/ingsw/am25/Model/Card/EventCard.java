@@ -14,6 +14,14 @@ public class EventCard extends Card
     private EVENT_TYPE eventType;
     private EventEffect eventEffect;
 
+    /**
+     * Costruttore Completo eventi
+     * @param era
+     * @param cardType
+     * @param eventID
+     * @param eventType
+     * @param eventEffect
+     */
     public EventCard(ERA era, CARD_TYPE cardType, int eventID, EVENT_TYPE eventType, EventEffect eventEffect) {
         this.cardType=cardType;
         this.era = era;
@@ -21,6 +29,30 @@ public class EventCard extends Card
         this.eventType = eventType;
         this.eventEffect = eventEffect;
     }
+
+    /**
+     * costruttore senza event Effect
+     * @param era
+     * @param cardType
+     * @param eventID
+     * @param eventType
+     */
+    public EventCard(ERA era, CARD_TYPE cardType,int eventID, EVENT_TYPE eventType) {
+        this.cardType=cardType;
+        this.era = era;
+        this.eventID = eventID;
+        this.eventType = eventType;
+
+    }
+
+    public void setEventEffect(EventEffect eventEffect) {
+        this.eventEffect = eventEffect;
+    }
+
+    public int getEventID() {
+        return eventID;
+    }
+
     public void applyEventEffect(List<Player> PlayersList)
     {
         this.eventEffect.solveEvent(PlayersList);

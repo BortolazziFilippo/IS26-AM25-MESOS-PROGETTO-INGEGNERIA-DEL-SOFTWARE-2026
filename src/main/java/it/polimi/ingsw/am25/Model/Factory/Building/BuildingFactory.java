@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Factory.Building;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
+import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Effect.Building.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Factory.DTO.BuildingDTO;
@@ -23,7 +24,7 @@ public class BuildingFactory {
         List<Integer> randomNumber;
         InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
         if(inputStream==null) {
-            throw new RuntimeException("Errore apertura file building.json");
+            throw new RuntimeException(getClass()+ ": Errore apertura file building.json");
         }
         Reader reader= new InputStreamReader(inputStream);
         Gson gson= new Gson();
@@ -175,7 +176,7 @@ public class BuildingFactory {
                 break;
             default:
                 // Gestione per ID non previsti
-                System.out.println("ID Edificio non riconosciuto: " + buildingToSetEffect.getBuildingID());
+                System.err.println("ID Edificio non riconosciuto: " + buildingToSetEffect.getBuildingID());
                 break;
         }
         return effectToReturn;
