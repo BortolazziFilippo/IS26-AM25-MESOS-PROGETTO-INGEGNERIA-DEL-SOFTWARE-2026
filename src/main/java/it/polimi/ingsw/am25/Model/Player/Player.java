@@ -1,8 +1,6 @@
 package it.polimi.ingsw.am25.Model.Player;
 
-import it.polimi.ingsw.am25.Model.Card.BuildingCard;
-import it.polimi.ingsw.am25.Model.Card.Card;
-import it.polimi.ingsw.am25.Model.Card.ShamanCard;
+import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
@@ -57,6 +55,9 @@ public class Player {
     public void addCardToTribe(Card card){
         this.tribe.add(card);
     }
+    public void addBuilding(BuildingCard card){
+        this.buildingCards.add(card);
+    }
 
     public int getFood() {
         return food;
@@ -78,17 +79,18 @@ public class Player {
 
     public int getBuilderDiscount(){
 
-        return 0;
+        return this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.BUILDER).map(card -> (BuilderCard)card).mapToInt(BuilderCard::getFoodDiscount).sum();
     }
 
     public int getGatherDiscount(){
 
-        return 0;
+        return  (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.GATHERER).count();
     }
 
     public int getArtistNumber(){
-
-        return 0;
+        return (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.ARTIST).count();
     }
-
+    public int getNumberOfCard(){
+        return this.tribe.size();
+    }
 }
