@@ -1,11 +1,9 @@
 package it.polimi.ingsw.am25.Model.Factory.Event;
 
 import com.google.gson.Gson;
-import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Card.EventCard;
 import it.polimi.ingsw.am25.Model.Effect.Event.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.DTO.EventDTO;
 
 import java.io.InputStream;
@@ -40,40 +38,40 @@ public class EventFactory {
         EventEffect eventEffect=null;
         switch (eventCard.getEventID()){
             case 1:
-                eventEffect=new HuntEvent(-1,-1);
+                eventEffect=new HuntEvent(1,1);
                 break;
             case 2:
-                eventEffect=new SustenanceEvent(-1,-1);
+                eventEffect=new SustenanceEvent(1,-1);
                 break;
             case 3:
-                eventEffect=new ShamanEvent(-1,-1);
+                eventEffect=new ShamanEvent(5,-3);
                 break;
             case  4:
-                eventEffect=new ArtistEvent(-1,-1,-1);
+                eventEffect=new ArtistEvent(1,-2,1);
                 break;
             case 5:
-                eventEffect=new HuntEvent(-1,-1);
+                eventEffect=new HuntEvent(1,2);
                 break;
             case 6:
-                eventEffect=new SustenanceEvent(-1,-1);
+                eventEffect=new SustenanceEvent(1,-2);
                 break;
             case 7:
-                eventEffect=new ShamanEvent(-1,-1);
+                eventEffect=new ShamanEvent(10,-5);
                 break;
             case  8:
-                eventEffect=new ArtistEvent(-1,-1,-1);
+                eventEffect=new ArtistEvent(2,-2,2);
                 break;
             case 9:
-                eventEffect=new HuntEvent(-1,-1);
+                eventEffect=new HuntEvent(1,3);
                 break;
             case 10:
-                eventEffect=new ArtistEvent(-1,-1,-1);
+                eventEffect=new ArtistEvent(3,-2,3);
                 break;
             case 11:
-                eventEffect=new SustenanceEvent(-1,-1);
+                eventEffect=new SustenanceEvent(1,-3);
                 break;
             case  12:
-                eventEffect=new ShamanEvent(-1,-1);
+                eventEffect=new ShamanEvent(15,-7);
                 break;
             default:
                 System.err.println(getClass()+"Errore associazione artisti");
