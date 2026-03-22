@@ -28,11 +28,13 @@ public class Player {
 
     public void manageFood(int foodAmount){
         if(foodAmount < 0){
-            if( (this.food += foodAmount) < 0){
+            if( (this.food + foodAmount) < 0){
                 this.food += foodAmount;
                 int temp = this.food*2;
                 managePP(temp);
                 this.food = 0;
+            }else{
+                this.food+=foodAmount;
             }
         }
         else{
