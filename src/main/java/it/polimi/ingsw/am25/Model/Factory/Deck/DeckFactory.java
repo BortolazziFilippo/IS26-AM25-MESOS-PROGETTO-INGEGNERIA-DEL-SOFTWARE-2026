@@ -71,7 +71,7 @@ public class DeckFactory {
             }
         }
 
-        List<EventCard> listEventToMerge = new EventFactory().createEvent(playerNumber);
+        List<EventCard> listEventToMerge = new EventFactory().createEvent();
         cardToReturn.addAll(listEventToMerge);
         return cardToReturn;
 

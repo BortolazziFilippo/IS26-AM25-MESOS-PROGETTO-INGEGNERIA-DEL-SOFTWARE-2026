@@ -15,10 +15,10 @@ import java.util.List;
 public class EventFactory {
     public EventFactory() {
     }
-    public List<EventCard> createEvent(int playerNumber){
+    public List<EventCard> createEvent(){
         List<EventCard> templist=new ArrayList<>();
         List<EventCard> listToReturn=new ArrayList<>();
-        InputStream inputStream = EventFactory.class.getResourceAsStream("/CardResources/json/building.json");
+        InputStream inputStream = EventFactory.class.getResourceAsStream("/CardResources/json/event.json");
         if(inputStream==null) {
             throw new RuntimeException(getClass()+ ": Errore apertura file building.json");
         }
@@ -74,7 +74,7 @@ public class EventFactory {
                 eventEffect=new ShamanEvent(15,-7);
                 break;
             default:
-                System.err.println(getClass()+"Errore associazione artisti");
+                System.err.println(getClass()+"Errore associazione eventi");
         }
         return eventEffect ;
     }

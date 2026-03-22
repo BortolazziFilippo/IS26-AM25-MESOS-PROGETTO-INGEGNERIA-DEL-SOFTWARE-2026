@@ -53,6 +53,10 @@ public class EventCard extends Card
         return eventID;
     }
 
+    public EVENT_TYPE getEventType() {
+        return eventType;
+    }
+
     public void applyEventEffect(List<Player> PlayersList)
     {
         this.eventEffect.solveEvent(PlayersList);

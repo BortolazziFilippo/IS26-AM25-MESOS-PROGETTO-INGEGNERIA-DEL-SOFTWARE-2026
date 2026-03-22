@@ -50,6 +50,12 @@
   {
     "cardType": "INVENTOR",
     "era": "ERA_II",
+    "invIcon": "LEATHER"
+
+  },
+  {
+    "cardType": "INVENTOR",
+    "era": "ERA_II",
     "invIcon": "BAIT"
 
   },
@@ -352,6 +358,11 @@
     "hasIcon":true
   },
 
+  {
+    "cardType": "HUNTER",
+    "era": "ERA_II",
+    "hasIcon":true
+  },
   {
     "cardType": "HUNTER",
     "era": "ERA_II",

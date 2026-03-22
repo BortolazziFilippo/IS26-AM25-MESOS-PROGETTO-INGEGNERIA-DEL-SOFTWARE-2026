@@ -49,6 +49,12 @@
   },
   {
     "cardType": "INVENTOR",
+    "era": "ERA_II",
+    "invIcon": "LEATHER"
+
+  },
+  {
+    "cardType": "INVENTOR",
     "era": "ERA_III",
     "invIcon": "BREAD"
 
