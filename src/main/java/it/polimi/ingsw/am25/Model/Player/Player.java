@@ -56,6 +56,14 @@ public class Player {
         this.tribe.add(card);
     }
 
+    public int getFood() {
+        return food;
+    }
+
+    public int getPrestigePoint() {
+        return prestigePoint;
+    }
+
     public int getShamanStarTotal(){
         int countStar = 0;
         for(Card card : this.tribe){
