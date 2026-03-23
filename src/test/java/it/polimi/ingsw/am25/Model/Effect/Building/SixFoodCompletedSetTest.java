@@ -65,11 +65,13 @@ class SixFoodCompletedSetTest {
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
-
+        buildingCard.applyBuildingEffect(player);
         assertEquals(15,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
+        buildingCard.applyBuildingEffect(player);
         assertEquals(20,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
+        buildingCard.applyBuildingEffect(player);
         assertEquals(25,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
 
