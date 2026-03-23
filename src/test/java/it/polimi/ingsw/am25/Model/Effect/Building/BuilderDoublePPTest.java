@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.Model.Effect.Building;
 
 import it.polimi.ingsw.am25.Model.Card.BuilderCard;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
-import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
@@ -23,7 +22,7 @@ class BuilderDoublePPTest {
         player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,4));
         BuildingCard buildingCard=new BuildingCard(ERA.ERA_II,CARD_TYPE.BUILDING,1,10,10,EVENT_TYPE.END_GAME);
         buildingCard.setBuildingEffect(new BuilderDoublePP());
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(18,player.getTribe().stream().filter(card -> card.getCardType()==CARD_TYPE.BUILDER).map((card->(BuilderCard)card)).mapToInt(BuilderCard::getFinalPrestigePoint).sum());
 
     }

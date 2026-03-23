@@ -29,11 +29,11 @@ class DiscountFoodOnSustenanceTest {
         //now i test with the discount effect
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_II,CARD_TYPE.BUILDING,1,10,10, EVENT_TYPE.SUSTENANCE);
         buildingCard.setBuildingEffect(new DiscountFoodOnSustenance(CARD_TYPE.GATHERER));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         player.manageFood(-(player.getTribe().size()));
         assertEquals(14,player.getFood()); //the food removed is one instead of two
         buildingCard.setBuildingEffect(new DiscountFoodOnSustenance(CARD_TYPE.ARTIST));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         player.manageFood(-(player.getTribe().size()));
         assertEquals(13,player.getFood());
 

@@ -18,33 +18,33 @@ class FiveFoodCompletedSetTest {
         player.manageFood(5);
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.GATHERER,1,10,10, EVENT_TYPE.END_ROUND);
         buildingCard.setBuildingEffect(new FiveFoodCompletedSet());
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());
         //for semplicity i used the same class but changed type of card
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(10,player.getFood()); //this confirms the "each set completed add five food"
 
 
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(10,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(10,player.getFood());
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
-        buildingCard.applyEventEffect(player);
+        buildingCard.applyBuildingEffect(player);
         assertEquals(15,player.getFood());
 
     }

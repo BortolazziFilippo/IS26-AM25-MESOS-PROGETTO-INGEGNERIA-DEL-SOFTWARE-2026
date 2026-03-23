@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.Model.Factory.Building;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
-import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Effect.Building.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Factory.DTO.BuildingDTO;
@@ -145,7 +144,7 @@ public class BuildingFactory {
                 effectToReturn = new BuilderDoublePP();
                 break;
             case 12:
-                effectToReturn = new OnPaintingOneFoodPerArtist();
+                effectToReturn = new OnEventPaintingsOneFoodPerArtist();
                 break;
             case 13:
                 effectToReturn = new SetSixCard();

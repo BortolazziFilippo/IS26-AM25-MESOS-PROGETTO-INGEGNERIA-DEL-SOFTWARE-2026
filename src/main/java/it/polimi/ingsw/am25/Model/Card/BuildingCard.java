@@ -45,7 +45,7 @@ public class BuildingCard extends Card {
         return applyOn;
     }
 
-    public void applyEventEffect(Player player) {
+    public void applyBuildingEffect(Player player) {
         this.buildingEffect.applyEffect(player);
     }
 }

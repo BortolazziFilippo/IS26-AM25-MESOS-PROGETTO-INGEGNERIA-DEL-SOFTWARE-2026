@@ -20,6 +20,7 @@ public class Player {
     public Player(String nickname, COLOR color) {
             this.nickname = nickname;
             this.tribe = new ArrayList<Card>();
+            this.buildingCards = new ArrayList<>();
             /* bisogna firnirlo dopo la classe totem !! */
 
     }
@@ -98,5 +99,9 @@ public class Player {
 
     public List<Card> getTribe() {
         return tribe;
+    }
+
+    public List<BuildingCard> getBuildingCards() {
+        return buildingCards;
     }
 }
