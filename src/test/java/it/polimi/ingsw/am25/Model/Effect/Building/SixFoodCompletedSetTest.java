@@ -11,13 +11,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FiveFoodCompletedSetTest {
+class SixFoodCompletedSetTest {
     @Test
     public void TestApplyEffect() {
         Player player = new Player("Lorem Ipsum", COLOR.RED);
         player.manageFood(5);
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.GATHERER,1,10,10, EVENT_TYPE.END_ROUND);
-        buildingCard.setBuildingEffect(new FiveFoodCompletedSet());
+        buildingCard.setBuildingEffect(new SixFoodCompletedSet());
         buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());
         //for semplicity I used the same class but changed type of card
