@@ -14,7 +14,7 @@ import java.util.List;
 //6
 public class FiveFoodCompletedSet extends BuildingEffect {
     private boolean alreadyUsed = false;
-    private List<Boolean> setCard = new ArrayList<>();
+    private List<Integer> setCard = new ArrayList<>();
     private List<Card> listOldCard;
 
     public FiveFoodCompletedSet() {
@@ -25,7 +25,7 @@ public class FiveFoodCompletedSet extends BuildingEffect {
 
         if(!alreadyUsed){
             for (int i = 0; i < 6; i++) {
-                setCard.add(i,false);
+                setCard.add(i,0);
             }
 
             listOldCard=new ArrayList<>(player.getTribe());
@@ -38,31 +38,31 @@ public class FiveFoodCompletedSet extends BuildingEffect {
             for (Card card: difference){
                 switch (card.getCardType()){
                     case BUILDER:
-                        setCard.set(0,true);
+                        setCard.set(0,setCard.get(0)+1);
                         break;
                     case ARTIST:
-                        setCard.set(1,true);
+                        setCard.set(1,setCard.get(1)+1);
                         break;
                     case GATHERER:
-                        setCard.set(2,true);
+                        setCard.set(2,setCard.get(2)+1);
                         break;
                     case SHAMAN:
-                        setCard.set(3,true);
+                        setCard.set(3,setCard.get(3)+1);
                         break;
                     case INVENTOR:
-                        setCard.set(4,true);
+                        setCard.set(4,setCard.get(4)+1);
                         break;
                     case HUNTER:
-                        setCard.set(5,true);
+                        setCard.set(5,setCard.get(5)+1);
                         break;
                     default:
                         System.err.println(getClass()+" errore identificazione carta");
                 }
             }
-            if(setCard.contains(false)){
-            }else {
-                player.manageFood(+5);
-                setCard.replaceAll(element->false);
+
+            if(!setCard.contains(0)){
+                player.manageFood(5);
+                setCard.replaceAll(integer -> integer-1);
             }
         }
     }
