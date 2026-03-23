@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am25.Model.Effect.Building;
 
 import it.polimi.ingsw.am25.Model.Card.ArtistCard;
-import it.polimi.ingsw.am25.Model.Card.BuilderCard;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.GathererCard;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;

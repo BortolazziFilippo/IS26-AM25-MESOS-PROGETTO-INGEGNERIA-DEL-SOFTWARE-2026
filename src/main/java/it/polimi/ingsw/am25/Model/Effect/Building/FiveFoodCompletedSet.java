@@ -16,8 +16,7 @@ public class FiveFoodCompletedSet extends BuildingEffect {
     private boolean alreadyUsed = false;
     private List<Boolean> setCard = new ArrayList<>();
     private List<Card> listOldCard;
-    private List<Card> listOfNewCard;
-    private List<Card> difference;
+
     public FiveFoodCompletedSet() {
     }
 
@@ -31,13 +30,12 @@ public class FiveFoodCompletedSet extends BuildingEffect {
 
             listOldCard=new ArrayList<>(player.getTribe());
             this.alreadyUsed=true;
-            return;
         }else{
-            listOfNewCard=player.getTribe();
-            difference=new ArrayList<>(listOfNewCard);
+            List<Card> listOfNewCard = player.getTribe();
+            List<Card> difference = new ArrayList<>(listOfNewCard);
             difference.removeAll(listOldCard);
             listOldCard=new ArrayList<>(listOfNewCard);
-            for (Card card:difference){
+            for (Card card: difference){
                 switch (card.getCardType()){
                     case BUILDER:
                         setCard.set(0,true);
@@ -62,7 +60,6 @@ public class FiveFoodCompletedSet extends BuildingEffect {
                 }
             }
             if(setCard.contains(false)){
-                return;
             }else {
                 player.manageFood(+5);
                 setCard.replaceAll(element->false);
