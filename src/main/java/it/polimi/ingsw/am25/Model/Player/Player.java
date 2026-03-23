@@ -89,6 +89,10 @@ public class Player {
         return  (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.GATHERER).count();
     }
 
+    public int getHunterNumber(){
+        return (int) tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.HUNTER).count();
+    }
+
     public int getArtistNumber(){
         return (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.ARTIST).count();
     }
