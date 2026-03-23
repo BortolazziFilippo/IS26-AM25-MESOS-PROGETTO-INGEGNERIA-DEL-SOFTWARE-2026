@@ -11,16 +11,16 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FiveFoodCompletedSetTest {
+class SixFoodCompletedSetTest {
     @Test
     public void TestApplyEffect() {
         Player player = new Player("Lorem Ipsum", COLOR.RED);
         player.manageFood(5);
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.GATHERER,1,10,10, EVENT_TYPE.END_ROUND);
-        buildingCard.setBuildingEffect(new FiveFoodCompletedSet());
+        buildingCard.setBuildingEffect(new SixFoodCompletedSet());
         buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());
-        //for semplicity i used the same class but changed type of card
+        //for semplicity I used the same class but changed type of card
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
         buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());
@@ -46,6 +46,34 @@ class FiveFoodCompletedSetTest {
         player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
         buildingCard.applyBuildingEffect(player);
         assertEquals(15,player.getFood());
+
+
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
+
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
+
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.BUILDER));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.SHAMAN));
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.HUNTER));
+        buildingCard.applyBuildingEffect(player);
+        assertEquals(15,player.getFood());
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
+        buildingCard.applyBuildingEffect(player);
+        assertEquals(20,player.getFood());
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
+        buildingCard.applyBuildingEffect(player);
+        assertEquals(25,player.getFood());
+        player.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
 
     }
 

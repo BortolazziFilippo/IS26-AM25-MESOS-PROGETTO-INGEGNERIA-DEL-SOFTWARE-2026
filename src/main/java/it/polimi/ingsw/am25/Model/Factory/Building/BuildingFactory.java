@@ -111,7 +111,7 @@ public class BuildingFactory {
         BuildingEffect effectToReturn= null;
         switch (buildingToSetEffect.getBuildingID()) {
             case 1:
-                effectToReturn = new FiveFoodCompletedSet();
+                effectToReturn = new SixFoodCompletedSet();
                 break;
             case 2:
                 effectToReturn = new DiscountFoodOnSustenance(CARD_TYPE.GATHERER);

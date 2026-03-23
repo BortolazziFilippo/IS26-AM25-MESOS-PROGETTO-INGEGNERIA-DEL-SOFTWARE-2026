@@ -8,6 +8,9 @@ public class TwentyFivePPEndGame extends BuildingEffect{
 
     @Override
     public void applyEffect(Player player) {
+        player.managePP(25);
 
     }
+    /* non so se va bene solo questo, però in teoria il metodo che annuncia il fine della partita lancia questo metodo
+    * e modifica semplicemnte il PP */
 }
