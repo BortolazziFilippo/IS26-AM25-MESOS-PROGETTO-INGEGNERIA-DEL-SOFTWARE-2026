@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am25.Model.Effect.Building;
 
 import it.polimi.ingsw.am25.Model.Card.Card;
-import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
 import java.util.ArrayList;
@@ -12,12 +11,12 @@ import java.util.List;
 //4
 //5
 //6
-public class FiveFoodCompletedSet extends BuildingEffect {
+public class SixFoodCompletedSet extends BuildingEffect {
     private boolean alreadyUsed = false;
     private List<Boolean> setCard = new ArrayList<>();
     private List<Card> listOldCard;
 
-    public FiveFoodCompletedSet() {
+    public SixFoodCompletedSet() {
     }
 
     @Override
