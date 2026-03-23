@@ -120,7 +120,7 @@ public class BuildingFactory {
                 effectToReturn = new DiscountFoodOnSustenance(CARD_TYPE.ARTIST);
                 break;
             case 4:
-                effectToReturn = new NoPPLostOnShaman();
+                effectToReturn = new NoPPLostOnShaman(0);
                 break;
             case 5:
                 effectToReturn = new PlusOneFoodOnReturnDefaultTile();

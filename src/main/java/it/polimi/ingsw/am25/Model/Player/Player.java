@@ -16,6 +16,7 @@ public class Player {
     private List<Card> tribe;
     private List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
+    private int temporaryShamanBonus = 0;
 
     public Player(String nickname, COLOR color) {
             this.nickname = nickname;
@@ -39,6 +40,14 @@ public class Player {
         else{
             this.food += foodAmount;
         }
+    }
+
+    public void addTemporaryShamanBonus(int bonus){
+        this.temporaryShamanBonus += bonus;
+    }
+
+    public void resetTemporaryShamanBonus(){
+        this.temporaryShamanBonus = 0;
     }
 
     public void managePP(int PPamount){
@@ -76,7 +85,7 @@ public class Player {
                 countStar= countStar + ((ShamanCard) card).getStarNumber();
             }
         }
-        return countStar;
+        return countStar + temporaryShamanBonus;
     }
 
     public int getBuilderDiscount(){
