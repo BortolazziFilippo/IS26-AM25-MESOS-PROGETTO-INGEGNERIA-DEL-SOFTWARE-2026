@@ -1,12 +1,16 @@
 package it.polimi.ingsw.am25.Model.Game;
 
+import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Tile.DefaultTile;
+import it.polimi.ingsw.am25.Model.Tile.OfferTile;
 import it.polimi.ingsw.am25.Model.Tile.OfferTrack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
@@ -19,9 +23,36 @@ public class Game {
     private List<Card> bottomCardList; /*modificare UML le lettere maiuscole*/
     private ERA actualEra;
     private List<Player> placingOrder;
-    private List<Card> playingOrder;
+
+    //quetso prima era messo come lista di Card ma penso intendesse lista di Player. giusto?
+    private List<Player> playingOrder;
 
     public Game(Player playerHost, int playerNumber) {
+        //solita eccezione per gli argoementi passati
+        if (playerHost == null) {
+            throw new IllegalArgumentException("playerHost nullo");
+        }
+
+        //questo su UML è segnato come "non mi convince" dobbiamo decidere se tenerlo o no
+        this.playerHost = playerHost;
+        this.playerNumber = playerNumber;
+
+        //per questa riga come aggiungiamo i player effettivi? perchè per ora abbiamo solo playerHost
+        //per adesso quindi lista ancora vuota
+        this.players = new ArrayList<>();
+
+        this.topCardList = new ArrayList<>();
+        this.bottomCardList = new ArrayList<>();
+
+        this.actualEra = ERA.ERA_I;
+
+        //qui crea offertrack e deck con i metodi private messi sotto
+        this.createOfferTrack(playerNumber);
+        this.createDecks(playerNumber);
+
+        //anche questi in UML non eravamo sicuri
+        this.placingOrder = new ArrayList<>();
+        this.playingOrder = new ArrayList<>();
 
     }
 
@@ -64,6 +95,26 @@ public class Game {
         this.bottomCardList.clear();
     }
 
+    //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
+    //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
+    //tanto ritorna solo un bool, non esegue effettivamente gli eventi
+    public boolean checkEventsPresence(){
+        //solita eccezione anche qui
+        if (bottomCardList == null) {
+            throw new IllegalStateException("bottomCardList è null");
+        }
+
+        //scorre la lista sotto e cerca event cards
+        for (Card card : bottomCardList) {
+            if (card.getCardType() == CARD_TYPE.EVENT) {
+                return true;
+            }
+        }
+
+        //se non trova più eventi allora false
+        return false;
+    }
+
     public void manageFood(Player player, int food_amount){
         player.manageFood(food_amount);
     }
@@ -89,6 +140,10 @@ public class Game {
             throw new IllegalArgumentException("topCardList null o player null");
         }
 
+        if (topCardList.isEmpty()) {
+            throw new IllegalStateException("topCardList è vuota");
+        }
+
         if (position < 0 || position >= topCardList.size()) {
             throw new IndexOutOfBoundsException("Posizione non valida");
         }
@@ -101,16 +156,14 @@ public class Game {
         //c'è la possibiità di pescare un evento? se c'è va aggiunto in un altro else che se il giocatore
         // prova a pescare un evento anzichè una carta normale lancia eccezione. stessa cosa quando
         //facciamo il metodo per pescare dalla bottomlist.
-        if (selected_card.getCardType() != CARD_TYPE.BUILDING) {
+
+        if (selected_card.getCardType() == CARD_TYPE.BUILDING) {
+            //fa cast perchè selected_card è di tipo Card ma il metodo prende BuildingCard
+            player.addBuilding((BuildingCard) selected_card);
+        } else {
             player.addCardToTribe(selected_card);
         }
-        /* qui manca l'else che dice che se è building allora aggiunge a building del player ma manca
-        il metodo per aggiungere a building in player
 
-        else {
-            player.metodo_per_aggiungere_a_building(selected_card);
-        }
-        */
 
         //poi rimuove la carta scelta dalla toplist, ma remove mi sembra che cancelli proprio la posizone
         //dalla lista, quindi ad esempio da x elementi va ad x-1. se no possiamo semplicemente settare a
@@ -119,8 +172,133 @@ public class Game {
 
     }
 
-    //per checkWinner() mi sa che mancano i getter che ho scritto su discord ma è semplice
+    public void selectCardFromBottomList(int position, Player player){
+        //solite eccezioni come in selectedCardFromTopList()
+        if (bottomCardList == null || player == null) {
+            throw new IllegalArgumentException("bottomCardList null o player null");
+        }
 
+        if (bottomCardList.isEmpty()) {
+            throw new IllegalStateException("bottomCardList è vuota");
+        }
+
+        if (position < 0 || position >= bottomCardList.size()) {
+            throw new IndexOutOfBoundsException("Posizione non valida");
+        }
+
+        //seleziona carta da position e mette in selected_card come metodo sopra
+        Card selected_card = this.bottomCardList.get(position);
+
+        //qui si aggiunge la possibilità che la posizione passata come agromento sia corrispondente
+        //ad una event card che non può essere pescata, quindi aggiugniamo eccezione
+        if (selected_card.getCardType() == CARD_TYPE.EVENT){
+            throw new IllegalStateException("la position passata corrisponde a event card, che non si pesca");
+        }
+
+        if (selected_card.getCardType() == CARD_TYPE.BUILDING) {
+            //di nuovo qui serve casting come nel metodo sopra
+            player.addBuilding((BuildingCard) selected_card);
+        } else {
+            player.addCardToTribe(selected_card);
+        }
+
+        this.bottomCardList.remove(position);
+
+    }
+
+    //da ricordarsi di aggiungere parte che rimuove player totem da default tile
+    public void placeOnTile(Player player, int position){
+        //solita eccezione
+        if (player == null) {
+            throw new IllegalArgumentException("player passato è null");
+        }
+
+        //prendiamo tutte le tiles di offertrack
+        List<OfferTile> tiles = this.offerTrack.getAvailableOfferTiles();
+
+        //anche qui solita eccezione che si triggera solo se il costruttore fa qualche errore
+        if (tiles == null) {
+            throw new IllegalStateException("abbiamo lista delle offertiles che è null, err costruttore");
+        }
+
+        // eccezione se position passata in argomento non va bene
+        if (position < 0 || position >= tiles.size()) {
+            throw new IndexOutOfBoundsException("position non valida");
+        }
+
+        //ora prende direttamente la tile scelta
+        OfferTile selectedTile = tiles.get(position);
+
+        //ora eccezione se tile già presa
+        if (selectedTile.isOccupied()) {
+            throw new IllegalStateException("tile già occupata");
+        }
+
+        //altrimenti posiziona pedina del player (DA MODIFICARE UML che abbiamo scritto "placePlayer()"
+        //anzichè setPlayerOn
+        selectedTile.setPalyerOn(player);
+
+    }
+
+    //1)aggiunto getter di defaultTile su offertrack che è privato, da ricordarsi di aggiungerlo pure su UML
+    //2) c'è un problema, dobbiamo decidere come implemnetrae la parte di ordine in cui i giocatori mettono
+    // giù la pedina, serve anche per placeOnTile() qui sopra
+    public void returnDefaultTile(Player player){
+        //eccezione se arg sbagliato
+        if (player == null) {
+            throw new IllegalArgumentException("player null");
+        }
+
+        //prende defaultTile
+        DefaultTile defaultTile = this.offerTrack.getDefaultTile();
+
+        //prende lista dei player nell'ordine ma è qui il problema di cui dicevo sopra
+        //poi UMl dice che getPlayerPosition ritorna array ma nel codice abbiamo messo Lits, quidni va
+        //aggiornato UML
+        List<Player> positions = defaultTile.getPlayerPosition();
+
+        //se lista presa è null eccezione, ma dipende da come abbiamo risolto problema sopra
+        if (positions == null) {
+            throw new IllegalStateException("lista delle posizioni è null");
+        }
+
+        //scorre lista posizioni e al primo slot vuoto (null) mette player (da alto verso basso)
+        for (int i = 0; i < positions.size(); i++) {
+            if (positions.get(i) == null) {
+                defaultTile.insertPlayer(player, i);
+                return;
+            }
+        }
+
+        //se non ha trovato posizioni vuote errore
+        throw new IllegalStateException("defaultTile già piena");
+
+    }
+
+    //1) magari sarebbe comodo oltre a ritornare un player fargli anche printare il numero di PP del winner
+    // ma non sono sicuro serva effettivamente
+    //2) nel caso di parità come facciamo? per ora se due sono pari lui semplicemente ritorna il "primo"
+    // dei due in base alla sua posizione nella lista
+    public Player checkWinner(){
+        //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
+        if (this.players == null || this.players.isEmpty()) {
+            throw new IllegalStateException("Nessun giocatore presente, errore nle costruttore");
+        }
+
+        //prende il primo player della lista, come se fosse una variabile tmp prima di fare il for
+        Player winner = this.players.get(0);
+
+        //scorre la lista e aggiorna man mano
+        for (Player p : this.players) {
+            if (p.getPrestigePoint() > winner.getPrestigePoint()) {
+                winner = p;
+            }
+        }
+
+        return winner;
+
+
+    }
 
 
 }
