@@ -18,6 +18,10 @@ public class BuilderCard extends Card{
         return foodDiscount;
     }
 
+    public void setFinalPrestigePoint(int finalPrestigePoint) {
+        this.finalPrestigePoint = finalPrestigePoint;
+    }
+
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
     }

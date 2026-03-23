@@ -12,6 +12,7 @@ public class DiscountFoodOnSustenance extends BuildingEffect {
 
     @Override
     public void applyEffect(Player player) {
-
+        int cardOfTypeAmount=(int)player.getTribe().stream().filter(card -> card.getCardType()==this.cardType).count();
+        player.manageFood(cardOfTypeAmount);
     }
 }

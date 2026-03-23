@@ -55,6 +55,7 @@ public class Player {
     public void addCardToTribe(Card card){
         this.tribe.add(card);
     }
+
     public void addBuilding(BuildingCard card){
         this.buildingCards.add(card);
     }
@@ -90,7 +91,12 @@ public class Player {
     public int getArtistNumber(){
         return (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.ARTIST).count();
     }
+
     public int getNumberOfCard(){
         return this.tribe.size();
+    }
+
+    public List<Card> getTribe() {
+        return tribe;
     }
 }
