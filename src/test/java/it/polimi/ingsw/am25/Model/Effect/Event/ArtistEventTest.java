@@ -22,7 +22,7 @@ class ArtistEventTest {
     @Test
     void solveEvent() {
 
-        //testo se la logica funziona, se ha piu di artist needed allora guadagna PPtoMultiply perogni artista, altrimenti perde due punti PP
+        //testo se la logica funziona, se ha piu di artist needed allora guadagna PPtoMultiply per ogni artista, altrimenti perde due punti PP
         List<Player> playerList= new ArrayList<>();
         Player player1 = new Player("Lorem Ipsum", COLOR.RED);
         Player player2 = new Player("Lorem Ipsum", COLOR.RED);
@@ -81,7 +81,7 @@ class ArtistEventTest {
         assertEquals(-2,player1.getPrestigePoint());
         assertEquals(-2,player2.getPrestigePoint());
         assertEquals(-2,player3.getPrestigePoint());
-        assertEquals(2,player3.getFood()); //Checking if has applyed the bulding effect
+        assertEquals(2,player3.getFood()); //Checking if it has applied the building effect
         assertNotEquals(2,player4.getFood()); //checking other pl PP are not changed
         assertEquals(9,player4.getPrestigePoint());
     }
