@@ -8,6 +8,6 @@ public class DoublePPOnShamanEvent extends BuildingEffect{
     //ho bisogno prima di fare la logica dell'evento shaman event, per poi far chiamare questa funzione
     @Override
     public void applyEffect(Player player) {
-
+        //raddioppia solo i PP guadagnati dall'evento o tutti i PP del giocatore?
     }
 }
