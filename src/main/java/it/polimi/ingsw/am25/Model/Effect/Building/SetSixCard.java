@@ -28,22 +28,22 @@ public class SetSixCard extends BuildingEffect{
         for (Card card : newCards) {
             switch (card.getCardType()){
                 case BUILDER:
-                    setCards.addFirst(setCards.getFirst()+1);
+                    setCards.set(0, setCards.getFirst()+1);
                     break;
                 case ARTIST:
-                    setCards.add(1,setCards.get(1)+1);
+                    setCards.set(1,setCards.get(1)+1);
                     break;
                 case GATHERER:
-                    setCards.add(2,setCards.get(2)+1);
+                    setCards.set(2,setCards.get(2)+1);
                     break;
                 case SHAMAN:
-                    setCards.add(3,setCards.get(3)+1);
+                    setCards.set(3,setCards.get(3)+1);
                     break;
                 case INVENTOR:
-                    setCards.add(4,setCards.get(4)+1);
+                    setCards.set(4,setCards.get(4)+1);
                     break;
                 case HUNTER:
-                    setCards.add(5,setCards.get(5)+1);
+                    setCards.set(5,setCards.get(5)+1);
                     break;
                 default:
                     System.err.println(getClass()+" errore identificazione carta");
