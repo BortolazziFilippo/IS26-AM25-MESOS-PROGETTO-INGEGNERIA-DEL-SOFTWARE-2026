@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
-    private String nickname;
+    private final String nickname;
     /* private Totem totem;  manca la classe Totem */
     private int food;
     private int prestigePoint;
-    private List<Card> tribe;
-    private List<BuildingCard> buildingCards;
+    private final List<Card> tribe;
+    private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
     private int temporaryShamanBonus = 0;
 

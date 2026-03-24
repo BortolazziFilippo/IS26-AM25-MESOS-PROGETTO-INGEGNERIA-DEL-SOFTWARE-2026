@@ -4,11 +4,11 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 
 public class BuildingDTO {
-    private int buildingID;
-    private int foodCost;
-    private int endGamePP;
-    private EVENT_TYPE applyOn;
-    private ERA era;
+    private final int buildingID;
+    private final int foodCost;
+    private final int endGamePP;
+    private final EVENT_TYPE applyOn;
+    private final ERA era;
 
     /**
      * default BuildingDTO constructor

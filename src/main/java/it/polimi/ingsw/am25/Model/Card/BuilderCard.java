@@ -4,7 +4,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 
 public class BuilderCard extends Card{
-    private int foodDiscount;
+    private final int foodDiscount;
     private int finalPrestigePoint;
 
     /**

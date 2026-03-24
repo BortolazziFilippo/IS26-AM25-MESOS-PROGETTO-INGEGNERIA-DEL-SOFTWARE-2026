@@ -6,8 +6,8 @@ import it.polimi.ingsw.am25.Model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.Model.Enums.SHAMAN_STAR;
 
 public class CardDTO {
-    private CARD_TYPE cardType;
-    private ERA era;
+    private final CARD_TYPE cardType;
+    private final ERA era;
     private INV_ICON invIcon;
     private SHAMAN_STAR starNumber;
     private int foodDiscount;

@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface EventEffectInterface {
 
-    public void solveEvent(List<Player> playersList);
+    void solveEvent(List<Player> playersList);
 }

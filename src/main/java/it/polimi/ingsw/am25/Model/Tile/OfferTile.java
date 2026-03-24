@@ -3,8 +3,8 @@ package it.polimi.ingsw.am25.Model.Tile;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class OfferTile extends Tile{
-    private Action ActionAvailable;
-    private int position;
+    private final Action ActionAvailable;
+    private final int position;
     private Player palyerOn;
 
     public OfferTile(int drawTop, int drawBot, int position){

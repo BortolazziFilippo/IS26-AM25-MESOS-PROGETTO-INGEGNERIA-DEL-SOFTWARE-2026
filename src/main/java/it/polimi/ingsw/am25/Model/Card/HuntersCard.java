@@ -5,7 +5,7 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 
 public class HuntersCard extends Card{
 
-    private boolean hasICON;
+    private final boolean hasICON;
 
     /**
      * Default HunterCard Constructor

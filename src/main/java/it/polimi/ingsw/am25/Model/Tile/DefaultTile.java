@@ -6,11 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultTile extends Tile {
-    private int numberSlot;
-    private List<Integer> foodPerSlotPosition;
-    private List<Player> playerPosition;
+    private final List<Integer> foodPerSlotPosition;
+    private final List<Player> playerPosition;
     public DefaultTile( int numberSlot ) {
-        this.numberSlot = numberSlot;
         this.foodPerSlotPosition = new ArrayList<>();
         this.playerPosition = new ArrayList<>();
         switch (numberSlot) {
