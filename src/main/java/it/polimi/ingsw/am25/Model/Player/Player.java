@@ -16,7 +16,6 @@ public class Player {
     private final List<Card> tribe;
     private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
-    private int temporaryShamanBonus = 0;
 
     /**
      * default constructor of player
@@ -53,19 +52,7 @@ public class Player {
         }
     }
 
-    /**
-     * method used from buildingEffect three more shaman,
-     * @param bonus bonus
-     */
-    public void addTemporaryShamanBonus(int bonus){
-        this.temporaryShamanBonus += bonus;
-    }
-    /**
-     * method used from buildingEffect three more shaman,
-     */
-    public void resetTemporaryShamanBonus(){
-        this.temporaryShamanBonus = 0;
-    }
+
 
     /**
      * Method used to manage player's PP. It adds or subtracts the amount
@@ -118,7 +105,7 @@ public class Player {
                 countStar= countStar + ((ShamanCard) card).getStarNumber();
             }
         }
-        return countStar + temporaryShamanBonus;
+        return countStar;
     }
 
     /**

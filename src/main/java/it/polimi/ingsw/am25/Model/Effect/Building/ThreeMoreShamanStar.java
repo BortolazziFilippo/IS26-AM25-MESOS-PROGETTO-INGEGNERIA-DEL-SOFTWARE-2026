@@ -8,6 +8,6 @@ public class ThreeMoreShamanStar extends BuildingEffect{
 
     @Override
     public void applyEffect(Player player) {
-        player.addTemporaryShamanBonus(3);
+
     }
 }
