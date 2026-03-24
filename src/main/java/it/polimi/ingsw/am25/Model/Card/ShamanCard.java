@@ -24,16 +24,14 @@ public class ShamanCard extends Card{
      * @return return int value of star
      */
     public int getStarNumber() {
-        switch (starNumber){
-            case ONE:
-                return 1;
-            case TWO:
-                return 2;
-            case THREE:
-                return 3;
-            default:
+        return switch (starNumber) {
+            case ONE -> 1;
+            case TWO -> 2;
+            case THREE -> 3;
+            default -> {
                 System.err.println("Errore");
-                return -1;
-        }
+                yield -1;
+            }
+        };
     }
 }

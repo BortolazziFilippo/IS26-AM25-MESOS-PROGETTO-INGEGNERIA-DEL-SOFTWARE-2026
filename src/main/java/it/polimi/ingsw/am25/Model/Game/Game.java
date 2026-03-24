@@ -75,8 +75,8 @@ public class Game {
 
     private void refillTopList(){
         for(int i = 0; i < (this.playerNumber+4); i++){
-            this.topCardList.addFirst(this.deck.get(0));
-            this.deck.remove(0);
+            this.topCardList.addFirst(this.deck.getFirst());
+            this.deck.removeFirst();
         }
     }
 

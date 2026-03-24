@@ -14,11 +14,11 @@ class DeckFactoryTest {
     @Test
     void numberOfCardShouldBeRight() {
         DeckFactory deckFactory = new DeckFactory();
-        List<Card> cardList = new ArrayList<>();
+        List<Card> cardList;
 
         //CASE TWO PLAYER
         cardList = deckFactory.createDeck(2);
-        assertEquals(63, cardList.stream().count());
+        assertEquals(63, cardList.size());
         //GATHERE
         assertEquals(4, cardList.stream().filter(Card -> Card.getCardType() == CARD_TYPE.GATHERER).count());
         //ARTIST
@@ -35,7 +35,7 @@ class DeckFactoryTest {
 
         //CASE THREE PLAYER
         cardList = deckFactory.createDeck(3);
-        assertEquals(74, cardList.stream().count());
+        assertEquals(74,  cardList.size());
         //GATHERE
         assertEquals(6, cardList.stream().filter(Card -> Card.getCardType() == CARD_TYPE.GATHERER).count());
         //ARTIST
@@ -51,7 +51,7 @@ class DeckFactoryTest {
 
         //CASE FOUR PLAYER
         cardList = deckFactory.createDeck(4);
-        assertEquals(85, cardList.stream().count());
+        assertEquals(85, cardList.size());
         //GATHERE
         assertEquals(8, cardList.stream().filter(Card -> Card.getCardType() == CARD_TYPE.GATHERER).count());
         //ARTIST
@@ -67,7 +67,7 @@ class DeckFactoryTest {
 
         //CASE FIVE PLAYER
         cardList = deckFactory.createDeck(5);
-        assertEquals(96, cardList.stream().count());
+        assertEquals(96,  cardList.size());
         //GATHERE
         assertEquals(11, cardList.stream().filter(Card -> Card.getCardType() == CARD_TYPE.GATHERER).count());
         //ARTIST

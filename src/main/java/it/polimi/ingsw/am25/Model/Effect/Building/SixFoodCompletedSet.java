@@ -37,7 +37,7 @@ public class SixFoodCompletedSet extends BuildingEffect {
             for (Card card: difference){
                 switch (card.getCardType()){
                     case BUILDER:
-                        setCard.set(0,setCard.get(0)+1);
+                        setCard.set(0,setCard.getFirst()+1);
                         break;
                     case ARTIST:
                         setCard.set(1,setCard.get(1)+1);

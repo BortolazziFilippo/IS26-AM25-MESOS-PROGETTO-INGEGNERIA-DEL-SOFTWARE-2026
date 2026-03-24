@@ -17,7 +17,7 @@ class BuildingFactoryTest {
         //case two player
         List<BuildingCard> buildingCard = buildingFactory.createBuildingDeck(2);
         //total Number
-        assertEquals(6,buildingCard.stream().count());
+        assertEquals(6,  buildingCard.size());
         //ERA I
         assertEquals(1,buildingCard.stream().filter(BuildingCard->BuildingCard.getEra()== ERA.ERA_I).count());
         //ERA II
@@ -28,7 +28,7 @@ class BuildingFactoryTest {
 
         //case three player
         buildingCard = buildingFactory.createBuildingDeck(3);
-        assertEquals(8,buildingCard.stream().count());
+        assertEquals(8,  buildingCard.size());
         //ERA I
         assertEquals(2,buildingCard.stream().filter(BuildingCard->BuildingCard.getEra()== ERA.ERA_I).count());
         //ERA II
@@ -50,7 +50,7 @@ class BuildingFactoryTest {
 
         //case five player
         buildingCard = buildingFactory.createBuildingDeck(5);
-        assertEquals(10,buildingCard.stream().count());
+        assertEquals(10,  buildingCard.size());
         //ERA I
         assertEquals(2,buildingCard.stream().filter(BuildingCard->BuildingCard.getEra()== ERA.ERA_I).count());
         //ERA II

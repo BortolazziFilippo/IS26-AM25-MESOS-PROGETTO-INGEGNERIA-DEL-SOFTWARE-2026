@@ -27,11 +27,7 @@ public class OfferTile extends Tile{
     }
 
     public boolean isOccupied(){
-       if(palyerOn != null){
-           return true;
-       }else{
-           return false;
-       }
+        return palyerOn != null;
     }
 
     public void setPalyerOn(Player palyerOn) {
