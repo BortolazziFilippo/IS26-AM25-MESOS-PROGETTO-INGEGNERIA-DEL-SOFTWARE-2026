@@ -16,6 +16,11 @@ public class BuildingFactory {
     public BuildingFactory() {
     }
 
+    /**
+     * method use to build the right amount of building
+     * @param playerNumber number of players
+     * @return List ordered by ERA with the right amount of building
+     */
     public List<BuildingCard> createBuildingDeck (int playerNumber){
 
         List<BuildingCard> tempList =new ArrayList<>();
@@ -107,6 +112,12 @@ public class BuildingFactory {
         }
         return listToReturn;
     }
+
+    /**
+     * private method use to get the right effect-ID bind
+     * @param buildingToSetEffect building to bind the effect
+     * @return return the Right Building effect for the building
+     */
     private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect){
         BuildingEffect effectToReturn= null;
         switch (buildingToSetEffect.getBuildingID()) {
@@ -180,6 +191,13 @@ public class BuildingFactory {
         }
         return effectToReturn;
     }
+
+    /**
+     *
+     * @param lowerBound lowerBound
+     * @param upperBound upperBound
+     * @return Return a shuffled list with numbers between the lower and upper bound
+     */
     private List<Integer> randomNumerList(int lowerBound, int upperBound){
         List<Integer> number = new ArrayList<>();
         for (int i = lowerBound; i <= upperBound ; i++) {

@@ -19,6 +19,11 @@ public class DeckFactory {
 
     }
 
+    /**
+     * This method is used to create the deck of card and event
+     * @param playerNumber number of player
+     * @return return a List with the right amount of card and event, grouped by type
+     */
     public List<Card> createDeck(int playerNumber){
         List<Card> cardToReturn = new ArrayList<>();
         InputStream inputStream=null;
@@ -61,7 +66,7 @@ public class DeckFactory {
                     cardToReturn.add(new HuntersCard(temp.getEra(),temp.getCardType(),temp.isHasIcon()));
                     break;
                 case CARD_TYPE.INVENTOR:
-                    cardToReturn.add(new InventorCard(temp.getInvIcon(),temp.getEra(),temp.getCardType()));
+                    cardToReturn.add(new InventorCard(temp.getEra(),temp.getCardType(),temp.getInvIcon()));
                     break;
                 case CARD_TYPE.SHAMAN:
                     cardToReturn.add(new ShamanCard(temp.getEra(),temp.getCardType(),temp.getStarNumber()));

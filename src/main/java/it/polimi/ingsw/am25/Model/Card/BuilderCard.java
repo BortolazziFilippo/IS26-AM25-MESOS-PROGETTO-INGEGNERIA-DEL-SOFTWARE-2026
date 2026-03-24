@@ -7,6 +7,13 @@ public class BuilderCard extends Card{
     private int foodDiscount;
     private int finalPrestigePoint;
 
+    /**
+     * Default constructor BuilerCard
+     * @param era Card ERA
+     *@param cardType Card type
+     * @param foodDiscount discount when buying building
+     * @param finalPrestigePoint PP given at end game
+     */
     public BuilderCard(ERA era, CARD_TYPE cardType, int foodDiscount, int finalPrestigePoint){
         this.era = era;
         this.cardType=cardType;

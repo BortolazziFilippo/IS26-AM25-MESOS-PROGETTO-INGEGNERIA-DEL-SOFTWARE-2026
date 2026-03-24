@@ -27,6 +27,12 @@ public class Game {
     //quetso prima era messo come lista di Card ma penso intendesse lista di Player. giusto?
     private List<Player> playingOrder;
 
+    /**
+     * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
+     *
+     * @param playerHost player who created the game
+     * @param playerNumber number of player
+     */
     public Game(Player playerHost, int playerNumber) {
         //solita eccezione per gli argoementi passati
         if (playerHost == null) {
@@ -115,6 +121,11 @@ public class Game {
         return false;
     }
 
+    /**
+     * method used for managing the player food
+     * @param player player to manage food
+     * @param food_amount amount of food to manage (both positive or negative)
+     */
     public void manageFood(Player player, int food_amount){
         player.manageFood(food_amount);
     }
@@ -133,6 +144,11 @@ public class Game {
         return this.bottomCardList;
     }
 
+    /**
+     * This method is used to draw a card from the top list and add it to the player deck
+     * @param position position of the card to be drawn
+     * @param player player that has draw the card
+     */
     public void selectCardFromTopList(int position, Player player) {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
@@ -171,7 +187,11 @@ public class Game {
         this.topCardList.remove(position);
 
     }
-
+    /**
+     * This method is used to draw a card from the bottom list and add it to the player deck
+     * @param position position of the card to be drawn
+     * @param player player that has draw the card
+     */
     public void selectCardFromBottomList(int position, Player player){
         //solite eccezioni come in selectedCardFromTopList()
         if (bottomCardList == null || player == null) {
@@ -206,6 +226,11 @@ public class Game {
 
     }
 
+    /**
+     * method used to place a player on a OfferTile
+     * @param player player to place
+     * @param position position on offertile
+     */
     //da ricordarsi di aggiungere parte che rimuove player totem da default tile
     public void placeOnTile(Player player, int position){
         //solita eccezione

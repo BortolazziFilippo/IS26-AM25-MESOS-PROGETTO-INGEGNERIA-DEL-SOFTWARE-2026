@@ -15,6 +15,11 @@ import java.util.List;
 public class EventFactory {
     public EventFactory() {
     }
+
+    /**
+     *
+     * @return a list with the event ordered by ERA
+     */
     public List<EventCard> createEvent(){
         List<EventCard> templist=new ArrayList<>();
         List<EventCard> listToReturn=new ArrayList<>();

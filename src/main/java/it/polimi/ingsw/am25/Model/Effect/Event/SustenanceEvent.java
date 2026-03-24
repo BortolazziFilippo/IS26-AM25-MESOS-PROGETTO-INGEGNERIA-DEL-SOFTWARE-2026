@@ -25,8 +25,8 @@ public class SustenanceEvent extends EventEffect {
         int startingFood=0;
         for (Player player : playersList) {
             startingFood=player.getFood();
-            numberOfVillager=-(int)player.getTribe().size()*foodPerCharcater;
-            foodDiscount=(int)player.getTribe().stream().filter(card -> card.getCardType()== CARD_TYPE.GATHERER).count()*3;
+            numberOfVillager=-player.getNumberOfCard()*foodPerCharcater;
+            foodDiscount=player.getGatherDiscount();
             foodToSubtract=numberOfVillager+foodDiscount;
 
             //checking if foodToSubtract is greater than zero, gatherer cannot give food

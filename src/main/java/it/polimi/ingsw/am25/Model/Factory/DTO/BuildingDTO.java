@@ -10,6 +10,14 @@ public class BuildingDTO {
     private EVENT_TYPE applyOn;
     private ERA era;
 
+    /**
+     * default BuildingDTO constructor
+     * @param buildingID building id
+     * @param foodCost cost of the building
+     * @param endGamePP PP given at end game
+     * @param applyOn when building is triggered
+     * @param era ERA of the building
+     */
     public BuildingDTO(int buildingID, int foodCost, int endGamePP, EVENT_TYPE applyOn, ERA era) {
         this.buildingID = buildingID;
         this.foodCost = foodCost;
