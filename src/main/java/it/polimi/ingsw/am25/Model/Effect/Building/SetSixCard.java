@@ -55,7 +55,7 @@ public class SetSixCard extends BuildingEffect{
         newCards.clear();
         if(!setCards.contains(0)){
             setCompleti = Collections.min(setCards);
-            player.manageFood(foodToGive*setCompleti);
+            player.managePP(6*setCompleti);
             setCards.clear();
         }
 
