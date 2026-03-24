@@ -13,6 +13,15 @@ public class BuildingCard extends Card {
     private final int endgamePP;
     private final EVENT_TYPE applyOn;
 
+    /**
+     * Default BuildingCard Constructor
+     * @param era Card ERA
+     * @param cardType Card type
+     * @param buildingID ID of the building
+     * @param foodCost cost of the building
+     * @param endgamePP pp givent at end game
+     * @param applyOn when the buildingeffect is triggered
+     */
     public BuildingCard(ERA era, CARD_TYPE cardType, int buildingID, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
         this.era=era;
         this.cardType=cardType;
@@ -22,9 +31,16 @@ public class BuildingCard extends Card {
         this.endgamePP = endgamePP;
         this.applyOn = applyOn;
     }
+
+    /**
+     * used to set the building effect afterward
+     * @param buildingEffect  building effect to bind
+     */
     public void setBuildingEffect(BuildingEffect buildingEffect){
         this.buildingEffect=buildingEffect;
     }
+
+
     public int getBuildingID() {
         return buildingID;
     }
@@ -45,6 +61,10 @@ public class BuildingCard extends Card {
         return applyOn;
     }
 
+    /**
+     * Method for applying the building effect
+     * @param player the player to apply the effect to
+     */
     public void applyBuildingEffect(Player player) {
         this.buildingEffect.applyEffect(player);
     }

@@ -7,6 +7,12 @@ public class HuntersCard extends Card{
 
     private boolean hasICON;
 
+    /**
+     * Default HunterCard Constructor
+     * @param era Card ERA
+     * @param cardType Card type
+     * @param hasICON boolean parameter for signaling the card has the icon
+     */
     public HuntersCard(ERA era, CARD_TYPE cardType, boolean hasICON){
         this.era = era;
         this.cardType=cardType;

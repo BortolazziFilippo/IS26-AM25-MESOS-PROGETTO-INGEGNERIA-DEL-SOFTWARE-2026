@@ -36,7 +36,7 @@ class PlayerTest {
     void addCardToTribe() {
         Player player = new Player("Lorem Ipsum",COLOR.RED);
         assertEquals(0, player.getNumberOfCard());
-        player.addCardToTribe(new InventorCard(INV_ICON.ARROW, ERA.ERA_II, CARD_TYPE.INVENTOR));
+        player.addCardToTribe(new InventorCard( ERA.ERA_II, CARD_TYPE.INVENTOR,INV_ICON.ARROW));
         assertEquals(1,player.getNumberOfCard());
     }
 

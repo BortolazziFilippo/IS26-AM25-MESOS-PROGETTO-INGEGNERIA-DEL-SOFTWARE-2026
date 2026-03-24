@@ -20,6 +20,12 @@ public class EventDTO {
         return eventType;
     }
 
+    /**
+     * default constructor of EventDTO
+     * @param eventID event ID
+     * @param era era of the event
+     * @param eventType type of the event
+     */
     public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
         this.eventID = eventID;
         this.era = era;

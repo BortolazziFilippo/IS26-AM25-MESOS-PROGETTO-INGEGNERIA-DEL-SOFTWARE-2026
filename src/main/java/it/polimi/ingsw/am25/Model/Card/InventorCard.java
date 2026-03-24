@@ -6,7 +6,14 @@ import it.polimi.ingsw.am25.Model.Enums.INV_ICON;
 
 public class InventorCard extends Card{
     private final INV_ICON invIcon;
-    public InventorCard(INV_ICON invIcon, ERA era, CARD_TYPE cardType){
+
+    /**
+     * Default constructor of inventorCard
+     * @param invIcon Type of icon the inventorCard has
+     * @param era Card ERA
+     * @param cardType Card type
+     */
+    public InventorCard( ERA era, CARD_TYPE cardType,INV_ICON invIcon){
         this.invIcon=invIcon;
         this.cardType=cardType;
         this.era=era;
