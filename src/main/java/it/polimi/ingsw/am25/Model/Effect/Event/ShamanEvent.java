@@ -16,7 +16,13 @@ public class ShamanEvent extends EventEffect{
 
     @Override
     public void solveEvent(List<Player> playersList) {
-        int max = playersList.stream().mapToInt(Player ::getShamanStarTotal).max().orElse(0);
+        for(Player player : playersList){
+            player.getBuildingCards().stream()
+                    .filter(b->b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
+                    .forEach(b-> b.applyBuildingEffect(player));
+        }
+
+        int max = playersList.stream().mapToInt(Player::getShamanStarTotal).max().orElse(0);
         int min = playersList.stream().mapToInt(Player::getShamanStarTotal).min().orElse(0);
 
         for(Player player : playersList){
@@ -26,7 +32,8 @@ public class ShamanEvent extends EventEffect{
         }
 
         for(Player player : playersList){
-            player.getBuildingCards().stream().filter(b->b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
+            player.getBuildingCards().stream()
+                    .filter(b->b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
                     .forEach(b-> b.applyBuildingEffect(player));
         }
     }
