@@ -13,7 +13,7 @@ import java.util.List;
 //6
 public class SixFoodCompletedSet extends BuildingEffect {
     private boolean alreadyUsed = false;
-    private List<Integer> setCard = new ArrayList<>();
+    private final List<Integer> setCard = new ArrayList<>();
     private List<Card> listOldCard;
 
     public SixFoodCompletedSet() {

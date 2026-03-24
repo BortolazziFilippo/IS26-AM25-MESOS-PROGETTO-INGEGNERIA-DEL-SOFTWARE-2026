@@ -6,8 +6,8 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 import java.util.List;
 
 public class HuntEvent extends EventEffect {
-    private int food;
-    private int PPtoMultiply;
+    private final int food;
+    private final int PPtoMultiply;
 
     public HuntEvent(int food, int PPtoMultiply){
         this.food = food;

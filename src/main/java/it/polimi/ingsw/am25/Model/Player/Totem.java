@@ -5,7 +5,7 @@ import it.polimi.ingsw.am25.Model.Tile.OfferTile;
 import it.polimi.ingsw.am25.Model.Tile.Tile;
 
 public class Totem {
-    private COLOR color;
+    private final COLOR color;
     private OfferTile tile;
 
     public Totem(COLOR color){

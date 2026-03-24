@@ -14,18 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
-    private List<Player> players;
-    private Player playerHost;
-    private int playerNumber;
+    private final List<Player> players;
+    private final Player playerHost;
+    private final int playerNumber;
     private OfferTrack offerTrack;
     private List<Card> deck;
-    private List <Card> topCardList;
-    private List<Card> bottomCardList; /*modificare UML le lettere maiuscole*/
-    private ERA actualEra;
-    private List<Player> placingOrder;
+    private final List <Card> topCardList;
+    private final List<Card> bottomCardList; /*modificare UML le lettere maiuscole*/
+    private final ERA actualEra;
+    private final List<Player> placingOrder;
 
     //quetso prima era messo come lista di Card ma penso intendesse lista di Player. giusto?
-    private List<Player> playingOrder;
+    private final List<Player> playingOrder;
 
     /**
      * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories

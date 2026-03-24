@@ -10,8 +10,8 @@ import java.util.List;
 
 public class EventCard extends Card
 {
-    private int eventID;
-    private EVENT_TYPE eventType;
+    private final int eventID;
+    private final EVENT_TYPE eventType;
     private EventEffect eventEffect;
 
     /**

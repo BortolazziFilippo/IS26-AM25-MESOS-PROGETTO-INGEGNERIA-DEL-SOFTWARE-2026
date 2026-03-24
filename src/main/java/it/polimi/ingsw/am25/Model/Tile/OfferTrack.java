@@ -4,7 +4,7 @@ import java.util.List;
 
 public class OfferTrack {
     private List<OfferTile> offerTiles;
-    private DefaultTile defaultTile;
+    private final DefaultTile defaultTile;
 
     public OfferTrack(int playerNumber) {
         this.defaultTile = new DefaultTile(playerNumber);

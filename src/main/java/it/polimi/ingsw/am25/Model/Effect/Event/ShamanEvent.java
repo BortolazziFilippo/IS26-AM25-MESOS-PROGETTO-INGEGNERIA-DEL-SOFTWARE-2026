@@ -6,8 +6,8 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 import java.util.List;
 
 public class ShamanEvent extends EventEffect{
-    private int PPToMost;
-    private int PPToLeast;
+    private final int PPToMost;
+    private final int PPToLeast;
 
     public ShamanEvent(int PPToMost, int PPToLeast){
         this.PPToMost = PPToMost;

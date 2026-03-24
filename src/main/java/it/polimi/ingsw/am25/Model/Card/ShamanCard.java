@@ -5,7 +5,7 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.SHAMAN_STAR;
 
 public class ShamanCard extends Card{
-    private SHAMAN_STAR starNumber;
+    private final SHAMAN_STAR starNumber;
 
     /**
      * default constructor of shamanCard

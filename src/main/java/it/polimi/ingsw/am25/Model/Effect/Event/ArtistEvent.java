@@ -7,9 +7,9 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 import java.util.List;
 
 public class ArtistEvent extends EventEffect{
-    private int artistNeeded;
-    private int PPLost;
-    private int PPtoMultiply;
+    private final int artistNeeded;
+    private final int PPLost;
+    private final int PPtoMultiply;
 
     public ArtistEvent(int artistNeeded, int PPLost, int PPtoMultiply){
         this.artistNeeded = artistNeeded;
