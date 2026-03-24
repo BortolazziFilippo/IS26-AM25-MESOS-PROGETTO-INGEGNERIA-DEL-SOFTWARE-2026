@@ -19,10 +19,10 @@ public class SustenanceEvent extends EventEffect {
 
     @Override
     public void solveEvent(List<Player> playersList) {
-        int numberOfVillager=0;
-        int foodToSubtract=0;
-        int foodDiscount=0;
-        int startingFood=0;
+        int numberOfVillager;
+        int foodToSubtract;
+        int foodDiscount;
+        int startingFood;
         for (Player player : playersList) {
             startingFood=player.getFood();
             numberOfVillager=-player.getNumberOfCard()*foodPerCharcater;
