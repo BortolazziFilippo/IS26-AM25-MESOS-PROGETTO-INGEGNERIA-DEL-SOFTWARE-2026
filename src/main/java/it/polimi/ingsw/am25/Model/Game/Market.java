@@ -78,6 +78,9 @@ public class Market {
         topCardList.clear();
     }
 
+    /**
+     * this method shift the buildings from the top to the bottom list
+     */
     public void shiftBuildingTopToBottom(){
         this.bottomBuildingList.addAll(this.topBuildingList);
         this.topBuildingList.clear();
