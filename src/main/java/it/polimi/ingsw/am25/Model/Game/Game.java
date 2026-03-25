@@ -1,8 +1,6 @@
 package it.polimi.ingsw.am25.Model.Game;
 
-import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
-import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
@@ -80,15 +78,7 @@ public class Game {
         }
     }
 
-    private void ShiftTopToBottomList(){
-        for (Card card : this.topCardList){
-            if(card.getCardType() != CARD_TYPE.BUILDING){
-                this.bottomCardList.add(card);
-                this.topCardList.remove(card);
-            }
-        }
 
-    }
 
     //non sono sicuro sulla logica del metodo quindi ho messo che rimuove tutte le carte dalla lista
     //ma forse è più comodo se rimuove solo l'ultima e poi al massimo viene chiamato più volte
@@ -101,25 +91,7 @@ public class Game {
         this.bottomCardList.clear();
     }
 
-    //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
-    //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
-    //tanto ritorna solo un bool, non esegue effettivamente gli eventi
-    public boolean checkEventsPresence(){
-        //solita eccezione anche qui
-        if (bottomCardList == null) {
-            throw new IllegalStateException("bottomCardList è null");
-        }
 
-        //scorre la lista sotto e cerca event cards
-        for (Card card : bottomCardList) {
-            if (card.getCardType() == CARD_TYPE.EVENT) {
-                return true;
-            }
-        }
-
-        //se non trova più eventi allora false
-        return false;
-    }
 
     /**
      * method used for managing the player food
@@ -127,87 +99,13 @@ public class Game {
      * @param food_amount amount of food to manage (both positive or negative)
      */
     public void manageFood(Player player, int food_amount){
-        player.manageFood(food_amount);
+        player.manageFoodAndPP(food_amount);
     }
 
     //non ricordo più se i PP possono diventare negativi. mi sembrava di no ma se possono diventare negativi
     //allora non abbiamo gestito quel caso in managePP() di player
     public void managePrestigePoint(Player player, int PP_amount){
         player.managePP(PP_amount);
-    }
-
-    public List<Card> getCardTopList(){
-        return this.topCardList;
-    }
-
-    public List<Card> getCardBottomList(){
-        return this.bottomCardList;
-    }
-
-    /**
-     * This method is used to draw a card from the top list and add it to the player deck
-     * @param position position of the card to be drawn
-     * @param player player that has draw the card
-     */
-    public void selectCardFromTopList(int position, Player player) {
-        //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
-        // in cui player vuole pescare una carta ma la lista non è null ma è vuota
-        if (topCardList == null || player == null) {
-            throw new IllegalArgumentException("topCardList null o player null");
-        }
-
-        if (topCardList.isEmpty()) {
-            throw new IllegalStateException("topCardList è vuota");
-        }
-
-        if (position < 0 || position >= topCardList.size()) {
-            throw new IndexOutOfBoundsException("Posizione non valida");
-        }
-
-        Card selected_card = this.topCardList.get(position);
-
-        //a questo punto se la carta è un edificio la mette in building, se no in tribe
-        // da vedere bene come funziona quando uno vuole prendere edificio, se deve pagare cibo o no
-        // nel caso va aggiunto. inotlre nella lista sopra non ci sono carte evento giisto? quindi non
-        //c'è la possibiità di pescare un evento? se c'è va aggiunto in un altro else che se il giocatore
-        // prova a pescare un evento anzichè una carta normale lancia eccezione. stessa cosa quando
-        //facciamo il metodo per pescare dalla bottomlist.
-
-       selected_card.addCardToPlayer(player);
-
-
-        //poi rimuove la carta scelta dalla toplist, ma remove mi sembra che cancelli proprio la posizone
-        //dalla lista, quindi ad esempio da x elementi va ad x-1. se no possiamo semplicemente settare a
-        //null quella posizione della lista
-        this.topCardList.remove(position);
-
-    }
-    /**
-     * This method is used to draw a card from the bottom list and add it to the player deck
-     * @param position position of the card to be drawn
-     * @param player player that has draw the card
-     */
-    public void selectCardFromBottomList(int position, Player player){
-        //solite eccezioni come in selectedCardFromTopList()
-        if (bottomCardList == null || player == null) {
-            throw new IllegalArgumentException("bottomCardList null o player null");
-        }
-
-        if (bottomCardList.isEmpty()) {
-            throw new IllegalStateException("bottomCardList è vuota");
-        }
-
-        if (position < 0 || position >= bottomCardList.size()) {
-            throw new IndexOutOfBoundsException("Posizione non valida");
-        }
-
-        //seleziona carta da position e mette in selected_card come metodo sopra
-        Card selected_card = this.bottomCardList.get(position);
-
-        selected_card.addCardToPlayer(player);
-
-        this.bottomCardList.remove(position);
-
     }
 
     /**
