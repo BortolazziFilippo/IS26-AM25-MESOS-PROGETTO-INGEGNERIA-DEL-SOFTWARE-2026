@@ -1,0 +1,11 @@
+[
+  {
+    "foodPerSlot": 2
+  },
+  {
+    "foodPerSlot": 0
+  },
+  {
+    "foodPerSlot": -1
+  }
+]

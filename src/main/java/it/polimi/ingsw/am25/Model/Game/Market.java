@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.Model.Game;
 
+import it.polimi.ingsw.am25.Model.Board.TurnOrderView;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Card.EventCard;
@@ -12,30 +13,28 @@ import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Market {
-    private int playerNumber;
     private List<Card> topCardList;
     private List<BuildingCard> topBuildingList;
     private List<Card> bottomCardList;
     private List<BuildingCard> bottomBuildingList;
     private List<Card> deck ;
     private List<BuildingCard> buildingCards;
+    private final GameView gameView;
 
     /**
      * default constructo of Market
-     * @param playerNumber number of players
+     *
      */
-    public Market(int playerNumber) {
-        this.playerNumber=playerNumber;
+    public Market(GameView gameView) {
         this.topCardList= new ArrayList<>();
         this.bottomBuildingList= new ArrayList<>();
         this.bottomCardList = new ArrayList<>();
         this.topBuildingList=new ArrayList<>();
-
-        this.buildingCards=new BuildingFactory().createBuildingDeck(playerNumber);
-        this.deck = new DeckFactory().createDeck(playerNumber);
+        this.gameView=gameView;
+        this.buildingCards=new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber());
+        this.deck = new DeckFactory().createDeck(gameView.getPlayerNumber());
         this.organizeDeck();
         this.initializeBottomList();
         this.initializeBothTopList();
@@ -220,7 +219,7 @@ public class Market {
      * this method initialize the bottom list with the right amount o cards
      */
     private void initializeBottomList(){
-        int numberOfCard= UtilitiesFunction.bindCorrectNumberOfBottomListCard(this.playerNumber);
+        int numberOfCard= UtilitiesFunction.bindCorrectNumberOfBottomListCard(gameView.getPlayerNumber());
         Card cardToAdd;
         for (int i = 0; i < numberOfCard; i++) {
             cardToAdd=deck.getFirst();
@@ -238,7 +237,7 @@ public class Market {
      * this method initialize the top card list and the top building list
      */
     private void initializeBothTopList(){
-        int numberOfCard=UtilitiesFunction.bindCorrectNumberOfTopListCard(this.playerNumber);
+        int numberOfCard=UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber());
         numberOfCard=numberOfCard-this.topCardList.size();
         for (int i = 0; i < numberOfCard; i++) {
             this.topCardList.add(deck.getFirst());

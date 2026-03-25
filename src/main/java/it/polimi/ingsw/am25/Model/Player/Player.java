@@ -69,7 +69,7 @@ public class Player {
             cost=0;
         }
         if(this.food-cost<0){
-            throw new NotEnoughFoodException(this.nickname + " has not enough food");
+            throw new NotEnoughFoodException();
         }else{
             this.food-=cost;
             selectedBuildingCard.addCardToPlayer(this);

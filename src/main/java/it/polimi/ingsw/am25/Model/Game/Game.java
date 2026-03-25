@@ -1,17 +1,21 @@
 package it.polimi.ingsw.am25.Model.Game;
 
+import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Tile.DefaultTile;
-import it.polimi.ingsw.am25.Model.Tile.OfferTile;
-import it.polimi.ingsw.am25.Model.Tile.OfferTrack;
+import it.polimi.ingsw.am25.Model.Board.DefaultTile;
+import it.polimi.ingsw.am25.Model.Board.OfferTile;
+import it.polimi.ingsw.am25.Model.Board.OfferTrack;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Game {
+public class Game implements GameView {
+    private final Board board;
+    private final Market market;
+    private final TurnManager turnManager;
     private final List<Player> players;
     private final Player playerHost;
     private final int playerNumber;
@@ -32,6 +36,9 @@ public class Game {
      * @param playerNumber number of player
      */
     public Game(Player playerHost, int playerNumber) {
+        this.board=new Board(this);
+        this.market=new Market(this);
+        this.turnManager=new TurnManager(board);
         //solita eccezione per gli argoementi passati
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost nullo");
@@ -207,7 +214,10 @@ public class Game {
 
     }
 
-
+    @Override
+    public int getPlayerNumber() {
+        return this.playerNumber;
+    }
 }
 
 

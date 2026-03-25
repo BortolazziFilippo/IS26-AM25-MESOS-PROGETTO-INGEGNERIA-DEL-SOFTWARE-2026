@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am25.Model.Tile;
+package it.polimi.ingsw.am25.Model.Board;
 
 import it.polimi.ingsw.am25.Model.Player.Player;
 

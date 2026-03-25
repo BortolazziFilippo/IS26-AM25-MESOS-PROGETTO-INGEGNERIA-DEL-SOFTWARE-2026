@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am25.Model.Tile;
+package it.polimi.ingsw.am25.Model.Board;
 
 public class Action {
     public int DrawFromTop;
