@@ -47,7 +47,7 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
         }
         if(count>0){
             count = count/2;
-            player.manageFood(3*count);
+            player.manageFoodAndPP(3*count);
         }
         else{
             System.out.println("Non ci sono coppie di carte d'inventori che abbiano la stessa icona");

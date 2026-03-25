@@ -9,16 +9,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlayerTest {
 
     @Test
-    void manageFood() {
+    void manageFoodAndPP() {
         Player player = new Player("Lorem Ipsum", COLOR.BLUE);
         //AddingFood
-        player.manageFood(+7);
+        player.manageFoodAndPP(+7);
         assertEquals(7,player.getFood());
         //removing food
-        player.manageFood(-7);
+        player.manageFoodAndPP(-7);
         assertEquals(0,player.getFood());
         //removing food under 0 should remove double PP
-        player.manageFood(-3);
+        player.manageFoodAndPP(-3);
         assertEquals(-6,player.getPrestigePoint());
         assertEquals(0,player.getFood());
     }

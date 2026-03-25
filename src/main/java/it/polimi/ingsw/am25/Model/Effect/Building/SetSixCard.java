@@ -2,11 +2,9 @@ package it.polimi.ingsw.am25.Model.Effect.Building;
 
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Utilities;
+import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class SetSixCard extends BuildingEffect{
         List <Card> newCards= new ArrayList<>(player.getTribe());
         List <Integer> setCards = new ArrayList<>(Collections.nCopies(quantity,0));
         newCards.removeAll(oldCards);
-        Utilities.countOccurrence(newCards,setCards);
+        UtilitiesFunction.countOccurrence(newCards,setCards);
         oldCards = newCards;
         newCards.clear();
         if(!setCards.contains(0)){

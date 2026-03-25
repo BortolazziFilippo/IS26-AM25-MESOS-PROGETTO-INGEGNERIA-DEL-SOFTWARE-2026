@@ -30,9 +30,9 @@ class SustenanceEventTest {
         this.p1= new Player("Lorem Ipsum", COLOR.RED);
         this.p2= new Player("Lorem Ipsum", COLOR.RED);
         this.p3= new Player("Lorem Ipsum", COLOR.RED);
-        p1.manageFood(10);
-        p2.manageFood(5);
-        p3.manageFood(0);
+        p1.manageFoodAndPP(10);
+        p2.manageFoodAndPP(5);
+        p3.manageFoodAndPP(0);
         players.add(p1);
         players.add(p2);
         players.add(p3);
@@ -62,7 +62,7 @@ class SustenanceEventTest {
         p2.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.GATHERER));
         eventCard.applyEventEffect(players);
         assertEquals(4,p2.getFood()); //p2 food amount shouldn't change
-        p3.manageFood(2);
+        p3.manageFoodAndPP(2);
         p3.managePP(12);
         eventCard.applyEventEffect(players);
         assertEquals(-2,p3.getPrestigePoint());
@@ -83,7 +83,7 @@ class SustenanceEventTest {
         p4.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));
         p4.addBuilding(buildingCard);
         players.add(p4);
-        p4.manageFood(10);
+        p4.manageFoodAndPP(10);
         eventCard.applyEventEffect(players);
         assertEquals(10,p4.getFood());
         p4.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.INVENTOR));

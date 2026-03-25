@@ -10,6 +10,6 @@ public class OnEventHuntOneFoodAndOnePPPerHunter extends BuildingEffect{
     @Override
     public void applyEffect(Player player) {
         player.managePP((int)player.getTribe().stream().filter(card -> card.getCardType()== CARD_TYPE.HUNTER).count());
-        player.manageFood(1);
+        player.manageFoodAndPP(1);
     }
 }

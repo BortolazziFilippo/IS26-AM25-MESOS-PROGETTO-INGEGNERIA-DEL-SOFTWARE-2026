@@ -16,7 +16,7 @@ public class HuntEvent extends EventEffect {
 
     @Override
     public void solveEvent(List<Player> playersList) {
-        playersList.forEach(player -> player.manageFood(food));
+        playersList.forEach(player -> player.manageFoodAndPP(food));
         playersList.forEach(player -> player.managePP(PPtoMultiply*player.getHunterNumber()));
         playersList.forEach(player -> player.getBuildingCards().stream().filter(buildingCard->buildingCard.getApplyOn()== EVENT_TYPE.HUNT).forEach(buildingCard->buildingCard.applyBuildingEffect(player)));
     }

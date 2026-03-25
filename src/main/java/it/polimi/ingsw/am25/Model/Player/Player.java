@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
+import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,10 @@ public class Player {
     private final List<Card> tribe;
     private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
+
+    public String getNickname() {
+        return nickname;
+    }
 
     /**
      * default constructor of player
@@ -36,7 +41,7 @@ public class Player {
      * This second behavior sometimes could not be wanted, if so before calling you should check the amount of food available.
      * @param foodAmount food to be removed
      */
-    public void manageFood(int foodAmount){
+    public void manageFoodAndPP(int foodAmount){
         if(foodAmount < 0){
             if( (this.food + foodAmount) < 0){
                 this.food += foodAmount;
@@ -52,7 +57,25 @@ public class Player {
         }
     }
 
+    /**
+     * this method tries to buy the card, if the player cannot afford it, it throws not enough food exception
+     * @param selectedBuildingCard building to be bought
+     */
+    public void tryBuyBuilding( BuildingCard selectedBuildingCard) throws NotEnoughFoodException{
+        int cost;
+        cost=selectedBuildingCard.getFoodCost();
+        cost=cost-this.getBuilderDiscount();
+        if(cost<0){
+            cost=0;
+        }
+        if(this.food-cost<0){
+            throw new NotEnoughFoodException(this.nickname + " has not enough food");
+        }else{
+            this.food-=cost;
+            selectedBuildingCard.addCardToPlayer(this);
+        }
 
+    }
 
     /**
      * Method used to manage player's PP. It adds or subtracts the amount

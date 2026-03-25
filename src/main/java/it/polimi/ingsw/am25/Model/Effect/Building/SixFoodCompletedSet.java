@@ -2,7 +2,7 @@ package it.polimi.ingsw.am25.Model.Effect.Building;
 
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Utilities;
+import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,10 +35,10 @@ public class SixFoodCompletedSet extends BuildingEffect {
             difference.removeAll(listOldCard);
             listOldCard=new ArrayList<>(listOfNewCard);
 
-            Utilities.countOccurrence(difference, setCard);
+            UtilitiesFunction.countOccurrence(difference, setCard);
 
             while (!setCard.contains(0)){
-                player.manageFood(5);
+                player.manageFoodAndPP(5);
                 setCard.replaceAll(integer -> integer-1);
             }
         }

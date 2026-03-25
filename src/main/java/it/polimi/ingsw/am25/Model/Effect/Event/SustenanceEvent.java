@@ -38,13 +38,13 @@ public class SustenanceEvent extends EventEffect {
             //if the player Food - foodToSubtract is less than zero, then I have to set the food to zero and subtract the right amount of pp
             if(player.getFood()-foodToSubtract<0){
                 int amountToZero= player.getFood()-foodToSubtract;
-                player.manageFood(foodToSubtract+abs(amountToZero));
+                player.manageFoodAndPP(foodToSubtract+abs(amountToZero));
                 player.managePP(amountToZero*PPLost);
             }else{
-                player.manageFood(foodToSubtract);
+                player.manageFoodAndPP(foodToSubtract);
             }
             if(player.getFood()>startingFood){
-                player.manageFood(-(player.getFood()-startingFood));
+                player.manageFoodAndPP(-(player.getFood()-startingFood));
             }
         }
     }
