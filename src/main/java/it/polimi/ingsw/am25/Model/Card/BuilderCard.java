@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Card;
 
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class BuilderCard extends Card{
     private final int foodDiscount;
@@ -31,5 +32,9 @@ public class BuilderCard extends Card{
 
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
+    }
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
     }
 }

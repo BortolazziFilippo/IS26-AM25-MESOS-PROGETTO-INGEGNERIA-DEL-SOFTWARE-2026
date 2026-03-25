@@ -173,12 +173,7 @@ public class Game {
         // prova a pescare un evento anzichè una carta normale lancia eccezione. stessa cosa quando
         //facciamo il metodo per pescare dalla bottomlist.
 
-        if (selected_card.getCardType() == CARD_TYPE.BUILDING) {
-            //fa cast perchè selected_card è di tipo Card ma il metodo prende BuildingCard
-            player.addBuilding((BuildingCard) selected_card);
-        } else {
-            player.addCardToTribe(selected_card);
-        }
+       selected_card.addCardToPlayer(player);
 
 
         //poi rimuove la carta scelta dalla toplist, ma remove mi sembra che cancelli proprio la posizone
@@ -209,18 +204,7 @@ public class Game {
         //seleziona carta da position e mette in selected_card come metodo sopra
         Card selected_card = this.bottomCardList.get(position);
 
-        //qui si aggiunge la possibilità che la posizione passata come agromento sia corrispondente
-        //ad una event card che non può essere pescata, quindi aggiugniamo eccezione
-        if (selected_card.getCardType() == CARD_TYPE.EVENT){
-            throw new IllegalStateException("la position passata corrisponde a event card, che non si pesca");
-        }
-
-        if (selected_card.getCardType() == CARD_TYPE.BUILDING) {
-            //di nuovo qui serve casting come nel metodo sopra
-            player.addBuilding((BuildingCard) selected_card);
-        } else {
-            player.addCardToTribe(selected_card);
-        }
+        selected_card.addCardToPlayer(player);
 
         this.bottomCardList.remove(position);
 

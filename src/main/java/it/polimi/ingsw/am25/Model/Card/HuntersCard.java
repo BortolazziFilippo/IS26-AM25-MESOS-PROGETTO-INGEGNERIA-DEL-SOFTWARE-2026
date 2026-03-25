@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Card;
 
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class HuntersCard extends Card{
 
@@ -22,5 +23,9 @@ public class HuntersCard extends Card{
     public boolean getHasICON() {
 
         return hasICON;
+    }
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
     }
 }

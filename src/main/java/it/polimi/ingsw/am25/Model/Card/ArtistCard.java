@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Card;
 
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class ArtistCard extends Card{
     /**
@@ -12,5 +13,10 @@ public class ArtistCard extends Card{
     public ArtistCard(ERA era, CARD_TYPE cardType){
         this.era=era;
         this.cardType=cardType;
+    }
+
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
     }
 }

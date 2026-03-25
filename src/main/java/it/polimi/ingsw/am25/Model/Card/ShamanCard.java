@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.SHAMAN_STAR;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class ShamanCard extends Card{
     private final SHAMAN_STAR starNumber;
@@ -33,5 +34,9 @@ public class ShamanCard extends Card{
                 yield -1;
             }
         };
+    }
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
     }
 }

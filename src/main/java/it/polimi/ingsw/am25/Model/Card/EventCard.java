@@ -69,4 +69,8 @@ public class EventCard extends Card
     {
         this.eventEffect.solveEvent(PlayersList);
     }
+    @Override
+    public void addCardToPlayer(Player player) {
+        throw new UnsupportedOperationException("Cannot select an Event card");
+    }
 }

@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Card;
 
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class GathererCard extends Card{
     /**
@@ -12,5 +13,9 @@ public class GathererCard extends Card{
     public GathererCard(ERA era, CARD_TYPE cardType) {
         this.cardType=cardType;
         this.era=era;
+    }
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
     }
 }
