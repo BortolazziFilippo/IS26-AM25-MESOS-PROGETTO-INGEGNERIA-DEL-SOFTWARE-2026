@@ -13,6 +13,10 @@ public class OfferTile extends Tile{
         super(null);
     }
 
+    public char getOfferTileID() {
+        return offerTileID;
+    }
+
     public Action getActionAvailable() {
         return ActionAvailable;
     }

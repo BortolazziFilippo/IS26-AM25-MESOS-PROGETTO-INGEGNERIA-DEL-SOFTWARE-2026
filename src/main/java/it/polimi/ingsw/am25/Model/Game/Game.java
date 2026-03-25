@@ -1,13 +1,7 @@
 package it.polimi.ingsw.am25.Model.Game;
 
 import it.polimi.ingsw.am25.Model.Board.Board;
-import it.polimi.ingsw.am25.Model.Card.Card;
-import it.polimi.ingsw.am25.Model.Enums.ERA;
-import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Board.DefaultTile;
-import it.polimi.ingsw.am25.Model.Board.OfferTile;
-import it.polimi.ingsw.am25.Model.Board.OfferTrack;
 
 import java.util.ArrayList;
 import java.util.List;
