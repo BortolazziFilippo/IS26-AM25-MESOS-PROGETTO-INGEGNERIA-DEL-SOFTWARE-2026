@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.Model.Factory.DefaultTile;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.Model.Board.DefaultTile;
-import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 
 import java.io.InputStream;
@@ -20,16 +19,16 @@ public class DefaultTileFactory {
         InputStream inputStream=null;
         switch (playerNumber){
             case 2:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/DefaultTile/TwoPlayerDefaultTile.json");
+                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/TwoPlayerDefaultTile.json");
                 break;
             case 3:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/DefaultTile/ThreePlayerDefaultTile.json");
+                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/ThreePlayerDefaultTile.json");
                 break;
             case 4:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/DefaultTile/FourPlayereDefaultTile.json");
+                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/FourPlayereDefaultTile.json");
                 break;
             case 5:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/DefaultTile/FivePlayereDefaultTile.json");
+                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/FivePlayereDefaultTile.json");
                 break;
             default:
                 System.err.println(getClass() +": Errore numero giocatori");

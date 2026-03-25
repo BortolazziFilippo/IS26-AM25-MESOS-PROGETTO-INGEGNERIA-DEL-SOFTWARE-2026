@@ -4,33 +4,18 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class OfferTile extends Tile{
     private final Action ActionAvailable;
-    private final int position;
-    private Player palyerOn;
+    private final char offerTileID;
 
-    public OfferTile(int drawTop, int drawBot, int position){
+
+    public OfferTile(int drawTop, int drawBot, char offerTileID){
         this.ActionAvailable = new Action(drawTop, drawBot);
-        this.position = position;
-        this.palyerOn = null;
-
+        this.offerTileID = offerTileID;
+        super(null);
     }
 
     public Action getActionAvailable() {
         return ActionAvailable;
     }
 
-    public int getPosition() {
-        return position;
-    }
 
-    public Player getPalyerOn() {
-        return palyerOn;
-    }
-
-    public boolean isOccupied(){
-        return palyerOn != null;
-    }
-
-    public void setPalyerOn(Player palyerOn) {
-        this.palyerOn = palyerOn;
-    }
 }

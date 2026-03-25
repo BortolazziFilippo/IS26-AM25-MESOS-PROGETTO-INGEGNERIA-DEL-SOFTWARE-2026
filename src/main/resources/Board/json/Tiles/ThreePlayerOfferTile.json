@@ -1,0 +1,27 @@
+[
+  {
+    "offerTileID": "B",
+    "drawBot": 1,
+    "drawTop": 0
+  },
+  {
+    "offerTileID": "C",
+    "drawBot": 0,
+    "drawTop": 1
+  },
+  {
+    "offerTileID": "D",
+    "drawBot": 1,
+    "drawTop": 0
+  },
+  {
+    "offerTileID": "E",
+    "drawBot": 1,
+    "drawTop": 1
+  },
+  {
+    "offerTileID": "F",
+    "drawBot": 0,
+    "drawTop": 2
+  }
+]

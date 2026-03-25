@@ -19,16 +19,6 @@ public class Game implements GameView {
     private final List<Player> players;
     private final Player playerHost;
     private final int playerNumber;
-    private OfferTrack offerTrack;
-    private List<Card> deck;
-    private final List <Card> topCardList;
-    private final List<Card> bottomCardList; /*modificare UML le lettere maiuscole*/
-    private final ERA actualEra;
-    private final List<Player> placingOrder;
-
-    //quetso prima era messo come lista di Card ma penso intendesse lista di Player. giusto?
-    private final List<Player> playingOrder;
-
     /**
      * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
      *
@@ -39,160 +29,19 @@ public class Game implements GameView {
         this.board=new Board(this);
         this.market=new Market(this);
         this.turnManager=new TurnManager(board);
+        this.playerHost=playerHost;
+        this.playerNumber=playerNumber;
+        this.players= new ArrayList<>();
+        players.add(playerHost);
         //solita eccezione per gli argoementi passati
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost nullo");
         }
-
-        //questo su UML è segnato come "non mi convince" dobbiamo decidere se tenerlo o no
-        this.playerHost = playerHost;
-        this.playerNumber = playerNumber;
-
-        //per questa riga come aggiungiamo i player effettivi? perchè per ora abbiamo solo playerHost
-        //per adesso quindi lista ancora vuota
-        this.players = new ArrayList<>();
-
-        this.topCardList = new ArrayList<>();
-        this.bottomCardList = new ArrayList<>();
-
-        this.actualEra = ERA.ERA_I;
-
-        //qui crea offertrack e deck con i metodi private messi sotto
-        this.createOfferTrack(playerNumber);
-        this.createDecks(playerNumber);
-
-        //anche questi in UML non eravamo sicuri
-        this.placingOrder = new ArrayList<>();
-        this.playingOrder = new ArrayList<>();
-
+    }
+    public void addPlayer(Player player){
+        players.add(player);
     }
 
-    private void createOfferTrack(int playerNumber) {
-        this.offerTrack= new OfferTrack(playerNumber);
-    }
-
-    private void createDecks(int playerNumber) {
-        DeckFactory deckFactory = new DeckFactory();
-        this.deck = deckFactory.createDeck(playerNumber);
-
-
-    }
-
-    private void refillTopList(){
-        for(int i = 0; i < (this.playerNumber+4); i++){
-            this.topCardList.addFirst(this.deck.getFirst());
-            this.deck.removeFirst();
-        }
-    }
-
-
-
-    //non sono sicuro sulla logica del metodo quindi ho messo che rimuove tutte le carte dalla lista
-    //ma forse è più comodo se rimuove solo l'ultima e poi al massimo viene chiamato più volte
-    //clear non cancella la lista, la svuota e basta
-    private void removeFromBottomList(){
-        //eccezione se lista non inizializzata ma non dovrebbe succedere se scriviamo bene il costruttore
-        if (bottomCardList == null) {
-            throw new IllegalStateException("La bottomCardList non è ancora stata inizializzata");
-        }
-        this.bottomCardList.clear();
-    }
-
-
-
-    /**
-     * method used for managing the player food
-     * @param player player to manage food
-     * @param food_amount amount of food to manage (both positive or negative)
-     */
-    public void manageFood(Player player, int food_amount){
-        player.manageFoodAndPP(food_amount);
-    }
-
-    //non ricordo più se i PP possono diventare negativi. mi sembrava di no ma se possono diventare negativi
-    //allora non abbiamo gestito quel caso in managePP() di player
-    public void managePrestigePoint(Player player, int PP_amount){
-        player.managePP(PP_amount);
-    }
-
-    /**
-     * method used to place a player on a OfferTile
-     * @param player player to place
-     * @param position position on offertile
-     */
-    //da ricordarsi di aggiungere parte che rimuove player totem da default tile
-    public void placeOnTile(Player player, int position){
-        //solita eccezione
-        if (player == null) {
-            throw new IllegalArgumentException("player passato è null");
-        }
-
-        //prendiamo tutte le tiles di offertrack
-        List<OfferTile> tiles = this.offerTrack.getAvailableOfferTiles();
-
-        //anche qui solita eccezione che si triggera solo se il costruttore fa qualche errore
-        if (tiles == null) {
-            throw new IllegalStateException("abbiamo lista delle offertiles che è null, err costruttore");
-        }
-
-        // eccezione se position passata in argomento non va bene
-        if (position < 0 || position >= tiles.size()) {
-            throw new IndexOutOfBoundsException("position non valida");
-        }
-
-        //ora prende direttamente la tile scelta
-        OfferTile selectedTile = tiles.get(position);
-
-        //ora eccezione se tile già presa
-        if (selectedTile.isOccupied()) {
-            throw new IllegalStateException("tile già occupata");
-        }
-
-        //altrimenti posiziona pedina del player (DA MODIFICARE UML che abbiamo scritto "placePlayer()"
-        //anzichè setPlayerOn
-        selectedTile.setPalyerOn(player);
-
-    }
-
-    //1)aggiunto getter di defaultTile su offertrack che è privato, da ricordarsi di aggiungerlo pure su UML
-    //2) c'è un problema, dobbiamo decidere come implemnetrae la parte di ordine in cui i giocatori mettono
-    // giù la pedina, serve anche per placeOnTile() qui sopra
-    public void returnDefaultTile(Player player){
-        //eccezione se arg sbagliato
-        if (player == null) {
-            throw new IllegalArgumentException("player null");
-        }
-
-        //prende defaultTile
-        DefaultTile defaultTile = this.offerTrack.getDefaultTile();
-
-        //prende lista dei player nell'ordine ma è qui il problema di cui dicevo sopra
-        //poi UMl dice che getPlayerPosition ritorna array ma nel codice abbiamo messo Lits, quidni va
-        //aggiornato UML
-        List<Player> positions = defaultTile.getPlayerPosition();
-
-        //se lista presa è null eccezione, ma dipende da come abbiamo risolto problema sopra
-        if (positions == null) {
-            throw new IllegalStateException("lista delle posizioni è null");
-        }
-
-        //scorre lista posizioni e al primo slot vuoto (null) mette player (da alto verso basso)
-        for (int i = 0; i < positions.size(); i++) {
-            if (positions.get(i) == null) {
-                defaultTile.insertPlayer(player, i);
-                return;
-            }
-        }
-
-        //se non ha trovato posizioni vuote errore
-        throw new IllegalStateException("defaultTile già piena");
-
-    }
-
-    //1) magari sarebbe comodo oltre a ritornare un player fargli anche printare il numero di PP del winner
-    // ma non sono sicuro serva effettivamente
-    //2) nel caso di parità come facciamo? per ora se due sono pari lui semplicemente ritorna il "primo"
-    // dei due in base alla sua posizione nella lista
     public Player checkWinner(){
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
@@ -213,7 +62,6 @@ public class Game implements GameView {
 
 
     }
-
     @Override
     public int getPlayerNumber() {
         return this.playerNumber;

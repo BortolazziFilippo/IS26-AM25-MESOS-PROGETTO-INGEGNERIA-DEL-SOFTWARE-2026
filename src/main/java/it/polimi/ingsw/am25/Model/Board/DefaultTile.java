@@ -7,25 +7,13 @@ import java.util.List;
 
 public class DefaultTile extends Tile {
     private int foodPerSlotPosition;
-    private  Player playerOn;
 
     public DefaultTile( int foodPerSlotPosition ) {
         this.foodPerSlotPosition=foodPerSlotPosition;
+        super(null);
     }
 
-    public void insertPlayer(Player player, int Position) {
-
-    }
-
-    public void removePlayer(int Position){
-
-    }
-
-    public int getFoodPerSlot(int Position) {
-
-    }
-
-    public List<Player> getPlayerPosition() {
-
+    public int getFoodPerSlotPosition() {
+        return foodPerSlotPosition;
     }
 }
