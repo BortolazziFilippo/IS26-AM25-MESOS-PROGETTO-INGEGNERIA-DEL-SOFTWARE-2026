@@ -2,7 +2,7 @@ package it.polimi.ingsw.am25.Model.Player;
 
 import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.*;
-import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

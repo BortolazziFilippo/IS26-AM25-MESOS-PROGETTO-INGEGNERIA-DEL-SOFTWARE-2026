@@ -12,7 +12,6 @@ public class DefaultTile extends Tile {
         this.foodPerSlotPosition=foodPerSlotPosition;
         super(null);
     }
-
     public int getFoodPerSlotPosition() {
         return foodPerSlotPosition;
     }

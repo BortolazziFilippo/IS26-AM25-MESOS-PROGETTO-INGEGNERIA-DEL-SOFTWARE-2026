@@ -1,23 +1,37 @@
 [
   {
-    "offerTileID": "A"
+    "offerTileID": "A",
+    "drawBot": 0,
+    "drawTop": 0
   },
   {
-    "offerTileID": "B"
+    "offerTileID": "B",
+    "drawBot": 1,
+    "drawTop": 0
   },
   {
-    "offerTileID": "C"
+    "offerTileID": "C",
+    "drawBot": 0,
+    "drawTop": 1
   },
   {
-    "offerTileID": "D"
+    "offerTileID": "D",
+    "drawBot": 1,
+    "drawTop": 0
   },
   {
-    "offerTileID": "E"
+    "offerTileID": "E",
+    "drawBot": 1,
+    "drawTop": 1
   },
   {
-    "offerTileID": "F"
+    "offerTileID": "F",
+    "drawBot": 0,
+    "drawTop": 2
   },
   {
-    "offerTileID": "G"
+    "offerTileID": "G",
+    "drawBot": 1,
+    "drawTop": 2
   }
 ]

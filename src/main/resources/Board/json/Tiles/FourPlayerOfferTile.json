@@ -1,11 +1,6 @@
 [
   {
     "offerTileID": "B",
-    "drawBot": 0,
-    "drawTop": 0
-  },
-  {
-    "offerTileID": "B",
     "drawBot": 1,
     "drawTop": 0
   },

@@ -4,14 +4,15 @@ import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
-import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
     private final String nickname;
-    /* private Totem totem;  manca la classe Totem */
+    private final Totem totem;
     private int food;
     private int prestigePoint;
     private final List<Card> tribe;
@@ -31,8 +32,7 @@ public class Player {
             this.nickname = nickname;
             this.tribe = new ArrayList<>();
             this.buildingCards = new ArrayList<>();
-            /* bisogna firnirlo dopo la classe totem !! */
-
+            this.totem=new Totem(color);
     }
 
     /**
@@ -188,4 +188,11 @@ public class Player {
     public List<BuildingCard> getBuildingCards() {
         return buildingCards;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Player player)) return false;
+        return Objects.equals(nickname, player.nickname) && totem.equals(player.totem);
+    }
+
 }

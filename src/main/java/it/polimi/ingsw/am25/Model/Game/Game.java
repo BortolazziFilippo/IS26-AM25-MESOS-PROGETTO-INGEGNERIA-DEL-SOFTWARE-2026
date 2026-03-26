@@ -27,13 +27,12 @@ public class Game implements GameView {
      * @param playerNumber number of player
      */
     public Game(Player playerHost, int playerNumber) {
-
+        this.playerNumber = playerNumber;
         this.board = new Board(this);
         this.boardView= board;
         this.market = new Market(this);
         this.turnManager = new TurnManager(board);
         this.playerHost = playerHost;
-        this.playerNumber = playerNumber;
         this.players = new ArrayList<>();
         players.add(playerHost);
         //solita eccezione per gli argoementi passati
@@ -66,6 +65,9 @@ public class Game implements GameView {
         return winner;
 
 
+    }
+    public Board getBoard(){
+        return this.board;
     }
 
     @Override

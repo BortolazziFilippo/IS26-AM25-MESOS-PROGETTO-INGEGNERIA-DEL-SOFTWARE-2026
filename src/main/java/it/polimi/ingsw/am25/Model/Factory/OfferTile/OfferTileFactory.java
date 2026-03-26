@@ -18,16 +18,16 @@ public class OfferTileFactory {
         InputStream inputStream=null;
         switch (playerNumber){
             case 2:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/TwoPlayerOfferTile.json");
+                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/TwoPlayerOfferTile.json");
                 break;
             case 3:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/ThreePlayerOfferTile.json");
+                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/ThreePlayerOfferTile.json");
                 break;
             case 4:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/FourPlayerOfferTile.json");
+                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FourPlayerOfferTile.json");
                 break;
             case 5:
-                inputStream= DeckFactory.class.getResourceAsStream("Board/json/Tiles/FivePlayerOfferTile.json");
+                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerOfferTile.json");
                 break;
             default:
                 System.err.println(getClass() +": Errore numero giocatori");
