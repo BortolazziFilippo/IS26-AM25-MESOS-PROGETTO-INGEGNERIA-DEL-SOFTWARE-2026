@@ -1,9 +1,11 @@
 package it.polimi.ingsw.am25.Model.Game;
 
 import it.polimi.ingsw.am25.Model.Board.Board;
+import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Game implements GameView {
@@ -59,6 +61,12 @@ public class Game implements GameView {
     @Override
     public int getPlayerNumber() {
         return this.playerNumber;
+    }
+
+
+    @Override
+    public List<Player> getPlayerList() {
+        return this.players;
     }
 }
 

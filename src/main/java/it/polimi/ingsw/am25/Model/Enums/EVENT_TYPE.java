@@ -2,8 +2,8 @@ package it.polimi.ingsw.am25.Model.Enums;
 
 public enum EVENT_TYPE {
     HUNT,
-    SHAMANIC_RIT,
     PAINTINGS,
+    SHAMANIC_RIT,
     SUSTENANCE,
     END_ROUND,
     END_GAME

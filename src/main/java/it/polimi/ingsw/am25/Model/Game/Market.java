@@ -13,6 +13,7 @@ import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Market {
     private List<Card> topCardList;
@@ -67,6 +68,11 @@ public class Market {
         this.bottomCardList.clear();
     }
 
+
+
+    /**
+     * this method clears the bottomBuildingList
+     */
     public void clearBottomBuildingList(){
         this.bottomBuildingList.clear();
     }
@@ -97,29 +103,14 @@ public class Market {
         if (topCardList == null || player == null) {
             throw new IllegalArgumentException("topCardList null o player null");
         }
-
         if (topCardList.isEmpty()) {
             throw new IllegalStateException("topCardList è vuota");
         }
-
         if (position < 0 || position >= topCardList.size()) {
             throw new IndexOutOfBoundsException("Posizione non valida");
         }
-
         Card selected_card = this.topCardList.get(position);
-
-        //a questo punto se la carta è un edificio la mette in building, se no in tribe
-        // da vedere bene come funziona quando uno vuole prendere edificio, se deve pagare cibo o no
-        // nel caso va aggiunto. inotlre nella lista sopra non ci sono carte evento giisto? quindi non
-        //c'è la possibiità di pescare un evento? se c'è va aggiunto in un altro else che se il giocatore
-        // prova a pescare un evento anzichè una carta normale lancia eccezione. stessa cosa quando
-        //facciamo il metodo per pescare dalla bottomlist.
-
         selected_card.addCardToPlayer(player);
-
-        //poi rimuove la carta scelta dalla toplist, ma remove mi sembra che cancelli proprio la posizone
-        //dalla lista, quindi ad esempio da x elementi va ad x-1. se no possiamo semplicemente settare a
-        //null quella posizione della lista
         this.topCardList.remove(position);
     }
 
@@ -136,6 +127,7 @@ public class Market {
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
+        this.topBuildingList.remove(position);
     }
 
 
@@ -180,6 +172,7 @@ public class Market {
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
+        this.bottomCardList.remove(position);
     }
     //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
     //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
@@ -189,7 +182,8 @@ public class Market {
      * this method check if there are event in the bottom list
      * @return returns true if a event is found in bottom list
      */
-    public boolean checkEventsPresence(){
+    //questo metodo potrebbe no servire piu
+    private boolean checkEventsPresence(){
         //solita eccezione anche qui
         if (bottomCardList == null) {
             throw new IllegalStateException("bottomCardList è null");
@@ -202,6 +196,19 @@ public class Market {
         }
         //se non trova più eventi allora false
         return false;
+    }
+
+    /**
+     * this method, if there are Events in the bottomCardList, it solves them.
+     * First it order them by event Type (Sustenance are the last events to be solved), in case of two events from two different ERAS
+     * the oldest one(the one with the "least ERA") must be done first
+     */
+    public void solveEvents(){
+        List<EventCard> eventToBeSolved= this.bottomCardList.stream().filter(card -> card.getCardType()==CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
+        if(!eventToBeSolved.isEmpty()){
+            eventToBeSolved.sort(Comparator.comparing(EventCard::getEventType).thenComparing(EventCard::getEra));
+            eventToBeSolved.forEach(eventCard -> eventCard.applyEventEffect(gameView.getPlayerList()));
+        }
     }
 
     /**
