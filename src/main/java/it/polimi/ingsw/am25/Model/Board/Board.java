@@ -8,7 +8,7 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Board implements TurnOrderView{
+public class Board implements BoardView {
     private final List<OfferTile> offerTiles;
     private final List<DefaultTile> defaultTiles;
     private final GameView gameView;
