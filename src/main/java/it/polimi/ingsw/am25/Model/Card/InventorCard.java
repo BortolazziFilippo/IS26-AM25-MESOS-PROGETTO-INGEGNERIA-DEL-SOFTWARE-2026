@@ -5,6 +5,8 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
+import java.util.Objects;
+
 public class InventorCard extends Card{
     private final INV_ICON invIcon;
 
@@ -28,4 +30,14 @@ public class InventorCard extends Card{
         player.addCardToTribe(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof InventorCard that)) return false;
+        return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(invIcon);
+    }
 }

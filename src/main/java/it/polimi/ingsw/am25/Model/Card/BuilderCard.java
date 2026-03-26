@@ -37,4 +37,14 @@ public class BuilderCard extends Card{
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof BuilderCard toCompare){
+            return toCompare.cardType == this.cardType && toCompare.era == this.era && toCompare.foodDiscount == this.foodDiscount
+                    && toCompare.finalPrestigePoint == this.finalPrestigePoint;
+        }else {
+            return false;
+        }
+    }
 }

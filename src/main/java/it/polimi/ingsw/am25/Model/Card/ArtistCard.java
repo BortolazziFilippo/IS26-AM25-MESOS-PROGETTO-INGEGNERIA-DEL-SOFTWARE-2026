@@ -19,4 +19,13 @@ public class ArtistCard extends Card{
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ArtistCard toCompare){
+            return toCompare.cardType == this.cardType && toCompare.era == this.getEra();
+        }else{
+            return false;
+        }
+    }
 }

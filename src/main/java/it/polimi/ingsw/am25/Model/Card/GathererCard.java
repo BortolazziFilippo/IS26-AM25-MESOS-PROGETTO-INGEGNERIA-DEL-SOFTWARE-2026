@@ -18,4 +18,13 @@ public class GathererCard extends Card{
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof GathererCard toCompare){
+            return toCompare.cardType == this.cardType && toCompare.era == this.era;
+        }else {
+            return false;
+        }
+    }
 }

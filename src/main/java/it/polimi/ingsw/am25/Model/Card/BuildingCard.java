@@ -72,4 +72,13 @@ public class BuildingCard extends Card {
     public void addCardToPlayer(Player player) {
         player.addBuilding(this);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof BuildingCard toCompare){
+            return toCompare.buildingID == this.buildingID;
+        }else{
+            return false;
+        }
+    }
 }
