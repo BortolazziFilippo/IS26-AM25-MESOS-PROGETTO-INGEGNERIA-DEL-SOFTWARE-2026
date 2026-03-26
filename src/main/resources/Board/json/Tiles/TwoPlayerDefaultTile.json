@@ -1,8 +1,8 @@
 [
   {
-    "foodPerSlot": 1
+    "foodPerSlotPosition": 1
   },
   {
-    "foodPerSlot": -1
+    "foodPerSlotPosition": -1
   }
 ]

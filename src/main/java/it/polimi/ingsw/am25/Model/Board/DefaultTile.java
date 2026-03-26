@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultTile extends Tile {
-    private int foodPerSlotPosition;
+    private final int foodPerSlotPosition;
 
     public DefaultTile( int foodPerSlotPosition ) {
         this.foodPerSlotPosition=foodPerSlotPosition;
