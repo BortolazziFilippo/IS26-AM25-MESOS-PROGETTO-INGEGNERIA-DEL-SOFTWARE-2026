@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.Model.Game;
 
-import it.polimi.ingsw.am25.Model.Board.TurnOrderView;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Card.EventCard;
@@ -9,8 +8,7 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Utilities.NotEnoughFoodException;
-import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.Model.Utilities.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,7 +23,8 @@ public class Market {
     private final GameView gameView;
 
     /**
-     * default constructo of Market
+     * default constructor of Market
+     * it initializes the deck and the building
      *
      */
     public Market(GameView gameView) {
@@ -68,18 +67,77 @@ public class Market {
         this.bottomCardList.clear();
     }
 
+    /**
+     * this method does all the things that has to be done at the end of the round in the market area:
+     * 1)if there are solves the events in the bottom list
+     * 2)clear the bottom list
+     * 3)shift the remaining card from the top list to the bottom list
+     * 4) refill the top list
+     * 5)Try refilling the topCardList
+     *  5.a) if an ERA change is detected it:
+     *      5.1) clears the bottomBuildingList
+     *      5.2)shift the building from the top to bottom building list
+     *      5.3) refill the topBuildingList
+     *  5.b) if the deck is finished throws DeckFineshed7
+     * @throws DeckFinishedException int the case the deck is finished it notifies the caller
+     */
+    public void endOfRoundMarketActions() throws DeckFinishedException{
+        this.solveEvents();
+        this.clearBottomCardList();
+        this.shiftCardTopToBottomList();
+        try {
+            this.refillTopCardList();
+        } catch (ChangedEraException e) {
+            this.clearBottomBuildingList();
+            this.shiftBuildingTopToBottom();
+            this.refillTopBuildingList();
+        } catch (DeckFinishedException e) {
+            throw new DeckFinishedException();
+        }
+    }
 
+    /**
+     * this method refill the top Card List,
+     * @throws ChangedEraException in the case an Era change is detected it throws a ChangedEraException.
+     * @throws DeckFinishedException In the case The deck is finished it throws a DeckFinishedException
+     */
+    private void refillTopCardList() throws ChangedEraException, DeckFinishedException{
+        Card cardToAdd = null;
+        //refill the top list by the right amount of cards needed
+        for (int i = 0; i < UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber()); i++) {
+            if(deck.isEmpty()) {
+                //if the deck is empty we are at the end of the game, so we must do specific procedures
+                throw new DeckFinishedException();
+            }
+            //Extract the first card from the deck end add it to the top card list and then remove it from the deck
+            cardToAdd=deck.getFirst();
+            topCardList.add(cardToAdd);
+            deck.removeFirst();
+        }
+        if (cardToAdd!=null){
+            //check if the last drawn card is from a different ERA, if so it launches a ChangedEraException notifying the caller
+            if(cardToAdd.getEra()!=gameView.getCurrentEra()) {
+                gameView.nextEra();
+                throw new ChangedEraException();
+            }
+        }
+    }
+
+    private void refillTopBuildingList(){
+        this.topBuildingList.addAll(this.buildingCards.stream().filter(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra()).toList());
+        this.bottomBuildingList.removeIf(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra());
+    }
 
     /**
      * this method clears the bottomBuildingList
      */
-    public void clearBottomBuildingList(){
+    private void clearBottomBuildingList(){
         this.bottomBuildingList.clear();
     }
     /**
      * this method shift the card from the topList To the bottom list
      */
-    public void shiftCardTopToBottomList(){
+    private void shiftCardTopToBottomList(){
         bottomCardList.addAll(topCardList);
         topCardList.clear();
     }
@@ -87,7 +145,7 @@ public class Market {
     /**
      * this method shift the buildings from the top to the bottom list
      */
-    public void shiftBuildingTopToBottom(){
+    private void shiftBuildingTopToBottom(){
         this.bottomBuildingList.addAll(this.topBuildingList);
         this.topBuildingList.clear();
     }
@@ -203,7 +261,7 @@ public class Market {
      * First it order them by event Type (Sustenance are the last events to be solved), in case of two events from two different ERAS
      * the oldest one(the one with the "least ERA") must be done first
      */
-    public void solveEvents(){
+    private void solveEvents(){
         List<EventCard> eventToBeSolved= this.bottomCardList.stream().filter(card -> card.getCardType()==CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
         if(!eventToBeSolved.isEmpty()){
             eventToBeSolved.sort(Comparator.comparing(EventCard::getEventType).thenComparing(EventCard::getEra));

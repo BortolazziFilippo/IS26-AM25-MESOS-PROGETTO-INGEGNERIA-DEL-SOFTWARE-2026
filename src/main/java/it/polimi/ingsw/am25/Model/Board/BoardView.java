@@ -4,7 +4,7 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 
 import java.util.List;
 
-public interface TurnOrderView {
+public interface BoardView {
     List<Player> getOrderedPlayerOnOfferTile();
     List<Player> getOrderedPlayerOnDefaultTile();
 }

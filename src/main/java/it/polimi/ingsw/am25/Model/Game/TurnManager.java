@@ -1,6 +1,6 @@
 package it.polimi.ingsw.am25.Model.Game;
 
-import it.polimi.ingsw.am25.Model.Board.TurnOrderView;
+import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
 import java.util.ArrayList;
@@ -11,12 +11,12 @@ public class TurnManager {
     private List<Player> playingOrder;
     private int currentPlayingPlayer;
     private int currentPlacingPlayer;
-    private final TurnOrderView turnOrderView;
+    private final BoardView boardView;
 
-    public TurnManager(TurnOrderView turnOrderView) {
+    public TurnManager(BoardView boardView) {
         this.placingOrder = new ArrayList<>();
         this.playingOrder= new ArrayList<>();
-        this.turnOrderView=turnOrderView;
+        this.boardView = boardView;
         this.currentPlacingPlayer=0;
         this.currentPlayingPlayer=0;
     }
@@ -37,9 +37,9 @@ public class TurnManager {
         return playingOrder;
     }
     public void updatePlayingOrder(){
-        this.playingOrder= turnOrderView.getOrderedPlayerOnOfferTile();
+        this.playingOrder= boardView.getOrderedPlayerOnOfferTile();
     }
     public void updatePlacingOrder(){
-        this.placingOrder =turnOrderView.getOrderedPlayerOnDefaultTile();
+        this.placingOrder = boardView.getOrderedPlayerOnDefaultTile();
     }
 }
