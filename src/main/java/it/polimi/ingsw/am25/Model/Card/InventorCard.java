@@ -36,8 +36,4 @@ public class InventorCard extends Card{
         return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(invIcon);
-    }
 }

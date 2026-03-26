@@ -117,6 +117,14 @@ public class Player {
         return prestigePoint;
     }
 
+    public int getNumberOfDifferentInventorIcon(){
+        return (int) tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
+                .map(InventorCard.class::cast)    // 1. Trasforma la Card in InventorCard
+                .map(InventorCard::getInvIcon)    // 2. Estraggo l'icona
+                .distinct()                       // 3. Tengo solo le icone diverse
+                .count();                         // 4. Conto quante ne sono rimaste
+    }
     /**
      *
      * @return the number of total shaman star a player has
