@@ -1,27 +1,25 @@
 package it.polimi.ingsw.am25.Model.Board;
 
-import java.util.Objects;
-
 public class Action {
-    public int DrawFromTop;
-    public int DrawFromBottom;
+    public int drawTop;
+    public int drawBot;
 
-    public Action(int drawFromTop, int drawFromBottom){
-        this.DrawFromTop = drawFromTop;
-        this.DrawFromBottom = drawFromBottom;
+    public Action(int drawTop, int drawFromBottom){
+        this.drawTop = drawTop;
+        this.drawBot = drawFromBottom;
     }
 
     public int getDrawFromBottom() {
-        return DrawFromBottom;
+        return drawBot;
     }
 
-    public int getDrawFromTop() {
-        return DrawFromTop;
+    public int getDrawTop() {
+        return drawTop;
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Action action)) return false;
-        return DrawFromTop == action.DrawFromTop && DrawFromBottom == action.DrawFromBottom;
+        return drawTop == action.drawTop && drawBot == action.drawBot;
     }
 }

@@ -41,4 +41,5 @@ public class OfferTileFactory {
 
         return new ArrayList<>(Arrays.stream(offerTiles).toList());
     }
+
 }
