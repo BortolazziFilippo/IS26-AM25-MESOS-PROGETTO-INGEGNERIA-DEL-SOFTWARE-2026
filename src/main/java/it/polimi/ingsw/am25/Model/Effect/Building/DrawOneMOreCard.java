@@ -10,7 +10,7 @@ public class DrawOneMOreCard extends BuildingEffect {
 
     @Override
     public void applyEffect(Player player) {
-        // player.selectCardFromTopList(position, player);
-
+        // serve l'implementazione del controller
+        // questo effetto chiama la funzione in market di selezione carta da TopList, però mi serve la posizione che sceglie player
     }
 }

@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.Model.Factory.Building;
 
 import com.google.gson.Gson;
+import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Effect.Building.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
@@ -21,7 +22,7 @@ public class BuildingFactory {
      * @param playerNumber number of players
      * @return List ordered by ERA with the right amount of building
      */
-    public List<BuildingCard> createBuildingDeck (int playerNumber){
+    public List<BuildingCard> createBuildingDeck (int playerNumber, BoardView boardView){
 
         List<BuildingCard> tempList =new ArrayList<>();
         List<BuildingCard> listToReturn=new ArrayList<>();
@@ -108,7 +109,7 @@ public class BuildingFactory {
                 System.err.println(getClass() + ": Parametro PlayerNumber non valido" );
         }
         for (BuildingCard n:listToReturn){
-            n.setBuildingEffect(returnCorrectBuildingEffect(n));
+            n.setBuildingEffect(returnCorrectBuildingEffect(n,boardView));
         }
         return listToReturn;
     }
@@ -118,7 +119,7 @@ public class BuildingFactory {
      * @param buildingToSetEffect building to bind the effect
      * @return return the Right Building effect for the building
      */
-    private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect){
+    private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect,BoardView boardView){
         BuildingEffect effectToReturn= null;
         switch (buildingToSetEffect.getBuildingID()) {
             case 1:
@@ -135,6 +136,7 @@ public class BuildingFactory {
                 break;
             case 5:
                 effectToReturn = new PlusOneFoodOnReturnDefaultTile();
+                ((PlusOneFoodOnReturnDefaultTile) effectToReturn).setBoardView(boardView);
                 break;
             case 6:
                 effectToReturn = new FoodOnNewCoupleInventors();

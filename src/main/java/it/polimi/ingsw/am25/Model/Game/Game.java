@@ -12,13 +12,13 @@ import java.util.List;
 
 public class Game implements GameView {
     private ERA currentEra = ERA.ERA_I;
-    private final Board board;
-    private final BoardView boardView;
-    private final Market market;
-    private final TurnManager turnManager;
-    private final List<Player> players;
-    private final Player playerHost;
-    private final int playerNumber;
+    private  Board board;
+    private  BoardView boardView;
+    private  Market market;
+    private  TurnManager turnManager;
+    private  List<Player> players;
+    private  Player playerHost;
+    private  int playerNumber;
     //manca Gamestate, non so se vogliamo metterlo
 
     /**
@@ -31,7 +31,7 @@ public class Game implements GameView {
         this.playerNumber = playerNumber;
         this.board = new Board(this);
         this.boardView= board;
-        this.market = new Market(this);
+        this.market = new Market(this,board);
         this.turnManager = new TurnManager(board);
         this.playerHost = playerHost;
         this.players = new ArrayList<>();

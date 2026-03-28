@@ -16,7 +16,7 @@ class SixFoodCompletedSetTest {
     public void TestApplyEffect() {
         Player player = new Player("Lorem Ipsum", COLOR.RED);
         player.manageFoodAndPP(5);
-        BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.GATHERER,1,10,10, EVENT_TYPE.END_ROUND);
+        BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.BUILDING,1,10,10, EVENT_TYPE.END_ROUND);
         buildingCard.setBuildingEffect(new SixFoodCompletedSet());
         buildingCard.applyBuildingEffect(player);
         assertEquals(5,player.getFood());

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.Model.Game;
 
+import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Card.EventCard;
@@ -30,13 +31,13 @@ public class Market {
      * it initializes the deck and the building
      *
      */
-    public Market(GameView gameView) {
+    public Market(GameView gameView, BoardView boardView) {
         this.topCardList= new ArrayList<>();
         this.bottomBuildingList= new ArrayList<>();
         this.bottomCardList = new ArrayList<>();
         this.topBuildingList=new ArrayList<>();
         this.gameView=gameView;
-        this.buildingCards=new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber());
+        this.buildingCards=new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber(),boardView);
         this.deck = new DeckFactory().createDeck(gameView.getPlayerNumber());
         this.organizeDeck();
         this.initializeBottomList();
