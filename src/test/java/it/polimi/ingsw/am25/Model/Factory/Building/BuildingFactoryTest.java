@@ -39,7 +39,7 @@ class BuildingFactoryTest {
 
         // case four player
         buildingCard = buildingFactory.createBuildingDeck(4);
-        assertEquals(9,buildingCard.stream().count());
+        assertEquals(9,  buildingCard.size());
         //ERA I
         assertEquals(2,buildingCard.stream().filter(BuildingCard->BuildingCard.getEra()== ERA.ERA_I).count());
         //ERA II

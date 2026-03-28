@@ -1,0 +1,39 @@
+[
+  {
+    "offerTileID": "B",
+    "actionAvailable": {
+      "drawBot": 1,
+      "drawTop": 0
+    }
+  },
+  {
+    "offerTileID": "C",
+    "actionAvailable": {
+      "drawBot": 0,
+      "drawTop": 1
+    }
+  },
+  {
+    "offerTileID": "D",
+    "actionAvailable": {
+      "drawBot": 2,
+      "drawTop": 0
+    }
+  },
+  {
+    "offerTileID": "E",
+    "actionAvailable": {
+      "drawBot": 1,
+      "drawTop": 1
+    }
+  },
+  {
+    "offerTileID": "F",
+    "actionAvailable": {
+      "drawBot": 0,
+      "drawTop": 2
+    }
+  }
+]
+
+

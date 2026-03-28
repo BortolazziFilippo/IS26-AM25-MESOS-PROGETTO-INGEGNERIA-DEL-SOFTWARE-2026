@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.DTO.BuildingDTO;
 import it.polimi.ingsw.am25.Model.Factory.DTO.CardDTO;
+import it.polimi.ingsw.am25.Model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.Model.Factory.Event.EventFactory;
 
 import java.io.InputStream;
@@ -29,16 +30,16 @@ public class DeckFactory {
         InputStream inputStream=null;
         switch (playerNumber){
             case 2:
-                 inputStream= DeckFactory.class.getResourceAsStream("/CardResources/json/TwoPlayersCard.json");
+                 inputStream= DefaultTileFactory.class.getResourceAsStream("/CardResources/json/TwoPlayersCard.json");
                 break;
             case 3:
-                 inputStream= DeckFactory.class.getResourceAsStream("/CardResources/json/ThreePlayersCard.json");
+                 inputStream= DefaultTileFactory.class.getResourceAsStream("/CardResources/json/ThreePlayersCard.json");
                  break;
             case 4:
-                inputStream= DeckFactory.class.getResourceAsStream("/CardResources/json/FourPlayersCard.json");
+                inputStream= DefaultTileFactory.class.getResourceAsStream("/CardResources/json/FourPlayersCard.json");
                 break;
             case 5:
-                inputStream= DeckFactory.class.getResourceAsStream("/CardResources/json/FivePlayersCard.json");
+                inputStream= DefaultTileFactory.class.getResourceAsStream("/CardResources/json/FivePlayersCard.json");
                 break;
             default:
                 System.err.println(getClass() +": Errore numero giocatori");

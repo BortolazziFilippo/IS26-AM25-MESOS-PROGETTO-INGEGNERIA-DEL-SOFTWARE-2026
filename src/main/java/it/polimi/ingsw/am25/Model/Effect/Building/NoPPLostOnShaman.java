@@ -3,14 +3,23 @@ package it.polimi.ingsw.am25.Model.Effect.Building;
 import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class NoPPLostOnShaman extends BuildingEffect{
-    private final int PPToRestore;
+    private int prevPP;
+    private boolean flag = false;
 
-    public NoPPLostOnShaman(int PPToRestore) {
-        this.PPToRestore = PPToRestore;
+    public NoPPLostOnShaman() {
+
     }
 
     @Override
     public void applyEffect(Player player) {
-        player.managePP(PPToRestore);
+        if(!flag){
+            prevPP = player.getPrestigePoint();
+            flag = true;
+        }else{
+            if(player.getPrestigePoint()<prevPP){
+                player.managePP(prevPP - player.getPrestigePoint());
+                flag = false;
+            }
+        }
     }
 }

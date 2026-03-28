@@ -5,8 +5,9 @@ module it.polimi.ingsw.am25 {
     requires com.google.gson;
     opens it.polimi.ingsw.am25.Model.Factory.DTO to com.google.gson;
     opens it.polimi.ingsw.am25.Model.Enums to com.google.gson;
-
-
+    opens it.polimi.ingsw.am25.Model.Board to com.google.gson;
+    opens it.polimi.ingsw.am25.Model.Player to com.google.gson;
+    opens it.polimi.ingsw.am25.Model.Card to com.google.gson;
     opens it.polimi.ingsw.am25 to javafx.fxml;
     exports it.polimi.ingsw.am25;
 }

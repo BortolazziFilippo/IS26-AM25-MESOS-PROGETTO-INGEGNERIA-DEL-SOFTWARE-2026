@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.Model.Card;
 
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Player.Player;
 
 public abstract class Card {
     protected ERA era;
@@ -13,4 +14,5 @@ public abstract class Card {
     public CARD_TYPE getCardType(){
         return cardType;
     }
+    public abstract void addCardToPlayer(Player player);
 }

@@ -1,10 +1,11 @@
 package it.polimi.ingsw.am25.Model.Effect.Event;
 
+import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.ShamanCard;
-import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.Model.Enums.COLOR;
-import it.polimi.ingsw.am25.Model.Enums.ERA;
-import it.polimi.ingsw.am25.Model.Enums.SHAMAN_STAR;
+import it.polimi.ingsw.am25.Model.Effect.Building.DoublePPOnShamanEvent;
+import it.polimi.ingsw.am25.Model.Effect.Building.NoPPLostOnShaman;
+import it.polimi.ingsw.am25.Model.Effect.Building.ThreeMoreShamanStar;
+import it.polimi.ingsw.am25.Model.Enums.*;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,5 +83,47 @@ class ShamanEventTest {
         assertEquals(5, p1.getPrestigePoint());
         assertEquals(5, p2.getPrestigePoint());
         assertEquals(5, p3.getPrestigePoint());
+    }
+
+    @Test
+    void testThreeMoreShamanStar(){
+        addShamanStars(p1, 1);
+        addShamanStars(p2, 3);
+
+        BuildingCard building = new BuildingCard(
+                ERA.ERA_I, CARD_TYPE.BUILDING, 4,0, 0, EVENT_TYPE.SHAMANIC_RIT);
+        building.setBuildingEffect(new ThreeMoreShamanStar());
+        p1.addBuilding(building);
+        shamanEvent.solveEvent(List.of(p1, p2));
+        assertEquals(10, p1.getPrestigePoint());
+        assertEquals(-5, p2.getPrestigePoint());
+    }
+
+    @Test
+    void testDoublePPOnShamanEvent(){
+        addShamanStars(p1, 3);
+        addShamanStars(p2, 1);
+        p1.managePP(-20);
+        BuildingCard building = new BuildingCard(
+                ERA.ERA_I, CARD_TYPE.BUILDING, 4,0, 0, EVENT_TYPE.SHAMANIC_RIT);
+        building.setBuildingEffect(new DoublePPOnShamanEvent());
+        p1.addBuilding(building);
+        shamanEvent.solveEvent(List.of(p1, p2));
+        assertEquals(0, p1.getPrestigePoint());
+        assertEquals(-5, p2.getPrestigePoint());
+    }
+
+    @Test
+    void testNoPPLostOnShaman(){
+        addShamanStars(p1, 1);
+        addShamanStars(p2, 3);
+        p1.managePP(5);
+        BuildingCard building = new BuildingCard(
+                ERA.ERA_I, CARD_TYPE.BUILDING, 4,0, 0, EVENT_TYPE.SHAMANIC_RIT);
+        building.setBuildingEffect(new NoPPLostOnShaman());
+        p1.addBuilding(building);
+        shamanEvent.solveEvent(List.of(p1, p2));
+        assertEquals(5, p1.getPrestigePoint());
+        assertEquals(10, p2.getPrestigePoint());
     }
 }

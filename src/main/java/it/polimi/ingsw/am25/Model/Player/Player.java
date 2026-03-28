@@ -4,19 +4,24 @@ import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
     private final String nickname;
-    /* private Totem totem;  manca la classe Totem */
+    private final Totem totem;
     private int food;
     private int prestigePoint;
     private final List<Card> tribe;
     private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
-    private int temporaryShamanBonus = 0;
+
+    public String getNickname() {
+        return nickname;
+    }
 
     /**
      * default constructor of player
@@ -27,8 +32,7 @@ public class Player {
             this.nickname = nickname;
             this.tribe = new ArrayList<>();
             this.buildingCards = new ArrayList<>();
-            /* bisogna firnirlo dopo la classe totem !! */
-
+            this.totem=new Totem(color);
     }
 
     /**
@@ -37,7 +41,7 @@ public class Player {
      * This second behavior sometimes could not be wanted, if so before calling you should check the amount of food available.
      * @param foodAmount food to be removed
      */
-    public void manageFood(int foodAmount){
+    public void manageFoodAndPP(int foodAmount){
         if(foodAmount < 0){
             if( (this.food + foodAmount) < 0){
                 this.food += foodAmount;
@@ -54,17 +58,23 @@ public class Player {
     }
 
     /**
-     * method used from buildingEffect three more shaman,
-     * @param bonus bonus
+     * this method tries to buy the card, if the player cannot afford it, it throws not enough food exception
+     * @param selectedBuildingCard building to be bought
      */
-    public void addTemporaryShamanBonus(int bonus){
-        this.temporaryShamanBonus += bonus;
-    }
-    /**
-     * method used from buildingEffect three more shaman,
-     */
-    public void resetTemporaryShamanBonus(){
-        this.temporaryShamanBonus = 0;
+    public void tryBuyBuilding( BuildingCard selectedBuildingCard) throws NotEnoughFoodException{
+        int cost;
+        cost=selectedBuildingCard.getFoodCost();
+        cost=cost-this.getBuilderDiscount();
+        if(cost<0){
+            cost=0;
+        }
+        if(this.food-cost<0){
+            throw new NotEnoughFoodException();
+        }else{
+            this.food-=cost;
+            selectedBuildingCard.addCardToPlayer(this);
+        }
+
     }
 
     /**
@@ -107,6 +117,14 @@ public class Player {
         return prestigePoint;
     }
 
+    public int getNumberOfDifferentInventorIcon(){
+        return (int) tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
+                .map(InventorCard.class::cast)    // 1. Trasforma la Card in InventorCard
+                .map(InventorCard::getInvIcon)    // 2. Estraggo l'icona
+                .distinct()                       // 3. Tengo solo le icone diverse
+                .count();                         // 4. Conto quante ne sono rimaste
+    }
     /**
      *
      * @return the number of total shaman star a player has
@@ -118,7 +136,7 @@ public class Player {
                 countStar= countStar + ((ShamanCard) card).getStarNumber();
             }
         }
-        return countStar + temporaryShamanBonus;
+        return countStar;
     }
 
     /**
@@ -170,4 +188,11 @@ public class Player {
     public List<BuildingCard> getBuildingCards() {
         return buildingCards;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Player player)) return false;
+        return Objects.equals(nickname, player.nickname) && totem.equals(player.totem);
+    }
+
 }

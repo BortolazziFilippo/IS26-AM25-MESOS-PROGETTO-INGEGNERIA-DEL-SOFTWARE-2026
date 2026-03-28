@@ -9,6 +9,6 @@ public class OnEventPaintingsOneFoodPerArtist extends BuildingEffect{
 
     @Override
     public void applyEffect(Player player) {
-        player.manageFood( (int) player.getTribe().stream().filter(card -> card.getCardType()== CARD_TYPE.ARTIST).count() );
+        player.manageFoodAndPP( (int) player.getTribe().stream().filter(card -> card.getCardType()== CARD_TYPE.ARTIST).count() );
     }
 }

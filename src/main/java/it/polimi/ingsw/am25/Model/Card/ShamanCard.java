@@ -3,6 +3,9 @@ package it.polimi.ingsw.am25.Model.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.SHAMAN_STAR;
+import it.polimi.ingsw.am25.Model.Player.Player;
+
+import java.util.Objects;
 
 public class ShamanCard extends Card{
     private final SHAMAN_STAR starNumber;
@@ -34,4 +37,15 @@ public class ShamanCard extends Card{
             }
         };
     }
+    @Override
+    public void addCardToPlayer(Player player) {
+        player.addCardToTribe(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ShamanCard that)) return false;
+        return starNumber == that.starNumber && this.cardType==that.cardType && this.era==that.era;
+    }
+
 }
