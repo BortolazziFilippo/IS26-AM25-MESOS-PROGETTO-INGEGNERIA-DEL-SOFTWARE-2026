@@ -14,6 +14,7 @@ public class PPPerCharType extends BuildingEffect{
 
     @Override
     public void applyEffect(Player player) {
-
+        int num_of_occurence = (int) player.getTribe().stream().filter(card -> card.getCardType() == cardType).count();
+        player.managePP(num_of_occurence*PrestigePoint);
     }
 }

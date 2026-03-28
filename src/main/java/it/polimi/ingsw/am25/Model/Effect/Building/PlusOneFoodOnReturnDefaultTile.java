@@ -9,5 +9,6 @@ public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect{
     @Override
     public void applyEffect(Player player) {
 
+        player.manageFoodAndPP(1);
     }
 }
