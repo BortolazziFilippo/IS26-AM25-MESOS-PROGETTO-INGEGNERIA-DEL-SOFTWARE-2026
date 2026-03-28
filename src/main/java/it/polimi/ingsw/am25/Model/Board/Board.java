@@ -98,4 +98,9 @@ public class Board implements BoardView {
 
     }
 
+    @Override
+    public boolean isPlayerOnAnEligibleDefaultTile(Player player) {
+        List<DefaultTile> defaultTilePlayerIsOn= this.defaultTiles.stream().filter(DefaultTile::isOccupied).filter(defaultTile -> defaultTile.getPlayerOn().equals(player)).collect(Collectors.toCollection(ArrayList::new));
+        return defaultTilePlayerIsOn.getFirst().getFoodPerSlotPosition() >= 0;
+    }
 }

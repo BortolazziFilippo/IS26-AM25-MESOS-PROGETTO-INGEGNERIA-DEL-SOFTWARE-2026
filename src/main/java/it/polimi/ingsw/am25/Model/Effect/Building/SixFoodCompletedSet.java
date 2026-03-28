@@ -32,7 +32,9 @@ public class SixFoodCompletedSet extends BuildingEffect {
         }else{
             List<Card> listOfNewCard = player.getTribe();
             List<Card> difference = new ArrayList<>(listOfNewCard);
-            difference.removeAll(listOldCard);
+            difference.removeIf(card ->
+                    listOldCard.stream().anyMatch(oldCard -> oldCard == card)
+            );
             listOldCard=new ArrayList<>(listOfNewCard);
 
             UtilitiesFunction.countOccurrence(difference, setCard);
