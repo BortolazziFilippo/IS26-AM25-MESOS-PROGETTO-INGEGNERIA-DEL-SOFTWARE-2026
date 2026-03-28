@@ -19,6 +19,7 @@ public class Game implements GameView {
     private final List<Player> players;
     private final Player playerHost;
     private final int playerNumber;
+    //manca Gamestate, non so se vogliamo metterlo
 
     /**
      * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
@@ -45,7 +46,6 @@ public class Game implements GameView {
         players.add(player);
     }
 
-
     public Player checkWinner() {
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
@@ -66,6 +66,8 @@ public class Game implements GameView {
 
 
     }
+
+    //da aggiungere in UML volendo
     public Board getBoard(){
         return this.board;
     }
