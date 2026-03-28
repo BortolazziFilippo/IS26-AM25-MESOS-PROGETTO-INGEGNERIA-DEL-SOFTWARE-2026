@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.Model.Card.BuildingCard;
 import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
+import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Tile.DefaultTile;
@@ -11,6 +12,8 @@ import it.polimi.ingsw.am25.Model.Tile.OfferTile;
 import it.polimi.ingsw.am25.Model.Tile.OfferTrack;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Game {
@@ -23,9 +26,8 @@ public class Game {
     private final List<Card> bottomCardList; /*modificare UML le lettere maiuscole*/
     private final ERA actualEra;
     private final List<Player> placingOrder;
-
-    //quetso prima era messo come lista di Card ma penso intendesse lista di Player. giusto?
     private final List<Player> playingOrder;
+    private List<BuildingCard> buildings;
 
     /**
      * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
@@ -33,30 +35,70 @@ public class Game {
      * @param playerHost player who created the game
      * @param playerNumber number of player
      */
+
     public Game(Player playerHost, int playerNumber) {
         //solita eccezione per gli argoementi passati
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost nullo");
         }
 
-        //questo su UML è segnato come "non mi convince" dobbiamo decidere se tenerlo o no
         this.playerHost = playerHost;
         this.playerNumber = playerNumber;
 
-        //per questa riga come aggiungiamo i player effettivi? perchè per ora abbiamo solo playerHost
-        //per adesso quindi lista ancora vuota
         this.players = new ArrayList<>();
+        this.players.add(playerHost);
+
+        this.actualEra = ERA.ERA_I;
 
         this.topCardList = new ArrayList<>();
         this.bottomCardList = new ArrayList<>();
 
-        this.actualEra = ERA.ERA_I;
-
-        //qui crea offertrack e deck con i metodi private messi sotto
-        this.createOfferTrack(playerNumber);
         this.createDecks(playerNumber);
+        //crea deck, separa eventi finali (shamano era 3 e sostentamento era 3)
+        // fa shuffle, sort per era, poi prima riempie fila sotto SENZA eventi
 
-        //anche questi in UML non eravamo sicuri
+        //divide deck in carte normali e carte eventi
+        List<Card> eventCards = new ArrayList<>();
+        List<Card> normalCards = new ArrayList<>();
+
+        //scorre il deck e popola le due liste dichiarate qui sopra
+        for (Card c : this.deck) {
+            if (c.getCardType() == CARD_TYPE.EVENT) {
+                eventCards.add(c);
+            } else {
+                normalCards.add(c);
+            }
+        }
+
+        //fa due variabili temporanee per salvare evento finale shamano era 3 e sostentamento era 3
+        /*
+        for (Card c : eventCards) {
+            if (c.getCardType() == CARD_TYPE.EVENT && ) {
+
+            }
+        }
+        */
+
+        //poi una volta salvate le due carte evento dobbiaomo fare un remove per toglierle prima dello
+        //shuffle
+
+        //qui fa lo shuffle del mazzo normale, mazzo eventi non serve fare shuffle
+        Collections.shuffle(normalCards);
+
+        //ora deve fare sorting per era (anche di mazzo eventi?)
+        normalCards.sort(Comparator.comparing(Card::getEra));
+
+        //ora popola liste sotto e sopra
+
+
+        //edifici sono già ordinati in base ad era, vanno solo messi in fondo alla lista in alto dopo
+        //che l'abbiamo popolata con le carte
+        this.createBuildings(playerNumber);
+
+        this.createOfferTrack(playerNumber);
+
+
+
         this.placingOrder = new ArrayList<>();
         this.playingOrder = new ArrayList<>();
 
@@ -69,10 +111,15 @@ public class Game {
     private void createDecks(int playerNumber) {
         DeckFactory deckFactory = new DeckFactory();
         this.deck = deckFactory.createDeck(playerNumber);
-
-
     }
 
+    private void createBuildings(int playerNumber) {
+        BuildingFactory buildingFactory = new BuildingFactory();
+        this.buildings = buildingFactory.createBuildingDeck(playerNumber);
+    }
+
+    //aggiungere qui che se aggiunge una carta con era diversa dall'era della prima carta aggiunta allora
+    //chaima il metoto sotto che aggiorna l'era
     private void refillTopList(){
         for(int i = 0; i < (this.playerNumber+4); i++){
             this.topCardList.addFirst(this.deck.getFirst());
@@ -90,9 +137,6 @@ public class Game {
 
     }
 
-    //non sono sicuro sulla logica del metodo quindi ho messo che rimuove tutte le carte dalla lista
-    //ma forse è più comodo se rimuove solo l'ultima e poi al massimo viene chiamato più volte
-    //clear non cancella la lista, la svuota e basta
     private void removeFromBottomList(){
         //eccezione se lista non inizializzata ma non dovrebbe succedere se scriviamo bene il costruttore
         if (bottomCardList == null) {
@@ -101,9 +145,6 @@ public class Game {
         this.bottomCardList.clear();
     }
 
-    //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
-    //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
-    //tanto ritorna solo un bool, non esegue effettivamente gli eventi
     public boolean checkEventsPresence(){
         //solita eccezione anche qui
         if (bottomCardList == null) {
@@ -130,8 +171,6 @@ public class Game {
         player.manageFood(food_amount);
     }
 
-    //non ricordo più se i PP possono diventare negativi. mi sembrava di no ma se possono diventare negativi
-    //allora non abbiamo gestito quel caso in managePP() di player
     public void managePrestigePoint(Player player, int PP_amount){
         player.managePP(PP_amount);
     }
@@ -149,6 +188,9 @@ public class Game {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
+
+    //1) da aggiungere che se prende carta edificio deve pagare cibo ma bisogna fare metodo per capire
+    //se può pagare
     public void selectCardFromTopList(int position, Player player) {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
@@ -176,14 +218,12 @@ public class Game {
         if (selected_card.getCardType() == CARD_TYPE.BUILDING) {
             //fa cast perchè selected_card è di tipo Card ma il metodo prende BuildingCard
             player.addBuilding((BuildingCard) selected_card);
+        } else if (selected_card.getCardType() == CARD_TYPE.EVENT) {
+            throw new IllegalStateException("player ha provato a pescare una event card");
         } else {
             player.addCardToTribe(selected_card);
         }
 
-
-        //poi rimuove la carta scelta dalla toplist, ma remove mi sembra che cancelli proprio la posizone
-        //dalla lista, quindi ad esempio da x elementi va ad x-1. se no possiamo semplicemente settare a
-        //null quella posizione della lista
         this.topCardList.remove(position);
 
     }
@@ -192,6 +232,8 @@ public class Game {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
+    //1) da aggiungere che se prende carta edificio deve pagare cibo ma bisogna fare metodo per capire
+    //se può pagare
     public void selectCardFromBottomList(int position, Player player){
         //solite eccezioni come in selectedCardFromTopList()
         if (bottomCardList == null || player == null) {
@@ -300,10 +342,6 @@ public class Game {
 
     }
 
-    //1) magari sarebbe comodo oltre a ritornare un player fargli anche printare il numero di PP del winner
-    // ma non sono sicuro serva effettivamente
-    //2) nel caso di parità come facciamo? per ora se due sono pari lui semplicemente ritorna il "primo"
-    // dei due in base alla sua posizione nella lista
     public Player checkWinner(){
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
@@ -313,10 +351,14 @@ public class Game {
         //prende il primo player della lista, come se fosse una variabile tmp prima di fare il for
         Player winner = this.players.get(0);
 
-        //scorre la lista e aggiorna man mano
+        //scorre la lista e aggiorna man mano e fa spareggio con il food se i PP sono uguali
         for (Player p : this.players) {
             if (p.getPrestigePoint() > winner.getPrestigePoint()) {
                 winner = p;
+            } else if (p.getPrestigePoint() == winner.getPrestigePoint()) {
+                if (p.getFood() > winner.getFood()) {
+                    winner = p;
+                }
             }
         }
 
@@ -325,6 +367,7 @@ public class Game {
 
     }
 
+    //aggiungere metodo che cambia era
 
 }
 
