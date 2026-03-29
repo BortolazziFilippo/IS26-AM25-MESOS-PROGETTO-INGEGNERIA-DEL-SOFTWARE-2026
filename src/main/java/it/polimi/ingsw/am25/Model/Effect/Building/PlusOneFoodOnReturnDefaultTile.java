@@ -19,7 +19,9 @@ public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect{
         Per testarlo è quindi necessario creare una Board, fare buildingEffect.setBoardView(Board boardCheHaiCreato).
         Mettere il player su una DefaultTile Board.placePlayerOnDefaultTile()
         * */
+        if(boardView.isPlayerOnAnEligibleDefaultTile(player)){
+            player.manageFoodAndPP(1);
+        }
 
-        player.manageFoodAndPP(1);
     }
 }
