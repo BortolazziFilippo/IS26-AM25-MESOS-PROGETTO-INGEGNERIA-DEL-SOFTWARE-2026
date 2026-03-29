@@ -29,9 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
         player2 = new Player("Secondo", COLOR.BLUE);
         game = new Game(host, 2);
         game.addPlayer(player2);
-        market = new Market(game); // qua manca GameView
+        market = new Market(game, game.getBoard()); // qua manca GameView
     }
-
 
     @Test
     void testGetBottomBuildingList() {
