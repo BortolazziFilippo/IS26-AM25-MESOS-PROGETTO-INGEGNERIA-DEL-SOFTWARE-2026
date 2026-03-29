@@ -67,6 +67,8 @@ public class Game implements GameView {
 
     }
 
+    public Market getMarket() { return this.market; } // da aggiungere in UML
+
     //da aggiungere in UML volendo
     public Board getBoard(){
         return this.board;

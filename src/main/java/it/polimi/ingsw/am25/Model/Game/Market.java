@@ -25,6 +25,10 @@ public class Market {
     private List<Card> deck ;
     private List<BuildingCard> buildingCards;
     private final GameView gameView;
+    private List<Boolean> topCardFree; // è una lista che ha tanti elementi quanti ne ha la lista delle carte nella top e nella bottom e segna quali carte si possono prendere e quali no
+    private List<Boolean> bottomCardFree;
+
+
 
     /**
      * default constructor of Market
@@ -42,6 +46,12 @@ public class Market {
         this.organizeDeck();
         this.initializeBottomList();
         this.initializeBothTopList();
+        for (int i=0;i<topCardList.size();i++){ // inizializzo la lista di boolean a true
+            topCardFree.add(i,true);
+        }
+        for (int i=0;i<bottomCardList.size();i++){
+            bottomCardFree.add(i,true);
+        }
     }
 
     public List<BuildingCard> getBottomBuildingList() {
@@ -68,6 +78,7 @@ public class Market {
         if (bottomCardList == null) {
             throw new IllegalStateException("La bottomCardList non è ancora stata inizializzata");
         }
+        this.bottomCardFree.clear(); // devo modificare anche la lista di booleani che ho in parallelo
         this.bottomCardList.clear();
     }
 
@@ -125,6 +136,9 @@ public class Market {
                 throw new ChangedEraException();
             }
         }
+        for(int i=0;i<topCardFree.size();i++){
+            topCardFree.set(i,true);
+        }
     }
 
     private void refillTopBuildingList(){
@@ -144,6 +158,9 @@ public class Market {
     private void shiftCardTopToBottomList(){
         bottomCardList.addAll(topCardList);
         topCardList.clear();
+        for(int i=0;i<bottomCardFree.size();i++){
+            bottomCardFree.set(i,true);
+        }
     }
 
     /**
@@ -162,6 +179,10 @@ public class Market {
     public void selectCardFromTopList(int position, Player player) {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
+        if(!topCardFree.get(position)){
+            throw new IllegalArgumentException("carta è stata pescata prima"); // controlla se la carta è disponibile
+        }
+
         if (topCardList == null || player == null) {
             throw new IllegalArgumentException("topCardList null o player null");
         }
@@ -173,6 +194,7 @@ public class Market {
         }
         Card selected_card = this.topCardList.get(position);
         selected_card.addCardToPlayer(player);
+        topCardFree.set(position, false);
         this.topCardList.remove(position);
     }
 
@@ -183,12 +205,16 @@ public class Market {
      * @param player the player who wants to buy
      */
     public void buyBuildingTopList(int position, Player player){
+        if(!topCardFree.get(position)){ // controlla se la carta è disponibile
+            throw new IllegalArgumentException("la carta è stat presa prima");
+        }
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
+        topCardFree.set(position, false);
         this.topBuildingList.remove(position);
     }
 
@@ -201,6 +227,10 @@ public class Market {
      */
     public void selectCardFromBottomList(int position, Player player){
         //solite eccezioni come in selectedCardFromTopList()
+        if(!bottomCardFree.get(position)){ // come negli altri metodi,controlla se è disponibile
+            throw new IllegalArgumentException("la carta è stata presa prima");
+        }
+
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList null o player null");
         }
@@ -217,7 +247,7 @@ public class Market {
         Card selected_card = this.bottomCardList.get(position);
 
         selected_card.addCardToPlayer(player);
-
+        bottomCardFree.set(position, false);
         this.bottomCardList.remove(position);
     }
 
@@ -228,12 +258,17 @@ public class Market {
      * @param player the player who wants to buy
      */
     public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException {
+        if(!bottomCardFree.get(position)){ // controllo se la carta è disponibile
+            throw new IllegalArgumentException("la carta è stata presa prima");
+        }
+
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
+        bottomCardFree.set(position, false);
         this.bottomCardList.remove(position);
     }
     //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
