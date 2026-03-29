@@ -29,7 +29,7 @@ class MarketTest {
         player2 = new Player("Secondo", COLOR.BLUE);
         game = new Game(host, 2);
         game.addPlayer(player2);
-        market = new Market(game);
+        market = new Market(game, game.getBoard());
     }
 
 
