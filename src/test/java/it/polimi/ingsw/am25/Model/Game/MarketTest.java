@@ -16,7 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MarketTest {
+ class MarketTest {
 
     private Market market;
     private Player host;
@@ -29,7 +29,7 @@ class MarketTest {
         player2 = new Player("Secondo", COLOR.BLUE);
         game = new Game(host, 2);
         game.addPlayer(player2);
-        market = new Market(game, game.getBoard());
+        market = new Market(game); // qua manca GameView
     }
 
 
