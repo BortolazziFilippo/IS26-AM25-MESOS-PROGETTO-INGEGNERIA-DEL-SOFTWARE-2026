@@ -17,8 +17,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SimulationGameTest {
     Player p1, p2, p3;
@@ -57,6 +58,17 @@ public class SimulationGameTest {
         });
 
         Game gioco = new Game(p1, 3);
+        Random random = new  Random();
+        List<Integer> positions = new ArrayList<>();
+        Map<Player, Integer> map = new HashMap<>();
+        List<Player> players = new ArrayList<>();
+        players.add(p1);
+        players.add(p2);
+        players.add(p3);
+        int j=0;
+        for (int i = 0; i < 5; i++) {
+            positions.add(i);
+        }
 
         for ( int i = 0; i < 10; i++ )
         {
@@ -65,22 +77,57 @@ public class SimulationGameTest {
                 board.placePlayerOnDefaultTile(p2, 1);
                 board.placePlayerOnDefaultTile(p3, 2);
                 board.placePlayerOnOffertile(p1, 3);
-                board.placePlayerOnDefaultTile(p2, 4);
-                board.placePlayerOnDefaultTile(p3, 1);
-                //gioco.getMarket().selectCardFromBottomList( , );
+                board.placePlayerOnOffertile(p2, 4);
+                board.placePlayerOnOffertile(p3, 1);
+                gioco.getMarket().selectCardFromTopList(random.nextInt(7), p1);
+                gioco.getMarket().selectCardFromTopList(random.nextInt(6), p2);
+                gioco.getMarket().selectCardFromTopList(random.nextInt(5), p2);
+                gioco.getMarket().selectCardFromTopList(random.nextInt(5), p3);
+                board.returnOnDefaultTiles();
+                gioco.getMarket().endOfRoundMarketActions();
+            }
+            // inizio round i giocatori si posizionano sulla OfferTile, dato che sono già sistemati sulla DefaultTile dal
+            // precedente round
+            Collections.shuffle(positions);
+            board.placePlayerOnOffertile(p1, positions.get(0));
+            board.placePlayerOnOffertile(p2, positions.get(1));
+            board.placePlayerOnOffertile(p3, positions.get(2));
+            map.put(p1, positions.get(0));
+            map.put(p2, positions.get(1));
+            map.put(p3, positions.get(2));
+
+            // risolvo le azioni sulla Offertile
+            for(Map.Entry<Player, Integer> entry : map.entrySet()){
+                Player player = entry.getKey();
+                int position = entry.getValue();
+                switch (position) {
+                    case 0:
+                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                        break;
+                    case 1:
+                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                        break;
+                    case 2:
+                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                        break;
+                    case 3:
+                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                        break;
+                    case 4:
+                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                        break;
+                    default:
+                        System.out.println("posizione non valida");
+
+                }
             }
 
-
-
-
-
-
-
-
-
-
-
-
+            // riposiziono in DefaultTile in ordine crescente dalla OfferTile
+            board.returnOnDefaultTiles();
+            gioco.getMarket().endOfRoundMarketActions();
 
             if(i%3 == 0){
                 gioco.nextEra();
@@ -88,5 +135,13 @@ public class SimulationGameTest {
         }
 
 
+        Player w = p1;
+        for (Player p : players) {
+            if (p.getPrestigePoint() > w.getPrestigePoint()) {
+                w = p;
+                System.out.println(" PP: " +p.getPrestigePoint());
+            }
+        }
+        assertEquals(w, gioco.checkWinner());
     }
 }

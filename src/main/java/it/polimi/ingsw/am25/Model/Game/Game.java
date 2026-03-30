@@ -49,7 +49,7 @@ public class Game implements GameView {
     public Player checkWinner() {
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
-            throw new IllegalStateException("Nessun giocatore presente, errore nle costruttore");
+            throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
         }
 
         //prende il primo player della lista, come se fosse una variabile tmp prima di fare il for
