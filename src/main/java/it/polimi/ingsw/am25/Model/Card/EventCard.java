@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 
 import java.util.List;
 
@@ -70,8 +71,8 @@ public class EventCard extends Card
         this.eventEffect.solveEvent(PlayersList);
     }
     @Override
-    public void addCardToPlayer(Player player) {
-        throw new UnsupportedOperationException("Cannot select an Event card");
+    public void addCardToPlayer(Player player) throws NotSelectableCardException {
+        throw new NotSelectableCardException();
     }
 
     @Override
