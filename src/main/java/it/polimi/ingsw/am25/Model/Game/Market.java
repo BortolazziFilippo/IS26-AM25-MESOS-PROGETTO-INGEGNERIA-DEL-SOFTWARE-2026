@@ -40,6 +40,8 @@ public class Market {
         this.bottomBuildingList= new ArrayList<>();
         this.bottomCardList = new ArrayList<>();
         this.topBuildingList=new ArrayList<>();
+        this.topCardFree = new ArrayList<>();
+        this.bottomCardFree = new ArrayList<>();
         this.gameView=gameView;
         this.buildingCards=new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber(),boardView);
         this.deck = new DeckFactory().createDeck(gameView.getPlayerNumber());

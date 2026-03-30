@@ -23,8 +23,10 @@ public class TurnManager {
     public Player getCurrentPlayingPlayer(){
         return playingOrder.get(currentPlayingPlayer);
     }
+
+    //era messo come "playingOrder.get(currentPlacingPlayer)". penso sia "placingOrder.get(..)" ma da controllare
     public Player getCurrentPlacingPlayer(){
-        return playingOrder.get(currentPlacingPlayer);
+        return placingOrder.get(currentPlacingPlayer);
     }
     
 

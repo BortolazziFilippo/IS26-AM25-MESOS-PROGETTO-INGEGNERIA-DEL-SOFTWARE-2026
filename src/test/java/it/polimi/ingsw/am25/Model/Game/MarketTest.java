@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
         player2 = new Player("Secondo", COLOR.BLUE);
         game = new Game(host, 2);
         game.addPlayer(player2);
-        market = new Market(game, game.getBoard()); // qua manca GameView
+        market = new Market(game, game.getBoard());
     }
 
     @Test
@@ -120,7 +120,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(host.getBuildingCards().contains(building));
     }
 
-    /* questo fallisce perchè quando inizializza la bottom list la lascia vuota
+    /* questo fallisce perchè quando costruttore inizializza la bottom list la lascia vuota
     @Test
     void testBuyBuildingBottomList() {
         assertFalse(market.getBottomBuildingList().isEmpty(), "La bottomBuildingList non deve essere vuota");
