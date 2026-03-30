@@ -95,12 +95,6 @@ class GameTest {
 
         assertEquals(ERA.ERA_III, game.getCurrentEra());
 
-
-
-
-
-
-
     }
 
     @Test

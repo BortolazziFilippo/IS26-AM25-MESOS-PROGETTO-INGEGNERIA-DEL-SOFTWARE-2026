@@ -101,10 +101,6 @@ public class Game implements GameView {
         // 3. Safety check: are we already at the last era?
         if (nextPosition < allEras.length) {
             this.currentEra = allEras[nextPosition];
-        } else {
-            // You are already at the last ERA! Here you can throw an exception,
-            // print a message, or perhaps trigger the end of the game.
-            System.err.println("We are already at the last Era!");
         }
     }
 

@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.DeckFinishedException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.EmptyMarketException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +17,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
- class MarketTest {
+class MarketTest {
 
     private Market market;
     private Player host;
@@ -87,13 +88,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         BuildingCard building = market.getTopBuildingList().get(0);
 
-        try {
-            market.buyBuildingTopList(0, host);
-            //"fail" dice che il try deve fallire lì eprchè tanto è già successo qualcosa di sbagliato
-            fail("Doveva lanciare NotEnoughFoodException");
-        } catch (NotEnoughFoodException e) {
-            // ok
-        }
+        assertThrows(NotEnoughFoodException.class, () -> market.buyBuildingTopList(0, host));
 
         //poi si assicura che non avendo cibo non abbia comprato l'edificio comunque togliendolo da list
         assertEquals(initialMarketSize, market.getTopBuildingList().size());
@@ -105,12 +100,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         //caso invece in cui ha abbastanza cibo
         host.manageFoodAndPP(building.getFoodCost());
-
-        try {
-            market.buyBuildingTopList(0, host);
-        } catch (NotEnoughFoodException e) {
-            fail("Non doveva lanciare eccezione");
-        }
+        assertDoesNotThrow(() -> market.buyBuildingTopList(0, host));
 
         //controlla che allora il market sia diminuito
         assertEquals(initialMarketSize - 1, market.getTopBuildingList().size());
@@ -185,14 +175,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
         int initialMarketSize = market.getBottomCardList().size();
         int initialPlayerCards = host.getTribe().size();
-
-        //caso successo
-        try {
-            market.selectCardFromBottomList(validPosition, host);
-        } catch (Exception e) {
-            fail("Non doveva lanciare eccezioni");
-        }
-
+        int finalPos = validPosition;
+        assertDoesNotThrow(() -> market.selectCardFromBottomList(finalPos, host));
         //check
         assertEquals(initialMarketSize - 1, market.getBottomCardList().size());
         assertEquals(initialPlayerCards + 1, host.getTribe().size());
@@ -201,12 +185,7 @@ import static org.junit.jupiter.api.Assertions.*;
         //caso fallimento
         market.clearBottomCardList();
 
-        try {
-            market.selectCardFromBottomList(0, host);
-            fail("Doveva lanciare IllegalStateException");
-        } catch (IllegalStateException e) {
-            // ok
-        }
+        assertThrows(EmptyMarketException.class, () -> market.selectCardFromBottomList(0, host));
     }
 
     @Test
@@ -230,13 +209,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
         int initialMarketSize = market.getTopCardList().size();
         int initialPlayerCards = host.getTribe().size();
-
-        // caso successo
-        try {
-            market.selectCardFromTopList(validPosition, host);
-        } catch (Exception e) {
-            fail("Non doveva lanciare eccezioni: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-        }
+        int finalPos = validPosition;
+        assertDoesNotThrow(() -> market.selectCardFromTopList(finalPos, host));
 
         // check che la lista del market deve diminuire
         assertEquals(initialMarketSize - 1, market.getTopCardList().size());
@@ -247,13 +221,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         // caso fallimento (la topCardList è vuota)
         market.getTopCardList().clear();
-
-        try {
-            market.selectCardFromTopList(0, host);
-            fail("Doveva lanciare IllegalStateException");
-        } catch (IllegalStateException e) {
-            // ok
-        }
+        assertThrows(EmptyMarketException.class, () -> market.selectCardFromTopList(0, host));
     }
 
     @Test
@@ -269,11 +237,10 @@ import static org.junit.jupiter.api.Assertions.*;
         //mi assicuro che la top list iniziale non sia vuota
         assertFalse(oldTopCards.isEmpty(), "La topCardList iniziale non deve essere vuota");
 
-        try {
-            market.endOfRoundMarketActions();
-        } catch (DeckFinishedException e) {
-            fail("Non doveva lanciare DeckFinishedException alla prima endOfRoundMarketActions");
-        }
+        assertDoesNotThrow(() -> market.endOfRoundMarketActions());
+
+        //"Non doveva lanciare DeckFinishedException alla prima endOfRoundMarketActions"
+
 
         // dopo endOfRound:
         // 1) la bottom list deve contenere esattamente le vecchie carte della top list
@@ -285,18 +252,6 @@ import static org.junit.jupiter.api.Assertions.*;
         assertNotEquals(oldTopCards, market.getTopCardList());
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
