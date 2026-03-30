@@ -13,6 +13,7 @@ import it.polimi.ingsw.am25.Model.Utilities.*;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.ChangedEraException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.DeckFinishedException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +25,8 @@ public class Market {
     private List<BuildingCard> bottomBuildingList;
     private List<Card> deck ;
     private List<BuildingCard> buildingCards;
-    private final GameView gameView;
+    private  GameView gameView;
+
 
 
 
@@ -161,7 +163,7 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromTopList(int position, Player player) {
+    public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
 
@@ -184,8 +186,14 @@ public class Market {
      * to the player building list
      * @param position position of the card it wants to buy
      * @param player the player who wants to buy
+     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
+     * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingTopList(int position, Player player){
+    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException{
+
+        if( position< 0 || position>=topBuildingList.size()){
+            throw new IndexOutOfBoundsException();
+        }
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
@@ -202,7 +210,7 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromBottomList(int position, Player player){
+    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException{
         //solite eccezioni come in selectedCardFromTopList()
 
         if (bottomCardList == null || player == null) {
@@ -229,9 +237,13 @@ public class Market {
      * to the player building list
      * @param position position of the card it wants to buy
      * @param player the player who wants to buy
+     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
+     * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException {
-
+    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException{
+        if( position< 0 || position>=topBuildingList.size()){
+            throw new IndexOutOfBoundsException();
+        }
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
@@ -248,7 +260,8 @@ public class Market {
      * this method check if there are event in the bottom list
      * @return returns true if a event is found in bottom list
      */
-    //questo metodo potrebbe no servire piu
+    //questo metodo potrebbe non servire piu
+    @Deprecated
     private boolean checkEventsPresence(){
         //solita eccezione anche qui
         if (bottomCardList == null) {

@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +55,7 @@ class EventCardTest {
 
     @Test
     void testAddCardToPlayerThrowsException() {
-        assertThrows(UnsupportedOperationException.class, () -> eventCard.addCardToPlayer(player));
+        assertThrows(NotSelectableCardException.class, () -> eventCard.addCardToPlayer(player));
     }
 
     @Test
