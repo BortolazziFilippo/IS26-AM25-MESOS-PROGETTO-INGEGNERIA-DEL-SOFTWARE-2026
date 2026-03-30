@@ -13,7 +13,6 @@ import it.polimi.ingsw.am25.Model.Utilities.*;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.ChangedEraException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.DeckFinishedException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,9 +24,7 @@ public class Market {
     private List<BuildingCard> bottomBuildingList;
     private List<Card> deck ;
     private List<BuildingCard> buildingCards;
-    private  GameView gameView;
-    private List<Boolean> topCardFree; // è una lista che ha tanti elementi quanti ne ha la lista delle carte nella top e nella bottom e segna quali carte si possono prendere e quali no
-    private List<Boolean> bottomCardFree;
+    private final GameView gameView;
 
 
 
@@ -47,12 +44,6 @@ public class Market {
         this.organizeDeck();
         this.initializeBottomList();
         this.initializeBothTopList();
-        for (int i=0;i<topCardList.size();i++){ // inizializzo la lista di boolean a true
-            topCardFree.add(i,true);
-        }
-        for (int i=0;i<bottomCardList.size();i++){
-            bottomCardFree.add(i,true);
-        }
     }
 
     public List<BuildingCard> getBottomBuildingList() {
@@ -79,7 +70,6 @@ public class Market {
         if (bottomCardList == null) {
             throw new IllegalStateException("La bottomCardList non è ancora stata inizializzata");
         }
-        this.bottomCardFree.clear(); // devo modificare anche la lista di booleani che ho in parallelo
         this.bottomCardList.clear();
     }
 
@@ -137,9 +127,6 @@ public class Market {
                 throw new ChangedEraException();
             }
         }
-        for(int i=0;i<topCardFree.size();i++){
-            topCardFree.set(i,true);
-        }
     }
 
     private void refillTopBuildingList(){
@@ -159,9 +146,6 @@ public class Market {
     private void shiftCardTopToBottomList(){
         bottomCardList.addAll(topCardList);
         topCardList.clear();
-        for(int i=0;i<bottomCardFree.size();i++){
-            bottomCardFree.set(i,true);
-        }
     }
 
     /**
@@ -177,12 +161,9 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException {
+    public void selectCardFromTopList(int position, Player player) {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
-        if(!topCardFree.get(position)){
-            throw new IllegalArgumentException("carta è stata pescata prima"); // controlla se la carta è disponibile
-        }
 
         if (topCardList == null || player == null) {
             throw new IllegalArgumentException("topCardList null o player null");
@@ -195,7 +176,6 @@ public class Market {
         }
         Card selected_card = this.topCardList.get(position);
         selected_card.addCardToPlayer(player);
-        topCardFree.set(position, false);
         this.topCardList.remove(position);
     }
 
@@ -204,23 +184,14 @@ public class Market {
      * to the player building list
      * @param position position of the card it wants to buy
      * @param player the player who wants to buy
-     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
-     * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException{
-        if(!topCardFree.get(position)){ // controlla se la carta è disponibile
-            throw new IllegalArgumentException("la carta è stat presa prima");
-        }
-        if( position< 0 || position>=topBuildingList.size()){
-            throw new IndexOutOfBoundsException();
-        }
+    public void buyBuildingTopList(int position, Player player){
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
-        topCardFree.set(position, false);
         this.topBuildingList.remove(position);
     }
 
@@ -231,11 +202,8 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException{
+    public void selectCardFromBottomList(int position, Player player){
         //solite eccezioni come in selectedCardFromTopList()
-        if(!bottomCardFree.get(position)){ // come negli altri metodi,controlla se è disponibile
-            throw new IllegalArgumentException("la carta è stata presa prima");
-        }
 
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList null o player null");
@@ -253,7 +221,6 @@ public class Market {
         Card selected_card = this.bottomCardList.get(position);
 
         selected_card.addCardToPlayer(player);
-        bottomCardFree.set(position, false);
         this.bottomCardList.remove(position);
     }
 
@@ -262,23 +229,15 @@ public class Market {
      * to the player building list
      * @param position position of the card it wants to buy
      * @param player the player who wants to buy
-     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
-     * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException{
-        if(!bottomCardFree.get(position)){ // controllo se la carta è disponibile
-            throw new IllegalArgumentException("la carta è stata presa prima");
-        }
-        if( position< 0 || position>=topBuildingList.size()){
-            throw new IndexOutOfBoundsException();
-        }
+    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException {
+
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
-        bottomCardFree.set(position, false);
         this.bottomCardList.remove(position);
     }
     //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
@@ -289,8 +248,7 @@ public class Market {
      * this method check if there are event in the bottom list
      * @return returns true if a event is found in bottom list
      */
-    //questo metodo potrebbe non servire piu
-    @Deprecated
+    //questo metodo potrebbe no servire piu
     private boolean checkEventsPresence(){
         //solita eccezione anche qui
         if (bottomCardList == null) {
