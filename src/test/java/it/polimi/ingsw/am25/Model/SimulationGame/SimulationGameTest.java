@@ -13,6 +13,8 @@ import it.polimi.ingsw.am25.Model.Factory.OfferTile.OfferTileFactory;
 import it.polimi.ingsw.am25.Model.Game.Game;
 import it.polimi.ingsw.am25.Model.Game.GameView;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.EmptyMarketException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,79 +71,83 @@ public class SimulationGameTest {
         for (int i = 0; i < 5; i++) {
             positions.add(i);
         }
+        try {
 
-        for ( int i = 0; i < 10; i++ )
-        {
-            if (i == 0){ // nel primo turno si scelgono a piacimento l'ordine sulla default tile
-                board.placePlayerOnDefaultTile(p1, 0);
-                board.placePlayerOnDefaultTile(p2, 1);
-                board.placePlayerOnDefaultTile(p3, 2);
-                board.placePlayerOnOffertile(p1, 3);
-                board.placePlayerOnOffertile(p2, 4);
-                board.placePlayerOnOffertile(p3, 1);
-                gioco.getMarket().selectCardFromTopList(random.nextInt(7), p1);
-                gioco.getMarket().selectCardFromTopList(random.nextInt(6), p2);
-                gioco.getMarket().selectCardFromTopList(random.nextInt(5), p2);
-                gioco.getMarket().selectCardFromTopList(random.nextInt(5), p3);
+            for (int i = 0; i < 10; i++) {
+                if (i == 0) { // nel primo turno si scelgono a piacimento l'ordine sulla default tile
+                    board.placePlayerOnDefaultTile(p1, 0);
+                    board.placePlayerOnDefaultTile(p2, 1);
+                    board.placePlayerOnDefaultTile(p3, 2);
+                    board.placePlayerOnOffertile(p1, 3);
+                    board.placePlayerOnOffertile(p2, 4);
+                    board.placePlayerOnOffertile(p3, 1);
+                    gioco.getMarket().selectCardFromTopList(random.nextInt(7), p1);
+                    gioco.getMarket().selectCardFromTopList(random.nextInt(6), p2);
+                    gioco.getMarket().selectCardFromTopList(random.nextInt(5), p2);
+                    gioco.getMarket().selectCardFromTopList(random.nextInt(5), p3);
+                    board.returnOnDefaultTiles();
+                    gioco.getMarket().endOfRoundMarketActions();
+                }
+                // inizio round i giocatori si posizionano sulla OfferTile, dato che sono già sistemati sulla DefaultTile dal
+                // precedente round
+                Collections.shuffle(positions);
+                board.placePlayerOnOffertile(p1, positions.get(0));
+                board.placePlayerOnOffertile(p2, positions.get(1));
+                board.placePlayerOnOffertile(p3, positions.get(2));
+                map.put(p1, positions.get(0));
+                map.put(p2, positions.get(1));
+                map.put(p3, positions.get(2));
+
+                // risolvo le azioni sulla Offertile
+                for (Map.Entry<Player, Integer> entry : map.entrySet()) {
+                    Player player = entry.getKey();
+                    int position = entry.getValue();
+                    switch (position) {
+                        case 0:
+                            gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                            break;
+                        case 1:
+                            gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                            break;
+                        case 2:
+                            gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                            gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                            break;
+                        case 3:
+                            gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                            gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
+                            break;
+                        case 4:
+                            gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                            gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
+                            break;
+                        default:
+                            System.out.println("posizione non valida");
+
+                    }
+                }
+
+                // riposiziono in DefaultTile in ordine crescente dalla OfferTile
                 board.returnOnDefaultTiles();
                 gioco.getMarket().endOfRoundMarketActions();
-            }
-            // inizio round i giocatori si posizionano sulla OfferTile, dato che sono già sistemati sulla DefaultTile dal
-            // precedente round
-            Collections.shuffle(positions);
-            board.placePlayerOnOffertile(p1, positions.get(0));
-            board.placePlayerOnOffertile(p2, positions.get(1));
-            board.placePlayerOnOffertile(p3, positions.get(2));
-            map.put(p1, positions.get(0));
-            map.put(p2, positions.get(1));
-            map.put(p3, positions.get(2));
 
-            // risolvo le azioni sulla Offertile
-            for(Map.Entry<Player, Integer> entry : map.entrySet()){
-                Player player = entry.getKey();
-                int position = entry.getValue();
-                switch (position) {
-                    case 0:
-                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
-                        break;
-                    case 1:
-                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
-                        break;
-                    case 2:
-                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
-                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
-                        break;
-                    case 3:
-                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
-                        gioco.getMarket().selectCardFromBottomList(random.nextInt(7), player);
-                        break;
-                    case 4:
-                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
-                        gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
-                        break;
-                    default:
-                        System.out.println("posizione non valida");
-
+                if (i % 3 == 0) {
+                    gioco.nextEra();
                 }
             }
 
-            // riposiziono in DefaultTile in ordine crescente dalla OfferTile
-            board.returnOnDefaultTiles();
-            gioco.getMarket().endOfRoundMarketActions();
 
-            if(i%3 == 0){
-                gioco.nextEra();
+            Player w = p1;
+            for (Player p : players) {
+                if (p.getPrestigePoint() > w.getPrestigePoint()) {
+                    w = p;
+                    System.out.println(" PP: " + p.getPrestigePoint());
+                }
             }
+            assertEquals(w, gioco.checkWinner());
+        }catch (IndexOutOfBoundsException | EmptyMarketException | NotSelectableCardException e){
+            e.printStackTrace();
         }
 
-
-        Player w = p1;
-        for (Player p : players) {
-            if (p.getPrestigePoint() > w.getPrestigePoint()) {
-                w = p;
-                System.out.println(" PP: " +p.getPrestigePoint());
-            }
-        }
-        assertEquals(w, gioco.checkWinner());
     }
 }

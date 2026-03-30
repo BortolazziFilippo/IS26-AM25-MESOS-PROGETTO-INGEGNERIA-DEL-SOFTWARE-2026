@@ -10,10 +10,7 @@ import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.*;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.ChangedEraException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.DeckFinishedException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -163,15 +160,16 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException {
+    public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
         //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
         // in cui player vuole pescare una carta ma la lista non è null ma è vuota
 
         if (topCardList == null || player == null) {
             throw new IllegalArgumentException("topCardList null o player null");
         }
-        if (topCardList.isEmpty()) {
-            throw new IllegalStateException("topCardList è vuota");
+
+        if(topCardList.isEmpty() || topCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
+            throw new EmptyMarketException("No cards available top list");
         }
         if (position < 0 || position >= topCardList.size()) {
             throw new IndexOutOfBoundsException("Posizione non valida");
@@ -189,8 +187,10 @@ public class Market {
      * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
      * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException{
-
+    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException,EmptyMarketException{
+        if(topBuildingList.isEmpty()){
+            throw new EmptyMarketException("No buildings available top list");
+        }
         if( position< 0 || position>=topBuildingList.size()){
             throw new IndexOutOfBoundsException();
         }
@@ -210,9 +210,11 @@ public class Market {
      * @param position position of the card to be drawn
      * @param player player that has draw the card
      */
-    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException{
+    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException,EmptyMarketException{
         //solite eccezioni come in selectedCardFromTopList()
-
+        if(bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
+            throw new EmptyMarketException("No Card Available bottom list");
+        }
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList null o player null");
         }
@@ -244,6 +246,10 @@ public class Market {
         if( position< 0 || position>=topBuildingList.size()){
             throw new IndexOutOfBoundsException();
         }
+        if(bottomBuildingList.isEmpty()){
+            throw new EmptyMarketException("No buildings available bottom list");
+        }
+
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);

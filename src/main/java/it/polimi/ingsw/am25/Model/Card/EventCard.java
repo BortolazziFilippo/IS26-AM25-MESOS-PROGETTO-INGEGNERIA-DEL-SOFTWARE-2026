@@ -72,7 +72,7 @@ public class EventCard extends Card
     }
     @Override
     public void addCardToPlayer(Player player) throws NotSelectableCardException {
-        throw new NotSelectableCardException();
+        throw new NotSelectableCardException("Events cannot be selected");
     }
 
     @Override
