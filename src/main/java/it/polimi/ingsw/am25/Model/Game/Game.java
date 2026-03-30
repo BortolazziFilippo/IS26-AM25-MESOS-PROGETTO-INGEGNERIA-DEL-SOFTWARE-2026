@@ -63,9 +63,10 @@ public class Game implements GameView {
         }
 
         return winner;
-
-
     }
+
+    //mi piacerebbe far si che il controller si interfacci solo con il game, ovvero che chiami metodi di game i quali poi gestiscono i vari casi.
+    //a game verrà data anche un interfaccia di controller con il quale gestirà la notifica delle varie casistiche
 
     public Market getMarket() { return this.market; } // da aggiungere in UML
 
