@@ -146,7 +146,11 @@ public class Player {
      */
     public int getBuilderDiscount(){
 
-        return this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.BUILDER).map(card -> (BuilderCard)card).mapToInt(BuilderCard::getFoodDiscount).sum();
+        return this.tribe.stream().
+                filter(card -> card.getCardType()==CARD_TYPE.BUILDER).
+                map(card -> (BuilderCard)card).
+                mapToInt(BuilderCard::getFoodDiscount).
+                sum();
     }
 
     /**
@@ -155,7 +159,9 @@ public class Player {
      */
     public int getGatherDiscount(){
 
-        return  (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.GATHERER).count()*3;
+        return  (int) this.tribe.stream().
+                filter(card -> card.getCardType()==CARD_TYPE.GATHERER).
+                count()*3;
     }
 
     /**
@@ -163,7 +169,9 @@ public class Player {
      * @return return the number of Hunter in tribe
      */
     public int getHunterNumber(){
-        return (int) tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.HUNTER).count();
+        return (int) tribe.stream().
+                filter(card -> card.getCardType()==CARD_TYPE.HUNTER).
+                count();
     }
 
     /**
@@ -171,7 +179,9 @@ public class Player {
      * @return return the number of artists in the tribe
      */
     public int getArtistNumber(){
-        return (int) this.tribe.stream().filter(card -> card.getCardType()==CARD_TYPE.ARTIST).count();
+        return (int) this.tribe.stream()
+                .filter(card -> card.getCardType()==CARD_TYPE.ARTIST)
+                .count();
     }
 
     /**
@@ -186,7 +196,8 @@ public class Player {
      * this method trigger the end round buildings and apply their effect
      */
     public void triggerEndRoundBuilding(){
-        this.buildingCards.stream().filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
+        this.buildingCards.stream()
+                .filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
     }
 
@@ -194,7 +205,9 @@ public class Player {
      * this method trigger the end round buildings and apply their effect
      */
     public void triggerEndGameBuilding(){
-        this.buildingCards.stream().filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
+        this.buildingCards
+                .stream()
+                .filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
     }
 

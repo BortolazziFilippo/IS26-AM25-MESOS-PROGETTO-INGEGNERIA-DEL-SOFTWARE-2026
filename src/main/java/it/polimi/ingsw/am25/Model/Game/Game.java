@@ -81,15 +81,15 @@ public class Game implements GameView {
         //metodo calcolo punti in base a carte da aggiungere in player
     }
 
-    public void selectGenericCardTopLists(CARD_TYPE cardType,int position,Player player){
-        switch (cardType){
+    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType,int position,Player player){
+        switch (toBuyCardType){
             case BUILDING -> market.buyBuildingTopList(position,player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
             default -> market.selectCardFromTopList(position,player);
         }
     }
-    public void selectGenericCardBottomLists(CARD_TYPE toBuycardType,int position,Player player)throws IndexOutOfBoundsException,NotSelectableCardException{
-        switch (toBuycardType){
+    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType,int position,Player player)throws IndexOutOfBoundsException,NotSelectableCardException{
+        switch (toBuyCardType){
             case BUILDING -> market.buyBuildingBottomList(position,player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
             default -> market.selectCardFromTopList(position,player);
