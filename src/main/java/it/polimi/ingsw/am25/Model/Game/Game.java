@@ -3,8 +3,10 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Card.Card;
+import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,8 +67,36 @@ public class Game implements GameView {
         return winner;
     }
 
-    //mi piacerebbe far si che il controller si interfacci solo con il game, ovvero che chiami metodi di game i quali poi gestiscono i vari casi.
-    //a game verrà data anche un interfaccia di controller con il quale gestirà la notifica delle varie casistiche
+    /**
+     * this method launches all the end round actions that has to be done
+     */
+    public void nextRoundIter(){
+        board.returnOnDefaultTiles();
+        players.forEach(Player::triggerEndRoundBuilding);
+        market.endOfRoundMarketActions();
+    }
+
+    public void endGameIter(){
+        players.forEach(Player::triggerEndGameBuilding);
+        //metodo calcolo punti in base a carte da aggiungere in player
+    }
+
+    public void selectGenericCardTopLists(CARD_TYPE cardType,int position,Player player){
+        switch (cardType){
+            case BUILDING -> market.buyBuildingTopList(position,player);
+            case EVENT -> throw new NotSelectableCardException("cannot select an event");
+            default -> market.selectCardFromTopList(position,player);
+        }
+    }
+    public void selectGenericCardBottomLists(CARD_TYPE toBuycardType,int position,Player player)throws IndexOutOfBoundsException,NotSelectableCardException{
+        switch (toBuycardType){
+            case BUILDING -> market.buyBuildingBottomList(position,player);
+            case EVENT -> throw new NotSelectableCardException("cannot select an event");
+            default -> market.selectCardFromTopList(position,player);
+        }
+    }
+
+
 
     public Market getMarket() { return this.market; } // da aggiungere in UML
 

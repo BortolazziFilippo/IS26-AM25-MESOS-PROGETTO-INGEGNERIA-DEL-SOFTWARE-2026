@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.Model.Card.*;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
+import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 
 import java.util.ArrayList;
@@ -179,6 +180,22 @@ public class Player {
      */
     public int getNumberOfCard(){
         return this.tribe.size();
+    }
+
+    /**
+     * this method trigger the end round buildings and apply their effect
+     */
+    public void triggerEndRoundBuilding(){
+        this.buildingCards.stream().filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
+                .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
+    }
+
+    /**
+     * this method trigger the end round buildings and apply their effect
+     */
+    public void triggerEndGameBuilding(){
+        this.buildingCards.stream().filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
+                .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
     }
 
     public List<Card> getTribe() {

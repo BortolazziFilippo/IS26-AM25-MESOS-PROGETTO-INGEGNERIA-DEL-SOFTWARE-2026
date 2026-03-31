@@ -8,14 +8,9 @@ import java.util.Objects;
 
 public class Totem {
     private final COLOR color;
-    private OfferTile tile;
 
     public Totem(COLOR color){
         this.color = color;
-    }
-
-    public Tile getTile(){
-        return tile;
     }
 
     @Override

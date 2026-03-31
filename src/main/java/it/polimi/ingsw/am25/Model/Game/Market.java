@@ -243,20 +243,19 @@ public class Market {
      * @throws IndexOutOfBoundsException in the case the position is not valid
      */
     public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException{
-        if( position< 0 || position>=topBuildingList.size()){
-            throw new IndexOutOfBoundsException();
-        }
         if(bottomBuildingList.isEmpty()){
             throw new EmptyMarketException("No buildings available bottom list");
         }
-
+        if( position< 0 || position>=bottomBuildingList.size()){
+            throw new IndexOutOfBoundsException();
+        }
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
         try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
-        this.bottomCardList.remove(position);
+        this.bottomBuildingList.remove(position);
     }
     //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
     //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
