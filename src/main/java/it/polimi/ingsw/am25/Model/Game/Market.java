@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.Model.Factory.Deck.DeckFactory;
+import it.polimi.ingsw.am25.Model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.*;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.*;
@@ -23,8 +24,7 @@ public class Market {
     private List<Card> deck ;
     private List<BuildingCard> buildingCards;
     private  GameView gameView;
-
-
+    private final List<MarketObserver> observers = new ArrayList<>();
 
 
     /**
@@ -96,7 +96,10 @@ public class Market {
             this.clearBottomBuildingList();
             this.shiftBuildingTopToBottom();
             this.refillTopBuildingList();
+
+            this.notifyMarketChanged();
         } catch (DeckFinishedException e) {
+            this.notifyMarketChanged(); //here it notifies all the subscribed method of the changes
             throw new DeckFinishedException();
         }
     }
@@ -139,6 +142,7 @@ public class Market {
     private void clearBottomBuildingList(){
         this.bottomBuildingList.clear();
     }
+
     /**
      * this method shift the card from the topList To the bottom list
      */
@@ -175,8 +179,14 @@ public class Market {
             throw new IndexOutOfBoundsException("Posizione non valida");
         }
         Card selected_card = this.topCardList.get(position);
-        selected_card.addCardToPlayer(player);
+        try { //if the card throw an exception it must not be removed from the list
+            selected_card.addCardToPlayer(player);
+        }catch (NotSelectableCardException e) {
+             throw new NotSelectableCardException("Cannot Select EventCard");
+        }
+        //if everything went good it removes it
         this.topCardList.remove(position);
+        this.notifyMarketChanged();//here it notifies the changed list
     }
 
     /**
@@ -195,12 +205,13 @@ public class Market {
             throw new IndexOutOfBoundsException();
         }
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
-        try{
+        try{ //if the player has not enough food the card cannot be buyed
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
         this.topBuildingList.remove(position);
+        this.notifyMarketChanged();//here it notifies
     }
 
 
@@ -229,9 +240,13 @@ public class Market {
 
         //seleziona carta da position e mette in selected_card come metodo sopra
         Card selected_card = this.bottomCardList.get(position);
-
-        selected_card.addCardToPlayer(player);
+        try{
+            selected_card.addCardToPlayer(player);
+        }catch (NotSelectableCardException e) {
+             throw new NotSelectableCardException("Cannot select EventCard");
+        }
         this.bottomCardList.remove(position);
+        this.notifyMarketChanged(); //here it notifies the changes
     }
 
     /**
@@ -256,10 +271,51 @@ public class Market {
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
         this.bottomBuildingList.remove(position);
+        this.notifyMarketChanged(); //here it notifies the changes
     }
     //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
     //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
     //tanto ritorna solo un bool, non esegue effettivamente gli eventi
+
+    /**
+     * this method is used to subscribe an observer to the class
+     * @param observerToAdd observer to subscribe
+     */
+    public void addObserver(MarketObserver observerToAdd){
+        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+            observers.add(observerToAdd);
+        }
+    }
+
+    /**
+     * this method unsubscribe an observer
+     * @param observerToRemove observer to unsubscribe
+     */
+    public void removeObserver(MarketObserver observerToRemove){
+        observers.remove(observerToRemove);
+    }
+
+    /**
+     * this method is used to update all the subscribed observer
+     */
+    public void notifyMarketChanged(){
+        List<Card> topCardsSnapshot = List.copyOf(topCardList);
+        List<Card> bottomCardsSnapshot = List.copyOf(bottomCardList);
+        List<BuildingCard> topBuildingsSnapshot = List.copyOf(topBuildingList);
+        List<BuildingCard> bottomBuildingsSnapshot = List.copyOf(bottomBuildingList);
+
+        for(MarketObserver observer: observers){
+            observer.onMarketChanged(
+                    topCardsSnapshot,
+                    bottomCardsSnapshot,
+                    topBuildingsSnapshot,
+                    bottomBuildingsSnapshot
+            );
+        }
+    }
+
+
+
 
     /**
      * this method check if there are event in the bottom list
@@ -340,4 +396,7 @@ public class Market {
         this.topBuildingList.addAll(buildingCards.stream().filter(buildingCard -> buildingCard.getEra()==ERA.ERA_I).toList());
         buildingCards.removeIf(buildingCard -> buildingCard.getEra()==ERA.ERA_I);
     }
+
+
+
 }
