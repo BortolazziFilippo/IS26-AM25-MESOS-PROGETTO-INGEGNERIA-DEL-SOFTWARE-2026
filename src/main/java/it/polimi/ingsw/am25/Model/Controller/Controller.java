@@ -48,6 +48,8 @@ public class Controller{
                     throw new IndexOutOfBoundsException("Indice non valido");
                 } catch (TileOccupiedException e) {
                     throw new TileOccupiedException("Tile non valida");
+                }catch(EndOfPlacingPhaseException e){
+                    game.advancePlayingPhase();
                 }
             }
         }
@@ -78,6 +80,13 @@ public class Controller{
                         throw new NotSelectableCardException("Non puoi selezionare un evento");
                     } catch (EmptyMarketException e) {
                         throw new EmptyMarketException(); //da capire come gestire questo metodo
+                    }catch (NoMoreActionToDo e){
+                        try {
+                            game.goNextPlayer();
+                        }catch (EndOfPlayingPhaseException ex) {
+                            game.nextRoundIter();
+                        }
+
                     }
                 }
             }
@@ -107,6 +116,12 @@ public class Controller{
                         throw new NotSelectableCardException("Non puoi selezionare un evento");
                     }catch(EmptyMarketException e){
                         throw new EmptyMarketException();
+                    }catch (NoMoreActionToDo e){
+                        try {
+                            game.goNextPlayer();
+                        }catch (EndOfPlayingPhaseException ex) {
+                            game.nextRoundIter();
+                        }
                     }
                 }
             }

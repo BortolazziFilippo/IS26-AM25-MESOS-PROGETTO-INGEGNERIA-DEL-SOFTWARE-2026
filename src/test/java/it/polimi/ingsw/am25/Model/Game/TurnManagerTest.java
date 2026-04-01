@@ -34,25 +34,25 @@ class TurnManagerTest {
     }
 
     @Test
-    void testGetCurrentPlayingPlayer() throws TileOccupiedException {
+    void testGetNextPlayingPlayer() throws TileOccupiedException {
         board.placePlayerOnOffertile(host, 0);
         board.placePlayerOnOffertile(player2, 1);
         board.placePlayerOnOffertile(player3, 2);
 
         turnManager.updatePlayingOrder();
 
-        assertEquals(host, turnManager.getCurrentPlayingPlayer());
+        assertEquals(host, turnManager.getNextPlayingPlayer());
     }
 
     @Test
-    void testGetCurrentPlacingPlayer() throws TileOccupiedException {
+    void testGetNextPlacingPlayer() throws TileOccupiedException {
         board.placePlayerOnDefaultTile(host, 0);
         board.placePlayerOnDefaultTile(player2, 1);
         board.placePlayerOnDefaultTile(player3, 2);
 
         turnManager.updatePlacingOrder();
 
-        assertEquals(host, turnManager.getCurrentPlacingPlayer());
+        assertEquals(host, turnManager.getNextPlacingPlayer());
     }
 
     @Test

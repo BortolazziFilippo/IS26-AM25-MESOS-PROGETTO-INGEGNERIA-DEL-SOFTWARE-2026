@@ -28,7 +28,7 @@ public class TurnManager {
      * @return the current playing player
      * @throws EndOfPlayingPhaseException in case all the players have played
      */
-    public Player getCurrentPlayingPlayer() throws EndOfPlayingPhaseException {
+    public Player getNextPlayingPlayer() throws EndOfPlayingPhaseException {
         if(!playingOrder.isEmpty()){
             Player playerToRet=playingOrder.getFirst();
             playingOrder.removeFirst();
@@ -44,7 +44,7 @@ public class TurnManager {
      * @return the player next
      * @throws EndOfPlacingPhaseException in the case thera are no more player to place
      */
-    public Player getCurrentPlacingPlayer() throws EndOfPlacingPhaseException{
+    public Player getNextPlacingPlayer() throws EndOfPlacingPhaseException{
         if(!placingOrder.isEmpty()){
             Player playerToRet=placingOrder.getFirst();
             placingOrder.removeFirst();
