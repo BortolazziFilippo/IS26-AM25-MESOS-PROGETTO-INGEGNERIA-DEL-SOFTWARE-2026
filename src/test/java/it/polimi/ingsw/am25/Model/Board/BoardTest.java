@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Board;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Game.Game;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.TileOccupiedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class BoardTest {
         this.game = new Game(p1,4);
         game.addPlayer(p2);
         game.addPlayer(p3);
-        game.addPlayer(p4);
+        assertThrows(GameReadyToStartException.class,()-> game.addPlayer(p4));
     }
 
     @Test

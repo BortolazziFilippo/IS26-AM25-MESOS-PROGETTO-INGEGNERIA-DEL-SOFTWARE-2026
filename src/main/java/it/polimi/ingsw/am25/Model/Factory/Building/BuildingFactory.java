@@ -94,7 +94,7 @@ public class BuildingFactory {
                 //ERA 1
                 randomNumber=shuffledFromYToXExclusive(0,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
                 randomNumber=shuffledFromYToXExclusive(6,13);

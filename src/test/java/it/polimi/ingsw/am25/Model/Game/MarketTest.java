@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.DeckFinishedException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.EmptyMarketException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ class MarketTest {
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
         game = new Game(host, 2);
-        game.addPlayer(player2);
+        assertThrows(GameReadyToStartException.class,()-> game.addPlayer(player2));
         market = new Market(game, game.getBoard());
     }
 

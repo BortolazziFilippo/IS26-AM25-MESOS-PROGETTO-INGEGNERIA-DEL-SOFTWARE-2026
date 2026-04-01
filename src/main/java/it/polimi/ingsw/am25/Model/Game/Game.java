@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.Model.Board.OfferTile;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
+import it.polimi.ingsw.am25.Model.Observers.GameObserver;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesConstant;
@@ -28,6 +29,7 @@ public class Game implements GameView {
     private Player playerToPlace;
     private Player playerToPlay;
     private OfferTile offertilePlayerIsOn;
+    private final List<GameObserver> observers=new ArrayList<>();
 
     /**
      * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
@@ -79,13 +81,23 @@ public class Game implements GameView {
     public void gameStart() {
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
         for (Player player : players) {
-            board.placePlayerOnDefaultTile(player, random.getFirst());
+            try{
+                board.placePlayerOnDefaultTile(player, random.getFirst());
+            } catch (TileOccupiedException e) {
+                throw new RuntimeException(getClass()+" Errore gamestart placePlayer");
+            }
+
             random.removeFirst();
         }
         turnManager.updatePlacingOrder();
-        this.playerToPlace = turnManager.getCurrentPlacingPlayer();
+        try {
+            this.playerToPlace = turnManager.getCurrentPlacingPlayer();
+        } catch (EndOfPlacingPhaseException e) {
+            throw new RuntimeException(getClass()+" Errore placing player in gamestart");
+        }
+
         this.gamePhase = GAME_PHASE.PLACING_PHASE;
-        //to add the observer notify
+        notifyGameChanged();
     }
 
     /**
@@ -98,25 +110,25 @@ public class Game implements GameView {
      * @throws TileOccupiedException     tile already occupied
      */
     public void placePlayer(Player player, int position) throws IndexOutOfBoundsException, TileOccupiedException {
-        try {
-            board.placePlayerOnOffertile(player, position);
-        } catch (IndexOutOfBoundsException e) {
-            throw new IndexOutOfBoundsException();
-        } catch (TileOccupiedException e) {
-            throw new TileOccupiedException();
-        }
+        board.placePlayerOnOffertile(player, position);
         try {
             this.playerToPlace = turnManager.getCurrentPlacingPlayer();
         } catch (EndOfPlacingPhaseException e) {
             turnManager.updatePlayingOrder();
-            this.playerToPlay = turnManager.getCurrentPlayingPlayer();
+            try {
+                this.playerToPlay = turnManager.getCurrentPlayingPlayer();
+            }catch (EndOfPlayingPhaseException ex) {
+                throw new RuntimeException(getClass()+" errore transizione placing->playing");
+            }
+
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(player);
             //in caso il player sia sulla casella A questo non ha azioni da svolgere
             checkPlayerOfferTile(player);
             this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
+
+        }finally {
+            notifyGameChanged();
         }
-        //la board automaticamente aggiorna gli observer
-        //devo aggiungere notifica observer game
     }
 
     /**
@@ -129,7 +141,11 @@ public class Game implements GameView {
     private void checkPlayerOfferTile(Player player) {
         if (offertilePlayerIsOn.getOfferTileID() == 'A') {
             player.manageFoodAndPP(UtilitiesConstant.FOOD_OFFERTILE_A);
-            this.playerToPlay = turnManager.getCurrentPlayingPlayer();
+            try {
+                this.playerToPlay = turnManager.getCurrentPlayingPlayer();
+            }catch (EndOfPlayingPhaseException e) {
+                throw new RuntimeException(getClass()+" errore controllo checkPlayerOffertile");
+            }
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(player);
         }
     }
@@ -159,10 +175,23 @@ public class Game implements GameView {
      */
     //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
     public void nextRoundIter() {
-        board.returnOnDefaultTiles();
-        players.forEach(Player::triggerEndRoundBuilding);
-        market.endOfRoundMarketActions();
-        this.gamePhase=GAME_PHASE.PLACING_PHASE;
+        if(this.gamePhase!=GAME_PHASE.END_GAME){
+            //se viene rilevata deck finished exception vuol dire che il deck è finito
+            //rimane quindi ancora un round da fare, dopodiché, quando verrà chiamato questo metodo nuovametne
+            //lancera l'endgame iter, quindi lancio eventi finali e conteggio punti
+            board.returnOnDefaultTiles();
+            players.forEach(Player::triggerEndRoundBuilding);
+            try {
+                market.endOfRoundMarketActions();
+                this.gamePhase=GAME_PHASE.PLACING_PHASE;
+            }catch (DeckFinishedException e) {
+                this.gamePhase=GAME_PHASE.END_GAME;//qui imposto il valore a endgame
+            }
+            notifyGameChanged();
+        }else{
+            endGameIter();
+        }
+
     }
 
     public void endGameIter() {
@@ -178,7 +207,7 @@ public class Game implements GameView {
      *@throws IndexOutOfBoundsException in case the position is not valid
      *@throws NotSelectableCardException in case the player has not enough food
      */
-    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player)throws IndexOutOfBoundsException, NotSelectableCardException,NotEnoughFoodException {
+    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingTopList(position, player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -198,7 +227,7 @@ public class Game implements GameView {
      * @throws IndexOutOfBoundsException in case the position is not valid
      * @throws NotSelectableCardException in case the player has not enough food
      */
-    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException,NotEnoughFoodException {
+    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingBottomList(position, player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -214,6 +243,7 @@ public class Game implements GameView {
         try {
             this.playerToPlace = turnManager.getCurrentPlayingPlayer();
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlace);
+            notifyGameChanged();
         } catch (EndOfPlayingPhaseException e) {
             nextRoundIter();
         }
@@ -240,6 +270,28 @@ public class Game implements GameView {
         return this.board;
     }
 
+    public void addObserver(GameObserver observerToAdd){
+        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+            observers.add(observerToAdd);
+        }
+    }
+    public void removeObserver(GameObserver observerToRemove){
+        observers.remove(observerToRemove);
+    }
+    private void notifyGameChanged() {
+        List<Player> playersSnapshot = List.copyOf(this.players);
+
+        for (GameObserver observer : List.copyOf(observers)) {
+            observer.onGameChanged(
+                    this.currentEra,
+                    playersSnapshot,
+                    this.gamePhase,
+                    this.playerToPlace,
+                    this.playerToPlay,
+                    this.offertilePlayerIsOn
+            );
+        }
+    }
     @Override
     public int getPlayerNumber() {
         return this.playerNumber;

@@ -4,12 +4,9 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.Model.Game.Game;
 import it.polimi.ingsw.am25.Model.Player.Player;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
-import it.polimi.ingsw.am25.Model.Utilities.Exception.TileOccupiedException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.*;
 
-public class Controller {
+public class Controller{
     private Game game;
 
 
@@ -67,7 +64,7 @@ public class Controller {
      * @throws NotSelectableCardException if the player attempts to select an Event card, which cannot be picked.
      */
     //da costruire eccezioni giuste
-    public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException {
+    public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
                 if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() > 0) {
@@ -79,6 +76,8 @@ public class Controller {
                         throw new NotEnoughFoodException("Non ha abbastanza cibo");
                     } catch (NotSelectableCardException e) {
                         throw new NotSelectableCardException("Non puoi selezionare un evento");
+                    } catch (EmptyMarketException e) {
+                        throw new EmptyMarketException(); //da capire come gestire questo metodo
                     }
                 }
             }
@@ -94,7 +93,7 @@ public class Controller {
      * @throws NotEnoughFoodException if the player does not have sufficient food resources to acquire the card.
      * @throws NotSelectableCardException if the player attempts to select an Event card, which cannot be picked.
      */
-    public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException {
+    public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
                 if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawFromBottom() > 0) {
@@ -106,6 +105,8 @@ public class Controller {
                         throw new NotEnoughFoodException("Non ha abbastanza cibo");
                     } catch (NotSelectableCardException e) {
                         throw new NotSelectableCardException("Non puoi selezionare un evento");
+                    }catch(EmptyMarketException e){
+                        throw new EmptyMarketException();
                     }
                 }
             }
@@ -118,4 +119,5 @@ public class Controller {
     private boolean checkIsPlayerPlayingTurn(Player player){
         return game.getPlayerToPlay().equals(player);
     }
+
 }

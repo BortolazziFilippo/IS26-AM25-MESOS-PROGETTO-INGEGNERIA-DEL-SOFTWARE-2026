@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.TileOccupiedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class TurnManagerTest {
 
         game = new Game(host, 3);
         game.addPlayer(player2);
-        game.addPlayer(player3);
+        assertThrows(GameReadyToStartException.class,()->game.addPlayer(player3));
 
         board = game.getBoard();
         turnManager = new TurnManager(board);

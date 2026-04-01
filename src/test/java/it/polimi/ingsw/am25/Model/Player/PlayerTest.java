@@ -33,7 +33,7 @@ class PlayerTest {
     }
 
     @Test
-    void tryBuyBuilding(){
+    void tryBuyBuilding() throws NotEnoughFoodException {
         player.manageFoodAndPP(5);
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_I,CARD_TYPE.BUILDING,1,10,10,EVENT_TYPE.END_ROUND);
         assertThrows(NotEnoughFoodException.class,()->player.tryBuyBuilding(buildingCard));

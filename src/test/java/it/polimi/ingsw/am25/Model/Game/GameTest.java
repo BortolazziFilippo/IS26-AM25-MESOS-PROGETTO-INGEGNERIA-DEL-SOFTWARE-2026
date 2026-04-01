@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -100,7 +101,7 @@ class GameTest {
     @Test
     void testCheckWinner() {
         game.addPlayer(player2);
-        game.addPlayer(player3);
+        assertThrows(GameReadyToStartException.class,()->game.addPlayer(player3));
 
         //ho usato numeri arbitrari (il costruttore di game dovrebbe inizializzare i PP a 0 all'inizio penso)
         host.managePP(3);
