@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Board;
 import it.polimi.ingsw.am25.Model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.Model.Factory.OfferTile.OfferTileFactory;
 import it.polimi.ingsw.am25.Model.Game.GameView;
+import it.polimi.ingsw.am25.Model.Observers.BoardObserver;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.TileOccupiedException;
 
@@ -14,7 +15,8 @@ import java.util.stream.Collectors;
 public class Board implements BoardView {
     private final List<OfferTile> offerTiles;
     private final List<DefaultTile> defaultTiles;
-    private final GameView gameView;
+    private  GameView gameView;
+    private final  List<BoardObserver> observers=new ArrayList<>();
 
     public Board(GameView gameView) {
         this.gameView = gameView;
@@ -35,6 +37,7 @@ public class Board implements BoardView {
             this.offerTiles.stream().filter(offerTile -> Objects.equals(pl.getFirst(),offerTile.getPlayerOn())).forEach(Tile::removePlayer);
             pl.removeFirst();
         }
+        notifyBoardChanged(); //here it notifies the changes
     }
 
     /**
@@ -51,10 +54,10 @@ public class Board implements BoardView {
                 throw new TileOccupiedException(getClass() +" tile is already occupied");
             }
             defaultTiles.get(tilePosition).placePlayer(player);
+            //here i don't need to notify the changes since this method is only called during the game creation
         }else{
             throw new IndexOutOfBoundsException(getClass()+" TilePosition not valid");
         }
-
     }
 
     /**
@@ -70,6 +73,7 @@ public class Board implements BoardView {
             if(!offerTiles.get(tilePosition).isOccupied()){
                 offerTiles.get(tilePosition).placePlayer(player);
                 defaultTiles.stream().filter(defaultTile -> Objects.equals(player, defaultTile.getPlayerOn())).forEach(Tile::removePlayer);
+                notifyBoardChanged(); //after the player is placed it notifies the
             }else{
                 throw new TileOccupiedException(getClass() + "Selected tile is occupied");
             }
@@ -85,6 +89,36 @@ public class Board implements BoardView {
 
     public List<OfferTile> getOfferTiles() {
         return offerTiles;
+    }
+
+    /**
+     * this method subscribe an observer
+     * @param observerToAdd observer da aggiungere
+     */
+    public void addObserver(BoardObserver observerToAdd){
+        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+            observers.add(observerToAdd);
+        }
+    }
+
+    /**
+     * this method unsubscribe an observer
+     * @param observerToRemove observer to remove
+     */
+    public void removeObserver(BoardObserver observerToRemove){
+        observers.remove(observerToRemove);
+    }
+
+    /**
+     * This method notifies the subscriber of the changes
+     */
+    public void notifyBoardChanged(){
+        List<OfferTile> offertileSnapshot = List.copyOf(offerTiles);
+        List<DefaultTile> defaultTileSnapshot = List.copyOf(defaultTiles);
+
+        for(BoardObserver boardObserver:observers){
+            boardObserver.onBoardChanged(offertileSnapshot,defaultTileSnapshot);
+        }
     }
 
     @Override

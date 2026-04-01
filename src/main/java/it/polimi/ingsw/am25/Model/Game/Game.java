@@ -92,7 +92,7 @@ public class Game implements GameView {
         switch (toBuyCardType){
             case BUILDING -> market.buyBuildingBottomList(position,player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
-            default -> market.selectCardFromTopList(position,player);
+            default -> market.selectCardFromBottomList(position,player);
         }
     }
 
