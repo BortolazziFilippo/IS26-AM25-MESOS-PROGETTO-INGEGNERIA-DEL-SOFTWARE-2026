@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.*;
 
+import static it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction.shuffledFromYToXExclusive;
+
 public class BuildingFactory {
 
     public BuildingFactory() {
@@ -41,68 +43,68 @@ public class BuildingFactory {
         switch (playerNumber){
             case 2:
                 //ERA 1
-                randomNumber=randomNumerList(1,6);
-                listToReturn.add(tempList.get(randomNumber.getFirst()-1));
+                randomNumber=shuffledFromYToXExclusive(0,6);
+                listToReturn.add(tempList.get(randomNumber.getFirst()));
                 //ERA 2
-                randomNumber=randomNumerList(7,13);
+                randomNumber=shuffledFromYToXExclusive(6,13);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=randomNumerList(14,21);
+                randomNumber=shuffledFromYToXExclusive(13,21);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 3:
                 //ERA 1
-                randomNumber=randomNumerList(1,6);
+                randomNumber=shuffledFromYToXExclusive(0,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
-                randomNumber=randomNumerList(7,13);
+                randomNumber=shuffledFromYToXExclusive(6,13);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=randomNumerList(14,21);
+                randomNumber=shuffledFromYToXExclusive(13,21);
                 for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 4:
                 //ERA 1
-                randomNumber=randomNumerList(1,6);
+                randomNumber=shuffledFromYToXExclusive(0,6);
                 for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
-                randomNumber=randomNumerList(7,13);
+                randomNumber=shuffledFromYToXExclusive(6,13);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=randomNumerList(14,21);
+                randomNumber=shuffledFromYToXExclusive(13,21);
                 for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 5:
                 //ERA 1
-                randomNumber=randomNumerList(1,6);
+                randomNumber=shuffledFromYToXExclusive(0,6);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)-1));
                 }
                 //ERA 2
-                randomNumber=randomNumerList(7,13);
+                randomNumber=shuffledFromYToXExclusive(6,13);
                 for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=randomNumerList(14,21);
+                randomNumber=shuffledFromYToXExclusive(13,21);
                 for (int i = 0; i < 5; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)-1));
+                    listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             default:
@@ -200,6 +202,7 @@ public class BuildingFactory {
      * @param upperBound upperBound
      * @return Return a shuffled list with numbers between the lower and upper bound
      */
+    @Deprecated
     private List<Integer> randomNumerList(int lowerBound, int upperBound){
         List<Integer> number = new ArrayList<>();
         for (int i = lowerBound; i <= upperBound ; i++) {
