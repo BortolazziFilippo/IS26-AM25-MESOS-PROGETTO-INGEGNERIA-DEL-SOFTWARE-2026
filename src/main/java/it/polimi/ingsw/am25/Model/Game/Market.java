@@ -257,7 +257,7 @@ public class Market {
      * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
      * @throws IndexOutOfBoundsException in the case the position is not valid
      */
-    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException{
+    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException,EmptyMarketException{
         if(bottomBuildingList.isEmpty()){
             throw new EmptyMarketException("No buildings available bottom list");
         }

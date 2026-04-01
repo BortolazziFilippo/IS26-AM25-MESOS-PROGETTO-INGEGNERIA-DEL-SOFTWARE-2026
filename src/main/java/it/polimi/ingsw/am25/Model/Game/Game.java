@@ -155,7 +155,9 @@ public class Game implements GameView {
 
     /**
      * this method launches all the end round actions that has to be done
+     * and set the gamePhase to the placing phase
      */
+    //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
     public void nextRoundIter() {
         board.returnOnDefaultTiles();
         players.forEach(Player::triggerEndRoundBuilding);
@@ -168,7 +170,15 @@ public class Game implements GameView {
         //metodo calcolo punti in base a carte da aggiungere in player
     }
 
-    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) {
+    /**
+     * this method adds a card from the top list
+     * @param toBuyCardType cardType to buy
+     * @param position position of the card
+     * @param player player buying the card
+     *@throws IndexOutOfBoundsException in case the position is not valid
+     *@throws NotSelectableCardException in case the player has not enough food
+     */
+    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player)throws IndexOutOfBoundsException, NotSelectableCardException,NotEnoughFoodException {
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingTopList(position, player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -180,7 +190,15 @@ public class Game implements GameView {
         }
     }
 
-    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException {
+    /**
+     * this method adds a card from the top list
+     * @param toBuyCardType cardType to buy
+     * @param position position of the card
+     * @param player player buying the card
+     * @throws IndexOutOfBoundsException in case the position is not valid
+     * @throws NotSelectableCardException in case the player has not enough food
+     */
+    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException,NotEnoughFoodException {
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingBottomList(position, player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
