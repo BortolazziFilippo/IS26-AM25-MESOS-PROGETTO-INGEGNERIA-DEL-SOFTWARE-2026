@@ -45,9 +45,9 @@ public class BuildingCard extends Card {
         return buildingID;
     }
 
-    public BuildingEffect getBuildingEffect() {
-        return buildingEffect;
-    }
+//    public BuildingEffect getBuildingEffect() {
+//        return buildingEffect;
+//    }
 
     public int getFoodCost() {
         return foodCost;

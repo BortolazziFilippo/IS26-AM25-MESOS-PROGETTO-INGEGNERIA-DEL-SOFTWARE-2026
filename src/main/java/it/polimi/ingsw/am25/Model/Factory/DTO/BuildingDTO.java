@@ -4,27 +4,12 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 
 public class BuildingDTO {
-    private final int buildingID;
-    private final int foodCost;
-    private final int endGamePP;
-    private final EVENT_TYPE applyOn;
-    private final ERA era;
+    private  int buildingID;
+    private  int foodCost;
+    private  int endGamePP;
+    private  EVENT_TYPE applyOn;
+    private  ERA era;
 
-    /**
-     * default BuildingDTO constructor
-     * @param buildingID building id
-     * @param foodCost cost of the building
-     * @param endGamePP PP given at end game
-     * @param applyOn when building is triggered
-     * @param era ERA of the building
-     */
-    public BuildingDTO(int buildingID, int foodCost, int endGamePP, EVENT_TYPE applyOn, ERA era) {
-        this.buildingID = buildingID;
-        this.foodCost = foodCost;
-        this.endGamePP = endGamePP;
-        this.applyOn = applyOn;
-        this.era = era;
-    }
 
     public int getFoodCost() {
         return foodCost;

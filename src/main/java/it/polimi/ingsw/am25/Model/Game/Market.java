@@ -220,7 +220,7 @@ public class Market {
         }
 
         if (bottomCardList.isEmpty()) {
-            throw new IllegalStateException("bottomCardList è vuota");
+            throw new EmptyMarketException("bottomCardList è vuota");
         }
 
         if (position < 0 || position >= bottomCardList.size()) {

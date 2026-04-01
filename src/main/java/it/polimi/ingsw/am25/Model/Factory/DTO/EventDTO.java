@@ -4,9 +4,9 @@ import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
 
 public class EventDTO {
-    private final int eventID;
-    private final ERA era;
-    private final EVENT_TYPE eventType;
+    private  int eventID;
+    private  ERA era;
+    private  EVENT_TYPE eventType;
 
     public int getEventID() {
         return eventID;
@@ -18,17 +18,5 @@ public class EventDTO {
 
     public EVENT_TYPE getEventType() {
         return eventType;
-    }
-
-    /**
-     * default constructor of EventDTO
-     * @param eventID event ID
-     * @param era era of the event
-     * @param eventType type of the event
-     */
-    public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
-        this.eventID = eventID;
-        this.era = era;
-        this.eventType = eventType;
     }
 }

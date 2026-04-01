@@ -31,10 +31,6 @@ public class ShamanCard extends Card{
             case ONE -> 1;
             case TWO -> 2;
             case THREE -> 3;
-            default -> {
-                System.err.println("Errore");
-                yield -1;
-            }
         };
     }
     @Override
