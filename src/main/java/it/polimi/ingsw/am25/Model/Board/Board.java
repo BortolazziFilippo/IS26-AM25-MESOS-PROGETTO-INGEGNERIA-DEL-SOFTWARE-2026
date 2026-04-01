@@ -141,4 +141,14 @@ public class Board implements BoardView {
                 .map(tile -> tile.getFoodPerSlotPosition() >= 0)  // 2. check the value
                 .orElse(false);
     }
+
+    @Override
+    public OfferTile getCopyTilePlayerIsOn(Player player) {
+        OfferTile offerTileToReturn= offerTiles.stream()
+                .filter(OfferTile::isOccupied)
+                .filter(offerTile -> offerTile.getPlayerOn().equals(player))
+                .findFirst()
+                .orElseThrow(()->new IllegalStateException("Nessun player trovato"));
+        return new OfferTile(offerTileToReturn);
+    }
 }

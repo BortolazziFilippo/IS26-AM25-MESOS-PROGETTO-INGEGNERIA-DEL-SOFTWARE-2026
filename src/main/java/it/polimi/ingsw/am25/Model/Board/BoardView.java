@@ -7,5 +7,6 @@ import java.util.List;
 public interface BoardView {
     List<Player> getOrderedPlayerOnOfferTile();
     List<Player> getOrderedPlayerOnDefaultTile();
+    OfferTile getCopyTilePlayerIsOn(Player player);
     boolean isPlayerOnAnEligibleDefaultTile(Player player);
 }

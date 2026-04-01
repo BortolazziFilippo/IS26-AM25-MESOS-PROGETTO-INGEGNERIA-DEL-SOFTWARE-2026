@@ -62,6 +62,12 @@ public interface UtilitiesFunction {
         }
     }
 
+    /**
+     * this method generates a shuffled array of integer from y to x-1
+     * @param y lower bound
+     * @param x upper bound
+     * @return list of integers
+     */
      static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
         if (y > x) {
             throw new IllegalArgumentException("y deve essere <= x");

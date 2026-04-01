@@ -8,6 +8,10 @@ public class Action {
         this.drawTop = drawTop;
         this.drawBot = drawFromBottom;
     }
+    public Action(Action action){
+        this.drawTop = action.drawTop;
+        this.drawBot = action.drawBot;
+    }
 
     public int getDrawFromBottom() {
         return drawBot;
@@ -17,6 +21,12 @@ public class Action {
         return drawTop;
     }
 
+    public void subtractOneTopAction(){
+        this.drawTop-=1;
+    }
+    public void subtractOneBotAction(){
+        this.drawBot-=1;
+    }
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Action action)) return false;

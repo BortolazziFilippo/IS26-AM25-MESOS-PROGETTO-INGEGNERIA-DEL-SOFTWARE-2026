@@ -13,6 +13,12 @@ public class OfferTile extends Tile{
         super(null);
     }
 
+    public OfferTile(OfferTile offerTile){
+        this.actionAvailable = new Action(offerTile.getActionAvailable());
+        this.offerTileID = offerTile.offerTileID;
+        super(null);
+    }
+
     public char getOfferTileID() {
         return offerTileID;
     }
