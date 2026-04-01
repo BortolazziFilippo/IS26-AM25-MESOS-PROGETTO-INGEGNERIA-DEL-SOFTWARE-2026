@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE;
+import it.polimi.ingsw.am25.Model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 
 import java.util.ArrayList;
@@ -19,6 +20,8 @@ public class Player {
     private final List<Card> tribe;
     private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
+    private final List<PlayerObserver> observers= new ArrayList<>();
+
 
     public String getNickname() {
         return nickname;
@@ -31,6 +34,8 @@ public class Player {
      */
     public Player(String nickname, COLOR color) {
             this.nickname = nickname;
+            this.food=0;
+            this.prestigePoint=0;
             this.tribe = new ArrayList<>();
             this.buildingCards = new ArrayList<>();
             this.totem=new Totem(color);
@@ -56,6 +61,7 @@ public class Player {
         else{
             this.food += foodAmount;
         }
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     /**
@@ -74,6 +80,7 @@ public class Player {
         }else{
             this.food-=cost;
             selectedBuildingCard.addCardToPlayer(this);
+            notifyPlayerChanged();//here it notifies the changes
         }
 
     }
@@ -84,6 +91,7 @@ public class Player {
      */
     public void managePP(int PPamount){
         this.prestigePoint += PPamount;
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     public CONNECTION_STATUS getConnection() {
@@ -100,6 +108,7 @@ public class Player {
      */
     public void addCardToTribe(Card card){
         this.tribe.add(card);
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     /**
@@ -108,6 +117,7 @@ public class Player {
      */
     public void addBuilding(BuildingCard buildingCard){
         this.buildingCards.add(buildingCard);
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     public int getFood() {
@@ -199,6 +209,7 @@ public class Player {
         this.buildingCards.stream()
                 .filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     /**
@@ -209,6 +220,7 @@ public class Player {
                 .stream()
                 .filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
+        notifyPlayerChanged();//here it notifies the changes
     }
 
     public List<Card> getTribe() {
@@ -217,6 +229,39 @@ public class Player {
 
     public List<BuildingCard> getBuildingCards() {
         return buildingCards;
+    }
+
+    /**
+     * thi method subscribe an observer
+     * @param observerToAdd observer to subscribe
+     */
+    public void addObserver(PlayerObserver observerToAdd){
+        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+            observers.add(observerToAdd);
+        }
+    }
+
+    /**
+     * this method unsubscribe an observer
+     * @param observerToRemove observer to unsubscribe
+     */
+    public void removeObserver(PlayerObserver observerToRemove){
+        observers.remove(observerToRemove);
+    }
+
+    public void notifyPlayerChanged(){
+        List<Card> tribeSnapshot = List.copyOf(this.tribe);
+        List<BuildingCard> buildingSnapshot = List.copyOf(this.buildingCards);
+        for (PlayerObserver observer : observers) {
+            observer.onPlayerChanged(
+                    this.nickname,
+                    this.totem,
+                    this.food,
+                    this.prestigePoint,
+                    tribeSnapshot,
+                    buildingSnapshot
+            );
+        }
     }
 
     @Override
