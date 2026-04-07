@@ -54,8 +54,6 @@ public class TurnManager {
         }
 
     }
-    
-
 
     public List<Player> getPlacingOrder() {
         return placingOrder;
@@ -64,9 +62,11 @@ public class TurnManager {
     public List<Player> getPlayingOrder() {
         return playingOrder;
     }
+
     public void updatePlayingOrder(){
         this.playingOrder= boardView.getOrderedPlayerOnOfferTile();
     }
+
     public void updatePlacingOrder(){
         this.placingOrder = boardView.getOrderedPlayerOnDefaultTile();
     }
