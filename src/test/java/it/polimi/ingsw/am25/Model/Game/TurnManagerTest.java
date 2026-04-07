@@ -3,6 +3,8 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Player.Player;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.EndOfPlacingPhaseException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.EndOfPlayingPhaseException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.TileOccupiedException;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +43,14 @@ class TurnManagerTest {
 
         turnManager.updatePlayingOrder();
 
+        assertEquals(3, turnManager.getPlayingOrder().size());
         assertEquals(host, turnManager.getNextPlayingPlayer());
+        assertEquals(2, turnManager.getPlayingOrder().size());
+        assertEquals(player2, turnManager.getNextPlayingPlayer());
+        assertEquals(1, turnManager.getPlayingOrder().size());
+        assertEquals(player3, turnManager.getNextPlayingPlayer());
+        assertTrue(turnManager.getPlayingOrder().isEmpty());
+        assertThrows(EndOfPlayingPhaseException.class, () -> turnManager.getNextPlayingPlayer());
     }
 
     @Test
@@ -52,11 +61,21 @@ class TurnManagerTest {
 
         turnManager.updatePlacingOrder();
 
+        assertEquals(3, turnManager.getPlacingOrder().size());
         assertEquals(host, turnManager.getNextPlacingPlayer());
+        assertEquals(2, turnManager.getPlacingOrder().size());
+        assertEquals(player2, turnManager.getNextPlacingPlayer());
+        assertEquals(1, turnManager.getPlacingOrder().size());
+        assertEquals(player3, turnManager.getNextPlacingPlayer());
+        assertTrue(turnManager.getPlacingOrder().isEmpty());
+        assertThrows(EndOfPlacingPhaseException.class, () -> turnManager.getNextPlacingPlayer());
     }
 
     @Test
     void testGetPlacingOrder() throws TileOccupiedException {
+        assertNotNull(turnManager.getPlacingOrder());
+        assertTrue(turnManager.getPlacingOrder().isEmpty());
+
         board.placePlayerOnDefaultTile(host, 0);
         board.placePlayerOnDefaultTile(player2, 1);
         board.placePlayerOnDefaultTile(player3, 2);
@@ -64,9 +83,6 @@ class TurnManagerTest {
         turnManager.updatePlacingOrder();
 
         assertEquals(3, turnManager.getPlacingOrder().size());
-
-        //verifica che l'ordine sia quello giusto dall'alto verso il basso della default tile
-        //in realtà quindi è come se testasse anche il metodo updatePlacingOrder()
         assertEquals(host, turnManager.getPlacingOrder().get(0));
         assertEquals(player2, turnManager.getPlacingOrder().get(1));
         assertEquals(player3, turnManager.getPlacingOrder().get(2));
@@ -74,6 +90,9 @@ class TurnManagerTest {
 
     @Test
     void testGetPlayingOrder() throws TileOccupiedException {
+        assertNotNull(turnManager.getPlayingOrder());
+        assertTrue(turnManager.getPlayingOrder().isEmpty());
+
         board.placePlayerOnOffertile(host, 0);
         board.placePlayerOnOffertile(player2, 1);
         board.placePlayerOnOffertile(player3, 2);
@@ -81,8 +100,6 @@ class TurnManagerTest {
         turnManager.updatePlayingOrder();
 
         assertEquals(3, turnManager.getPlayingOrder().size());
-
-        //controlla che il primo che ha posizionato sulla offertile è il primo a giocare e stesso per gli altri
         assertEquals(host, turnManager.getPlayingOrder().get(0));
         assertEquals(player2, turnManager.getPlayingOrder().get(1));
         assertEquals(player3, turnManager.getPlayingOrder().get(2));
@@ -96,6 +113,7 @@ class TurnManagerTest {
 
         turnManager.updatePlayingOrder();
 
+        assertEquals(3, turnManager.getPlayingOrder().size());
         assertEquals(player2, turnManager.getPlayingOrder().get(0));
         assertEquals(host, turnManager.getPlayingOrder().get(1));
         assertEquals(player3, turnManager.getPlayingOrder().get(2));
@@ -109,8 +127,30 @@ class TurnManagerTest {
 
         turnManager.updatePlacingOrder();
 
+        assertEquals(3, turnManager.getPlacingOrder().size());
         assertEquals(player3, turnManager.getPlacingOrder().get(0));
         assertEquals(host, turnManager.getPlacingOrder().get(1));
         assertEquals(player2, turnManager.getPlacingOrder().get(2));
     }
+
+
+
+
+    //questi ultimi 2 test devo ancora ricontrollarli
+
+    @Test
+    void testGetNextPlayingPlayerEmptyOrder() {
+        assertTrue(turnManager.getPlayingOrder().isEmpty());
+        assertThrows(EndOfPlayingPhaseException.class, () -> turnManager.getNextPlayingPlayer());
+    }
+
+    @Test
+    void testGetNextPlacingPlayerEmptyOrder() {
+        assertTrue(turnManager.getPlacingOrder().isEmpty());
+        assertThrows(EndOfPlacingPhaseException.class, () -> turnManager.getNextPlacingPlayer());
+    }
+
+
+
+
 }
