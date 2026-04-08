@@ -129,7 +129,12 @@ public class Game implements GameView {
         //in caso il player sia sulla casella A questo non ha azioni da svolgere, aggiunge 3 di cibo
         //questo controllo si fa solo prima volta, in caso ci sia un giocatore sopra casella A questo deve essere il primo per forza
         checkPlayerOfferTile(playerToPlay);
-        this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
+        if(this.gamePhase==GAME_PHASE.LAST_ROUND_PLACING_PHASE){
+            gamePhase=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION;
+        }else{
+            this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
+        }
+
         notifyGameChanged();
     }
 
@@ -177,7 +182,7 @@ public class Game implements GameView {
      */
     //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
     public void nextRoundIter() {
-        if(this.gamePhase!=GAME_PHASE.END_GAME){
+        if(this.gamePhase!=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
             //se viene rilevata deck finished exception vuol dire che il deck è finito
             //rimane quindi ancora un round da fare, dopodiché, quando verrà chiamato questo metodo nuovametne
             //lancera l'endgame iter, quindi lancio eventi finali e conteggio punti
@@ -187,7 +192,7 @@ public class Game implements GameView {
                 market.endOfRoundMarketActions();
                 this.gamePhase=GAME_PHASE.PLACING_PHASE;
             }catch (DeckFinishedException e) {
-                this.gamePhase=GAME_PHASE.END_GAME;//qui imposto il valore a endgame
+                this.gamePhase=GAME_PHASE.LAST_ROUND_PLACING_PHASE;//qui imposto il valore a last round
             }
             notifyGameChanged();
         }else{

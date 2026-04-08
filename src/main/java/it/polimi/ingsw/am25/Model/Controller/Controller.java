@@ -40,7 +40,7 @@ public class Controller{
      */
     //da costruire eccezioni giuste per il caso
     public void placingPlayer(Player playerToPlace, int position) throws IndexOutOfBoundsException, TileOccupiedException {
-        if (game.getGamePhase() == GAME_PHASE.PLACING_PHASE) {
+        if (game.getGamePhase() == GAME_PHASE.PLACING_PHASE || game.getGamePhase()==GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             if (checkIsPlayerPlacingTurn(playerToPlace)) {
                 try {
                     game.placePlayer(playerToPlace, position);
@@ -67,7 +67,7 @@ public class Controller{
      */
     //da costruire eccezioni giuste
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION) {
+        if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase()==GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
                 if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() > 0) {
                     try {
@@ -103,7 +103,7 @@ public class Controller{
      * @throws NotSelectableCardException if the player attempts to select an Event card, which cannot be picked.
      */
     public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION) {
+        if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase()==GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
                 if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawFromBottom() > 0) {
                     try {
