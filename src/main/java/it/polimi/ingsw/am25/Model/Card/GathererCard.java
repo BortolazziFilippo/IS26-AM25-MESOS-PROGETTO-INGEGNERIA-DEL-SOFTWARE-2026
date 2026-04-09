@@ -6,8 +6,9 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 
 public class GathererCard extends Card{
     /**
-     * Default GathereCard constructor
-     * @param era Card ERA
+     * Default GathererCard constructor.
+     *
+     * @param era      Card ERA
      * @param cardType Card type
      */
     public GathererCard(ERA era, CARD_TYPE cardType) {

@@ -128,9 +128,22 @@ public class Controller{
         }
     }
 
+    /**
+     * Returns {@code true} if it is the given player's turn to place their totem.
+     *
+     * @param player the player to check
+     * @return whether it is this player's placing turn
+     */
     private boolean checkIsPlayerPlacingTurn(Player player) {
         return game.getPlayerToPlace().equals(player);
     }
+
+    /**
+     * Returns {@code true} if it is the given player's turn to resolve their actions.
+     *
+     * @param player the player to check
+     * @return whether it is this player's playing turn
+     */
     private boolean checkIsPlayerPlayingTurn(Player player){
         return game.getPlayerToPlay().equals(player);
     }

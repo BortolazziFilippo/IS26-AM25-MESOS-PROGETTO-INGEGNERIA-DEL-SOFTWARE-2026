@@ -44,19 +44,36 @@ public class Market {
         this.initializeBottomList();
         this.initializeBothTopList();
     }
-
+    /**
+     * Returns the list of building cards available in the bottom (previous-round) building row.
+     *
+     * @return bottom building list
+     */
     public List<BuildingCard> getBottomBuildingList() {
         return bottomBuildingList;
     }
-
+    /**
+     * Returns the list of building cards available in the top (current-round) building row.
+     *
+     * @return top building list
+     */
     public List<BuildingCard> getTopBuildingList() {
         return topBuildingList;
     }
 
+    /**
+     * Returns the list of cards (villagers and events) in the bottom (previous-round) row.
+     *
+     * @return bottom card list
+     */
     public List<Card> getBottomCardList() {
         return bottomCardList;
     }
-
+    /**
+     * Returns the list of cards (villagers and events) in the top (current-round) row.
+     *
+     * @return top card list
+     */
     public List<Card> getTopCardList() {
         return topCardList;
     }
@@ -130,7 +147,10 @@ public class Market {
             }
         }
     }
-
+    /**
+     * Moves all building cards of the current era from the building pool into the top building list,
+     * and removes any buildings of the current era that were left in the bottom building list.
+     */
     private void refillTopBuildingList(){
         this.topBuildingList.addAll(this.buildingCards.stream().filter(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra()).toList());
         this.bottomBuildingList.removeIf(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra());
@@ -222,16 +242,12 @@ public class Market {
      * @param player player that has draw the card
      */
     public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException,EmptyMarketException{
-        //solite eccezioni come in selectedCardFromTopList()
-        if(bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
-            throw new EmptyMarketException("No Card Available bottom list");
-        }
+        // null-guard first, before any method is called on bottomCardList
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList null o player null");
         }
-
-        if (bottomCardList.isEmpty()) {
-            throw new EmptyMarketException("bottomCardList è vuota");
+        if(bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
+            throw new EmptyMarketException("No Card Available bottom list");
         }
 
         if (position < 0 || position >= bottomCardList.size()) {
@@ -243,7 +259,7 @@ public class Market {
         try{
             selected_card.addCardToPlayer(player);
         }catch (NotSelectableCardException e) {
-             throw new NotSelectableCardException("Cannot select EventCard");
+            throw new NotSelectableCardException("Cannot select EventCard");
         }
         this.bottomCardList.remove(position);
         this.notifyMarketChanged(); //here it notifies the changes

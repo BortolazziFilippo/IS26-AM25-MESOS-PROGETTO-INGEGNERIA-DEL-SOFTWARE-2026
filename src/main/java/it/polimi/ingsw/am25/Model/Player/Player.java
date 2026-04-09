@@ -9,6 +9,7 @@ import it.polimi.ingsw.am25.Model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.NotEnoughFoodException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -93,11 +94,19 @@ public class Player {
         this.prestigePoint += PPamount;
         notifyPlayerChanged();//here it notifies the changes
     }
-
+    /**
+     * Returns the current connection status of the player.
+     *
+     * @return the player's {@link CONNECTION_STATUS}
+     */
     public CONNECTION_STATUS getConnection() {
-        return CONNECTION_STATUS.CONNECTED;
+        return connectionStatus;
     }
-
+    /**
+     * Sets the connection status of the player.
+     *
+     * @param connectionStatus the new {@link CONNECTION_STATUS}
+     */
     public void setConnection(CONNECTION_STATUS connectionStatus) {
         this.connectionStatus = connectionStatus;
     }
@@ -119,15 +128,27 @@ public class Player {
         this.buildingCards.add(buildingCard);
         notifyPlayerChanged();//here it notifies the changes
     }
-
+    /**
+     * Returns the player's current food amount.
+     *
+     * @return food amount
+     */
     public int getFood() {
         return food;
     }
-
+    /**
+     * Returns the player's current prestige-point total.
+     *
+     * @return prestige points
+     */
     public int getPrestigePoint() {
         return prestigePoint;
     }
-
+    /**
+     * Returns the number of distinct inventor icons in the player's tribe.
+     *
+     * @return count of unique {@link it.polimi.ingsw.am25.Model.Enums.INV_ICON} values
+     */
     public int getNumberOfDifferentInventorIcon(){
         return (int) tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
@@ -222,11 +243,19 @@ public class Player {
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
         notifyPlayerChanged();//here it notifies the changes
     }
-
+    /**
+     * Returns an unmodifiable view of all villager cards in the player's tribe.
+     *
+     * @return the tribe card list
+     */
     public List<Card> getTribe() {
         return tribe;
     }
-
+    /**
+     * Returns the list of building cards the player owns.
+     *
+     * @return building card list
+     */
     public List<BuildingCard> getBuildingCards() {
         return buildingCards;
     }
@@ -248,7 +277,9 @@ public class Player {
     public void removeObserver(PlayerObserver observerToRemove){
         observers.remove(observerToRemove);
     }
-
+    /**
+     * Notifies all subscribed observers with a snapshot of the current player state.
+     */
     public void notifyPlayerChanged(){
         List<Card> tribeSnapshot = List.copyOf(this.tribe);
         List<BuildingCard> buildingSnapshot = List.copyOf(this.buildingCards);

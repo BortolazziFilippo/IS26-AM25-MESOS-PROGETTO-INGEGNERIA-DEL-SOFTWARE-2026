@@ -46,7 +46,7 @@ public class EventFactory {
                 eventEffect=new HuntEvent(1,1);
                 break;
             case 2:
-                eventEffect=new SustenanceEvent(1,-1);
+                eventEffect=new SustenanceEvent(1,1);
                 break;
             case 3:
                 eventEffect=new ShamanEvent(5,-3);
@@ -58,7 +58,7 @@ public class EventFactory {
                 eventEffect=new HuntEvent(1,2);
                 break;
             case 6:
-                eventEffect=new SustenanceEvent(1,-2);
+                eventEffect=new SustenanceEvent(1,2);
                 break;
             case 7:
                 eventEffect=new ShamanEvent(10,-5);
@@ -73,7 +73,7 @@ public class EventFactory {
                 eventEffect=new ArtistEvent(3,-2,3);
                 break;
             case 11:
-                eventEffect=new SustenanceEvent(1,-3);
+                eventEffect=new SustenanceEvent(1,3);
                 break;
             case  12:
                 eventEffect=new ShamanEvent(15,-7);

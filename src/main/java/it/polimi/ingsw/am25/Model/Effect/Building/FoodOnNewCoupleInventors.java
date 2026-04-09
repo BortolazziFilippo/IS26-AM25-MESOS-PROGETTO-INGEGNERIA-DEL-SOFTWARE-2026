@@ -7,15 +7,25 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * Building effect that awards 3 food for each new pair of Inventor cards sharing the same icon
+ * added to the tribe since the last time this effect was evaluated.
+ */
 public class FoodOnNewCoupleInventors extends BuildingEffect {
-    private List<Card> ActualCards = new ArrayList<>();
-    private List<Card> BeforeTurnCards = new ArrayList<>();
-    private List<InventorCard> PairsCards = new ArrayList<>();
+    private List<Card> beforeTurnCards = new ArrayList<>();
+    private List<InventorCard> pairsCards = new ArrayList<>();
 
+    /**
+     * Default constructor for FoodOnNewCoupleInventors.
+     */
     public FoodOnNewCoupleInventors() {
     }
-
+    /**
+     * Compares the player's current tribe with the tribe state from the previous evaluation.
+     * For each new pair of Inventor cards that share the same icon, awards 3 food to the player.
+     *
+     * @param player the player who owns this building
+     */
     @Override
     public void applyEffect(Player player) {
         int count = 0;
@@ -23,22 +33,22 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
         int position=0;
         List<Card> ActualCards= player.getTribe();
         List<Card> difference = new ArrayList<>(ActualCards);
-        difference.removeAll(BeforeTurnCards);
-        BeforeTurnCards=new ArrayList<>(ActualCards);
+        difference.removeAll(beforeTurnCards);
+        beforeTurnCards =new ArrayList<>(ActualCards);
         for(int i=0;i<2;i++){
-            PairsCards.add(i, null);
+            pairsCards.add(i, null);
         }
         for (Card card :  difference) {
             if(card.getCardType() == CARD_TYPE.INVENTOR){
-                PairsCards.set(position, (InventorCard)  card);
+                pairsCards.set(position, (InventorCard)  card);
                 pairs++;
                 position++;
                 if(pairs == 2){
-                    if((PairsCards.get(0).getInvIcon()).equals(PairsCards.get(1).getInvIcon())){
+                    if((pairsCards.get(0).getInvIcon()).equals(pairsCards.get(1).getInvIcon())){
                         count+=2;
                     }
                     for(int i=0;i<2;i++){
-                        PairsCards.set(i, null);
+                        pairsCards.set(i, null);
                     }
                     pairs=0;
                     position = 0;

@@ -26,8 +26,8 @@ public class Board implements BoardView {
 
 
     /**
-     * this method move all player from the offerTiles to the Default tiles and add the right amount of food to the player
-     *
+     * Moves all players from the offer tiles back to the default tiles and awards food
+     * according to the food-per-slot value of their assigned default tile.
      */
     public void returnOnDefaultTiles(){
         List<Player> pl= new ArrayList<>(this.offerTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
@@ -41,11 +41,12 @@ public class Board implements BoardView {
     }
 
     /**
-     * this method places the given player ont the tile positino
-     * @param player player To be Placed
-     * @param tilePosition position to be placed
-     * @throws IndexOutOfBoundsException in the case the given position is not in the right boundaries
-     * @throws TileOccupiedException in the case the given position is already occupied
+     * Places the given player on the default tile at the specified position.
+     *
+     * @param player        player to be placed
+     * @param tilePosition  index of the target default tile
+     * @throws IndexOutOfBoundsException if {@code tilePosition} is outside the valid range
+     * @throws TileOccupiedException     if the target tile is already occupied
      */
     public void placePlayerOnDefaultTile(Player player,int tilePosition) throws IndexOutOfBoundsException, TileOccupiedException{
 
@@ -82,18 +83,27 @@ public class Board implements BoardView {
         }
 
     }
-
+    /**
+     * Returns the list of default tiles on the board.
+     *
+     * @return list of {@link DefaultTile}
+     */
     public List<DefaultTile> getDefaultTiles() {
         return defaultTiles;
     }
-
+    /**
+     * Returns the list of offer tiles on the board.
+     *
+     * @return list of {@link OfferTile}
+     */
     public List<OfferTile> getOfferTiles() {
         return offerTiles;
     }
 
     /**
-     * this method subscribe an observer
-     * @param observerToAdd observer da aggiungere
+     * Subscribes an observer to board-state changes.
+     *
+     * @param observerToAdd observer to add; ignored if null or already subscribed
      */
     public void addObserver(BoardObserver observerToAdd){
         if(observerToAdd!=null && !observers.contains(observerToAdd)){
@@ -122,17 +132,34 @@ public class Board implements BoardView {
     }
 
     @Override
+    /**
+     * Returns the players currently on offer tiles, in tile order.
+     *
+     * @return ordered list of players on offer tiles
+     */
     public List<Player> getOrderedPlayerOnOfferTile() {
         return new ArrayList<>(offerTiles.stream().filter(OfferTile::isOccupied).map(Tile::getPlayerOn).toList());
     }
 
     @Override
+    /**
+     * Returns the players currently on default tiles, in tile order.
+     *
+     * @return ordered list of players on default tiles
+     */
     public List<Player> getOrderedPlayerOnDefaultTile() {
         return new ArrayList<>(defaultTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
 
     }
 
     @Override
+    /**
+     * Returns {@code true} if the given player is on a default tile whose food reward is >= 0.
+     * (Players on a tile with a negative food value do not receive the bonus.)
+     *
+     * @param player the player to check
+     * @return whether the player is on an eligible default tile
+     */
     public boolean isPlayerOnAnEligibleDefaultTile(Player player) {
         return this.defaultTiles.stream()
                 .filter(DefaultTile::isOccupied)
@@ -143,6 +170,13 @@ public class Board implements BoardView {
     }
 
     @Override
+    /**
+     * Returns a defensive copy of the offer tile the given player is currently on.
+     *
+     * @param player the player whose tile should be returned
+     * @return a copy of the {@link OfferTile} the player occupies
+     * @throws IllegalStateException if the player is not found on any offer tile
+     */
     public OfferTile getCopyTilePlayerIsOn(Player player) {
         OfferTile offerTileToReturn= offerTiles.stream()
                 .filter(OfferTile::isOccupied)

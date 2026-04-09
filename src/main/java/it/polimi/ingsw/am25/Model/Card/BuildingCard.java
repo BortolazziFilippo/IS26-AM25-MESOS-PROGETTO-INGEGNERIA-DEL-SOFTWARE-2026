@@ -40,23 +40,38 @@ public class BuildingCard extends Card {
         this.buildingEffect=buildingEffect;
     }
 
-
+    /**
+     * Returns the unique identifier of this building.
+     *
+     * @return building ID
+     */
     public int getBuildingID() {
         return buildingID;
     }
 
-//    public BuildingEffect getBuildingEffect() {
-//        return buildingEffect;
-//    }
-
+    /**
+     * Returns the food cost required to purchase this building.
+     *
+     * @return food cost
+     */
     public int getFoodCost() {
         return foodCost;
     }
 
+    /**
+     * Returns the prestige points this building awards at the end of the game.
+     *
+     * @return end-game prestige points
+     */
     public int getEndgamePP() {
         return endgamePP;
     }
 
+    /**
+     * Returns the event type that triggers this building's effect.
+     *
+     * @return the {@link it.polimi.ingsw.am25.Model.Enums.EVENT_TYPE} this building reacts to
+     */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }

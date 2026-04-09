@@ -183,7 +183,7 @@ public class BuildingFactory {
                 effectToReturn = new PPPerCharType(2,CARD_TYPE.INVENTOR);
                 break;
             case 20:
-                effectToReturn = new DrawOneMOreCard();
+                effectToReturn = new DrawOneMoreCard();
                 break;
             case 21:
                 effectToReturn = new TwentyFivePPEndGame();

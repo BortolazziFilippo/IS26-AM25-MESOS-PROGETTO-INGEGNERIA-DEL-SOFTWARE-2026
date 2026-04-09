@@ -31,12 +31,15 @@ public class Game implements GameView {
     private final List<GameObserver> observers=new ArrayList<>();
 
     /**
-     * default constructor of game, this method when called manage to create the Deck anc the building By launching the factories
+     * default constructor of game, this method when called creates the deck and the buildings by launching the factories.
      *
      * @param playerHost   player who created the game
-     * @param playerNumber number of player
+     * @param playerNumber number of players
      */
     public Game(Player playerHost, int playerNumber) {
+        if (playerHost == null) {
+            throw new IllegalArgumentException("playerHost nullo");
+        }
         this.playerNumber = playerNumber;
         this.gamePhase = GAME_PHASE.SETUP;
         this.board = new Board(this);
@@ -46,12 +49,12 @@ public class Game implements GameView {
         this.playerHost = playerHost;
         this.players = new ArrayList<>();
         players.add(playerHost);
-        //solita eccezione per gli argoementi passati
-        if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost nullo");
-        }
     }
-
+    /**
+     * Returns the current game phase.
+     *
+     * @return the current {@link GAME_PHASE}
+     */
     public GAME_PHASE getGamePhase() {
         return gamePhase;
     }
@@ -117,7 +120,11 @@ public class Game implements GameView {
         }
         notifyGameChanged();
     }
-
+    /**
+     * Transitions the game from the placing phase to the playing (resolve-action) phase.
+     * Updates the playing order, sets the first player to play, and — if that player is
+     * on offer tile 'A' (no actions, only food) — automatically advances to the next player.
+     */
     public void advancePlayingPhase(){
         turnManager.updatePlayingOrder();
         try {
@@ -153,10 +160,16 @@ public class Game implements GameView {
             }catch (EndOfPlayingPhaseException e) {
                 throw new RuntimeException(getClass()+" errore controllo checkPlayerOffertile");
             }
+            // use playerToPlay (the new current player), not the old one who was on tile A
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(player);
         }
     }
-
+    /**
+     * Determines the winner of the game: the player with the highest prestige-point total.
+     *
+     * @return the winning {@link Player}
+     * @throws IllegalStateException if the player list is null or empty
+     */
     public Player checkWinner() {
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
@@ -177,8 +190,11 @@ public class Game implements GameView {
     }
 
     /**
-     * this method launches all the end round actions that has to be done
-     * and set the gamePhase to the placing phase
+     * Triggers all end-of-round actions:
+     * moves players back to default tiles, triggers end-round buildings,
+     * and advances the market (shifting card lists and refilling them).
+     * If the deck is exhausted the game phase transitions to {@link GAME_PHASE#END_GAME}.
+     * If the game is already in END_GAME, delegates to {@link #endGameIter()}.
      */
     //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
     public void nextRoundIter() {
@@ -200,7 +216,9 @@ public class Game implements GameView {
         }
 
     }
-
+    /**
+     * Triggers all end-game building effects and finalises the prestige-point count.
+     */
     public void endGameIter() {
         players.forEach(Player::triggerEndGameBuilding);
         //metodo calcolo punti in base a carte da aggiungere in player
@@ -211,8 +229,10 @@ public class Game implements GameView {
      * @param toBuyCardType cardType to buy
      * @param position position of the card
      * @param player player buying the card
-     *@throws IndexOutOfBoundsException in case the position is not valid
-     *@throws NotSelectableCardException in case the player has not enough food
+     * @throws IndexOutOfBoundsException in case the position is not valid
+     * @throws NotEnoughFoodException in case the player does not have enough food
+     * @throws NotSelectableCardException if the player tries to select an event card
+     * @throws NoMoreActionToDo if the player has no remaining actions after this selection
      */
     public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException,NoMoreActionToDo {
         switch (toBuyCardType) {
@@ -227,12 +247,15 @@ public class Game implements GameView {
     }
 
     /**
-     * this method adds a card from the top list
+     * Selects a card from the bottom list and adds it to the player, then decrements the
+     * player's remaining bottom-draw actions. When all actions are exhausted the turn
+     * automatically advances to the next player.
      * @param toBuyCardType cardType to buy
-     * @param position position of the card
+     * @param position position of the card in the bottom list
      * @param player player buying the card
      * @throws IndexOutOfBoundsException in case the position is not valid
-     * @throws NotSelectableCardException in case the player has not enough food
+     * @throws NotEnoughFoodException in case the player does not have enough food
+     * @throws NotSelectableCardException if the player tries to select an event card
      */
     public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
         switch (toBuyCardType) {
@@ -246,41 +269,80 @@ public class Game implements GameView {
         }
     }
 
-    public void goNextPlayer() throws EndOfPlayingPhaseException{
-        this.playerToPlace = turnManager.getNextPlayingPlayer();
-        this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlace);
+    /**
+     * Advances the game turn to the next playing player.
+     * Updates {@code playerToPlay}  and refreshes the tile the player is on.
+     *
+     * @throws EndOfPlayingPhaseException if there are no more players left to play this round
+     */
+    public void goNextPlayer() throws EndOfPlayingPhaseException {
+        this.playerToPlay = turnManager.getNextPlayingPlayer();
+        this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         notifyGameChanged();
     }
-
+    /**
+     * Returns the offer tile the current playing player is on (snapshot copy).
+     *
+     * @return the {@link OfferTile} the current player is on
+     */
     public OfferTile getOffertilePlayerIsOn() {
         return offertilePlayerIsOn;
     }
 
+    /**
+     * Returns the player whose turn it is to place during the placing phase.
+     *
+     * @return the player to place
+     */
     public Player getPlayerToPlace() {
         return playerToPlace;
     }
-
+    /**
+     * Returns the player whose turn it is to resolve actions during the playing phase.
+     *
+     * @return the player to play
+     */
     public Player getPlayerToPlay() {
         return playerToPlay;
     }
-
+    /**
+     * Returns the market instance for this game.
+     *
+     * @return the {@link Market}
+     */
     public Market getMarket() {
         return this.market;
     } // da aggiungere in UML
 
-    //da aggiungere in UML volendo
+    /**
+     * Returns the board instance for this game.
+     *
+     * @return the {@link Board}
+     */
     public Board getBoard() {
         return this.board;
     }
-
+    /**
+     * Subscribes an observer to game-state changes.
+     *
+     * @param observerToAdd observer to subscribe; ignored if null or already subscribed
+     */
     public void addObserver(GameObserver observerToAdd){
         if(observerToAdd!=null && !observers.contains(observerToAdd)){
             observers.add(observerToAdd);
         }
     }
+    /**
+     * Unsubscribes an observer from game-state changes.
+     *
+     * @param observerToRemove observer to unsubscribe
+     */
     public void removeObserver(GameObserver observerToRemove){
         observers.remove(observerToRemove);
     }
+    /**
+     * Notifies all subscribed observers with a snapshot of the current game state.
+     */
     private void notifyGameChanged() {
         List<Player> playersSnapshot = List.copyOf(this.players);
 
@@ -295,21 +357,37 @@ public class Game implements GameView {
             );
         }
     }
+    /**
+     * Returns the total number of players in this game.
+     *
+     * @return number of players
+     */
     @Override
     public int getPlayerNumber() {
         return this.playerNumber;
     }
-
+    /**
+     * Returns the current era of the game.
+     *
+     * @return the current {@link ERA}
+     */
     @Override
     public ERA getCurrentEra() {
         return this.currentEra;
     }
-
+    /**
+     * Returns the list of all players in this game.
+     *
+     * @return list of players
+     */
     @Override
     public List<Player> getPlayerList() {
         return this.players;
     }
-
+    /**
+     * Advances the game to the next era.
+     * If the current era is already the last one, the era is left unchanged.
+     */
     @Override
     public void nextEra() {
         // 1. Get all available eras (e.g., [ERA_I, ERA_II, ERA_III])
