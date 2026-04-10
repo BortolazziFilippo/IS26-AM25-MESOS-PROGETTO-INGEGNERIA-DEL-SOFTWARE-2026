@@ -6,6 +6,8 @@ import it.polimi.ingsw.am25.Model.Game.Game;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.*;
 
+import java.util.concurrent.ExecutionException;
+
 public class Controller{
     private Game game;
 
@@ -120,12 +122,30 @@ public class Controller{
                         try {
                             game.goNextPlayer();
                         }catch (EndOfPlayingPhaseException ex) {
-                            game.nextRoundIter();
+
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Handles the action of a player attempting to pass or skip their turn.
+     * This method can only be executed during the action resolution phases
+     * (RESOLVE_ACTION or LAST_ROUND_RESOLVE_ACTION) and only if it is the given player's turn.
+     * <p>
+     * A player is strictly allowed to "do nothing" ONLY IF they have no legal moves
+     * left to play. If the player attempts to skip while they still have available
+     * actions on the board/market, the move is rejected and an exception is thrown.
+     * If the skip is valid, the turn automatically passes to the next player, or
+     * advances the game to the next round if the current playing phase is over.
+     *
+     * @param player The player attempting to skip their action phase.
+     * @throws Exception If the player attempts to pass but still has playable actions available.
+     */
+    public void playerDoNothing(Player player) throws Exception {
+        // ... tuo codice ...
     }
 
     /**

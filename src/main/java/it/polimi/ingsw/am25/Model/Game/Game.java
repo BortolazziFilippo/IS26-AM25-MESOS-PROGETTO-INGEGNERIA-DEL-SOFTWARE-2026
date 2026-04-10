@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Board.OfferTile;
+import it.polimi.ingsw.am25.Model.Card.Card;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
@@ -244,6 +245,33 @@ public class Game implements GameView {
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
             throw new NoMoreActionToDo();
         }
+    }
+
+    /**
+     * Checks if the current player has any legal moves available.
+     * * @return false if the player cannot perform any action (e.g., market is empty or only contains events,
+     * and the player has no other options). Returns true if the player has at least one valid action.
+     */
+    public boolean canCurrentPlayingPlayerDoSomething() {
+
+        // 1. Is the Market blocked?
+        // (allMatch returns 'true' if the list only contains EVENT cards OR if the list is completely empty)
+        boolean isTopBlocked = market.getTopCardList().stream()
+                .allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
+
+        boolean isBottomBlocked = market.getBottomCardList().stream()
+                .allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
+
+        // 2. Does the player have the necessary actions from their current OfferTile?
+        boolean hasTopAction = offertilePlayerIsOn.getActionAvailable().getDrawTop() > 0;
+        boolean hasBottomAction = offertilePlayerIsOn.getActionAvailable().getDrawFromBottom() > 0;
+
+        // 3. A specific row is playable ONLY IF the player has the action AND the row is not blocked
+        boolean canPlayTop = hasTopAction && !isTopBlocked;
+        boolean canPlayBottom = hasBottomAction && !isBottomBlocked;
+
+        // 4. Final result: as long as the player can perform at least ONE action, return true
+        return canPlayTop || canPlayBottom;
     }
 
     /**
