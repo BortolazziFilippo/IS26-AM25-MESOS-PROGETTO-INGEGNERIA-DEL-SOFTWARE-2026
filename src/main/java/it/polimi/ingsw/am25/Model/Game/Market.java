@@ -349,6 +349,16 @@ public class Market {
         return false;
     }
 
+    public void solveFinalEvents(){
+        for (Card card : topCardList) {
+            if (card.getCardType() == CARD_TYPE.EVENT) {
+                bottomCardList.add(card);
+                topCardList.remove(card);
+            }
+        }
+        solveEvents();
+    }
+
     /**
      * this method, if there are Events in the bottomCardList, it solves them.
      * First it order them by event Type (Sustenance are the last events to be solved), in case of two events from two different ERAS

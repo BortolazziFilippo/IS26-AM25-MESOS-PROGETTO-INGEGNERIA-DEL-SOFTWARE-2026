@@ -301,4 +301,24 @@ public class Player {
         return Objects.equals(nickname, player.nickname) && totem.equals(player.totem);
     }
 
+    public int checkpoints(){
+        int finalPoints = 0;
+        long artistPoints = 0;
+        int builderPoints = 0;
+        long inventorPoints = 0;
+        artistPoints = getArtistNumber();
+        finalPoints = (int)(artistPoints/2)*10;
+
+        builderPoints = this.tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.BUILDER)
+                .mapToInt(card -> ((BuilderCard) card).getFinalPrestigePoint())
+                .sum();
+
+        inventorPoints = this.tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
+                .count();
+        inventorPoints = inventorPoints*getNumberOfDifferentInventorIcon();
+        finalPoints = finalPoints + (int)inventorPoints + builderPoints;
+        return finalPoints;
+    }
 }

@@ -57,4 +57,32 @@ class BuilderCardTest {
 
         assertEquals(3, player.getBuilderDiscount());
     }
+
+    @Test
+    void testEquals() {
+        BuilderCard card1 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
+
+        // stessi campi -> uguali
+        BuilderCard card2 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
+        assertEquals(card1, card2);
+
+        // era diversa -> diversi
+        BuilderCard card3 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 5);
+        assertNotEquals(card1, card3);
+
+        // foodDiscount diverso -> diversi
+        BuilderCard card4 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 1, 5);
+        assertNotEquals(card1, card4);
+
+        // finalPrestigePoint diverso -> diversi
+        BuilderCard card5 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 10);
+        assertNotEquals(card1, card5);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
+    }
 }

@@ -47,4 +47,24 @@ class BuildingCardTest {
         buildingCard.applyBuildingEffect(player);
         assertEquals(25, player.getPrestigePoint());
     }
+
+    @Test
+    void testEquals() {
+        BuildingCard card1 = new BuildingCard(ERA.ERA_I, CARD_TYPE.BUILDING, 1, 4, 3, EVENT_TYPE.END_GAME);
+
+        // stesso buildingID -> uguali
+        BuildingCard card2 = new BuildingCard(ERA.ERA_II, CARD_TYPE.BUILDING, 1, 0, 0, EVENT_TYPE.HUNT);
+        assertEquals(card1, card2);
+
+        // buildingID diverso -> diversi
+        BuildingCard card3 = new BuildingCard(ERA.ERA_I, CARD_TYPE.BUILDING, 2, 4, 3, EVENT_TYPE.END_GAME);
+        assertNotEquals(card1, card3);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
+    }
 }

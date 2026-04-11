@@ -64,4 +64,22 @@ class EventCardTest {
         eventCard.applyEventEffect(List.of(player));
         assertEquals(0, player.getPrestigePoint()); // ancora 0 cacciatori
     }
+
+    @Test
+    void testEquals() {
+        // stesso eventID -> uguali (era e tipo diversi non contano)
+        EventCard card2 = new EventCard(ERA.ERA_II, CARD_TYPE.EVENT, 1, EVENT_TYPE.SUSTENANCE);
+        assertEquals(eventCard, card2);
+
+        // eventID diverso -> diversi
+        EventCard card3 = new EventCard(ERA.ERA_I, CARD_TYPE.EVENT, 2, EVENT_TYPE.HUNT);
+        assertNotEquals(eventCard, card3);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(eventCard, artist);
+
+        // null -> diversi
+        assertNotEquals(null, eventCard);
+    }
 }

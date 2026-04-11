@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class GathererCardTest {
 
@@ -41,4 +42,25 @@ class GathererCardTest {
         new GathererCard(ERA.ERA_II, CARD_TYPE.GATHERER).addCardToPlayer(player);
         assertEquals(6, player.getGatherDiscount());
     }
+
+    @Test
+    void testEquals() {
+        GathererCard card1 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
+
+        // stessa era e tipo -> uguali
+        GathererCard card2 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
+        assertEquals(card1, card2);
+
+        // era diversa -> diversi
+        GathererCard card3 = new GathererCard(ERA.ERA_II, CARD_TYPE.GATHERER);
+        assertNotEquals(card1, card3);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
+    }
+
 }

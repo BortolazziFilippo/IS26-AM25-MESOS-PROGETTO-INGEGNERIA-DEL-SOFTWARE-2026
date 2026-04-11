@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class InventorCardTest {
 
@@ -48,5 +49,29 @@ class InventorCardTest {
         inventorCard.addCardToPlayer(player);
         new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.BREAD).addCardToPlayer(player);
         assertEquals(2, player.getTribe().size());
+    }
+
+    @Test
+    void testEquals() {
+        InventorCard card1 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
+
+        // stessi campi -> uguali
+        InventorCard card2 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
+        assertEquals(card1, card2);
+
+        // icona diversa -> diversi
+        InventorCard card3 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.STONE);
+        assertNotEquals(card1, card3);
+
+        // era diversa -> diversi
+        InventorCard card4 = new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
+        assertNotEquals(card1, card4);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
     }
 }
