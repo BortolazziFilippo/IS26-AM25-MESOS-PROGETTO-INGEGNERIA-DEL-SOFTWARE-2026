@@ -35,6 +35,15 @@ class MarketTest {
         market = new Market(game, game.getBoard());
     }
 
+
+
+
+    //non ho testato checkEventsPresence perchè messo come deprecato quindi abbassa un po' le % di test
+
+
+
+
+
     @Test
     void testGetBottomBuildingList() {
         List<BuildingCard> bottomBuildings = market.getBottomBuildingList();
@@ -81,9 +90,14 @@ class MarketTest {
 
     @Test
     void testClearBottomCardList() {
+
+        //non si può testare che la prima eccezione di bottomCardList == null venga triggerata perchè
+        // il costruttore inizializza sempre la lista
+
         market.clearBottomCardList();
 
         assertTrue(market.getBottomCardList().isEmpty());
+
     }
 
     @Test
@@ -118,6 +132,23 @@ class MarketTest {
         // 3) la nuova top list e la nuova bottom list devono essere liste diverse
         assertNotSame(oldTopCards, market.getBottomCardList());
         assertNotSame(oldTopCards, market.getTopCardList());
+
+
+
+        // qui "forzo" la fine del mazzo chiamando continuamente il metodo, forse c'è un modo migliore
+        // è per prendere il branch del catch di endOfRoundMarketActions()
+        boolean deckFinishedTriggered = false;
+
+        for (int i = 0; i < 100; i++) {
+            try {
+                market.endOfRoundMarketActions();
+            } catch (DeckFinishedException e) {
+                deckFinishedTriggered = true;
+                break;
+            }
+        }
+
+        assertTrue(deckFinishedTriggered, "DeckFinishedException dovrebbe essere lanciata quando il mazzo finisce");
     }
 
     //questo devo ancora rivederlo
@@ -154,6 +185,7 @@ class MarketTest {
 
         BuildingCard building = market.getTopBuildingList().get(0);
 
+        //caso fallimento per mancanza di cibo
         assertThrows(NotEnoughFoodException.class, () -> market.buyBuildingTopList(0, host));
 
         //poi si assicura che non avendo cibo non abbia comprato l'edificio comunque togliendolo da list
@@ -162,6 +194,10 @@ class MarketTest {
         //qui si assicura la stessa cosa ma guardando che non abbia aggiunto il building alla lista del giocatore
         assertEquals(initialPlayerBuildings, host.getBuildingCards().size());
         assertFalse(host.getBuildingCards().contains(building));
+
+        //caso posizione non valida, quindi IndexOutOfBoundsException
+        assertThrows(IndexOutOfBoundsException.class, () -> market.buyBuildingTopList(-1, host));
+        assertThrows(IndexOutOfBoundsException.class, () -> market.buyBuildingTopList(999, host));
 
 
         //caso invece in cui ha abbastanza cibo
@@ -202,6 +238,9 @@ class MarketTest {
         assertEquals(initialPlayerBuildings, host.getBuildingCards().size());
         assertFalse(host.getBuildingCards().contains(building));
 
+        //caso posizione non valida, quindi IndexOutOfBoundsException
+        assertThrows(IndexOutOfBoundsException.class, () -> market.buyBuildingBottomList(-1, host));
+        assertThrows(IndexOutOfBoundsException.class, () -> market.buyBuildingBottomList(999, host));
 
         // caso successo
         host.manageFoodAndPP(building.getFoodCost());
@@ -223,8 +262,6 @@ class MarketTest {
         int validPosition = -1;
         Card card = null;
 
-        //questo for lo fa perchè se prendiamo solo la posiozione generica 0 c'è la possibilità che
-        //la prima carta (posizione 0) sia un event e non può essere pescato
         for (int i = 0; i < market.getTopCardList().size(); i++) {
             if (market.getTopCardList().get(i).getCardType() != CARD_TYPE.EVENT) {
                 validPosition = i;
@@ -237,17 +274,53 @@ class MarketTest {
 
         int initialMarketSize = market.getTopCardList().size();
         int initialPlayerCards = host.getTribe().size();
-        int finalPos = validPosition;
-        assertDoesNotThrow(() -> market.selectCardFromTopList(finalPos, host));
 
-        // check che la lista del market deve diminuire
+        //caso normale
+        //qui mi dava problemi con lambda quindi ho provato try e catch
+        try {
+            market.selectCardFromTopList(validPosition, host);
+        } catch (Exception e) {
+            fail("Non doveva lanciare eccezioni");
+        }
+
         assertEquals(initialMarketSize - 1, market.getTopCardList().size());
-
-        // check che il player deve ricevere la carta
         assertEquals(initialPlayerCards + 1, host.getTribe().size());
         assertTrue(host.getTribe().contains(card));
 
-        // caso fallimento (la topCardList è vuota)
+        //caso posizione non valida, quindi IndexOutOfBoundsException
+        assertThrows(IndexOutOfBoundsException.class, () -> market.selectCardFromTopList(-1, host));
+        assertThrows(IndexOutOfBoundsException.class, () -> market.selectCardFromTopList(999, host));
+
+        //caso player null
+        assertThrows(IllegalArgumentException.class, () -> market.selectCardFromTopList(0, null));
+
+        //caso selezione event
+        int eventPosition = -1;
+        for (int i = 0; i < market.getTopCardList().size(); i++) {
+            if (market.getTopCardList().get(i).getCardType() == CARD_TYPE.EVENT) {
+                eventPosition = i;
+                break;
+            }
+        }
+
+        if (eventPosition != -1) {
+            int sizeBefore = market.getTopCardList().size();
+            int playerCardsBefore = host.getTribe().size();
+
+            try {
+                market.selectCardFromTopList(eventPosition, host);
+                fail("Doveva lanciare NotSelectableCardException");
+            } catch (it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException e) {
+                //ok
+            } catch (Exception e) {
+                fail("Doveva lanciare NotSelectableCardException");
+            }
+
+            assertEquals(sizeBefore, market.getTopCardList().size());
+            assertEquals(playerCardsBefore, host.getTribe().size());
+        }
+
+        // caso lista vuota
         market.getTopCardList().clear();
         assertThrows(EmptyMarketException.class, () -> market.selectCardFromTopList(0, host));
     }
@@ -259,7 +332,7 @@ class MarketTest {
         int validPosition = -1;
         Card card = null;
 
-        //questo for per gli stessi motivi di testSelectCardFromTopList()
+        //trova carta non evento
         for (int i = 0; i < market.getBottomCardList().size(); i++) {
             if (market.getBottomCardList().get(i).getCardType() != CARD_TYPE.EVENT) {
                 validPosition = i;
@@ -272,17 +345,57 @@ class MarketTest {
 
         int initialMarketSize = market.getBottomCardList().size();
         int initialPlayerCards = host.getTribe().size();
-        int finalPos = validPosition;
-        assertDoesNotThrow(() -> market.selectCardFromBottomList(finalPos, host));
-        //check
+
+        //caso normale
+        try {
+            market.selectCardFromBottomList(validPosition, host);
+        } catch (Exception e) {
+            fail("Non doveva lanciare eccezioni");
+        }
+
         assertEquals(initialMarketSize - 1, market.getBottomCardList().size());
         assertEquals(initialPlayerCards + 1, host.getTribe().size());
         assertTrue(host.getTribe().contains(card));
 
-        //caso fallimento
-        market.clearBottomCardList();
+        //posizione non valida, qundi IndexOutOfBoundsException
+        assertThrows(IndexOutOfBoundsException.class, () -> market.selectCardFromBottomList(-1, host));
+        assertThrows(IndexOutOfBoundsException.class, () -> market.selectCardFromBottomList(999, host));
 
+        //caso player null
+        assertThrows(IllegalArgumentException.class, () -> market.selectCardFromBottomList(0, null));
+
+        //caso EVENT
+        //prende carta evento sta volta
+        int eventPosition = -1;
+        for (int i = 0; i < market.getBottomCardList().size(); i++) {
+            if (market.getBottomCardList().get(i).getCardType() == CARD_TYPE.EVENT) {
+                eventPosition = i;
+                break;
+            }
+        }
+
+        //anche qui non uso lambda perchè mi dava dei problemi
+        if (eventPosition != -1) {
+            int sizeBefore = market.getBottomCardList().size();
+            int playerCardsBefore = host.getTribe().size();
+
+            try {
+                market.selectCardFromBottomList(eventPosition, host);
+                fail("Doveva lanciare NotSelectableCardException");
+            } catch (it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException e) {
+                // ok
+            } catch (Exception e) {
+                fail("Doveva lanciare NotSelectableCardException");
+            }
+
+            assertEquals(sizeBefore, market.getBottomCardList().size());
+            assertEquals(playerCardsBefore, host.getTribe().size());
+        }
+
+        //caso fallimento per lista vuota
+        market.clearBottomCardList();
         assertThrows(EmptyMarketException.class, () -> market.selectCardFromBottomList(0, host));
+
     }
 
     @Test

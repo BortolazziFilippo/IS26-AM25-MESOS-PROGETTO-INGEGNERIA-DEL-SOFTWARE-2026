@@ -83,6 +83,7 @@ public class Market {
      */
     public void clearBottomCardList(){
         //eccezione se lista non inizializzata ma non dovrebbe succedere se scriviamo bene il costruttore
+        //questo branch non è testabile perchè il costruttore inziializza sempre la lista
         if (bottomCardList == null) {
             throw new IllegalStateException("La bottomCardList non è ancora stata inizializzata");
         }
