@@ -129,6 +129,7 @@ public class Game implements GameView {
         }
         notifyGameChanged();
     }
+
     /**
      * Transitions the game from the placing phase to the playing (resolve-action) phase.
      * Updates the playing order, sets the first player to play, and — if that player is
@@ -172,7 +173,6 @@ public class Game implements GameView {
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         }
     }
-
 
     /**
      * Calculates the winner based on the prestige points and on the amount of food in the case of a tie
@@ -338,6 +338,7 @@ public class Game implements GameView {
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         notifyGameChanged();
     }
+
     /**
      * Returns the offer tile the current playing player is on (snapshot copy).
      *
@@ -355,6 +356,7 @@ public class Game implements GameView {
     public Player getPlayerToPlace() {
         return playerToPlace;
     }
+
     /**
      * Returns the player whose turn it is to resolve actions during the playing phase.
      *
@@ -363,6 +365,7 @@ public class Game implements GameView {
     public Player getPlayerToPlay() {
         return playerToPlay;
     }
+
     /**
      * Returns the market instance for this game.
      *
@@ -380,6 +383,7 @@ public class Game implements GameView {
     public Board getBoard() {
         return this.board;
     }
+
     /**
      * Subscribes an observer to game-state changes.
      *
@@ -390,6 +394,7 @@ public class Game implements GameView {
             observers.add(observerToAdd);
         }
     }
+
     /**
      * Unsubscribes an observer from game-state changes.
      *
@@ -398,6 +403,7 @@ public class Game implements GameView {
     public void removeObserver(GameObserver observerToRemove){
         observers.remove(observerToRemove);
     }
+
     /**
      * Notifies all subscribed observers with a snapshot of the current game state.
      */
@@ -415,6 +421,7 @@ public class Game implements GameView {
             );
         }
     }
+
     /**
      * Returns the total number of players in this game.
      *
@@ -424,6 +431,7 @@ public class Game implements GameView {
     public int getPlayerNumber() {
         return this.playerNumber;
     }
+
     /**
      * Returns the current era of the game.
      *
@@ -433,6 +441,7 @@ public class Game implements GameView {
     public ERA getCurrentEra() {
         return this.currentEra;
     }
+
     /**
      * Returns the list of all players in this game.
      *
@@ -442,6 +451,7 @@ public class Game implements GameView {
     public List<Player> getPlayerList() {
         return this.players;
     }
+
     /**
      * Advances the game to the next era.
      * If the current era is already the last one, the era is left unchanged.
