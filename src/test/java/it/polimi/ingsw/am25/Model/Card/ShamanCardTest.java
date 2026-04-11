@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class ShamanCardTest {
 
@@ -70,5 +71,29 @@ class ShamanCardTest {
         new ShamanCard(ERA.ERA_II, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO).addCardToPlayer(player);
         new ShamanCard(ERA.ERA_III, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE).addCardToPlayer(player);
         assertEquals(6, player.getShamanStarTotal());
+    }
+
+    @Test
+    void testEquals() {
+        ShamanCard card1 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
+
+        // stessi campi -> uguali
+        ShamanCard card2 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
+        assertEquals(card1, card2);
+
+        // starNumber diverso -> diversi
+        ShamanCard card3 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE);
+        assertNotEquals(card1, card3);
+
+        // era diversa -> diversi
+        ShamanCard card4 = new ShamanCard(ERA.ERA_II, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
+        assertNotEquals(card1, card4);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
     }
 }

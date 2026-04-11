@@ -9,9 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class HuntersCardTest {
 
@@ -45,5 +43,42 @@ class HuntersCardTest {
         hunterWithIcon.addCardToPlayer(player);
         hunterWithoutIcon.addCardToPlayer(player);
         assertEquals(2, player.getHunterNumber());
+    }
+
+    @Test
+    void testAddCardWithIconGivesFood() {
+        hunterWithoutIcon.addCardToPlayer(player);
+        hunterWithIcon.addCardToPlayer(player);
+        assertEquals(1, player.getFood()); // 1 cacciatore già in tribù al momento dell'aggiunta
+    }
+
+    @Test
+    void testAddCardWithoutIconGivesNoFood() {
+        hunterWithoutIcon.addCardToPlayer(player);
+        assertEquals(0, player.getFood());
+    }
+
+    @Test
+    void testEquals() {
+        HuntersCard card1 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, true);
+
+        // stessi campi -> uguali
+        HuntersCard card2 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, true);
+        assertEquals(card1, card2);
+
+        // era diversa -> diversi
+        HuntersCard card3 = new HuntersCard(ERA.ERA_II, CARD_TYPE.HUNTER, true);
+        assertNotEquals(card1, card3);
+
+        // hasICON diverso -> diversi
+        HuntersCard card4 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, false);
+        assertNotEquals(card1, card4);
+
+        // tipo diverso -> diversi
+        ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
+        assertNotEquals(card1, artist);
+
+        // null -> diversi
+        assertNotEquals(null, card1);
     }
 }
