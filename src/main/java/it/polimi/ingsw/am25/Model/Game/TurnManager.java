@@ -64,6 +64,7 @@ public class TurnManager {
         }
 
     }
+    
 
 
     /**
@@ -86,6 +87,7 @@ public class TurnManager {
      * Refreshes the playing order from the board by reading the current offer-tile positions.
      * Must be called at the start of every playing phase.
      */
+
     public void updatePlayingOrder(){
         this.playingOrder= boardView.getOrderedPlayerOnOfferTile();
     }
@@ -93,6 +95,7 @@ public class TurnManager {
      * Refreshes the placing order from the board by reading the current default-tile positions.
      * Must be called at the start of every placing phase.
      */
+
     public void updatePlacingOrder(){
         this.placingOrder = boardView.getOrderedPlayerOnDefaultTile();
     }

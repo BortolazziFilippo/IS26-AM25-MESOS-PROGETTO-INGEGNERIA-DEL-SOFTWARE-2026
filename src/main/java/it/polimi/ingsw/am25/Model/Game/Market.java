@@ -234,8 +234,6 @@ public class Market {
         this.notifyMarketChanged();//here it notifies
     }
 
-
-
     /**
      * This method is used to draw a card from the bottom list and add it to the player deck
      * @param position position of the card to be drawn
@@ -329,9 +327,6 @@ public class Market {
             );
         }
     }
-
-
-
 
     /**
      * this method check if there are event in the bottom list
