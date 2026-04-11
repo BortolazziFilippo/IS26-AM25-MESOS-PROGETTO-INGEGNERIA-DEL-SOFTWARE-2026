@@ -161,8 +161,7 @@ public class Game implements GameView {
             }catch (EndOfPlayingPhaseException e) {
                 throw new RuntimeException(getClass()+" errore controllo checkPlayerOffertile");
             }
-            // use playerToPlay (the new current player), not the old one who was on tile A
-            this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(player);
+            this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         }
     }
     /**
@@ -285,7 +284,7 @@ public class Game implements GameView {
      * @throws NotEnoughFoodException in case the player does not have enough food
      * @throws NotSelectableCardException if the player tries to select an event card
      */
-    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
+    public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingBottomList(position, player);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -293,7 +292,7 @@ public class Game implements GameView {
         }
         offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
-            goNextPlayer();
+            throw new NoMoreActionToDo();
         }
     }
 

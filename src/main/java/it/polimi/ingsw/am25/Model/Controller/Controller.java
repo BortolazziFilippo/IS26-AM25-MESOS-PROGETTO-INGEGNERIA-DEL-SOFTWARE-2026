@@ -17,8 +17,10 @@ public class Controller {
     }
 
     /**
-     * this method allows to add a player to the game
-     * in case the player added fulls the lobby it starts the game
+     * Adds a player to the game lobby.
+     * If the lobby is already full (game not in SETUP phase) the call is silently ignored.
+     * When the added player fills the lobby, the game starts automatically and transitions
+     * to the PLACING_PHASE.
      *
      * @param player player to add
      */
@@ -35,11 +37,15 @@ public class Controller {
 
     /**
      * Places the player on the tile specified by the position field.
+     * The call is silently ignored if the game is not in a placing phase or if it is not
+     * this player's turn to place.
+     * When all players have placed their totems the game automatically advances to the
+     * RESOLVE_ACTION phase.
      *
      * @param playerToPlace the player instance to be positioned on the board.
-     * @param position      the index or coordinate of the target tile.
+     * @param position the index of the target offer tile.
      * @throws IndexOutOfBoundsException if the provided position is outside the valid range of the board.
-     * @throws TileOccupiedException     if the target tile is already occupied by another player.
+     * @throws TileOccupiedException if the target tile is already occupied by another player.
      */
     //da costruire eccezioni giuste per il caso
     public void placingPlayer(Player playerToPlace, int position) throws IndexOutOfBoundsException, TileOccupiedException {
@@ -60,13 +66,23 @@ public class Controller {
 
     /**
      * Selects a card from the top list and adds it to the player.
+     * The call is silently ignored if:
+     * <ul>
+     *   <li>the game is not in an action-resolution phase, or</li>
+     *   <li>it is not this player's turn, or</li>
+     *   <li>the player's current offer tile grants no top-list draws.</li>
+     * </ul>
+     * When the player exhausts all remaining actions, the turn automatically advances to the
+     * next player. If no more players remain in this round, the round is advanced via
+     * {@link Game#nextRoundIter()}.
      *
-     * @param player   the player who will receive the selected card.
+     * @param player the player who will receive the selected card.
      * @param cardType the type of card to be selected.
      * @param position the index of the card within the top list.
-     * @throws IndexOutOfBoundsException  if the position index is out of the list's range.
-     * @throws NotEnoughFoodException     if the player does not have sufficient food resources to acquire the card.
-     * @throws NotSelectableCardException if the player attempts to select an Event card, which cannot be picked.
+     * @throws IndexOutOfBoundsException if the position index is out of the list's range.
+     * @throws NotEnoughFoodException if the player does not have sufficient food to acquire the card.
+     * @throws NotSelectableCardException if the player attempts to select an Event card.
+     * @throws EmptyMarketException if the top list contains no selectable cards.
      */
     //da costruire eccezioni giuste
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
@@ -82,29 +98,46 @@ public class Controller {
                     } catch (NotSelectableCardException e) {
                         throw new NotSelectableCardException("Non puoi selezionare un evento");
                     } catch (EmptyMarketException e) {
-                        throw new EmptyMarketException(); //da capire come gestire questo metodo
+                        throw new EmptyMarketException();
                     } catch (NoMoreActionToDo e) {
-                        try {
-                            game.goNextPlayer();
-                        } catch (EndOfPlayingPhaseException ex) {
-                            game.nextRoundIter();
-                        }
-
+                        advanceTurnOrRound();
                     }
                 }
             }
         }
     }
+    /**
+     * Advances the turn to the next playing player.
+     * If there are no more players in the current round, the round is advanced via
+     * {@link Game#nextRoundIter()}.
+     */
+    private void advanceTurnOrRound() {
+        try {
+            game.goNextPlayer();
+        } catch (EndOfPlayingPhaseException e) {
+            game.nextRoundIter();
+        }
+    }
 
     /**
      * Selects a card from the bottom list and adds it to the player.
+     * The call is silently ignored if:
+     * <ul>
+     *   <li>the game is not in an action-resolution phase, or</li>
+     *   <li>it is not this player's turn, or</li>
+     *   <li>the player's current offer tile grants no bottom-list draws.</li>
+     * </ul>
+     * When the player exhausts all remaining actions, the turn automatically advances to the
+     * next player. If no more players remain in this round, the round is advanced via
+     * {@link Game#nextRoundIter()}.
      *
-     * @param player   the player who will receive the selected card.
+     * @param player the player who will receive the selected card.
      * @param cardType the type of card to be selected.
      * @param position the index of the card within the bottom list.
-     * @throws IndexOutOfBoundsException  if the position index is out of the list's range.
-     * @throws NotEnoughFoodException     if the player does not have sufficient food resources to acquire the card.
-     * @throws NotSelectableCardException if the player attempts to select an Event card, which cannot be picked.
+     * @throws IndexOutOfBoundsException if the position index is out of the list's range.
+     * @throws NotEnoughFoodException if the player does not have sufficient food to acquire the card.
+     * @throws NotSelectableCardException if the player attempts to select an Event card.
+     * @throws EmptyMarketException if the bottom list contains no selectable cards.
      */
     public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
@@ -121,11 +154,7 @@ public class Controller {
                     } catch (EmptyMarketException e) {
                         throw new EmptyMarketException();
                     } catch (NoMoreActionToDo e) {
-                        try {
-                            game.goNextPlayer();
-                        } catch (EndOfPlayingPhaseException ex) {
-
-                        }
+                        advanceTurnOrRound();
                     }
                 }
             }
@@ -148,16 +177,11 @@ public class Controller {
      */
     public void playerDoNothing(Player player) throws Exception {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
-            if (checkIsPlayerPlacingTurn(player)) {
+            if (checkIsPlayerPlayingTurn(player)) {
                 if (game.canCurrentPlayingPlayerDoSomething()) {
-                    throw new Exception("Il giocatore ha ancora azioni da fare");
-                } else {
-                    try {
-                        game.goNextPlayer();
-                    } catch (EndOfPlayingPhaseException e) {
-                        game.nextRoundIter();
-                    }
+                    throw new Exception("Il giocatore ha ancora mosse disponibili e non può passare il turno");
                 }
+                advanceTurnOrRound();
             }
         }
     }
