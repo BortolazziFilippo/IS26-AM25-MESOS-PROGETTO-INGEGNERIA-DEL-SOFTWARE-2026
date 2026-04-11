@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -427,6 +428,26 @@ class MarketTest {
         assertDoesNotThrow(() -> market.addObserver(observer));
         assertDoesNotThrow(() -> market.removeObserver(observer));
     }
+
+
+
+
+
+
+
+
+    //commento da leggere
+    /*QUESTO PER ORA LO LASCIO COSì PERCHè MI SA CHE C'è ERRORE IN SOLVEFINALEVENTS() DI MARKET
+    PERCHè FA UN REMOVE MENTRE STA ITERANDO E RESTITUISCE ConcurrentModificationException
+    MI SEMBRA CHE CI FOSSE LO STESO PROBLEMA IN UN ALTRO TEST, POI LO SISTEMO
+    @Test
+    void testSolveFinalEvents() {
+        //siccome c'è probelma nel codice testa solo che gli esca ConcurrentModificationException
+        //giusto per vedere se esce o no ma poi il test messo così è inutile
+        assertThrows(ConcurrentModificationException.class, () -> market.solveFinalEvents());
+    }
+
+     */
 
 
 }

@@ -1,12 +1,16 @@
 package it.polimi.ingsw.am25.Model.Game;
 
 import it.polimi.ingsw.am25.Model.Board.Board;
+import it.polimi.ingsw.am25.Model.Board.OfferTile;
+import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.COLOR;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
+import it.polimi.ingsw.am25.Model.Observers.GameObserver;
 import it.polimi.ingsw.am25.Model.Player.Player;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.EndOfPlacingPhaseException;
 import it.polimi.ingsw.am25.Model.Utilities.Exception.GameReadyToStartException;
+import it.polimi.ingsw.am25.Model.Utilities.Exception.NotSelectableCardException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -463,6 +467,129 @@ class GameTest {
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
+    //su questo non sono sicuro al 100% devo rivederlo
+    @Test
+    void testAddObserver() {
+        //prepara partita
+        assertDoesNotThrow(() -> game.addPlayer(player2));
+        assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
+
+        //contatore delle notifiche ricevute dall'observer
+        final int[] notifications = {0};
+
+        // observer finto. ogni volta che Game notifica il contatore aumenta
+        GameObserver observer = new GameObserver() {
+            @Override
+            public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase,
+                                      Player playerToPlace, Player playerToPlay, OfferTile offerTile) {
+                notifications[0]++;
+            }
+        };
+
+        //chiama metodo
+        game.addObserver(observer);
+
+        //gameStart() chiama notifyGameChanged(), quindi l'observer deve essere notificato una volta
+        game.gameStart();
+        assertEquals(1, notifications[0]);
+
+        //prova ad aggiungere lo stesso observer di nuovo (non deve essere duplicato)
+        game.addObserver(observer);
+
+        //fa un altro cambiamento di stato
+        assertDoesNotThrow(() -> game.placePlayer(game.getPlayerToPlace(), 0));
+
+        //se non è stato duplicato, il contatore aumenta di 1 sola volta
+        assertEquals(2, notifications[0]);
+    }
+
+    //stessa cosa per questo, lo devo rivedere
+    @Test
+    void testRemoveObserver() {
+        //prepara partita
+        assertDoesNotThrow(() -> game.addPlayer(player2));
+        assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
+
+        final int[] notifications = {0};
+
+        GameObserver observer = new GameObserver() {
+            @Override
+            public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase,
+                                      Player playerToPlace, Player playerToPlay, OfferTile offerTile) {
+                notifications[0]++;
+            }
+        };
+
+        //aggiunge observer
+        game.addObserver(observer);
+
+        //prima notifica
+        game.gameStart();
+        assertEquals(1, notifications[0]);
+
+        //rimuove observer
+        game.removeObserver(observer);
+
+        //fa un altro cambiamento di stato
+        assertDoesNotThrow(() -> game.placePlayer(game.getPlayerToPlace(), 0));
+
+        //il contatore non deve aumentare
+        assertEquals(1, notifications[0]);
+    }
+
+    @Test
+    void testSelectGenericCardTopLists() {
+        //prepara partita solito modo
+        assertDoesNotThrow(() -> game.addPlayer(player2));
+        assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
+
+        game.gameStart();
+
+        //solita cosa su try e catch, si possono togliere
+        try {
+            game.placePlayer(game.getPlayerToPlace(), 0);
+            game.placePlayer(game.getPlayerToPlace(), 1);
+            game.placePlayer(game.getPlayerToPlace(), 2);
+        } catch (EndOfPlacingPhaseException ignored) {
+            //normale
+        }
+
+        //entra nella playing phase che game così dovrebbe inizializzare playerToPlay e offertilePlayerIsOn
+        game.advancePlayingPhase();
+
+        //se player prova a prendere una event card dalla lista deve lanciare eccezione di NotSelectableCardException
+        assertThrows(NotSelectableCardException.class, () -> game.selectGenericCardTopLists(CARD_TYPE.EVENT, 0, game.getPlayerToPlay()));
+    }
+
+    @Test
+    void testSelectGenericCardBottomLists() {
+        //prepara partita e solite due assert
+        assertDoesNotThrow(() -> game.addPlayer(player2));
+        assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
+
+        game.gameStart();
+
+        //solito discorso su try e catch eliminabili
+        try {
+            game.placePlayer(game.getPlayerToPlace(), 0);
+            game.placePlayer(game.getPlayerToPlace(), 1);
+            game.placePlayer(game.getPlayerToPlace(), 2);
+        } catch (EndOfPlacingPhaseException ignored) {
+            //normale
+        }
+
+        //passa a playing fase per stesso motivo del metodo sopra (testSelectGenericCardTopLists)
+        game.advancePlayingPhase();
+
+        //check che lanci effettivamnete eccezione se player prova a prendere event card
+        assertThrows(NotSelectableCardException.class, () -> game.selectGenericCardBottomLists(CARD_TYPE.EVENT, 0, game.getPlayerToPlay()));
+    }
+
+
+
+
+
+    //commento da leggere
 
     /* questo mi dà errore perchè c'è un errore in game che fa partire ConcurrentModificationException
     quindi ancora da sistemare

@@ -44,6 +44,7 @@ public class Market {
         this.initializeBottomList();
         this.initializeBothTopList();
     }
+
     /**
      * Returns the list of building cards available in the bottom (previous-round) building row.
      *
@@ -52,6 +53,7 @@ public class Market {
     public List<BuildingCard> getBottomBuildingList() {
         return bottomBuildingList;
     }
+
     /**
      * Returns the list of building cards available in the top (current-round) building row.
      *
@@ -69,6 +71,7 @@ public class Market {
     public List<Card> getBottomCardList() {
         return bottomCardList;
     }
+
     /**
      * Returns the list of cards (villagers and events) in the top (current-round) row.
      *
@@ -148,6 +151,7 @@ public class Market {
             }
         }
     }
+
     /**
      * Moves all building cards of the current era from the building pool into the top building list,
      * and removes any buildings of the current era that were left in the bottom building list.
