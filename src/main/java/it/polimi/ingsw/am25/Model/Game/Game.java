@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Board.OfferTile;
+import it.polimi.ingsw.am25.Model.Card.EventCard;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
@@ -13,7 +14,10 @@ import it.polimi.ingsw.am25.Model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.Model.Utilities.UtilitiesFunction;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 public class Game implements GameView {
     private ERA currentEra = ERA.ERA_I;
@@ -152,23 +156,44 @@ public class Game implements GameView {
         }
     }
 
-    public Player checkWinner() {
+
+    /**
+     * Calculates the winner based on the prestige points and on the amount of food in the case of a tie
+     * a single player if there is a clear winner by prestige points
+     * a single player if prestige points are tied but one has more food
+     * multiple players if both prestige points and food are equal
+     * @return
+     * a list of Players
+     */
+    public List<Player> checkWinner() {
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
         if (this.players == null || this.players.isEmpty()) {
             throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
         }
 
-        //prende il primo player della lista, come se fosse una variabile tmp prima di fare il for
-        Player winner = this.players.get(0);
+        List<Player> winners = players.stream()
+                .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player :: getFood).reversed())
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        //scorre la lista e aggiorna man mano
-        for (Player p : this.players) {
-            if (p.getPrestigePoint() > winner.getPrestigePoint()) {
-                winner = p;
+        Player topWinner = winners.get(0);
+
+        List<Player> winningPlayers = new ArrayList<>();
+        if(winners.getFirst().getPrestigePoint() == winners.get(1).getPrestigePoint()){
+            if(winners.getFirst().getFood() == winners.get(1).getFood()){
+                winningPlayers = winners.stream()
+                        .filter(player -> player.getPrestigePoint() == topWinner.getPrestigePoint()
+                        && player.getFood() == topWinner.getFood())
+                        .collect(Collectors.toCollection(ArrayList::new));
+            }
+            else{
+                winningPlayers.add(topWinner);
             }
         }
+        else{
+            winningPlayers.add(topWinner);
+        }
 
-        return winner;
+        return winningPlayers;
     }
 
     /**
@@ -196,9 +221,18 @@ public class Game implements GameView {
 
     }
 
+    /**
+     * applies the building effect if any of the players has at least one in their tribe
+     * solves the final events and the other events if there are any other
+     * manages the  prestige points by checking the tribe each of the players have
+     */
+
     public void endGameIter() {
         players.forEach(Player::triggerEndGameBuilding);
-        //metodo calcolo punti in base a carte da aggiungere in player
+        market.solveFinalEvents();
+        for(Player p : players){
+            p.managePP(p.checkpoints());
+        }
     }
 
     /**
