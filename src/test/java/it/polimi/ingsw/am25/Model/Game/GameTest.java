@@ -590,9 +590,6 @@ class GameTest {
 
     //see comment below
 
-    /* this test causes an error because there is a bug in Game that triggers ConcurrentModificationException;
-    still needs to be fixed
-
     @Test
     void testEndGameIter() {
         //set up a complete game
@@ -609,7 +606,6 @@ class GameTest {
         assertTrue(game.getPlayerList().contains(player3));
     }
 
-     */
 
 
 

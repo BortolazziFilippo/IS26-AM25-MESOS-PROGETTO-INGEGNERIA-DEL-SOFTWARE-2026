@@ -353,13 +353,32 @@ public class Market {
         return false;
     }
 
-    public void solveFinalEvents(){
-        for (Card card : topCardList) {
-            if (card.getCardType() == CARD_TYPE.EVENT) {
-                bottomCardList.add(card);
-                topCardList.remove(card);
-            }
-        }
+//    public void solveFinalEvents(){
+//        for (Card card : topCardList) {
+//            if (card.getCardType() == CARD_TYPE.EVENT) {
+//                bottomCardList.add(card);
+//                topCardList.remove(card);
+//            }
+//        }
+//        solveEvents();
+//    }
+    /**
+     * Resolves the final events of the game.
+     * This method safely moves all Event cards from the top row to the bottom row
+     * using batch operations to prevent ConcurrentModificationExceptions,
+     * and then triggers their resolution.
+     */
+    public void solveFinalEvents() {
+        // 1. Identify and collect all Event cards from the top row.
+        // Using streams prevents modifying the list while iterating over it.
+        List<Card> eventsToMove = topCardList.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.EVENT)
+                .toList();
+        // 2. Add all the collected Event cards to the bottom row in a single batch operation.
+        bottomCardList.addAll(eventsToMove);
+        // 3. Safely remove all transferred Event cards from the top row in a single batch operation.
+        topCardList.removeAll(eventsToMove);
+        // 4. Proceed to resolve the events now that they are safely positioned.
         solveEvents();
     }
 
