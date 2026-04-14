@@ -41,9 +41,8 @@ class GameTest {
     @Test
     void testGetCurrentEra() {
 
-        //questo deve ritornare l'era attuale che però sarà diversa in base al moemnto in cui
-        //il metodo è chiamato, quindi ho diviso in 3 casi ma forse bastava fargli testare solo
-        //che all'inizio l'era fosse la eraI
+        //checks the current era, which depends on when the method is called; divided into 3 cases,
+        //though testing only the initial ERA_I state may be sufficient
         assertEquals(ERA.ERA_I, game.getCurrentEra());
 
         game.nextEra();
@@ -55,7 +54,7 @@ class GameTest {
 
     @Test
     void testGetPlayerList() {
-        //anche qui come in testGetCurrentEra prima testa che ci sia host, poi aggiugno gli altri
+        //similar to testGetCurrentEra: first verifies the host is present, then adds more players
         assertEquals(1, game.getPlayerList().size());
         assertTrue(game.getPlayerList().contains(host));
 
@@ -66,84 +65,84 @@ class GameTest {
 
     @Test
     void testGetGamePhase() {
-        //appena creata la partita deve essere in fase di setup
+        //a newly created game must be in the SETUP phase
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
 
-        //aggiunge giocatori
+        //adds players
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //dopo che si chiama gameStart dobbiamo passare a placing_phase
+        //after calling gameStart, the game should transition to PLACING_PHASE
         game.gameStart();
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
     @Test
     void testGetPlayerToPlace() {
-        //prima che la partita inizi non c'è ancora nessun player da piazzare
+        //before the game starts, there is no player to place yet
         assertNull(game.getPlayerToPlace());
 
-        //solite due assert iniziali
+        //standard two-player setup assertions
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //dopo aver chiamato gameStart deve esserci un player da piazzare
+        //after calling gameStart, there should be a player to place
         game.gameStart();
         assertNotNull(game.getPlayerToPlace());
 
-        //verifica anche che quello da piazzare sia un player della partita
+        //also verify that the player to place is actually in the game
         assertTrue(game.getPlayerList().contains(game.getPlayerToPlace()));
     }
 
     @Test
     void testGetPlayerToPlay() {
-        //all'inizio il player to play è null
+        //before the game starts, the playing player should be null
         assertNull(game.getPlayerToPlay());
 
-        //prepara partita completa con solite due assert
+        //standard two-player setup assertions
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //piazza tutti giocatori (qui era comodo il try e catch ma si può togliere in teoria)
+        //place all players (try-catch is convenient here but could be removed)
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            // è normale che alla fine lanci questa eccezione
+            // it is expected that the last placement throws this exception
         }
 
-        //fase successiva in cui deve esserci player che gioca
+        //after transitioning to the playing phase, there should be a player to play
         game.advancePlayingPhase();
         assertNotNull(game.getPlayerToPlay());
 
-        //solito check che quel player sia effettivamente uno dei player del gioco
+        //standard check: verify the playing player is actually in the game
         assertTrue(game.getPlayerList().contains(game.getPlayerToPlay()));
     }
 
     @Test
     void testGetMarket() {
-        //il market viene creato nel costruttore di game quindi non deve mai essere null
+        //the market is created in the Game constructor and must never be null
         assertNotNull(game.getMarket());
 
-        //controlla anche che restituisca davvero un market
+        //also verify the returned object is indeed a Market
         assertInstanceOf(Market.class, game.getMarket());
     }
 
     @Test
     void testAddPlayer() {
-        //testa numero di player, che per ora dovrebbe essere solo 1 (host)
+        //test the player count, which should initially be 1 (host only)
         assertEquals(1, game.getPlayerList().size());
         assertEquals(List.of(host), game.getPlayerList());
 
-        //aggiunta normale secondo player
+        //normal addition of a second player
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertEquals(2, game.getPlayerList().size());
         assertEquals(List.of(host, player2), game.getPlayerList());
 
-        // quando la lobby si riempie, lancia eccezione ma il player viene comunque aggiunto
+        // when the lobby is full, an exception is thrown but the player is still added
         GameReadyToStartException ex = assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         assertEquals("The lobby is full, game can start", ex.getMessage());
@@ -155,15 +154,15 @@ class GameTest {
     void testGetBoard() {
         Board board = game.getBoard();
 
-        //testa che board non sia null
+        //verify that the board is not null
         assertNotNull(board);
-        //testa che board sia effettivamente di classe Board
+        //verify that the board is an instance of Board
         assertInstanceOf(Board.class, board);
     }
 
     @Test
     void testNextEra() {
-        //testa tutte e 3 le ere
+        //test all 3 eras
 
         assertEquals(ERA.ERA_I, game.getCurrentEra());
 
@@ -173,7 +172,7 @@ class GameTest {
         game.nextEra();
         assertEquals(ERA.ERA_III, game.getCurrentEra());
 
-        //questo pezzo l'ho aggiutno solo per testare che dopo la era3 non faccia casino
+        //this extra part only checks that calling nextEra() beyond ERA_III does not cause errors
         game.nextEra();
         game.nextEra();
         game.nextEra();
@@ -189,18 +188,18 @@ class GameTest {
 
         game.gameStart();
 
-        //all'inzio deve esser ein placing_phase
+        //at the start, the game must be in PLACING_PHASE
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
         assertNotNull(game.getPlayerToPlace());
 
-        //tutti i giocatori devono essere stati posizionati sui default tile
+        //all players should have been placed on default tiles
         List<Player> playersOnDefaultTiles = game.getBoard().getOrderedPlayerOnDefaultTile();
         assertEquals(3, playersOnDefaultTiles.size());
         assertTrue(playersOnDefaultTiles.contains(host));
         assertTrue(playersOnDefaultTiles.contains(player2));
         assertTrue(playersOnDefaultTiles.contains(player3));
 
-        //il player che piazza deve essere uno dei giocatori
+        //the player to place must be one of the game's players
         assertTrue(game.getPlayerList().contains(game.getPlayerToPlace()));
     }
 
@@ -211,10 +210,10 @@ class GameTest {
 
         game.gameStart();
 
-        //i player da piazzare sono nell'ordine deciso da gameStart()
+        //the placing order is determined by gameStart()
         Player firstToPlace = game.getPlayerToPlace();
 
-        //prova tutti e 3
+        //test all 3 players
         assertDoesNotThrow(() -> game.placePlayer(firstToPlace, 0));
         assertNotNull(game.getPlayerToPlace());
 
@@ -232,7 +231,7 @@ class GameTest {
                 () -> game.placePlayer(thirdToPlace, 2)
         );
 
-        //si assicura che abbia preso il throw dentro il catch di EndOfPlacingPhaseException
+        //verify that the exception came from the EndOfPlacingPhaseException catch block
         assertEquals("all Player have placed", ex.getMessage());
 
         List<Player> playersOnOfferTiles = game.getBoard().getOrderedPlayerOnOfferTile();
@@ -244,23 +243,23 @@ class GameTest {
 
     @Test
     void testCheckWinner() {
-        //prepara con 3 giocatori
+        //set up a 3-player game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //primo caso in cui vince chi ha più PP
+        //first case: the player with the most PP wins
         host.managePP(3);
         player2.managePP(7);
         player3.managePP(5);
 
         List<Player> winners = game.checkWinner();
 
-        //controlla che il vincitore sia unico
+        //verify that there is only one winner
         assertEquals(1, winners.size());
         assertEquals(player2, winners.getFirst());
 
-        //caso in cui si arriva allo spareggio con il cibo
-        //resetta per creare nuova partita, più comodo
+        //tiebreaker case: food decides the winner
+        //reset and create a new game for convenience
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
         player3 = new Player("Terzo", COLOR.GREEN);
@@ -269,23 +268,23 @@ class GameTest {
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //mette PP di host e player 2 uguali così si arriva a parità
+        //set equal PP for host and player2 to force a tie
         host.managePP(5);
         player2.managePP(5);
         player3.managePP(2);
 
-        //mette più cibo a host
+        //give host more food
         host.manageFoodAndPP(3);
         player2.manageFoodAndPP(1);
 
         winners = game.checkWinner();
 
-        //controlla che host sia unico vincitore
+        //verify that host is the sole winner
         assertEquals(1, winners.size());
         assertEquals(host, winners.getFirst());
 
-        //caso in cui pareggiano sia di PP che di cibo quindi più winners
-        //di nuovo reset
+        //tie on both PP and food, so multiple winners are expected
+        //reset again
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
         player3 = new Player("Terzo", COLOR.GREEN);
@@ -294,18 +293,18 @@ class GameTest {
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //stessi PP
+        //set equal PP
         host.managePP(6);
         player2.managePP(6);
         player3.managePP(1);
 
-        //stesso food
+        //set equal food
         host.manageFoodAndPP(2);
         player2.manageFoodAndPP(2);
 
         winners = game.checkWinner();
 
-        //controlla che vincano entrambi
+        //verify that both players win
         assertEquals(2, winners.size());
         assertTrue(winners.contains(host));
         assertTrue(winners.contains(player2));
@@ -313,67 +312,67 @@ class GameTest {
 
     @Test
     void testGoNextPlayer() {
-        //all'inizio non c'è ancora nessun player che deve giocare
+        //no playing player yet at the start
         assertNull(game.getPlayerToPlay());
 
-        //solite due assert
+        //standard two-player setup assertions
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //try e catch anceh qui era comodo ma si può togliere
+        //try-catch is convenient here but could be removed
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            // l'ultima chiamata può lanciare l'eccezione
+            // the last placement call may throw this exception
         }
 
-        //passa alla fase di gioco
+        //transition to the playing phase
         game.advancePlayingPhase();
 
-        //prende il primo player che deve giocare
+        //get the first player to play
         Player firstPlayerToPlay = game.getPlayerToPlay();
         assertNotNull(firstPlayerToPlay);
 
-        //passa al successivo player
+        //advance to the next player
         assertDoesNotThrow(() -> game.goNextPlayer());
 
-        //il player corrente deve essere cambiato
+        //the current player should have changed
         Player secondPlayerToPlay = game.getPlayerToPlay();
         assertNotNull(secondPlayerToPlay);
         assertNotEquals(firstPlayerToPlay, secondPlayerToPlay);
 
-        //solito controllo che anche il player successivo sia effettivamente uno dei player del gioco
+        //standard check: verify the next player is also in the game
         assertTrue(game.getPlayerList().contains(secondPlayerToPlay));
     }
 
     @Test
     void testGetOffertilePlayerIsOn() {
-        //all'inizio non c'è ancora nessuna offer tile associata
+        //no offer tile is associated yet at the start
         assertNull(game.getOffertilePlayerIsOn());
 
-        //solite due assert
+        //standard two-player setup assertions
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //di nuovo try catch per comodità ma si può togliere
+        //try-catch again for convenience, can be removed
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //è normale che l'ultimo piazzamento chiuda la fase
+            //the last placement is expected to close the placing phase
         }
 
-        //passaggio alla fase di gioco
+        //transition to the playing phase
         game.advancePlayingPhase();
 
-        //ora deve esserci un current player e una offer tile associata
+        //there should now be a current player and an associated offer tile
         assertNotNull(game.getPlayerToPlay());
         assertNotNull(game.getOffertilePlayerIsOn());
     }
@@ -386,98 +385,98 @@ class GameTest {
 
         game.gameStart();
 
-        //di nuovo try e catch comodo ma eliminabile
+        //try-catch is convenient here but can be removed
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //normale
+            //expected
         }
 
-        //passaggio a fase di gioco
+        //transition to the playing phase
         game.advancePlayingPhase();
 
-        //chiamata del metodo
+        //call the method
         boolean result = game.canCurrentPlayingPlayerDoSomething();
 
-        //il valore dipende da market quindi per ora controlla solo che restituisca un bool senza errori
+        //the return value depends on market state, so just verify it returns a boolean without errors
         assertNotNull(result);
     }
 
     @Test
     void testAdvancePlayingPhase() {
-        //all'inizio non siamo ancora nella fase di resolve action
+        //at the start, the game is not yet in the RESOLVE_ACTION phase
         assertNotEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
         assertNull(game.getPlayerToPlay());
         assertNull(game.getOffertilePlayerIsOn());
 
-        //solite assert
+        //standard setup assertions
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //solita cosa di try e catch che si può sostituire
+        //standard try-catch, can be replaced
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //normale
+            //expected
         }
 
-        //passaggio a playing phase
+        //transition to playing phase
         game.advancePlayingPhase();
 
-        //ora dovremmo essere inn resolve action
+        //verify we are in RESOLVE_ACTION after the phase transition
         assertEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
 
-        //check che ci sia un current player
+        //check that there is a current player
         assertNotNull(game.getPlayerToPlay());
 
-        //e pure la sua offer tile
+        //and also their offer tile
         assertNotNull(game.getOffertilePlayerIsOn());
     }
 
     @Test
     void testNextRoundIter() {
-        //prepara partita come al solito
+        //set up the game as usual
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //solito discorso su try e catch
+        //standard try-catch pattern
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //normale
+            //expected
         }
 
-        //controlla che siamo in resolve action dopo il cambio fase
+        //verify the game is in RESOLVE_ACTION after the phase transition
         game.advancePlayingPhase();
         assertEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
 
-        //a fine round il gioco deve tornare alla placing phase
+        //at the end of the round, the game should return to PLACING_PHASE
         game.nextRoundIter();
 
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
-    //su questo non sono sicuro al 100% devo rivederlo
+    //this test needs further review
     @Test
     void testAddObserver() {
-        //prepara partita
+        //set up the game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //contatore delle notifiche ricevute dall'observer
+        //counter for notifications received by the observer
         final int[] notifications = {0};
 
-        // observer finto. ogni volta che Game notifica il contatore aumenta
+        // mock observer: each time Game notifies, the counter is incremented
         GameObserver observer = new GameObserver() {
             @Override
             public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase,
@@ -486,27 +485,27 @@ class GameTest {
             }
         };
 
-        //chiama metodo
+        //call the method
         game.addObserver(observer);
 
-        //gameStart() chiama notifyGameChanged(), quindi l'observer deve essere notificato una volta
+        //gameStart() calls notifyGameChanged(), so the observer should be notified once
         game.gameStart();
         assertEquals(1, notifications[0]);
 
-        //prova ad aggiungere lo stesso observer di nuovo (non deve essere duplicato)
+        //try adding the same observer again (it should not be duplicated)
         game.addObserver(observer);
 
-        //fa un altro cambiamento di stato
+        //trigger another state change
         assertDoesNotThrow(() -> game.placePlayer(game.getPlayerToPlace(), 0));
 
-        //se non è stato duplicato, il contatore aumenta di 1 sola volta
+        //if it was not duplicated, the counter should increase by exactly 1
         assertEquals(2, notifications[0]);
     }
 
-    //stessa cosa per questo, lo devo rivedere
+    //TODO:this test also needs further review
     @Test
     void testRemoveObserver() {
-        //prepara partita
+        //set up the game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
@@ -520,68 +519,68 @@ class GameTest {
             }
         };
 
-        //aggiunge observer
+        //add the observer
         game.addObserver(observer);
 
-        //prima notifica
+        //first notification
         game.gameStart();
         assertEquals(1, notifications[0]);
 
-        //rimuove observer
+        //remove the observer
         game.removeObserver(observer);
 
-        //fa un altro cambiamento di stato
+        //trigger another state change
         assertDoesNotThrow(() -> game.placePlayer(game.getPlayerToPlace(), 0));
 
-        //il contatore non deve aumentare
+        //the counter must not increase
         assertEquals(1, notifications[0]);
     }
 
     @Test
     void testSelectGenericCardTopLists() {
-        //prepara partita solito modo
+        //set up the game in the usual way
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //solita cosa su try e catch, si possono togliere
+        //standard try-catch, can be removed
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //normale
+            //expected
         }
 
-        //entra nella playing phase che game così dovrebbe inizializzare playerToPlay e offertilePlayerIsOn
+        //enter the playing phase, which should initialize playerToPlay and offertilePlayerIsOn
         game.advancePlayingPhase();
 
-        //se player prova a prendere una event card dalla lista deve lanciare eccezione di NotSelectableCardException
+        //if the player attempts to select an event card from the list, a NotSelectableCardException should be thrown
         assertThrows(NotSelectableCardException.class, () -> game.selectGenericCardTopLists(CARD_TYPE.EVENT, 0, game.getPlayerToPlay()));
     }
 
     @Test
     void testSelectGenericCardBottomLists() {
-        //prepara partita e solite due assert
+        //set up the game (standard two-player setup assertions)
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         game.gameStart();
 
-        //solito discorso su try e catch eliminabili
+        //standard try-catch, can be removed
         try {
             game.placePlayer(game.getPlayerToPlace(), 0);
             game.placePlayer(game.getPlayerToPlace(), 1);
             game.placePlayer(game.getPlayerToPlace(), 2);
         } catch (EndOfPlacingPhaseException ignored) {
-            //normale
+            //expected
         }
 
-        //passa a playing fase per stesso motivo del metodo sopra (testSelectGenericCardTopLists)
+        //transition to playing phase for the same reason as in the method above (testSelectGenericCardTopLists)
         game.advancePlayingPhase();
 
-        //check che lanci effettivamnete eccezione se player prova a prendere event card
+        //verify that an exception is thrown when the player tries to select an event card
         assertThrows(NotSelectableCardException.class, () -> game.selectGenericCardBottomLists(CARD_TYPE.EVENT, 0, game.getPlayerToPlay()));
     }
 
@@ -589,21 +588,21 @@ class GameTest {
 
 
 
-    //commento da leggere
+    //see comment below
 
-    /* questo mi dà errore perchè c'è un errore in game che fa partire ConcurrentModificationException
-    quindi ancora da sistemare
+    /* this test causes an error because there is a bug in Game that triggers ConcurrentModificationException;
+    still needs to be fixed
 
     @Test
     void testEndGameIter() {
-        //prepara partita completa
+        //set up a complete game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
-        //è sensato chiamare il metodo a fine partita
+        //it makes sense to call this method at the end of the game
         assertDoesNotThrow(() -> game.endGameIter());
 
-        //controlla che i player esistano ancora e siano coerenti
+        //verify that players still exist and are consistent
         assertEquals(3, game.getPlayerList().size());
         assertTrue(game.getPlayerList().contains(host));
         assertTrue(game.getPlayerList().contains(player2));

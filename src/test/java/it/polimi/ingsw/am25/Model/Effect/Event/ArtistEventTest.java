@@ -22,7 +22,7 @@ class ArtistEventTest {
     @Test
     void solveEvent() {
 
-        //testo se la logica funziona, se ha piu di artist needed allora guadagna PPtoMultiply per ogni artista, altrimenti perde due punti PP
+        //tests the logic: if the player has more artists than required, they earn PPtoMultiply per artist; otherwise they lose two PP
         List<Player> playerList= new ArrayList<>();
         Player player1 = new Player("Lorem Ipsum", COLOR.RED);
         Player player2 = new Player("Lorem Ipsum", COLOR.RED);

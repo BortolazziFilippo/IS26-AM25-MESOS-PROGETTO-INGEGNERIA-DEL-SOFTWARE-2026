@@ -62,27 +62,27 @@ class BuilderCardTest {
     void testEquals() {
         BuilderCard card1 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
 
-        // stessi campi -> uguali
+        // same fields → equal
         BuilderCard card2 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
         assertEquals(card1, card2);
 
-        // era diversa -> diversi
+        // different era → not equal
         BuilderCard card3 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 5);
         assertNotEquals(card1, card3);
 
-        // foodDiscount diverso -> diversi
+        // different foodDiscount → not equal
         BuilderCard card4 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 1, 5);
         assertNotEquals(card1, card4);
 
-        // finalPrestigePoint diverso -> diversi
+        // different finalPrestigePoint → not equal
         BuilderCard card5 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 10);
         assertNotEquals(card1, card5);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

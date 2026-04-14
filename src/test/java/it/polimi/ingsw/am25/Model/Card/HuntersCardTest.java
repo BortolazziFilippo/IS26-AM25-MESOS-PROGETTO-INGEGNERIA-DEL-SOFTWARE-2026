@@ -49,7 +49,7 @@ class HuntersCardTest {
     void testAddCardWithIconGivesFood() {
         hunterWithoutIcon.addCardToPlayer(player);
         hunterWithIcon.addCardToPlayer(player);
-        assertEquals(1, player.getFood()); // 1 cacciatore già in tribù al momento dell'aggiunta
+        assertEquals(1, player.getFood()); // 1 hunter already in the tribe when the card is added
     }
 
     @Test
@@ -62,23 +62,23 @@ class HuntersCardTest {
     void testEquals() {
         HuntersCard card1 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, true);
 
-        // stessi campi -> uguali
+        // same fields → equal
         HuntersCard card2 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, true);
         assertEquals(card1, card2);
 
-        // era diversa -> diversi
+        // different era → not equal
         HuntersCard card3 = new HuntersCard(ERA.ERA_II, CARD_TYPE.HUNTER, true);
         assertNotEquals(card1, card3);
 
-        // hasICON diverso -> diversi
+        // different hasICON → not equal
         HuntersCard card4 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, false);
         assertNotEquals(card1, card4);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

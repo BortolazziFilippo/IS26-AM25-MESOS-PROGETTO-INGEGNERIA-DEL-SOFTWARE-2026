@@ -24,7 +24,7 @@ public class Controller {
      *
      * @param player player to add
      */
-    //da aggiungere eccezione partita gia in corso
+    //TODO: add an exception for the case where a game is already in progress
     public void addPlayer(Player player) {
         if (game.getGamePhase() == GAME_PHASE.SETUP) {
             try {
@@ -47,16 +47,16 @@ public class Controller {
      * @throws IndexOutOfBoundsException if the provided position is outside the valid range of the board.
      * @throws TileOccupiedException if the target tile is already occupied by another player.
      */
-    //da costruire eccezioni giuste per il caso
+    //TODO: build proper exceptions for this case
     public void placingPlayer(Player playerToPlace, int position) throws IndexOutOfBoundsException, TileOccupiedException {
         if (game.getGamePhase() == GAME_PHASE.PLACING_PHASE || game.getGamePhase() == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             if (checkIsPlayerPlacingTurn(playerToPlace)) {
                 try {
                     game.placePlayer(playerToPlace, position);
                 } catch (IndexOutOfBoundsException e) {
-                    throw new IndexOutOfBoundsException("Indice non valido");
+                    throw new IndexOutOfBoundsException("Invalid index");
                 } catch (TileOccupiedException e) {
-                    throw new TileOccupiedException("Tile non valida");
+                    throw new TileOccupiedException("Invalid tile");
                 } catch (EndOfPlacingPhaseException e) {
                     game.advancePlayingPhase();
                 }
@@ -84,7 +84,7 @@ public class Controller {
      * @throws NotSelectableCardException if the player attempts to select an Event card.
      * @throws EmptyMarketException if the top list contains no selectable cards.
      */
-    //da costruire eccezioni giuste
+    //TODO: build proper exceptions for this case
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
@@ -92,11 +92,11 @@ public class Controller {
                     try {
                         game.selectGenericCardTopLists(cardType, position, player);
                     } catch (IndexOutOfBoundsException e) {
-                        throw new IndexOutOfBoundsException("Indice non valido");
+                        throw new IndexOutOfBoundsException("Invalid index");
                     } catch (NotEnoughFoodException e) {
-                        throw new NotEnoughFoodException("Non ha abbastanza cibo");
+                        throw new NotEnoughFoodException("Not enough food");
                     } catch (NotSelectableCardException e) {
-                        throw new NotSelectableCardException("Non puoi selezionare un evento");
+                        throw new NotSelectableCardException("Cannot select an event card");
                     } catch (EmptyMarketException e) {
                         throw new EmptyMarketException();
                     } catch (NoMoreActionToDo e) {
@@ -146,11 +146,11 @@ public class Controller {
                     try {
                         game.selectGenericCardBottomLists(cardType, position, player);
                     } catch (IndexOutOfBoundsException e) {
-                        throw new IndexOutOfBoundsException("Indice non valido");
+                        throw new IndexOutOfBoundsException("Invalid index");
                     } catch (NotEnoughFoodException e) {
-                        throw new NotEnoughFoodException("Non ha abbastanza cibo");
+                        throw new NotEnoughFoodException("Not enough food");
                     } catch (NotSelectableCardException e) {
-                        throw new NotSelectableCardException("Non puoi selezionare un evento");
+                        throw new NotSelectableCardException("Cannot select an event card");
                     } catch (EmptyMarketException e) {
                         throw new EmptyMarketException();
                     } catch (NoMoreActionToDo e) {
@@ -179,7 +179,7 @@ public class Controller {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {
                 if (game.canCurrentPlayingPlayerDoSomething()) {
-                    throw new Exception("Il giocatore ha ancora mosse disponibili e non può passare il turno");
+                    throw new Exception("The player still has available moves and cannot skip their turn");
                 }
                 advanceTurnOrRound();
             }

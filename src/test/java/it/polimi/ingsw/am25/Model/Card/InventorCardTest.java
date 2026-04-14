@@ -55,23 +55,23 @@ class InventorCardTest {
     void testEquals() {
         InventorCard card1 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
 
-        // stessi campi -> uguali
+        // same fields → equal
         InventorCard card2 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
         assertEquals(card1, card2);
 
-        // icona diversa -> diversi
+        // different icon → not equal
         InventorCard card3 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.STONE);
         assertNotEquals(card1, card3);
 
-        // era diversa -> diversi
+        // different era → not equal
         InventorCard card4 = new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
         assertNotEquals(card1, card4);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

@@ -54,9 +54,9 @@ public class Game implements GameView {
         this.playerHost = playerHost;
         this.players = new ArrayList<>();
         players.add(playerHost);
-        //solita eccezione per gli argoementi passati
+        //standard null-guard for the constructor argument
         if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost nullo");
+            throw new IllegalArgumentException("playerHost is null");
         }
     }
     /**

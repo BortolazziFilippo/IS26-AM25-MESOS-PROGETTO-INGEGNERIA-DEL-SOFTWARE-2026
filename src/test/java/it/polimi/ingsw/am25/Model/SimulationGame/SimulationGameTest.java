@@ -74,7 +74,7 @@ public class SimulationGameTest {
         try {
 
             for (int i = 0; i < 10; i++) {
-                if (i == 0) { // nel primo turno si scelgono a piacimento l'ordine sulla default tile
+                if (i == 0) { // in the first turn, the placement order on the default tile is chosen freely
                     board.placePlayerOnDefaultTile(p1, 0);
                     board.placePlayerOnDefaultTile(p2, 1);
                     board.placePlayerOnDefaultTile(p3, 2);
@@ -88,8 +88,8 @@ public class SimulationGameTest {
                     board.returnOnDefaultTiles();
                     gioco.getMarket().endOfRoundMarketActions();
                 }
-                // inizio round i giocatori si posizionano sulla OfferTile, dato che sono già sistemati sulla DefaultTile dal
-                // precedente round
+                // at the start of each round, players place their totems on offer tiles, since they are already ordered on the default tile from the
+                // previous round
                 Collections.shuffle(positions);
                 board.placePlayerOnOffertile(p1, positions.get(0));
                 board.placePlayerOnOffertile(p2, positions.get(1));
@@ -98,7 +98,7 @@ public class SimulationGameTest {
                 map.put(p2, positions.get(1));
                 map.put(p3, positions.get(2));
 
-                // risolvo le azioni sulla Offertile
+                // solving offertile Actions
                 for (Map.Entry<Player, Integer> entry : map.entrySet()) {
                     Player player = entry.getKey();
                     int position = entry.getValue();
@@ -122,12 +122,12 @@ public class SimulationGameTest {
                             gioco.getMarket().selectCardFromTopList(random.nextInt(7), player);
                             break;
                         default:
-                            System.out.println("posizione non valida");
+                            System.out.println("invalid position");
 
                     }
                 }
 
-                // riposiziono in DefaultTile in ordine crescente dalla OfferTile
+                // reposition players on the default tile in ascending order based on offer tile position
                 board.returnOnDefaultTiles();
                 gioco.getMarket().endOfRoundMarketActions();
 

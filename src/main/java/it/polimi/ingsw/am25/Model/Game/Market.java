@@ -85,10 +85,10 @@ public class Market {
      * this method clear the bottom list from everything
      */
     public void clearBottomCardList(){
-        //eccezione se lista non inizializzata ma non dovrebbe succedere se scriviamo bene il costruttore
-        //questo BRANCH non è testabile perchè il costruttore inziializza sempre la lista
+        //guard against uninitialized list — should never happen if the constructor is correct
+        //this branch is untestable because the constructor always initializes the list
         if (bottomCardList == null) {
-            throw new IllegalStateException("La bottomCardList non è ancora stata inizializzata");
+            throw new IllegalStateException("bottomCardList has not been initialized yet");
         }
         this.bottomCardList.clear();
     }
@@ -190,18 +190,18 @@ public class Market {
      * @param player player that has draw the card
      */
     public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
-        //questo è per sicurezza ma non dovrebbe succedere, magari si può aggiungere anche il caso
-        // in cui player vuole pescare una carta ma la lista non è null ma è vuota
+        //safety guard — should not happen under normal conditions; consider also handling the case where the list is non-null but empty
+        // in which the player wants to draw a card but the list is not null yet empty
 
         if (topCardList == null || player == null) {
-            throw new IllegalArgumentException("topCardList null o player null");
+            throw new IllegalArgumentException("topCardList is null or player is null");
         }
 
         if(topCardList.isEmpty() || topCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
             throw new EmptyMarketException("No cards available top list");
         }
         if (position < 0 || position >= topCardList.size()) {
-            throw new IndexOutOfBoundsException("Posizione non valida");
+            throw new IndexOutOfBoundsException("Invalid position");
         }
         Card selected_card = this.topCardList.get(position);
         try { //if the card throw an exception it must not be removed from the list
@@ -247,17 +247,17 @@ public class Market {
     public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException,EmptyMarketException{
         // null-guard first, before any method is called on bottomCardList
         if (bottomCardList == null || player == null) {
-            throw new IllegalArgumentException("bottomCardList null o player null");
+            throw new IllegalArgumentException("bottomCardList is null or player is null");
         }
         if(bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
             throw new EmptyMarketException("No Card Available bottom list");
         }
 
         if (position < 0 || position >= bottomCardList.size()) {
-            throw new IndexOutOfBoundsException("Posizione non valida");
+            throw new IndexOutOfBoundsException("Invalid position");
         }
 
-        //seleziona carta da position e mette in selected_card come metodo sopra
+        //selects the card at the given position and stores it in selected_card, same as in the method above
         Card selected_card = this.bottomCardList.get(position);
         try{
             selected_card.addCardToPlayer(player);
@@ -292,9 +292,8 @@ public class Market {
         this.bottomBuildingList.remove(position);
         this.notifyMarketChanged(); //here it notifies the changes
     }
-    //nella logica non ho messo che deve verificare che siamo a fine turno quindi ho dato per scontato
-    //che è un metodo che viene chiamato solo a fine turno, ma in realtà anche se venisse chiamato a metà turno
-    //tanto ritorna solo un bool, non esegue effettivamente gli eventi
+    //the logic does not enforce that this is called at end-of-turn; it is assumed to only be called then,
+    //but even if called mid-turn it is safe since it only returns a bool and does not actually resolve events
 
     /**
      * this method is used to subscribe an observer to the class
@@ -337,20 +336,20 @@ public class Market {
      * this method check if there are event in the bottom list
      * @return returns true if a event is found in bottom list
      */
-    //questo metodo potrebbe non servire piu
+    //this method may no longer be needed
     @Deprecated
     private boolean checkEventsPresence(){
-        //solita eccezione anche qui
+        //standard null-guard exception
         if (bottomCardList == null) {
-            throw new IllegalStateException("bottomCardList è null");
+            throw new IllegalStateException("bottomCardList is null");
         }
-        //scorre la lista sotto e cerca event cards
+        //iterates through the bottom list looking for event cards
         for (Card card : bottomCardList) {
             if (card.getCardType() == CARD_TYPE.EVENT) {
                 return true;
             }
         }
-        //se non trova più eventi allora false
+        //no events found, return false
         return false;
     }
 

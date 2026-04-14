@@ -50,20 +50,20 @@ class ArtistCardTest {
     }
     @Test
     void testEquals(){
-        // stessa era e stesso tipo -> uguali
+        // same era and type → equal
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         ArtistCard card2 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertEquals(card1, card2);
 
-        // era diversa -> diversi
+        // different era → not equal
         ArtistCard card3 = new ArtistCard(ERA.ERA_II, CARD_TYPE.ARTIST);
         assertNotEquals(card1, card3);
 
-        // tipo diverso (GathererCard) -> diversi
+        // different type (GathererCard) → not equal
         GathererCard gatherer = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
         assertNotEquals(card1, gatherer);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

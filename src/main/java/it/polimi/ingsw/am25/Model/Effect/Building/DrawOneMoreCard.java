@@ -7,7 +7,7 @@ import it.polimi.ingsw.am25.Model.Player.Player;
  * appropriate market method once this effect is triggered.
  */
 public class DrawOneMoreCard extends BuildingEffect {
-    private final boolean turnFinished = false; /* flag per notificare la fine di un round, da rivedere il metodo da fare in game*/
+    private final boolean turnFinished = false; /* flag to signal the end of a round; the corresponding game-layer method still needs to be reviewed */
 
     /**
      * Default constructor for DrawOneMoreCard.
@@ -24,7 +24,7 @@ public class DrawOneMoreCard extends BuildingEffect {
      */
     @Override
     public void applyEffect(Player player) {
-        // serve l'implementazione del controller
-        // questo effetto chiama la funzione in market di selezione carta da TopList, però mi serve la posizione che sceglie player
+        // requires the controller implementation
+        // this effect calls the card selection function from the market's top list, but it needs the position chosen by the player
     }
 }

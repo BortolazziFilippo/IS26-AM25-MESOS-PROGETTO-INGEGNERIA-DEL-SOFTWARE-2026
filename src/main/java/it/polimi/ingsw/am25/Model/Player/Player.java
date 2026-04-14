@@ -152,10 +152,10 @@ public class Player {
     public int getNumberOfDifferentInventorIcon(){
         return (int) tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
-                .map(InventorCard.class::cast)    // 1. Trasforma la Card in InventorCard
-                .map(InventorCard::getInvIcon)    // 2. Estraggo l'icona
-                .distinct()                       // 3. Tengo solo le icone diverse
-                .count();                         // 4. Conto quante ne sono rimaste
+                .map(InventorCard.class::cast)    // 1. Cast each Card to InventorCard
+                .map(InventorCard::getInvIcon)    // 2. Extract the inventor icon
+                .distinct()                       // 3. Keep only distinct icons
+                .count();                         // 4. Count how many remain
     }
     /**
      *

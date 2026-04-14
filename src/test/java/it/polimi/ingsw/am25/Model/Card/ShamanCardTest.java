@@ -77,23 +77,23 @@ class ShamanCardTest {
     void testEquals() {
         ShamanCard card1 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
 
-        // stessi campi -> uguali
+        // same fields → equal
         ShamanCard card2 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
         assertEquals(card1, card2);
 
-        // starNumber diverso -> diversi
+        // different starNumber → not equal
         ShamanCard card3 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE);
         assertNotEquals(card1, card3);
 
-        // era diversa -> diversi
+        // different era → not equal
         ShamanCard card4 = new ShamanCard(ERA.ERA_II, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
         assertNotEquals(card1, card4);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

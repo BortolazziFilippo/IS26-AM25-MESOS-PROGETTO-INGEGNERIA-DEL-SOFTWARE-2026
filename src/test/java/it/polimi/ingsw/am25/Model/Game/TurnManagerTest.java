@@ -136,7 +136,7 @@ class TurnManagerTest {
 
 
 
-    //questi ultimi 2 test devo ancora ricontrollarli
+    //TODO:these last two tests still need to be reviewed
 
     @Test
     void testGetNextPlayingPlayerEmptyOrder() {

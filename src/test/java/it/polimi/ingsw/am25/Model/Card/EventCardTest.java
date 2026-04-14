@@ -46,8 +46,8 @@ class EventCardTest {
 
     @Test
     void testApplyEventEffect() {
-        // HuntEvent(1,2): 1 cibo a tutti, 2 PP per ogni cacciatore
-        // player senza cacciatori -> 1 cibo, 0 PP
+        // HuntEvent(1,2): 1 food for all players, 2 PP per hunter
+        // player with no hunters → 1 food, 0 PP
         eventCard.applyEventEffect(List.of(player));
         assertEquals(0, player.getPrestigePoint());
         assertEquals(1, player.getFood());
@@ -62,24 +62,24 @@ class EventCardTest {
     void testSetEventEffect() {
         eventCard.setEventEffect(new HuntEvent(1, 3));
         eventCard.applyEventEffect(List.of(player));
-        assertEquals(0, player.getPrestigePoint()); // ancora 0 cacciatori
+        assertEquals(0, player.getPrestigePoint()); // still 0 hunters
     }
 
     @Test
     void testEquals() {
-        // stesso eventID -> uguali (era e tipo diversi non contano)
+        // same eventID → equal (era and type differences don't matter)
         EventCard card2 = new EventCard(ERA.ERA_II, CARD_TYPE.EVENT, 1, EVENT_TYPE.SUSTENANCE);
         assertEquals(eventCard, card2);
 
-        // eventID diverso -> diversi
+        // eventID diverso → not equal
         EventCard card3 = new EventCard(ERA.ERA_I, CARD_TYPE.EVENT, 2, EVENT_TYPE.HUNT);
         assertNotEquals(eventCard, card3);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(eventCard, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, eventCard);
     }
 }

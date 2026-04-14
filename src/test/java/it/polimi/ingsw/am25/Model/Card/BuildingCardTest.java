@@ -52,19 +52,19 @@ class BuildingCardTest {
     void testEquals() {
         BuildingCard card1 = new BuildingCard(ERA.ERA_I, CARD_TYPE.BUILDING, 1, 4, 3, EVENT_TYPE.END_GAME);
 
-        // stesso buildingID -> uguali
+        // same buildingID → equal
         BuildingCard card2 = new BuildingCard(ERA.ERA_II, CARD_TYPE.BUILDING, 1, 0, 0, EVENT_TYPE.HUNT);
         assertEquals(card1, card2);
 
-        // buildingID diverso -> diversi
+        // different buildingID → not equal
         BuildingCard card3 = new BuildingCard(ERA.ERA_I, CARD_TYPE.BUILDING, 2, 4, 3, EVENT_TYPE.END_GAME);
         assertNotEquals(card1, card3);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 }

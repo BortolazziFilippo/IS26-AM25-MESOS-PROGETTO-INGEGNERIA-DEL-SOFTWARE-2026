@@ -53,7 +53,7 @@ class PlusOneFoodOnReturnDefaultTileTest {
         PlusOneFoodOnReturnDefaultTile test = new PlusOneFoodOnReturnDefaultTile();
         buildingCard.setBuildingEffect(test);
         test.setBoardView(board);
-        board.placePlayerOnDefaultTile(p1, 0); //va cambiato il numero con cui contiamo le posizioni dei giocatori
+        board.placePlayerOnDefaultTile(p1, 0); //the position index may need to change depending on how player positions are numbered
         buildingCard.applyBuildingEffect(p1);
 
         assertEquals(1, p1.getFood());

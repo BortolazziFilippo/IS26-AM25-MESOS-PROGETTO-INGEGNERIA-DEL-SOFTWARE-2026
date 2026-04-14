@@ -47,19 +47,19 @@ class GathererCardTest {
     void testEquals() {
         GathererCard card1 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
 
-        // stessa era e tipo -> uguali
+        // same era and type → equal
         GathererCard card2 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
         assertEquals(card1, card2);
 
-        // era diversa -> diversi
+        // different era → not equal
         GathererCard card3 = new GathererCard(ERA.ERA_II, CARD_TYPE.GATHERER);
         assertNotEquals(card1, card3);
 
-        // tipo diverso -> diversi
+        // different type → not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null -> diversi
+        // null → not equal
         assertNotEquals(null, card1);
     }
 
