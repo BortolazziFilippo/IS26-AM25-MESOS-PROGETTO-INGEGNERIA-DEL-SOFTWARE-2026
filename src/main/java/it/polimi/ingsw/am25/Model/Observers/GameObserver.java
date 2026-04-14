@@ -8,6 +8,9 @@ import it.polimi.ingsw.am25.Model.Player.Player;
 import java.util.List;
 
 public interface GameObserver {
+    void gameWinners(
+            List<Player> winners
+    );
     void onGameChanged(
             ERA currentEra,
             List<Player> players,

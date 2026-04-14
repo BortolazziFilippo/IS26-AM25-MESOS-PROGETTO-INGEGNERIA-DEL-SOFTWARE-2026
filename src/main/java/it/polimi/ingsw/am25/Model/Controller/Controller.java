@@ -115,7 +115,13 @@ public class Controller {
         try {
             game.goNextPlayer();
         } catch (EndOfPlayingPhaseException e) {
-            game.nextRoundIter();
+            try {
+                game.nextRoundIter();
+            } catch (EndGameException ex) {
+                game.endGameIter();
+                game.checkWinner();
+            }
+
         }
     }
 

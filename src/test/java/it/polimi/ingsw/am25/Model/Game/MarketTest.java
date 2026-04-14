@@ -420,7 +420,7 @@ class MarketTest {
 
 
     //commento da leggere
-    //TODO:Leggere commento e fare test
+    //FIXME:Leggere commento e fare test
     /*QUESTO PER ORA LO LASCIO COSì PERCHè MI SA CHE C'è ERRORE IN SOLVEFINALEVENTS() DI MARKET
     PERCHè FA UN REMOVE MENTRE STA ITERANDO E RESTITUISCE ConcurrentModificationException
     MI SEMBRA CHE CI FOSSE LO STESO PROBLEMA IN UN ALTRO TEST, POI LO SISTEMO

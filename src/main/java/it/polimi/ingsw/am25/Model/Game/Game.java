@@ -3,8 +3,6 @@ package it.polimi.ingsw.am25.Model.Game;
 import it.polimi.ingsw.am25.Model.Board.Board;
 import it.polimi.ingsw.am25.Model.Board.BoardView;
 import it.polimi.ingsw.am25.Model.Board.OfferTile;
-import it.polimi.ingsw.am25.Model.Card.Card;
-import it.polimi.ingsw.am25.Model.Card.EventCard;
 import it.polimi.ingsw.am25.Model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.Model.Enums.ERA;
 import it.polimi.ingsw.am25.Model.Enums.GAME_PHASE;
@@ -178,9 +176,12 @@ public class Game implements GameView {
      * Calculates the winner based on the prestige points and on the amount of food in the case of a tie
      * a single player if there is a clear winner by prestige points
      * a single player if prestige points are tied but one has more food
-     * multiple players if both prestige points and food are equal
+     * multiple players if both prestige points and food are equal. At the end it notifies all the players
+     * who is/are the winner/s
      * @return
      * a list of Players
+     *
+     *
      */
     public List<Player> checkWinner() {
         //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
@@ -209,7 +210,7 @@ public class Game implements GameView {
         else{
             winningPlayers.add(topWinner);
         }
-
+        this.notifyWinners(winningPlayers);
         return winningPlayers;
     }
 
@@ -219,9 +220,10 @@ public class Game implements GameView {
      * and advances the market (shifting card lists and refilling them).
      * If the deck is exhausted the game phase transitions to {@link GAME_PHASE#END_GAME}.
      * If the game is already in END_GAME, delegates to {@link #endGameIter()}.
+     * @throws EndGameException when the game is finished
      */
     //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
-    public void nextRoundIter() {
+    public void nextRoundIter() throws EndGameException{
         if(this.gamePhase!=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
             //se viene rilevata deck finished exception vuol dire che il deck è finito
             //rimane quindi ancora un round da fare, dopodiché, quando verrà chiamato questo metodo nuovametne
@@ -236,7 +238,7 @@ public class Game implements GameView {
             }
             notifyGameChanged();
         }else{
-            endGameIter();
+            throw new EndGameException("Gioco FInitio");
         }
 
     }
@@ -422,6 +424,17 @@ public class Game implements GameView {
         }
     }
 
+    /**
+     * this method notifies the winners
+     * @param winners list of winners
+     */
+    private void notifyWinners(List<Player> winners){
+        for(GameObserver observer:List.copyOf(observers)){
+            observer.gameWinners(
+                    winners
+            );
+        }
+    }
     /**
      * Returns the total number of players in this game.
      *

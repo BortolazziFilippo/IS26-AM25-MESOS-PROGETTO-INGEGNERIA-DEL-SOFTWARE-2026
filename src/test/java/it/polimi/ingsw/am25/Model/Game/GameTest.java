@@ -483,6 +483,13 @@ class GameTest {
                                       Player playerToPlace, Player playerToPlay, OfferTile offerTile) {
                 notifications[0]++;
             }
+
+            @Override
+            public void gameWinners(List<Player> winners) {
+
+            }
+
+
         };
 
         //call the method
@@ -516,6 +523,10 @@ class GameTest {
             public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase,
                                       Player playerToPlace, Player playerToPlay, OfferTile offerTile) {
                 notifications[0]++;
+            }
+            @Override
+            public void gameWinners(List<Player> winners) {
+
             }
         };
 
