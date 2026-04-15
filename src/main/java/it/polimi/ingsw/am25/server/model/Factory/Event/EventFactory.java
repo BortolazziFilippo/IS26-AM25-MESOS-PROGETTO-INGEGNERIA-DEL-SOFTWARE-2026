@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.server.model.Factory.Event;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Card.EventCard;
-import it.polimi.ingsw.am25.server.Effect.Event.*;
 import it.polimi.ingsw.am25.server.model.Effect.Event.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Factory.DTO.EventDTO;

@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am25.server.model.Factory.Deck;
 
 import com.google.gson.Gson;
-import it.polimi.ingsw.am25.server.Card.*;
 import it.polimi.ingsw.am25.server.model.Card.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Factory.DTO.CardDTO;
