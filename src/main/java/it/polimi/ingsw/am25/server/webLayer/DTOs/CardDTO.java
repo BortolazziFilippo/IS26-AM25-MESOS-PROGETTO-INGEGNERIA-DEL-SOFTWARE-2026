@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am25.server.model.Factory.DTO;
+package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;

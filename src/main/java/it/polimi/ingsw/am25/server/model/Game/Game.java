@@ -11,6 +11,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.VirtualView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -56,6 +57,7 @@ public class Game implements GameView {
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost is null");
         }
+        notifyGameChanged();
     }
     /**
      * Returns the current game phase.
@@ -76,10 +78,15 @@ public class Game implements GameView {
     public void addPlayer(Player player) throws GameReadyToStartException {
         if (players.size() < playerNumber) {
             players.add(player);
+            this.notifyGameChanged();
             if (players.size() == playerNumber) {
                 throw new GameReadyToStartException("The lobby is full, game can start");
             }
         }
+    }
+
+    public void addObserverToplayer(VirtualView vv, Player player){
+        player.addObserver(vv);
     }
 
     /**
@@ -250,6 +257,7 @@ public class Game implements GameView {
      */
 
     public void endGameIter() {
+        gamePhase=GAME_PHASE.END_GAME;
         players.forEach(Player::triggerEndGameBuilding);
         market.solveFinalEvents();
         for(Player p : players){
@@ -481,6 +489,13 @@ public class Game implements GameView {
         if (nextPosition < allEras.length) {
             this.currentEra = allEras[nextPosition];
         }
+    }
+
+    public void linkObserver(VirtualView vv){
+        this.addObserver(vv);
+        board.addObserver(vv);
+        market.addObserver(vv);
+
     }
 
 

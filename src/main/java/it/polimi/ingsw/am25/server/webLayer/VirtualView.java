@@ -12,13 +12,21 @@ import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.BoardDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.GameDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.MarketDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
+    private GameDTO gameSnapShot;
+    private MarketDTO marketSnapshot;
+    private List<PlayerDTO> playerDTOSnapshot;
+    private BoardDTO boardSnapShot;
 
     public VirtualView() {
-
     }
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
@@ -27,7 +35,10 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void gameWinners(List<Player> winners) {
+        gameSnapShot.setWinners(
+                winners.stream().map(PlayerDTO::new).toList());
 
+        //TODO: serializzazione e collegare parte notifica soket
     }
 
     @Override
@@ -37,7 +48,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-
+        marketSnapshot
     }
 
     @Override

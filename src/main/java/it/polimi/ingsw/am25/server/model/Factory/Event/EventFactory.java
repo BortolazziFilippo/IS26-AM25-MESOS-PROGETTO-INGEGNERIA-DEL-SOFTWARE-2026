@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Card.EventCard;
 import it.polimi.ingsw.am25.server.model.Effect.Event.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Factory.DTO.EventDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.EventDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

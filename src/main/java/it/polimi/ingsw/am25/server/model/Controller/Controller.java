@@ -30,11 +30,13 @@ public class Controller {
         if (game.getGamePhase() == GAME_PHASE.SETUP) {
             try {
                 game.addPlayer(player);
+                game.addObserverToplayer(virtualView,player);
             } catch (GameReadyToStartException e) {
                 game.gameStart();
             }
         }
     }
+
 
     /**
      * Places the player on the tile specified by the position field.

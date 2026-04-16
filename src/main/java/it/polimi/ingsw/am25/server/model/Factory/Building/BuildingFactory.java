@@ -6,7 +6,7 @@ import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 
 import it.polimi.ingsw.am25.server.model.Effect.Building.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Factory.DTO.BuildingDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
