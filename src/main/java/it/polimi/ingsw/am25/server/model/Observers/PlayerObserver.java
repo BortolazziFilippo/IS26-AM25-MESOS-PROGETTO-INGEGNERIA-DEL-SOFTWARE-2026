@@ -16,6 +16,10 @@ public interface PlayerObserver {
             List<Card> tribe,
             List<BuildingCard> buildingCards
     );
-
-
+    void notifyFoodChanged(
+            int newFood
+    );
+    void notifyPPChanged(
+        int newPP
+    );
 }

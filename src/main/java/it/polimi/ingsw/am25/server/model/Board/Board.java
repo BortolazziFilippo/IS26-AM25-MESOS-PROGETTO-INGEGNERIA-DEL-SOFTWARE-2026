@@ -36,7 +36,7 @@ public class Board implements BoardView {
             this.offerTiles.stream().filter(offerTile -> Objects.equals(pl.getFirst(),offerTile.getPlayerOn())).forEach(Tile::removePlayer);
             pl.removeFirst();
         }
-        notifyBoardChanged(); //here it notifies the changes
+        notifyPlayerToDefaultTile(); //notifying the vw the player went back to the default tile and updating order
     }
 
     /**
@@ -54,7 +54,7 @@ public class Board implements BoardView {
                 throw new TileOccupiedException(getClass() +" tile is already occupied");
             }
             defaultTiles.get(tilePosition).placePlayer(player);
-            //here i don't need to notify the changes since this method is only called during the game creation
+            notifyPlayerToDefaultTile(); //notifying the VW of the starting order on the default tile
         }else{
             throw new IndexOutOfBoundsException(getClass()+" TilePosition not valid");
         }
@@ -73,7 +73,7 @@ public class Board implements BoardView {
             if(!offerTiles.get(tilePosition).isOccupied()){
                 offerTiles.get(tilePosition).placePlayer(player);
                 defaultTiles.stream().filter(defaultTile -> Objects.equals(player, defaultTile.getPlayerOn())).forEach(Tile::removePlayer);
-                notifyBoardChanged(); //after the player is placed it notifies the
+                notifyPlayerToOfferTile(player,tilePosition);
             }else{
                 throw new TileOccupiedException(getClass() + "Selected tile is occupied");
             }
@@ -130,28 +130,49 @@ public class Board implements BoardView {
         }
     }
 
-    @Override
+    /**
+     * this method notifies the order of the player once the go back to the default tile
+     */
+    private void notifyPlayerToDefaultTile(){
+        List<Player> players=getOrderedPlayerOnDefaultTile();
+        for(BoardObserver observer:observers){
+            observer.playerToDefaultTile(players);
+        }
+    }
+
+    /**
+     * this method notifies that the player has been placed on the offertile on tilepositiom
+     * @param player player moved
+     * @param tilePosition index
+     */
+    private void notifyPlayerToOfferTile(Player player,int tilePosition){
+        for(BoardObserver observer:observers){
+            observer.playerPlacedOnOffertile(player,tilePosition);
+        }
+    }
+
+
     /**
      * Returns the players currently on offer tiles, in tile order.
      *
      * @return ordered list of players on offer tiles
      */
+    @Override
     public List<Player> getOrderedPlayerOnOfferTile() {
         return new ArrayList<>(offerTiles.stream().filter(OfferTile::isOccupied).map(Tile::getPlayerOn).toList());
     }
 
-    @Override
+
     /**
      * Returns the players currently on default tiles, in tile order.
      *
      * @return ordered list of players on default tiles
      */
+    @Override
     public List<Player> getOrderedPlayerOnDefaultTile() {
         return new ArrayList<>(defaultTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
 
     }
-
-    @Override
     /**
      * Returns {@code true} if the given player is on a default tile whose food reward is >= 0.
      * (Players on a tile with a negative food value do not receive the bonus.)
@@ -159,6 +180,7 @@ public class Board implements BoardView {
      * @param player the player to check
      * @return whether the player is on an eligible default tile
      */
+    @Override
     public boolean isPlayerOnAnEligibleDefaultTile(Player player) {
         return this.defaultTiles.stream()
                 .filter(DefaultTile::isOccupied)
@@ -167,8 +189,6 @@ public class Board implements BoardView {
                 .map(tile -> tile.getFoodPerSlotPosition() >= 0)  // 2. check the value
                 .orElse(false);
     }
-
-    @Override
     /**
      * Returns a defensive copy of the offer tile the given player is currently on.
      *
@@ -176,6 +196,7 @@ public class Board implements BoardView {
      * @return a copy of the {@link OfferTile} the player occupies
      * @throws IllegalStateException if the player is not found on any offer tile
      */
+    @Override
     public OfferTile getCopyTilePlayerIsOn(Player player) {
         OfferTile offerTileToReturn= offerTiles.stream()
                 .filter(OfferTile::isOccupied)

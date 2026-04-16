@@ -62,7 +62,8 @@ public class Player {
         else{
             this.food += foodAmount;
         }
-        notifyPlayerChanged();//here it notifies the changes
+        notifyPPChanged();
+        notifyFoodChanged();
     }
 
     /**
@@ -81,7 +82,7 @@ public class Player {
         }else{
             this.food-=cost;
             selectedBuildingCard.addCardToPlayer(this);
-            notifyPlayerChanged();//here it notifies the changes
+            notifyFoodChanged();
         }
 
     }
@@ -92,7 +93,7 @@ public class Player {
      */
     public void managePP(int PPamount){
         this.prestigePoint += PPamount;
-        notifyPlayerChanged();//here it notifies the changes
+        notifyPPChanged();
     }
     /**
      * Returns the current connection status of the player.
@@ -292,6 +293,17 @@ public class Player {
                     tribeSnapshot,
                     buildingSnapshot
             );
+        }
+    }
+    private void notifyFoodChanged(){
+        for(PlayerObserver observer:observers){
+            observer.notifyFoodChanged(food);
+        }
+    }
+
+    private void notifyPPChanged(){
+        for(PlayerObserver observer:observers){
+            observer.notifyPPChanged(prestigePoint);
         }
     }
 

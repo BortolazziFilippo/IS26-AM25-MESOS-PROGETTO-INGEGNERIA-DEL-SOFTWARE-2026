@@ -114,14 +114,15 @@ public class Market {
         this.shiftCardTopToBottomList();
         try {
             this.refillTopCardList();
+            notifyTopCardRefreshed();
         } catch (ChangedEraException e) {
             this.clearBottomBuildingList();
             this.shiftBuildingTopToBottom();
             this.refillTopBuildingList();
+            notifyTopBuildingRefreshed();
 
-            this.notifyMarketChanged();
         } catch (DeckFinishedException e) {
-            this.notifyMarketChanged(); //here it notifies all the subscribed method of the changes
+            notifyTopCardRefreshed(); //here it notifies all the subscribed method of the changes
             throw new DeckFinishedException();
         }
     }
@@ -212,7 +213,7 @@ public class Market {
         }
         //if everything went good it removes it
         this.topCardList.remove(position);
-        this.notifyMarketChanged();//here it notifies the changed list
+        notifyCardRemoveFromTop(position,CARD_TYPE.ARTIST);//here it notifies the changed list
     }
 
     /**
@@ -237,7 +238,7 @@ public class Market {
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
         this.topBuildingList.remove(position);
-        this.notifyMarketChanged();//here it notifies
+        notifyCardRemoveFromTop(position,CARD_TYPE.BUILDING);//here it notifies the changed list
     }
 
     /**
@@ -266,7 +267,8 @@ public class Market {
             throw new NotSelectableCardException("Cannot select EventCard");
         }
         this.bottomCardList.remove(position);
-        this.notifyMarketChanged(); //here it notifies the changes
+
+        notifyCardRemovedFromBottom(position,CARD_TYPE.ARTIST);
     }
 
     /**
@@ -291,7 +293,8 @@ public class Market {
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
         this.bottomBuildingList.remove(position);
-        this.notifyMarketChanged(); //here it notifies the changes
+
+        notifyCardRemovedFromBottom(position,CARD_TYPE.BUILDING);
     }
     //the logic does not enforce that this is called at end-of-turn; it is assumed to only be called then,
     //but even if called mid-turn it is safe since it only returns a bool and does not actually resolve events
@@ -330,6 +333,34 @@ public class Market {
                     topBuildingsSnapshot,
                     bottomBuildingsSnapshot
             );
+        }
+    }
+
+    /**
+     * at the end of the round a new top set card is created
+     */
+    private void notifyTopCardRefreshed(){
+        List<Card> topCardsSnapshot = List.copyOf(topCardList);
+        for(MarketObserver observer: observers){
+           observer.onTopCardRefreshed(topCardsSnapshot);
+        }
+    }
+    private void notifyTopBuildingRefreshed(){
+        List<Card> topBuildingSnapshot = List.copyOf(topBuildingList);
+        for(MarketObserver observer: observers){
+            observer.onTopCardRefreshed(topBuildingSnapshot);
+        }
+    }
+
+    private void notifyCardRemoveFromTop(int position, CARD_TYPE card){
+        for(MarketObserver observer: observers){
+            observer.onCardRemovedFromTop(position, card);
+        }
+    }
+
+    private void notifyCardRemovedFromBottom(int position, CARD_TYPE card){
+        for(MarketObserver observer: observers){
+            observer.onCardRemovedFromBottom(position, card);
         }
     }
 

@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private GameDTO gameSnapShot;
-    private MarketDTO marketSnapshot;
     private List<PlayerDTO> playerDTOSnapshot;
     private BoardDTO boardSnapShot;
 
@@ -48,7 +47,6 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-        marketSnapshot
     }
 
     @Override
