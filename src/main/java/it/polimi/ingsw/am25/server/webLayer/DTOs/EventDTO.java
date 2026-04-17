@@ -3,7 +3,12 @@ package it.polimi.ingsw.am25.server.webLayer.DTOs;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 
-public class EventDTO {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class EventDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private  int eventID;
     private  ERA era;
     private  EVENT_TYPE eventType;

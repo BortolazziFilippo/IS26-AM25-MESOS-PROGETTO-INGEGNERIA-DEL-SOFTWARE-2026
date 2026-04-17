@@ -3,13 +3,17 @@ package it.polimi.ingsw.am25.server.webLayer.DTOs;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 
-public class BuildingDTO {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class BuildingDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private  int buildingID;
     private  int foodCost;
     private  int endGamePP;
     private  EVENT_TYPE applyOn;
     private  ERA era;
-
 
     public int getFoodCost() {
         return foodCost;

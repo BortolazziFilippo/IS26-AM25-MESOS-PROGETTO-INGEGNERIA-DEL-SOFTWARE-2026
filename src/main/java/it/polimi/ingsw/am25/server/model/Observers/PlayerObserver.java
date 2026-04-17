@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.server.model.Observers;
 
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Card.Card;
+import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
 
 import java.util.List;
@@ -17,9 +18,11 @@ public interface PlayerObserver {
             List<BuildingCard> buildingCards
     );
     void notifyFoodChanged(
+            String playerNickName,
             int newFood
     );
     void notifyPPChanged(
-        int newPP
+            String playerNickName,
+            int newPP
     );
 }

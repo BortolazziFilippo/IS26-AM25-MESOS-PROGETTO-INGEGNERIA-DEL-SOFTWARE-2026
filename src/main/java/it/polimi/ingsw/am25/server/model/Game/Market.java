@@ -117,6 +117,7 @@ public class Market {
             this.refillTopCardList();
             notifyTopCardRefreshed();
         } catch (ChangedEraException e) {
+            notifyTopCardRefreshed();
             this.clearBottomBuildingList();
             this.shiftBuildingTopToBottom();
             this.refillTopBuildingList();
@@ -349,7 +350,7 @@ public class Market {
     private void notifyTopBuildingRefreshed(){
         List<Card> topBuildingSnapshot = List.copyOf(topBuildingList);
         for(MarketObserver observer: observers){
-            observer.onTopCardRefreshed(topBuildingSnapshot);
+            observer.onTopBuildingRefreshed(topBuildingSnapshot);
         }
     }
 

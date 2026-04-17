@@ -107,6 +107,7 @@ public class Game implements GameView {
         }
 
         this.gamePhase = GAME_PHASE.PLACING_PHASE;
+        notifyGamePhaseChanged();
         notifyPlayerToPlaceChanged();
     }
 
@@ -344,7 +345,7 @@ public class Game implements GameView {
     public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
         this.playerToPlay = turnManager.getNextPlayingPlayer();
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
-        notifyPlayerToPlaceChanged();
+        notifyPlayerToPlayChanged();
     }
 
     /**

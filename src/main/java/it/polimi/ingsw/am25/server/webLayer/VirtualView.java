@@ -13,36 +13,62 @@ import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.BoardDTO;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.GameDTO;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.MarketDTO;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
-    private GameDTO gameSnapShot;
-    private List<PlayerDTO> playerDTOSnapshot;
-    private BoardDTO boardSnapShot;
+    private List<PlayerDTO> winners;
+    private ERA currentEra;
+    private GAME_PHASE currentGamePhase;
+    private String playerToPlace;
+    private String playerToPlay;
+    //_________________________________________________________________________________________
+    List<PlayerDTO> playerDTOList;
+    //_________________________________________________________________________________________
+    //MARKET DTO
+    private List<CardDTO> topCards;
+    private List<CardDTO> bottomCards;
+    private List<BuildingDTO> topBuildings;
+    private List<BuildingDTO> bottomBuildings;
+    //_________________________________________________________________________________________
+    //BOARD DTO
+    private List<OfferTile> offerTileList;
+    private List<DefaultTile> defaultTileList;
+    //_________________________________________________________________________________________
+
 
     public VirtualView() {
     }
+
+    @Override
+    public void notifyPPChanged(String nickname,int newPP) {
+
+    }
+
+    @Override
+    public void notifyFoodChanged(String nickname,int newFood) {
+
+    }
+
+    @Override
+    public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
+
+    }
+
+    @Override
+    public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
+
+    }
+
+    @Override
+    public void onTopCardRefreshed(List<Card> topCards) {
+
+    }
+
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
-
-    }
-
-    @Override
-    public void gameWinners(List<Player> winners) {
-        gameSnapShot.setWinners(
-                winners.stream().map(PlayerDTO::new).toList());
-
-        //TODO: serializzazione e collegare parte notifica soket
-    }
-
-    @Override
-    public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
 
     }
 
@@ -53,6 +79,16 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
+
+    }
+
+    @Override
+    public void gameWinners(List<Player> winners) {
+
+    }
+
+    @Override
+    public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
 
     }
 
@@ -82,11 +118,6 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     }
 
     @Override
-    public void onTopCardRefreshed(List<Card> topCards) {
-
-    }
-
-    @Override
     public void onTopBuildingRefreshed(List<Card> topCards) {
 
     }
@@ -98,25 +129,6 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
-
-    }
-
-    @Override
-    public void notifyFoodChanged(int newFood) {
-
-    }
-
-    @Override
-    public void notifyPPChanged(int newPP) {
-
-    }
-
-    @Override
-    public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-    }
-
-    @Override
-    public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
 
     }
 }

@@ -298,13 +298,13 @@ public class Player {
     }
     private void notifyFoodChanged(){
         for(PlayerObserver observer:observers){
-            observer.notifyFoodChanged(food);
+            observer.notifyFoodChanged(this.nickname,food);
         }
     }
 
     private void notifyPPChanged(){
         for(PlayerObserver observer:observers){
-            observer.notifyPPChanged(prestigePoint);
+            observer.notifyPPChanged(this.nickname,prestigePoint);
         }
     }
 

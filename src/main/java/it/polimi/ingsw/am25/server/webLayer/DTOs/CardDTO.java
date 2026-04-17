@@ -5,7 +5,12 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 
-public class CardDTO {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class CardDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private  CARD_TYPE cardType;
     private  ERA era;
     private INV_ICON invIcon;

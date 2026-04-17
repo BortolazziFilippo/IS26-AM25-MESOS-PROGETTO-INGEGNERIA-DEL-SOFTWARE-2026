@@ -1,11 +1,19 @@
 package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
+import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 
-public class PlayerDTO {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class PlayerDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private String nickName;
     private int food;
     private int prestigePoint;
+    private COLOR colorTotem;
+    //TODO:METTERE COLOR TOTEM
 
     public String getNickName() {
         return nickName;

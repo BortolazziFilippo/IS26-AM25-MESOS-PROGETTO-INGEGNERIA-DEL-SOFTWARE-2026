@@ -4,9 +4,13 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
-public class GameDTO {
+public class GameDTO implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private List<PlayerDTO> winners;
     private ERA currentEra;
     private GAME_PHASE currentGamePhase;
