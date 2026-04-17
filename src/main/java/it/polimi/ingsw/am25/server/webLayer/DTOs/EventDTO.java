@@ -13,6 +13,12 @@ public class EventDTO implements Serializable {
     private  ERA era;
     private  EVENT_TYPE eventType;
 
+    public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
+        this.eventID = eventID;
+        this.era = era;
+        this.eventType = eventType;
+    }
+
     public int getEventID() {
         return eventID;
     }

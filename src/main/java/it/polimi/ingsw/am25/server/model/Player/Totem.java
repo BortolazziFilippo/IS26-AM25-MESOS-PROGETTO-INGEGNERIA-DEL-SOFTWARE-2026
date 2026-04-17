@@ -9,6 +9,10 @@ public class Totem {
         this.color = color;
     }
 
+    public COLOR getColor() {
+        return color;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Totem totem)) return false;

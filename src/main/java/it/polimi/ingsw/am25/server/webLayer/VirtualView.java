@@ -15,7 +15,9 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
@@ -25,7 +27,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     private String playerToPlace;
     private String playerToPlay;
     //_________________________________________________________________________________________
-    List<PlayerDTO> playerDTOList;
+    Map<String,PlayerDTO> playersMap= new HashMap<>();
     //_________________________________________________________________________________________
     //MARKET DTO
     private List<CardDTO> topCards;
@@ -44,22 +46,26 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
 
     @Override
     public void notifyPPChanged(String nickname,int newPP) {
-
+        PlayerDTO pl=playersMap.get(nickname);
+        pl.setPrestigePoint(newPP);
+        playersMap.put(nickname,pl);
     }
 
     @Override
     public void notifyFoodChanged(String nickname,int newFood) {
-
+        PlayerDTO pl=playersMap.get(nickname);
+        pl.setFood(newFood);
+        playersMap.put(nickname,pl);
     }
 
     @Override
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
-
+        playersMap.put(nickname,new PlayerDTO(nickname,food,prestigePoint,totem.getColor()));
     }
 
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-
+        this.topCards=topCards.stream().map(CardDTO::new).toList();
     }
 
     @Override

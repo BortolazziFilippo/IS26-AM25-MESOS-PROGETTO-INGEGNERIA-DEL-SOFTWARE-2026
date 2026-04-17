@@ -17,6 +17,14 @@ public class GameDTO implements Serializable {
     private String playerToPlace;
     private String playerToPlay;
 
+    public GameDTO(ERA currentEra,  GAME_PHASE currentGamePhase, String playerToPlace, String playerToPlay) {
+        this.currentEra = currentEra;
+        this.winners=null;
+        this.currentGamePhase = currentGamePhase;
+        this.playerToPlace = playerToPlace;
+        this.playerToPlay = playerToPlay;
+    }
+
     public List<PlayerDTO> getWinners() {
         return winners;
     }

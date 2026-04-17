@@ -15,6 +15,11 @@ public class BuildingDTO implements Serializable {
     private  EVENT_TYPE applyOn;
     private  ERA era;
 
+    public BuildingDTO(int buildingID) {
+        this.buildingID = buildingID;
+    }
+
+
     public int getFoodCost() {
         return foodCost;
     }

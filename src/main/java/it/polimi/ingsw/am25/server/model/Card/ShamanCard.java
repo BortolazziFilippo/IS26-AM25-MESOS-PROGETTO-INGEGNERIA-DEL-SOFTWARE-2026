@@ -21,6 +21,12 @@ public class ShamanCard extends Card{
     }
 
     /**
+     * @return the SHAMAN_STAR enum value of this card
+     */
+    public SHAMAN_STAR getShamanStar() {
+        return starNumber;
+    }
+    /**
      *
      * @return return int value of star
      */
