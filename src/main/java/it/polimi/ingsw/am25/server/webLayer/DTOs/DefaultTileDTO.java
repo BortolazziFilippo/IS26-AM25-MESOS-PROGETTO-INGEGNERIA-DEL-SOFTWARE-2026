@@ -1,5 +1,7 @@
 package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
+import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
+
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -8,7 +10,7 @@ public class DefaultTileDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private final int foodPerSlotPosition;
 
-    public DefaultTileDTO(int foodPerSlotPosition) {
-        this.foodPerSlotPosition = foodPerSlotPosition;
+    public DefaultTileDTO(DefaultTile defaultTile) {
+        this.foodPerSlotPosition = defaultTile.getFoodPerSlotPosition();
     }
 }

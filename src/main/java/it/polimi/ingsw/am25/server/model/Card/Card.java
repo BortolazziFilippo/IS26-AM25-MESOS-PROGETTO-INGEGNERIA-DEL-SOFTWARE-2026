@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public abstract class Card {
     protected ERA era;
@@ -16,4 +17,5 @@ public abstract class Card {
         return cardType;
     }
     public abstract void addCardToPlayer(Player player) throws NotSelectableCardException;
+    public abstract CardDTO toDTO();
 }

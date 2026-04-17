@@ -19,7 +19,7 @@ public interface MarketObserver {
     );
 
     void onTopBuildingRefreshed(
-            List<Card> topCards
+            List<BuildingCard> topCards
     );
     void onCardRemovedFromTop(
       int position,

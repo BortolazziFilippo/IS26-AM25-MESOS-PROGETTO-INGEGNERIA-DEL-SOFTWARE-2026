@@ -47,6 +47,7 @@ public class PlayerDTO implements Serializable {
         this.nickName=player.getNickname();
         this.food=player.getFood();
         this.prestigePoint=player.getPrestigePoint();
+        this.colorTotem=player.getTotem().getColor();
     }
 
     public PlayerDTO(String nickName, int food, int prestigePoint, COLOR colorTotem) {

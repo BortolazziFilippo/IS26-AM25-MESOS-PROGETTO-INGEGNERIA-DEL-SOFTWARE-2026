@@ -22,26 +22,72 @@ public class CardDTO implements Serializable {
     private boolean hasIcon;
 
     /**
-     * Constructs a CardDTO from a generic Card.
-     * Uses Java Pattern Matching to safely map specific fields.
+     * Constructs a CardDTO from an {@link ArtistCard}.
+     *
+     * @param card the source ArtistCard
      */
-    public CardDTO(Card card) {
-        //common fields
+    public CardDTO(ArtistCard card) {
         this.era = card.getEra();
         this.cardType = card.getCardType();
+    }
 
-        switch (card) {
-            case HuntersCard hc -> this.hasIcon = hc.getHasICON();
-            case ShamanCard sc -> this.starNumber = sc.getShamanStar();
-            case InventorCard ic -> this.invIcon = ic.getInvIcon();
-            case BuilderCard bc -> {
-                this.foodDiscount = bc.getFoodDiscount();
-                this.finalPrestigePoint = bc.getFinalPrestigePoint();
-            }
-            default -> {
-                //Artist card don't need other parameters
-            }
-        }
+    /**
+     * Constructs a CardDTO from a {@link GathererCard}.
+     *
+     * @param card the source GathererCard
+     */
+    public CardDTO(GathererCard card) {
+        this.era = card.getEra();
+        this.cardType = card.getCardType();
+    }
+
+    /**
+     * Constructs a CardDTO from a {@link HuntersCard}.
+     * Carries the icon flag that determines whether the card grants a food bonus.
+     *
+     * @param card the source HuntersCard
+     */
+    public CardDTO(HuntersCard card) {
+        this.era = card.getEra();
+        this.cardType = card.getCardType();
+        this.hasIcon = card.getHasICON();
+    }
+
+    /**
+     * Constructs a CardDTO from a {@link ShamanCard}.
+     * Carries the star value used to calculate prestige points.
+     *
+     * @param card the source ShamanCard
+     */
+    public CardDTO(ShamanCard card) {
+        this.era = card.getEra();
+        this.cardType = card.getCardType();
+        this.starNumber = card.getShamanStar();
+    }
+
+    /**
+     * Constructs a CardDTO from an {@link InventorCard}.
+     * Carries the invention icon used for set-completion scoring.
+     *
+     * @param card the source InventorCard
+     */
+    public CardDTO(InventorCard card) {
+        this.era = card.getEra();
+        this.cardType = card.getCardType();
+        this.invIcon = card.getInvIcon();
+    }
+
+    /**
+     * Constructs a CardDTO from a {@link BuilderCard}.
+     * Carries the food discount on buildings and the end-game prestige points.
+     *
+     * @param card the source BuilderCard
+     */
+    public CardDTO(BuilderCard card) {
+        this.era = card.getEra();
+        this.cardType = card.getCardType();
+        this.foodDiscount = card.getFoodDiscount();
+        this.finalPrestigePoint = card.getFinalPrestigePoint();
     }
 
 

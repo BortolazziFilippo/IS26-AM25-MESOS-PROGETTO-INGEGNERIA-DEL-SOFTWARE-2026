@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
+import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 
@@ -15,8 +16,8 @@ public class BuildingDTO implements Serializable {
     private  EVENT_TYPE applyOn;
     private  ERA era;
 
-    public BuildingDTO(int buildingID) {
-        this.buildingID = buildingID;
+    public BuildingDTO(BuildingCard buildingCard) {
+        this.buildingID = buildingCard.getBuildingID();
     }
 
 

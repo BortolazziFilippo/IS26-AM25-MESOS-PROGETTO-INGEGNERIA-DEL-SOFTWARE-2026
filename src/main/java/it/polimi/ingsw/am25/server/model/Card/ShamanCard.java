@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public class ShamanCard extends Card{
     private final SHAMAN_STAR starNumber;
@@ -46,6 +47,10 @@ public class ShamanCard extends Card{
     public boolean equals(Object o) {
         if (!(o instanceof ShamanCard that)) return false;
         return starNumber == that.starNumber && this.cardType==that.cardType && this.era==that.era;
+    }
+    @Override
+    public CardDTO toDTO() {
+        return new CardDTO(this);
     }
 
 }

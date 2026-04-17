@@ -4,6 +4,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public class InventorCard extends Card{
     private final INV_ICON invIcon;
@@ -32,6 +33,10 @@ public class InventorCard extends Card{
     public boolean equals(Object o) {
         if (!(o instanceof InventorCard that)) return false;
         return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
+    }
+    @Override
+    public CardDTO toDTO() {
+        return new CardDTO(this);
     }
 
 }

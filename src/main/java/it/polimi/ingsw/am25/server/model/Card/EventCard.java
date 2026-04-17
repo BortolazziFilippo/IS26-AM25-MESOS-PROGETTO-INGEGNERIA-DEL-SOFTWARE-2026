@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 import java.util.List;
 
@@ -82,5 +83,9 @@ public class EventCard extends Card
         }else {
             return false;
         }
+    }
+    @Override
+    public CardDTO toDTO() {
+        throw new IllegalStateException("Cannot call this method");
     }
 }

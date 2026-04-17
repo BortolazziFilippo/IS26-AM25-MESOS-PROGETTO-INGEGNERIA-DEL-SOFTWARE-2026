@@ -15,6 +15,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +37,8 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     private List<BuildingDTO> bottomBuildings;
     //_________________________________________________________________________________________
     //BOARD DTO
-    private List<OfferTile> offerTileList;
-    private List<DefaultTile> defaultTileList;
+    private List<OffertileDTO> offerTileList;
+    private List<DefaultTileDTO> defaultTileList;
     //_________________________________________________________________________________________
 
 
@@ -59,82 +60,112 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     }
 
     @Override
+    @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
         playersMap.put(nickname,new PlayerDTO(nickname,food,prestigePoint,totem.getColor()));
     }
 
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-        this.topCards=topCards.stream().map(CardDTO::new).toList();
+        this.topCards=topCards.stream().map(Card::toDTO).toList();
+        this.bottomCards=bottomCards.stream().map(Card::toDTO).toList();
+        this.topBuildings=topBuildings.stream().map(BuildingDTO::new).toList();
+        this.bottomBuildings=new ArrayList<>();
+
     }
 
     @Override
     public void onTopCardRefreshed(List<Card> topCards) {
+        //when this method is called the top card had been moved down and replaced with new ones
+        bottomCards=List.copyOf(this.topCards);
+        this.topCards=topCards.stream().map(Card::toDTO).toList();
 
     }
 
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
-
+        this.offerTileList=offerTileList.stream().map(OffertileDTO::new).toList();
+        this.defaultTileList=defaultTileList.stream().map(DefaultTileDTO::new).toList();
     }
 
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
-
+        //TODO:notificare ordine di gioco
     }
 
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
-
+    //TODO:notificare giocatore piazzato
     }
 
     @Override
     public void gameWinners(List<Player> winners) {
-
+        this.winners=winners.stream().map(PlayerDTO::new).toList();
     }
 
     @Override
     public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
+        this.currentEra=currentEra;
+        this.currentGamePhase=gamePhase;
+        this.playerToPlace=null;
+        this.playerToPlay=null;
 
     }
 
     @Override
     public void onPlayerAdded(Player playerAdded) {
-
+        playersMap.put(playerAdded.getNickname(),new PlayerDTO(playerAdded));
     }
 
     @Override
     public void onEraChanged(ERA currentEra) {
+        this.currentEra=currentEra;
 
     }
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
-
+        this.currentGamePhase=gamePhase;
     }
 
     @Override
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
-
+        this.playerToPlay=null;
+        this.playerToPlace=newPlayerToPlace.getNickname();
     }
 
     @Override
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
+        this.playerToPlace=null;
+        this.playerToPlay=newPlayerToPlay.getNickname();
 
     }
 
     @Override
-    public void onTopBuildingRefreshed(List<Card> topCards) {
+    public void onTopBuildingRefreshed(List<BuildingCard> topCards) {
+        this.bottomBuildings=List.copyOf(this.topBuildings);
+        this.topBuildings=topCards.stream().map(BuildingDTO::new).toList();
 
     }
 
     @Override
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
+        if(cardType==CARD_TYPE.BUILDING){
+            this.topBuildings.remove(position);
+            //TODO:notifica e chiamata a funzione
+        }else{
+            this.topCards.remove(position);
+        }
 
     }
 
     @Override
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
-
+        if(cardType==CARD_TYPE.BUILDING){
+            this.bottomBuildings.remove(position);
+            //TODO:notifica e chiamata a funzione
+        }else{
+            this.bottomCards.remove(position);
+        }
     }
 }

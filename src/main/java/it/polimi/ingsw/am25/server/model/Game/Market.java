@@ -348,7 +348,7 @@ public class Market {
         }
     }
     private void notifyTopBuildingRefreshed(){
-        List<Card> topBuildingSnapshot = List.copyOf(topBuildingList);
+        List<BuildingCard> topBuildingSnapshot = List.copyOf(topBuildingList);
         for(MarketObserver observer: observers){
             observer.onTopBuildingRefreshed(topBuildingSnapshot);
         }

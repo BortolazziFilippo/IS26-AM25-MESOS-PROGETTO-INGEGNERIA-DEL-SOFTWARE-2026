@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.model.Card;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public class ArtistCard extends Card{
     /**
@@ -27,5 +28,10 @@ public class ArtistCard extends Card{
         }else{
             return false;
         }
+    }
+
+    @Override
+    public CardDTO toDTO() {
+        return new CardDTO(this);
     }
 }

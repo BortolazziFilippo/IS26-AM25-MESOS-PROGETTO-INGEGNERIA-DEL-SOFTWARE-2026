@@ -253,11 +253,17 @@ public class Player {
     public List<Card> getTribe() {
         return tribe;
     }
+
+    public Totem getTotem() {
+        return totem;
+    }
+
     /**
      * Returns the list of building cards the player owns.
      *
      * @return building card list
      */
+
     public List<BuildingCard> getBuildingCards() {
         return buildingCards;
     }
