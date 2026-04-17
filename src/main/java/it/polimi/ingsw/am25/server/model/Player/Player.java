@@ -40,6 +40,7 @@ public class Player {
             this.tribe = new ArrayList<>();
             this.buildingCards = new ArrayList<>();
             this.totem=new Totem(color);
+            notifyPlayerChanged(); //notifico creazione di un nuovo player
     }
 
     /**

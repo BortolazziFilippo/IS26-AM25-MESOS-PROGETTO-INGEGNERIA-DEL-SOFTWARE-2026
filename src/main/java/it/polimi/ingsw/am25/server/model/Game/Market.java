@@ -44,6 +44,7 @@ public class Market {
         this.organizeDeck();
         this.initializeBottomList();
         this.initializeBothTopList();
+        notifyMarketChanged();
     }
 
     /**

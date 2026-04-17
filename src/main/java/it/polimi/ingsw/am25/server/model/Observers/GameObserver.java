@@ -11,12 +11,31 @@ public interface GameObserver {
     void gameWinners(
             List<Player> winners
     );
+
     void onGameChanged(
             ERA currentEra,
             List<Player> players,
             GAME_PHASE gamePhase,
             Player playerToPlace,
-            Player playerToPlay,
-            OfferTile offerTilePlayerIsOn
+            Player playerToPlay
+    );
+
+    void onPlayerAdded(
+       Player playerAdded
+    );
+
+    void onEraChanged(
+            ERA currentEra
+    );
+
+    void onGamePhaseChanged(
+            GAME_PHASE gamePhase
+    );
+
+    void onPlayerToPlaceChanged(
+            Player newPlayerToPlace
+    );
+    void onPlayerToPlayChanged(
+            Player newPlayerToPlay
     );
 }

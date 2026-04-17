@@ -78,17 +78,12 @@ public class Game implements GameView {
     public void addPlayer(Player player) throws GameReadyToStartException {
         if (players.size() < playerNumber) {
             players.add(player);
-            this.notifyGameChanged();
+            notifyPlayerAdded(player);
             if (players.size() == playerNumber) {
                 throw new GameReadyToStartException("The lobby is full, game can start");
             }
         }
     }
-
-    public void addObserverToplayer(VirtualView vv, Player player){
-        player.addObserver(vv);
-    }
-
     /**
      * this method sets up the game after it is full:
      * - it randomly place players on a default tile
@@ -112,7 +107,7 @@ public class Game implements GameView {
         }
 
         this.gamePhase = GAME_PHASE.PLACING_PHASE;
-        notifyGameChanged();
+        notifyPlayerToPlaceChanged();
     }
 
     /**
@@ -132,7 +127,7 @@ public class Game implements GameView {
         } catch (EndOfPlacingPhaseException e) {
             throw new EndOfPlacingPhaseException("all Player have placed");
         }
-        notifyGameChanged();
+        notifyPlayerToPlaceChanged();
     }
 
     /**
@@ -157,7 +152,8 @@ public class Game implements GameView {
             this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
         }
 
-        notifyGameChanged();
+        notifyGamePhaseChanged();
+        notifyPlayerToPlayChanged();
     }
 
     /**
@@ -240,12 +236,13 @@ public class Game implements GameView {
             try {
                 market.endOfRoundMarketActions();
                 this.gamePhase=GAME_PHASE.PLACING_PHASE;
+                notifyGamePhaseChanged();
             }catch (DeckFinishedException e) {
                 this.gamePhase=GAME_PHASE.LAST_ROUND_PLACING_PHASE;//qui imposto il valore a last round
+                notifyGamePhaseChanged();
             }
-            notifyGameChanged();
         }else{
-            throw new EndGameException("Gioco FInitio");
+            throw new EndGameException("Game finished");
         }
 
     }
@@ -258,6 +255,7 @@ public class Game implements GameView {
 
     public void endGameIter() {
         gamePhase=GAME_PHASE.END_GAME;
+        notifyGamePhaseChanged();
         players.forEach(Player::triggerEndGameBuilding);
         market.solveFinalEvents();
         for(Player p : players){
@@ -343,10 +341,10 @@ public class Game implements GameView {
      *
      * @throws EndOfPlayingPhaseException if there are no more players left to play this round
      */
-    public void goNextPlayer() throws EndOfPlayingPhaseException {
+    public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
         this.playerToPlay = turnManager.getNextPlayingPlayer();
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
-        notifyGameChanged();
+        notifyPlayerToPlaceChanged();
     }
 
     /**
@@ -426,8 +424,7 @@ public class Game implements GameView {
                     playersSnapshot,
                     this.gamePhase,
                     this.playerToPlace,
-                    this.playerToPlay,
-                    this.offertilePlayerIsOn
+                    this.playerToPlay
             );
         }
     }
@@ -441,6 +438,40 @@ public class Game implements GameView {
             observer.gameWinners(
                     winners
             );
+        }
+    }
+
+    /**
+     * method to notify that  {@code player} has been added
+     * @param player player to add
+     */
+    private void notifyPlayerAdded(Player player){
+        for(GameObserver observer:observers){
+            observer.onPlayerAdded(player);
+        }
+    }
+
+    private void notifyEraChanged(){
+        for(GameObserver observer:observers){
+            observer.onEraChanged(this.currentEra);
+        }
+    }
+
+    private void notifyGamePhaseChanged(){
+        for(GameObserver observer:observers){
+            observer.onGamePhaseChanged(gamePhase);
+        }
+    }
+
+    private void notifyPlayerToPlaceChanged(){
+        for(GameObserver observer:observers){
+            observer.onPlayerToPlaceChanged(playerToPlace);
+        }
+    }
+
+    private void notifyPlayerToPlayChanged(){
+        for(GameObserver observer:observers){
+            observer.onPlayerToPlayChanged(playerToPlay);
         }
     }
     /**
@@ -481,21 +512,19 @@ public class Game implements GameView {
     public void nextEra() {
         // 1. Get all available eras (e.g., [ERA_I, ERA_II, ERA_III])
         ERA[] allEras = ERA.values();
-
         // 2. Calculate the index of the next era
         int nextPosition = this.currentEra.ordinal() + 1;
-
         // 3. Safety check: are we already at the last era?
         if (nextPosition < allEras.length) {
             this.currentEra = allEras[nextPosition];
         }
+        notifyEraChanged();
     }
 
     public void linkObserver(VirtualView vv){
         this.addObserver(vv);
         board.addObserver(vv);
         market.addObserver(vv);
-
     }
 
 

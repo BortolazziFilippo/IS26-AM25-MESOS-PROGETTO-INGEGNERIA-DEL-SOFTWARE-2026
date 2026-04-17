@@ -29,8 +29,9 @@ public class Controller {
     public void addPlayer(Player player) {
         if (game.getGamePhase() == GAME_PHASE.SETUP) {
             try {
+                player.addObserver(virtualView);
                 game.addPlayer(player);
-                game.addObserverToplayer(virtualView,player);
+
             } catch (GameReadyToStartException e) {
                 game.gameStart();
             }
@@ -116,7 +117,7 @@ public class Controller {
      */
     private void advanceTurnOrRound() {
         try {
-            game.goNextPlayer();
+            game.goNextPlayingPlayer();
         } catch (EndOfPlayingPhaseException e) {
             try {
                 game.nextRoundIter();
