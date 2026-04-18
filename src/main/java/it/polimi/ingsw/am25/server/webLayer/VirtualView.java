@@ -14,6 +14,7 @@ import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
+import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
+    private final String nickname;
+    private final ClientRemoteInterface clientStub;
+    //_________________________________________________________________________________________
     private List<PlayerDTO> winners;
     private ERA currentEra;
     private GAME_PHASE currentGamePhase;
@@ -42,7 +46,9 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     //_________________________________________________________________________________________
 
 
-    public VirtualView() {
+    public VirtualView(ClientRemoteInterface clientStub,String nickname) {
+        this.clientStub=clientStub;
+        this.nickname=nickname;
     }
 
     @Override
@@ -50,6 +56,12 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         PlayerDTO pl=playersMap.get(nickname);
         pl.setPrestigePoint(newPP);
         playersMap.put(nickname,pl);
+        try {
+            clientStub.playerUpdatePP(nickname,newPP);
+        }catch (java.rmi.RemoteException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
@@ -57,6 +69,24 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         PlayerDTO pl=playersMap.get(nickname);
         pl.setFood(newFood);
         playersMap.put(nickname,pl);
+        try{
+            clientStub.playerUpdateFood(nickname,newFood);
+        }catch (java.rmi.RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void forceInitialPlayersSync(List<PlayerDTO> allPlayers) {
+        for (PlayerDTO player : allPlayers) {
+            // 1. Popoliamo la mappa locale della Virtual View
+            this.playersMap.put(player.getNickName(), player);
+            // 2. Usiamo il telecomando per inviare il giocatore al Client!
+            try {
+                clientStub.playerAdded(player);
+            } catch (Exception e) {
+                System.err.println("Errore di rete durante la sincronizzazione iniziale con " + nickname);
+            }
+        }
     }
 
     @Override

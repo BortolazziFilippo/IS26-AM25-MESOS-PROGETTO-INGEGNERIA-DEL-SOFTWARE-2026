@@ -9,23 +9,22 @@ import it.polimi.ingsw.am25.server.webLayer.VirtualView;
 
 public class Controller {
     private Game game;
-    private VirtualView virtualView;
 
 
     public Controller() {
-        this.virtualView=new VirtualView();
     }
 
     public void createGame(Player playerHost, int playerNumber) throws IllegalStateException{
         if(this.game==null){
             this.game=new Game(playerHost,playerNumber);
-            playerHost.addObserver(virtualView);
         }else {
             throw new IllegalStateException("Game already created");
         }
 
     }
-
+    public void linkObserver(VirtualView virtualView){
+        game.linkObserver(virtualView);
+    }
     /**
      * Adds a player to the game lobby.
      * If the lobby is already full (game not in SETUP phase) the call is silently ignored.
@@ -35,16 +34,14 @@ public class Controller {
      * @param player player to add
      */
     //TODO: add an exception for the case where a game is already in progress
-    public void addPlayer(Player player) {
+    public void addPlayer(Player player) throws GameReadyToStartException {
         if (game.getGamePhase() == GAME_PHASE.SETUP) {
-            try {
-                player.addObserver(virtualView);
-                game.addPlayer(player);
-
-            } catch (GameReadyToStartException e) {
-                game.gameStart();
-            }
+            game.addPlayer(player);
         }
+    }
+
+    public void controllerGameStar(){
+        game.gameStart();
     }
 
 

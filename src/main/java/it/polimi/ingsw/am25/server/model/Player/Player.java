@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
+import it.polimi.ingsw.am25.server.webLayer.VirtualView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,16 @@ public class Player {
             this.tribe = new ArrayList<>();
             this.buildingCards = new ArrayList<>();
             this.totem=new Totem(color);
-            notifyPlayerChanged(); //notifico creazione di un nuovo player
+    }
+    public Player(String nickname, COLOR color, VirtualView virtualView) {
+        this.nickname = nickname;
+        this.food=0;
+        this.prestigePoint=0;
+        this.tribe = new ArrayList<>();
+        this.buildingCards = new ArrayList<>();
+        this.totem=new Totem(color);
+        addObserver(virtualView);
+        notifyPlayerChanged();
     }
 
     /**

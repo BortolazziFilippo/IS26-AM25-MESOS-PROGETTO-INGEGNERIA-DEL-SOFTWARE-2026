@@ -1,32 +1,112 @@
 package it.polimi.ingsw.am25.server.webLayer.RMI;
 
+import it.polimi.ingsw.am25.client.webLayer.RMI.ClientNetworkHandler;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
+import it.polimi.ingsw.am25.server.model.Controller.Controller;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.EmptyMarketException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.TileOccupiedException;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+import it.polimi.ingsw.am25.server.webLayer.VirtualView;
 
 import java.rmi.RemoteException;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
-
+    private final List<VirtualView> waitingPlayers = new ArrayList<>();
+    private List<PlayerDTO> playerDTOS=new ArrayList<>();
+    private Controller controller;
+    private int requiredPlayers = 0;
+    private boolean isGameStarted = false;
     public ServerNetworkHandler() throws RemoteException{
         super();
     }
 
     @Override
-    public void createGame(PlayerDTO playerHost, int PlayerNumber) throws RemoteException, IllegalStateException {
+    public void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
+        if (requiredPlayers > 0) {
+            throw new IllegalStateException("Game already started");
+        }
 
+        this.requiredPlayers = playerNumber;
+
+        // Creo la VirtualView per l'Host e gli associo il suo telecomando!
+        VirtualView hostView = new VirtualView(clientRemoteInterface, playerHost.getNickName());
+        waitingPlayers.add(hostView);
+        playerDTOS.add(playerHost);
+
+        System.out.println(playerHost.getNickName() + " Game created for " + playerNumber);
     }
 
     @Override
-    public void addPlayer(PlayerDTO playerDTO) throws RemoteException {
+    public void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+        if (requiredPlayers == 0) {
+            throw new RemoteException("Nessuna partita creata!");
+        }
+        if (isGameStarted) {
+            throw new RemoteException("Partita già in corso!");
+        }
 
+        // Creo la VirtualView per il nuovo giocatore
+        VirtualView playerView = new VirtualView(clientRemoteInterface, playerDTO.getNickName());
+        waitingPlayers.add(playerView);
+        playerDTOS.add(playerDTO);
+        System.out.println(playerDTO.getNickName() + " si è unito! (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
+
+        // Se siamo tutti, avviamo il gioco!
+        if (waitingPlayers.size() == requiredPlayers) {
+            isGameStarted = true;
+            setupAndStartGame();
+        }
+    }
+    private void setupAndStartGame() {
+        System.out.println("Game starting! Creating Controller and Game...");
+        Controller controller = new Controller();
+
+        // CRUCIAL SAVE: We save the controller so other RMI methods
+        // (like selectCard, placingPlayer, etc.) can use it to perform actions!
+        this.controller = controller;
+
+        // 1. Extract the Host data (they are always at position 0)
+        PlayerDTO hostDTO = playerDTOS.getFirst();
+        VirtualView hostView = waitingPlayers.getFirst();
+
+        // 2. Create the Host player and initialize the game in the Model
+        Player playerHost = new Player(hostDTO.getNickName(), hostDTO.getColorTotem(), hostView);
+        controller.createGame(playerHost, requiredPlayers);
+
+        // 3. Link ALL VirtualViews (including the Host!) to the Controller's global observers
+        waitingPlayers.forEach(controller::linkObserver);
+
+        // 4. Add the other players.
+        // We use a classic "for" loop STARTING FROM 1, so we skip the Host (who is at index 0)
+        for (int i = 1; i < playerDTOS.size(); i++) {
+            PlayerDTO currentDTO = playerDTOS.get(i);
+            VirtualView currentView = waitingPlayers.get(i);
+
+            // Create and add the new player by pairing their DTO with their View
+            Player newPlayer = new Player(currentDTO.getNickName(), currentDTO.getColorTotem(), currentView);
+            controller.addPlayer(newPlayer);
+        }
+
+        System.out.println("All players successfully added to the Model!");
+        // ----------------------------------------------------------------
+        // 5. MASS INITIAL SYNCHRONIZATION ON CLIENTS
+        // ----------------------------------------------------------------
+        System.out.println("Synchronizing initial state on clients...");
+        for (VirtualView view : waitingPlayers) {
+            // Pass the complete list of PlayerDTOs to EVERY VirtualView
+            view.forceInitialPlayersSync(this.playerDTOS);
+        }
+        System.out.println("All clients are synced. The game is ready!");
+        controller.controllerGameStar();
     }
 
     @Override

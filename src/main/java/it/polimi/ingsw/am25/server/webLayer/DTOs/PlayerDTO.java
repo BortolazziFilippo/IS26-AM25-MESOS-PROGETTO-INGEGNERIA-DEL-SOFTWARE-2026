@@ -50,6 +50,14 @@ public class PlayerDTO implements Serializable {
         this.colorTotem=player.getTotem().getColor();
     }
 
+    public COLOR getColorTotem() {
+        return colorTotem;
+    }
+
+    public void setColorTotem(COLOR colorTotem) {
+        this.colorTotem = colorTotem;
+    }
+
     public PlayerDTO(String nickName, int food, int prestigePoint, COLOR colorTotem) {
         this.nickName = nickName;
         this.food = food;
