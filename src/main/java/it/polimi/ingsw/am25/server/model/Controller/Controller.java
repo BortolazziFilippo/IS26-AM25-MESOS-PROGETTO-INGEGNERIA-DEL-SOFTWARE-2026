@@ -12,9 +12,18 @@ public class Controller {
     private VirtualView virtualView;
 
 
-    public Controller(Player playerHost, int playerNumber) {
-        this.game = new Game(playerHost, playerNumber);
+    public Controller() {
         this.virtualView=new VirtualView();
+    }
+
+    public void createGame(Player playerHost, int playerNumber) throws IllegalStateException{
+        if(this.game==null){
+            this.game=new Game(playerHost,playerNumber);
+            playerHost.addObserver(virtualView);
+        }else {
+            throw new IllegalStateException("Game already created");
+        }
+
     }
 
     /**

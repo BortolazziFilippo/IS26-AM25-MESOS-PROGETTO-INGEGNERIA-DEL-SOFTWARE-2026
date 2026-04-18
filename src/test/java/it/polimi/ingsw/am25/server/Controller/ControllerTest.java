@@ -29,7 +29,8 @@ class ControllerTest {
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
         player3 = new Player("Terzo", COLOR.GREEN);
-        controller = new Controller(host, 3);
+        controller = new Controller();
+        controller.createGame(host,3);
     }
 
     /** Reflectively extracts the private {@code game} field from the controller. */
