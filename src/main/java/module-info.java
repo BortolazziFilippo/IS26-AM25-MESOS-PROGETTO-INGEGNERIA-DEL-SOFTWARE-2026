@@ -4,6 +4,9 @@ module it.polimi.ingsw.am25 {
     requires java.desktop;
     requires com.google.gson;
     requires java.rmi;
+    exports it.polimi.ingsw.am25.client.webLayer.RMI to java.rmi;
+    exports it.polimi.ingsw.am25.server.webLayer.RMI to java.rmi;
+    exports it.polimi.ingsw.am25.server.webLayer.DTOs to java.rmi;
     opens it.polimi.ingsw.am25.server.webLayer.DTOs to com.google.gson;
     opens it.polimi.ingsw.am25.server.model.Enums to com.google.gson;
     opens it.polimi.ingsw.am25.server.model.Board to com.google.gson;

@@ -7,8 +7,11 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
+import java.util.List;
+
 public class Controller {
     private Game game;
+    private List<Player> players;
 
 
     public Controller() {

@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.ArrayList;
@@ -42,6 +43,13 @@ public class Player {
             this.buildingCards = new ArrayList<>();
             this.totem=new Totem(color);
     }
+
+    /**
+     * contructor of player with virtual view
+     * @param nickname name of the player
+     * @param color color of the totem
+     * @param virtualView virtual view to bind
+     */
     public Player(String nickname, COLOR color, ServerVirtualView virtualView) {
         this.nickname = nickname;
         this.food=0;
@@ -51,6 +59,20 @@ public class Player {
         this.totem=new Totem(color);
         addObserver(virtualView);
         notifyPlayerChanged();
+    }
+
+    /**
+     * constructor from player DTO
+     *
+     * @param playerDTO player
+     */
+    public Player(PlayerDTO playerDTO){
+        this.nickname=playerDTO.getNickName();
+        this.food=0;
+        this.prestigePoint=0;
+        this.tribe = new ArrayList<>();
+        this.buildingCards = new ArrayList<>();
+        this.totem=new Totem(playerDTO.getColorTotem());
     }
 
     /**

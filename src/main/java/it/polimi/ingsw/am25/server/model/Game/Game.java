@@ -13,9 +13,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -25,7 +23,7 @@ public class Game implements GameView {
     private BoardView boardView;
     private Market market;
     private TurnManager turnManager;
-    private List<Player> players;
+    private Map<String,Player> players;
     private Player playerHost;
     private int playerNumber;
     private GAME_PHASE gamePhase;
@@ -51,8 +49,8 @@ public class Game implements GameView {
         this.market = new Market(this, board);
         this.turnManager = new TurnManager(board);
         this.playerHost = playerHost;
-        this.players = new ArrayList<>();
-        players.add(playerHost);
+        this.players = new HashMap<>();
+        players.put(playerHost.getNickname(),playerHost);
         //standard null-guard for the constructor argument
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost is null");
@@ -77,7 +75,7 @@ public class Game implements GameView {
      */
     public void addPlayer(Player player) throws GameReadyToStartException {
         if (players.size() < playerNumber) {
-            players.add(player);
+            players.put(player.getNickname(),player);
             notifyPlayerAdded(player);
             if (players.size() == playerNumber) {
                 throw new GameReadyToStartException("The lobby is full, game can start");
@@ -91,7 +89,7 @@ public class Game implements GameView {
      */
     public void gameStart() {
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
-        for (Player player : players) {
+        for (Player player : players.values().stream().toList()) {
             try{
                 board.placePlayerOnDefaultTile(player, random.getFirst());
             } catch (TileOccupiedException e) {
@@ -121,7 +119,8 @@ public class Game implements GameView {
      * @throws TileOccupiedException     tile already occupied
      */
     public void placePlayer(Player player, int position) throws IndexOutOfBoundsException, TileOccupiedException,EndOfPlacingPhaseException {
-        board.placePlayerOnOffertile(player, position);
+        Player player1=players.get(player.getNickname());
+        board.placePlayerOnOffertile(player1, position);
         //dopo che il giocatore si è posizionato prova a impostare il prossimo, se non ci sono prossimi tutti hanno posizionato
         try {
             this.playerToPlace = turnManager.getNextPlacingPlayer();
@@ -193,7 +192,7 @@ public class Game implements GameView {
             throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
         }
 
-        List<Player> winners = players.stream()
+        List<Player> winners = players.values().stream()
                 .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player :: getFood).reversed())
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -233,7 +232,7 @@ public class Game implements GameView {
             //rimane quindi ancora un round da fare, dopodiché, quando verrà chiamato questo metodo nuovametne
             //lancera l'endgame iter, quindi lancio eventi finali e conteggio punti
             board.returnOnDefaultTiles();
-            players.forEach(Player::triggerEndRoundBuilding);
+            players.values().forEach(Player::triggerEndRoundBuilding);
             try {
                 market.endOfRoundMarketActions();
                 this.gamePhase=GAME_PHASE.PLACING_PHASE;
@@ -257,9 +256,9 @@ public class Game implements GameView {
     public void endGameIter() {
         gamePhase=GAME_PHASE.END_GAME;
         notifyGamePhaseChanged();
-        players.forEach(Player::triggerEndGameBuilding);
+        players.values().forEach(Player::triggerEndGameBuilding);
         market.solveFinalEvents();
-        for(Player p : players){
+        for(Player p : players.values()){
             p.managePP(p.checkpoints());
         }
     }
@@ -275,10 +274,11 @@ public class Game implements GameView {
      * @throws NoMoreActionToDo if the player has no remaining actions after this selection
      */
     public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException,NoMoreActionToDo {
+        Player player1=players.get(player.getNickname());
         switch (toBuyCardType) {
-            case BUILDING -> market.buyBuildingTopList(position, player);
+            case BUILDING -> market.buyBuildingTopList(position, player1);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
-            default -> market.selectCardFromTopList(position, player);
+            default -> market.selectCardFromTopList(position, player1);
         }
         offertilePlayerIsOn.getActionAvailable().subtractOneTopAction();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
@@ -325,10 +325,11 @@ public class Game implements GameView {
      * @throws NotSelectableCardException if the player tries to select an event card
      */
     public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
+        Player player1=players.get(player.getNickname());
         switch (toBuyCardType) {
-            case BUILDING -> market.buyBuildingBottomList(position, player);
+            case BUILDING -> market.buyBuildingBottomList(position, player1);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
-            default -> market.selectCardFromBottomList(position, player);
+            default -> market.selectCardFromBottomList(position, player1);
         }
         offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
@@ -417,7 +418,7 @@ public class Game implements GameView {
      * Notifies all subscribed observers with a snapshot of the current game state.
      */
     private void notifyGameChanged() {
-        List<Player> playersSnapshot = List.copyOf(this.players);
+        List<Player> playersSnapshot = List.copyOf(this.players.values());
 
         for (GameObserver observer : List.copyOf(observers)) {
             observer.onGameChanged(
@@ -502,7 +503,7 @@ public class Game implements GameView {
      */
     @Override
     public List<Player> getPlayerList() {
-        return this.players;
+        return this.players.values().stream().toList();
     }
 
     /**
