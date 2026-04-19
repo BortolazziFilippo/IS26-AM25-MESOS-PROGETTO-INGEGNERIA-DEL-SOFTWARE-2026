@@ -195,7 +195,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onEraChanged(ERA currentEra) {
         this.currentEra=currentEra;
         try {
-            clientStub.EraChanged(this.currentEra);
+            clientStub.eraChanged(this.currentEra);
         }catch (java.rmi.RemoteException e) {
             System.err.println("Error notifying era changed "+ nickname);
         }
@@ -205,18 +205,34 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         this.currentGamePhase=gamePhase;
+        try {
+            clientStub.gamePhaseChanged(currentGamePhase);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("error notifying game phase "+ nickname);
+        }
+
     }
 
     @Override
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
         this.playerToPlay=null;
         this.playerToPlace=newPlayerToPlace.getNickname();
+        try {
+            clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace));
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("error notifying player to place changed "+ nickname);
+        }
     }
 
     @Override
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
         this.playerToPlace=null;
         this.playerToPlay=newPlayerToPlay.getNickname();
+        try {
+            clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay));
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("error notifying player to play changed "+ nickname);
+        }
 
     }
 
@@ -224,7 +240,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onTopBuildingRefreshed(List<BuildingCard> topCards) {
         this.bottomBuildings=List.copyOf(this.topBuildings);
         this.topBuildings=topCards.stream().map(BuildingDTO::new).toList();
-
+        try {
+            clientStub.topBuildingRefreshed(this.topBuildings);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("error notifying top buildings refreshed "+ nickname);
+        }
     }
 
     @Override

@@ -32,12 +32,12 @@ public class ClientNetworkHandler extends UnicastRemoteObject implements ClientR
     }
 
     @Override
-    public void EraChanged(ERA newEra) throws RemoteException {
+    public void eraChanged(ERA newEra) throws RemoteException {
 
     }
 
     @Override
-    public void GamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
+    public void gamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
 
     }
 

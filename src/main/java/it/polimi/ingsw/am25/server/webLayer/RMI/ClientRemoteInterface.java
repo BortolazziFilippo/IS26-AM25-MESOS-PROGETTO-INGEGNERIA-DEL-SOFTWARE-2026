@@ -1,9 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer.RMI;
 
-import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
-import it.polimi.ingsw.am25.server.model.Board.OfferTile;
-import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
-import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
@@ -17,8 +13,8 @@ public interface ClientRemoteInterface extends Remote {
     void initializeGame(ERA currentEra, GAME_PHASE gamePhase,String PlayerToPlace,String PlayerToPlay) throws RemoteException;
     void gameWinners(List<PlayerDTO> playerDTOSWinner)throws RemoteException;
     void playerAdded(PlayerDTO playerAdded) throws RemoteException;
-    void EraChanged(ERA newEra)throws RemoteException;
-    void GamePhaseChanged(GAME_PHASE gamePhase)throws RemoteException;
+    void eraChanged(ERA newEra)throws RemoteException;
+    void gamePhaseChanged(GAME_PHASE gamePhase)throws RemoteException;
     void playerToPlaceChanged(PlayerDTO playerChanged)throws RemoteException;
     void playerToPlayChanged(PlayerDTO playerChanged)throws RemoteException;
     //Methods update Market;
