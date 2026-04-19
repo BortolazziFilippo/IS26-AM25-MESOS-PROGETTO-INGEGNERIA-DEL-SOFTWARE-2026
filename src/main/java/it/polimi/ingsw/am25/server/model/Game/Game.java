@@ -11,7 +11,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
-import it.polimi.ingsw.am25.server.webLayer.VirtualView;
+import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -522,7 +522,7 @@ public class Game implements GameView {
         notifyEraChanged();
     }
 
-    public void linkObserver(VirtualView vv){
+    public void linkObserver(ServerVirtualView vv){
         this.addObserver(vv);
         board.addObserver(vv);
         market.addObserver(vv);

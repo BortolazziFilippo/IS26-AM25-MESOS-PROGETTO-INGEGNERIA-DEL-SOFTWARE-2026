@@ -17,11 +17,6 @@ public class ClientNetworkHandler extends UnicastRemoteObject implements ClientR
     }
 
     @Override
-    public RemoteRef getRef() {
-        return super.getRef();
-    }
-
-    @Override
     public void initializeGame(ERA currentEra, GAME_PHASE gamePhase, String PlayerToPlace, String PlayerToPlay) throws RemoteException {
 
     }

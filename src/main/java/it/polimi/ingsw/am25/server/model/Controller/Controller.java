@@ -5,7 +5,7 @@ import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
-import it.polimi.ingsw.am25.server.webLayer.VirtualView;
+import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 public class Controller {
     private Game game;
@@ -22,7 +22,7 @@ public class Controller {
         }
 
     }
-    public void linkObserver(VirtualView virtualView){
+    public void linkObserver(ServerVirtualView virtualView){
         game.linkObserver(virtualView);
     }
     /**

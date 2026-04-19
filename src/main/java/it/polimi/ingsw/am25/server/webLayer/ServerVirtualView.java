@@ -20,9 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class VirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
+public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private final String nickname;
     private final ClientRemoteInterface clientStub;
     //_________________________________________________________________________________________
@@ -46,7 +45,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     //_________________________________________________________________________________________
 
 
-    public VirtualView(ClientRemoteInterface clientStub,String nickname) {
+    public ServerVirtualView(ClientRemoteInterface clientStub, String nickname) {
         this.clientStub=clientStub;
         this.nickname=nickname;
     }
@@ -72,7 +71,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         try{
             clientStub.playerUpdateFood(nickname,newFood);
         }catch (java.rmi.RemoteException e) {
-            throw new RuntimeException(e);
+            System.err.println("Error food updating "+ nickname);
         }
     }
 
@@ -84,7 +83,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
             try {
                 clientStub.playerAdded(player);
             } catch (Exception e) {
-                System.err.println("Errore di rete durante la sincronizzazione iniziale con " + nickname);
+                System.err.println("Error sync  " + nickname);
             }
         }
     }
@@ -93,6 +92,7 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
         playersMap.put(nickname,new PlayerDTO(nickname,food,prestigePoint,totem.getColor()));
+
     }
 
     @Override
@@ -101,6 +101,11 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         this.bottomCards=bottomCards.stream().map(Card::toDTO).toList();
         this.topBuildings=topBuildings.stream().map(BuildingDTO::new).toList();
         this.bottomBuildings=new ArrayList<>();
+        try{
+           clientStub.initializeMarket(this.topCards,this.bottomCards,this.topBuildings);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Errore sync market initialized "+ nickname);
+        }
 
     }
 
@@ -110,27 +115,54 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         bottomCards=List.copyOf(this.topCards);
         this.topCards=topCards.stream().map(Card::toDTO).toList();
 
+        try{
+            clientStub.topCardRefreshed(this.topCards);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error sync top card refreshed " + nickname);
+        }
+
     }
 
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
         this.offerTileList=offerTileList.stream().map(OffertileDTO::new).toList();
         this.defaultTileList=defaultTileList.stream().map(DefaultTileDTO::new).toList();
+
+        try{
+            clientStub.boardInitialize(this.offerTileList,this.defaultTileList);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error sync board initialized " + nickname);
+        }
     }
 
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
-        //TODO:notificare ordine di gioco
+        List<PlayerDTO> order=playerOrder.stream().map(PlayerDTO::new).toList();
+        try {
+            clientStub.orderOnDefaultTile(order);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error comunicating playerOrderDefault tile "+ nickname);
+        }
     }
 
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
-    //TODO:notificare giocatore piazzato
+        try {
+            clientStub.playerPlacedOnOffertile(player.getNickname(),tilePosition);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Errore comunicating player placed on offertile "+ nickname);
+        }
+
     }
 
     @Override
     public void gameWinners(List<Player> winners) {
         this.winners=winners.stream().map(PlayerDTO::new).toList();
+        try{
+            clientStub.gameWinners(this.winners);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error notifying game winners");
+        }
     }
 
     @Override
@@ -140,16 +172,33 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
         this.playerToPlace=null;
         this.playerToPlay=null;
 
+        try {
+            clientStub.initializeGame(this.currentEra,this.currentGamePhase,null,null);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error notifying initialize game "+ nickname);
+        }
     }
 
     @Override
     public void onPlayerAdded(Player playerAdded) {
-        playersMap.put(playerAdded.getNickname(),new PlayerDTO(playerAdded));
+        PlayerDTO player=new PlayerDTO(playerAdded);
+        playersMap.put(playerAdded.getNickname(),player);
+        try{
+            clientStub.playerAdded(player);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error notifying player added "+ nickname);
+        }
+
     }
 
     @Override
     public void onEraChanged(ERA currentEra) {
         this.currentEra=currentEra;
+        try {
+            clientStub.EraChanged(this.currentEra);
+        }catch (java.rmi.RemoteException e) {
+            System.err.println("Error notifying era changed "+ nickname);
+        }
 
     }
 
@@ -182,9 +231,19 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
         if(cardType==CARD_TYPE.BUILDING){
             this.topBuildings.remove(position);
-            //TODO:notifica e chiamata a funzione
+            try {
+                clientStub.topBuildRemoved(position);
+            }catch (java.rmi.RemoteException e) {
+                System.err.println("Error notifying card removed "+ nickname);
+            }
+
         }else{
             this.topCards.remove(position);
+            try {
+                clientStub.topCardRemoved(position);
+            }catch (java.rmi.RemoteException e) {
+                System.err.println("Error notifying card removed "+ nickname);
+            }
         }
 
     }
@@ -193,9 +252,18 @@ public class VirtualView implements BoardObserver, GameObserver, MarketObserver,
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
         if(cardType==CARD_TYPE.BUILDING){
             this.bottomBuildings.remove(position);
-            //TODO:notifica e chiamata a funzione
+            try {
+                clientStub.bottomBuildRemoved(position);
+            }catch (java.rmi.RemoteException e) {
+                System.err.println("Error notifying card removed "+ nickname);
+            }
         }else{
             this.bottomCards.remove(position);
+            try {
+                clientStub.bottomCardRemoved(position);
+            }catch (java.rmi.RemoteException e) {
+                System.err.println("Error notifying card removed "+ nickname);
+            }
         }
     }
 }

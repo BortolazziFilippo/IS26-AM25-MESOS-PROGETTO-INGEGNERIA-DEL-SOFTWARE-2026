@@ -8,7 +8,7 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
-import it.polimi.ingsw.am25.server.webLayer.VirtualView;
+import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class Player {
             this.buildingCards = new ArrayList<>();
             this.totem=new Totem(color);
     }
-    public Player(String nickname, COLOR color, VirtualView virtualView) {
+    public Player(String nickname, COLOR color, ServerVirtualView virtualView) {
         this.nickname = nickname;
         this.food=0;
         this.prestigePoint=0;
