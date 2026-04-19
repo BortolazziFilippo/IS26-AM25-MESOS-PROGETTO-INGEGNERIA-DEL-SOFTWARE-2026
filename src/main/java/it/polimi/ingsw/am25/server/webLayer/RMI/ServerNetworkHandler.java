@@ -25,7 +25,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
+    public synchronized void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
         if (requiredPlayers > 0) {
             throw new IllegalStateException("Game already started");
         }
@@ -41,7 +41,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
+    public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
         if (requiredPlayers == 0) {
             throw new GameFullException("Nessuna partita creata!");
         }
@@ -108,25 +108,25 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
+    public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
         Player playerTemp=new Player(playerToPlace.getNickName(),playerToPlace.getColorTotem());
         controller.placingPlayer(playerTemp,position);
     }
 
     @Override
-    public void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
+    public synchronized void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         Player playerTemp=new Player(player);
         controller.selectCardFromTopList(playerTemp,cardType,position);
     }
 
     @Override
-    public void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
+    public synchronized void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
         Player playerTemp=new Player(player);
         controller.selectCardFromBottomList(playerTemp,cardType,position);
     }
 
     @Override
-    public void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException, Exception {
+    public synchronized void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException, Exception {
         Player playerTemp=new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
     }
