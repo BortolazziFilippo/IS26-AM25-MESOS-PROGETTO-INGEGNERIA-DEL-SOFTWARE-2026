@@ -32,11 +32,13 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private List<DefaultTileDTO> defaultTileList;
     //_________________________________________________________________________________________
 
+    // We'll use this lock to pause the client's main thread until the server tells us the lobby is full
+    public final Object gameStartLock = new Object();
+    public boolean isGameStarted = false;
 
     public ClientVirtualView() throws RemoteException {
         super();
     }
-
 
     @Override
     public void initializeGame(ERA currentEra, GAME_PHASE gamePhase, String PlayerToPlace, String PlayerToPlay) throws RemoteException {
@@ -69,6 +71,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void gamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
         this.currentGamePhase=gamePhase;
+
+        // If the server transitions to the PLACING_PHASE, it means everyone joined and we're ready to go!
+        if (gamePhase == GAME_PHASE.PLACING_PHASE) {
+            this.isGameStarted = true;
+            // Wake up the client's main thread that was sleeping on this lock
+            synchronized (gameStartLock) {
+                gameStartLock.notifyAll();
+            }
+        }
     }
 
     @Override
@@ -137,13 +148,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     @Override
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
-        //TODO: aggioranre vista
+        // TODO: update the view
     }
 
     @Override
     public void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile) throws RemoteException {
-        //TODO:aggiorare vista
+        // TODO: update the view
     }
-
-
 }

@@ -9,67 +9,81 @@ import it.polimi.ingsw.am25.server.model.Utilities.Exception.NameOrColorAlreadyT
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
-import javax.xml.transform.Source;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.sql.SQLOutput;
 import java.util.Scanner;
-
 
 public class ClientApp {
 
     public static void main(String[] args) {
         try {
-            // Cerchiamo il Server (Registry) su "localhost" alla porta 1099
+            // Let's find the RMI Registry on the local machine (port 1099 is the default)
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            //Prendiamo il "telecomando" del Server
+            // Grab the server's remote stub so we can send commands to it
             ServerRemoteInterface serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
-            // Creiamo il NOSTRO ricevitore (che faremo controllare al server)
+            // Create our local receiver (the virtual view) that the server will use to push updates to us
             ClientVirtualView clientHandler = new ClientVirtualView();
             Scanner scanner = new Scanner(System.in);
 
-            while (true) {
-                // 1. PULISCE LO SCHERMO PRIMA DI STAMPARE IL MENU
+            boolean inGame = false;
+
+            // MAIN MENU LOOP: We'll stay trapped in this loop until we successfully enter a game
+            while (!inGame) {
                 clearScreen();
                 System.out.println("--- MENU PRINCIPALE ---");
                 System.out.println("Inserisci l'azione che vuoi compiere:");
                 System.out.println("1 - Crea gioco");
                 System.out.println("2 - Entra in una partita");
-                System.out.println("3 - Pesca una carta da sopra");
-                System.out.println("4 - Pesca una carta da sotto");
                 System.out.print("Scelta: ");
 
                 String scelta = scanner.nextLine();
 
                 switch (scelta) {
                     case "1":
-                        createGame(serverStub, clientHandler);
+                        // If the game creation goes smoothly, we pause and wait for the lobby to fill up
+                        if (createGame(serverStub, clientHandler)) {
+                            waitForGameStart(clientHandler);
+                            inGame = true; // Break out of the main menu loop
+                        } else {
+                            System.out.println("\nPremi INVIO per continuare...");
+                            scanner.nextLine();
+                        }
                         break;
                     case "2":
-                        clearScreen();
-                        System.out.println("Hai scelto: Entra in una partita.");
-                        addPlayer(serverStub,clientHandler);
-                        break;
-                    case "3":
-                        clearScreen();
-                        System.out.println("Hai scelto: Pesca una carta da sopra.");
-                        // Chiedi il tipo di carta, la posizione e chiama serverStub.selectCardFromTopList(...)
-                        break;
-                    case "4":
-                        clearScreen();
-                        System.out.println("Hai scelto: Pesca una carta da sotto.");
-                        // Chiedi il tipo di carta, la posizione e chiama serverStub.selectCardFromBottomList(...)
+                        // Same here: if joining is successful, we wait for the host to start or the lobby to fill
+                        if (addPlayer(serverStub, clientHandler)) {
+                            waitForGameStart(clientHandler);
+                            inGame = true; // Break out of the main menu loop
+                        } else {
+                            System.out.println("\nPremi INVIO per continuare...");
+                            scanner.nextLine();
+                        }
                         break;
                     default:
                         System.out.println("❌ Scelta non valida. Riprova.");
+                        System.out.println("\nPremi INVIO per continuare...");
+                        scanner.nextLine();
                         break;
                 }
+            }
 
-                // 2. PAUSA PRIMA DI RICOMINCIARE IL CICLO (E PULIRE DI NUOVO)
-                System.out.println("\nPremi INVIO per continuare...");
+            // ==========================================================
+            // THE GAME IS ON!
+            // From this point forward, we are actually playing.
+            // ==========================================================
+            while (true) {
+                clearScreen();
+                System.out.println("--- TURNO DI GIOCO ---");
+                System.out.println("1 - Piazza Totem (Fase Piazzamento)");
+                System.out.println("2 - Pesca carta da sopra (Fase Azioni)");
+                System.out.println("3 - Pesca carta da sotto (Fase Azioni)");
+                System.out.println("4 - Passa il turno");
+                System.out.print("Scegli: ");
+                // Keep the scanner open to read the actual moves later
                 scanner.nextLine();
             }
+
         } catch (Exception e) {
             System.err.println("Errore di connessione:");
             e.printStackTrace();
@@ -77,7 +91,36 @@ public class ClientApp {
     }
 
     /**
-     * this method clears the screen
+     * Helper method: Pauses the client thread without burning CPU cycles until
+     * the server fires the 'game started' event.
+     */
+    private static void waitForGameStart(ClientVirtualView clientHandler) {
+        System.out.println("\n⏳ In attesa che si connettano gli altri giocatori...");
+
+        synchronized (clientHandler.gameStartLock) {
+            // Keep waiting as long as the game hasn't started.
+            // The while loop protects us against spurious wakeups (a known Java thread quirk).
+            while (!clientHandler.isGameStarted) {
+                try {
+                    // Put this thread to sleep. It will be awakened by the notifyAll() in the VirtualView
+                    clientHandler.gameStartLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        // At this point, the thread is awake and the game has started!
+        clearScreen();
+        System.out.println("🎉 GIOCO INIZIATO! 🎉");
+        System.out.println("Tutti i giocatori sono connessi.");
+        System.out.println("\nPremi INVIO per entrare nella plancia di gioco...");
+        new Scanner(System.in).nextLine();
+    }
+
+    /**
+     * Clears the console by printing empty lines.
+     * It's a quick hack, but it works flawlessly across all OS terminals and IDEs.
      */
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
@@ -94,6 +137,7 @@ public class ClientApp {
             try {
                 numOfPlayers = Integer.parseInt(input);
 
+                // Check bounds before proceeding
                 if (numOfPlayers >= 2 && numOfPlayers <= 5) {
                     break;
                 } else {
@@ -107,7 +151,7 @@ public class ClientApp {
     }
 
     private static COLOR bindColor() {
-        // Scanner portato fuori dal loop per maggiore sicurezza
+        // Keeping the scanner outside the loop to avoid memory leaks or input stream issues
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("\nScegli colore totem:");
@@ -131,8 +175,7 @@ public class ClientApp {
         }
     }
 
-    private static void createGame(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) {
-        // Pulisce lo schermo per mostrare un'interfaccia di creazione pulita
+    private static boolean createGame(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) {
         clearScreen();
         System.out.println("--- CREAZIONE PARTITA ---");
 
@@ -143,39 +186,46 @@ public class ClientApp {
         COLOR colorTotem = bindColor();
         PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
 
-        System.out.println(); // Spazio vuoto per estetica
+        System.out.println(); // Just some aesthetic spacing
         int playerNumber = numberOfPlayer();
 
         try {
             serverRemoteInterface.createGame(player, playerNumber, clientRemoteInterface);
             System.out.println("\n✅ Partita creata con successo!");
+            return true; // We're good to go!
         } catch (RemoteException e) {
             System.err.println("\n❌ Errore comunicazione con il Server.");
         } catch (IllegalStateException e) {
             System.err.println("\n❌ Errore: lobby già presente, usa l'opzione 'Entra in una partita'.");
         }
+        return false; // Something went wrong, return to main menu
     }
 
-    private static void addPlayer(ServerRemoteInterface serverRemoteInterface,ClientRemoteInterface clientRemoteInterface){
+    private static boolean addPlayer(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) {
         clearScreen();
         System.out.println("--- AGGIUNTA GIOCATORE ---");
         System.out.print("Inserisci nome giocatore: ");
         Scanner scanner = new Scanner(System.in);
         String nickname = scanner.nextLine();
+
         COLOR colorTotem = bindColor();
         PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
-        System.out.println(); // Spazio vuoto per estetica
-        try{
-            serverRemoteInterface.addPlayer(player,clientRemoteInterface);
+
+        System.out.println(); // Just some aesthetic spacing
+
+        try {
+            serverRemoteInterface.addPlayer(player, clientRemoteInterface);
             System.out.println("\n✅ Unito alla partita con successo");
+            return true; // Successfully joined!
         } catch (RemoteException e) {
             System.err.println("\n❌ Errore: comunicazione con server");
         } catch (GameFullException e) {
-            System.err.println("\n❌ Errore: Lobby piena, non possibile aggiungersi");
-        }catch(NameOrColorAlreadyTakenException e){
-            System.err.println("\n❌ Errore: Nome o colore totem gia preso");
-        }catch (GameStartedException e){
-            System.err.println("\n❌ Errore: Partita gia in corso");
+            System.err.println("\n❌ Errore: Lobby piena, non è possibile aggiungersi");
+        } catch (NameOrColorAlreadyTakenException e) {
+            System.err.println("\n❌ Errore: Nome o colore totem già preso");
+        } catch (GameStartedException e) {
+            System.err.println("\n❌ Errore: Partita già in corso");
         }
+        return false; // Failed to join, go back to main menu
     }
 }
