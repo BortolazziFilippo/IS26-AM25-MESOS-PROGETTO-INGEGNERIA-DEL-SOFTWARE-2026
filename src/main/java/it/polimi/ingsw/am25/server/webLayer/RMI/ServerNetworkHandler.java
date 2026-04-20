@@ -10,6 +10,7 @@ import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,9 +30,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         if (requiredPlayers > 0) {
             throw new IllegalStateException("Game already started");
         }
-
         this.requiredPlayers = playerNumber;
-
         // Creo la VirtualView per l'Host e gli associo il suo telecomando!
         ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, playerHost.getNickName());
         waitingPlayers.add(hostView);
@@ -91,7 +90,12 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
             // Create and add the new player by pairing their DTO with their View
             Player newPlayer = new Player(currentDTO.getNickName(), currentDTO.getColorTotem(), currentView);
-            controller.addPlayer(newPlayer);
+            try {
+                controller.addPlayer(newPlayer);
+            } catch (GameReadyToStartException e) {
+                System.out.println("Game full, starting now");
+            }
+
         }
 
         System.out.println("All players successfully added to the Model!");
