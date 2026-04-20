@@ -5,15 +5,17 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerDTO implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private String nickName;
     private int food;
     private int prestigePoint;
     private COLOR colorTotem;
-    //TODO:METTERE COLOR TOTEM
+    private List<CardDTO> cardDtoList=new ArrayList<>();
 
     public String getNickName() {
         return nickName;
@@ -37,6 +39,10 @@ public class PlayerDTO implements Serializable {
 
     public void setPrestigePoint(int prestigePoint) {
         this.prestigePoint = prestigePoint;
+    }
+
+    public void addCardToTribe(CardDTO cardDTO){
+        cardDtoList.add(cardDTO);
     }
 
     /**

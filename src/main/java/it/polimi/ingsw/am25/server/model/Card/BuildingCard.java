@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public class BuildingCard extends Card {
@@ -100,6 +101,6 @@ public class BuildingCard extends Card {
 
     @Override
     public CardDTO toDTO() {
-        throw new IllegalStateException("Cannot call this method");
+        return new BuildingDTO(this);
     }
 }

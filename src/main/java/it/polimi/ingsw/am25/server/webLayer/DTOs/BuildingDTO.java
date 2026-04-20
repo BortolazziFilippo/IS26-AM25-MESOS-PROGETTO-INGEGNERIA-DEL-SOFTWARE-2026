@@ -7,17 +7,17 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import java.io.Serial;
 import java.io.Serializable;
 
-public class BuildingDTO implements Serializable {
+public class BuildingDTO extends CardDTO implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private  int buildingID;
     private  int foodCost;
     private  int endGamePP;
     private  EVENT_TYPE applyOn;
-    private  ERA era;
 
     public BuildingDTO(BuildingCard buildingCard) {
         this.buildingID = buildingCard.getBuildingID();
+        super(buildingCard.getEra());
     }
 
 
@@ -31,10 +31,6 @@ public class BuildingDTO implements Serializable {
 
     public EVENT_TYPE getApplyOn() {
         return applyOn;
-    }
-
-    public ERA getEra() {
-        return era;
     }
 
     public int getBuildingID() {

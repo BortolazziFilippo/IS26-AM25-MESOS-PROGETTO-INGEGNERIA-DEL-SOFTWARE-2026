@@ -28,6 +28,7 @@ public interface ClientRemoteInterface extends Remote {
     //Methods update player
     void playerUpdateFood(String nickname, int food)throws RemoteException;
     void playerUpdatePP(String nickname, int PP)throws RemoteException;
+    void addedCardToTribe(String nickname, CardDTO cardDTO)throws RemoteException;
     //method update board
     void boardInitialize(List<OffertileDTO> offerTileList, List<DefaultTileDTO> defaultTileList)throws RemoteException;
     void playerPlacedOnOffertile(String PlayerNickname,int offertilePosition)throws RemoteException;

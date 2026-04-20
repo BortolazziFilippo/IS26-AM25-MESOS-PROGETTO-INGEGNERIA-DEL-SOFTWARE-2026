@@ -151,7 +151,7 @@ public class Player {
      */
     public void addCardToTribe(Card card){
         this.tribe.add(card);
-        notifyPlayerChanged();//here it notifies the changes
+        notifyCardAdded(card);
     }
 
     /**
@@ -160,7 +160,7 @@ public class Player {
      */
     public void addBuilding(BuildingCard buildingCard){
         this.buildingCards.add(buildingCard);
-        notifyPlayerChanged();//here it notifies the changes
+        notifyCardAdded(buildingCard);
     }
     /**
      * Returns the player's current food amount.
@@ -343,6 +343,12 @@ public class Player {
     private void notifyPPChanged(){
         for(PlayerObserver observer:observers){
             observer.notifyPPChanged(this.nickname,prestigePoint);
+        }
+    }
+
+    private void notifyCardAdded(Card cardAdded){
+        for(PlayerObserver observer:observers){
+            observer.notifyCardAddedToTribe(this.nickname,cardAdded);
         }
     }
 

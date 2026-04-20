@@ -117,6 +117,13 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     @Override
+    public void addedCardToTribe(String nickname, CardDTO cardDTO) {
+        PlayerDTO temp= playersMap.get(nickname);
+        temp.addCardToTribe(cardDTO);
+        playersMap.put(temp.getNickName(),temp);
+    }
+
+    @Override
     public void topCardRemoved(int position) throws RemoteException {
         this.topCards.remove(position);
     }

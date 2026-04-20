@@ -16,6 +16,7 @@ import it.polimi.ingsw.am25.server.model.Player.Totem;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -285,5 +286,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
                 System.err.println("Error notifying card removed "+ nickname);
             }
         }
+    }
+
+    @Override
+    public void notifyCardAddedToTribe(String playername, Card cardAdded) {
+        try {
+            clientStub.addedCardToTribe(playername,cardAdded.toDTO());
+        } catch (RemoteException e) {
+            System.err.println("Error notifying card added to tribe");
+        }
+
     }
 }
