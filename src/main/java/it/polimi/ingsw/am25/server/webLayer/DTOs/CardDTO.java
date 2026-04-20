@@ -31,6 +31,10 @@ public class CardDTO implements Serializable {
         this.cardType = card.getCardType();
     }
 
+    public CardDTO(ERA era){
+        this.era=era;
+
+    }
     /**
      * Constructs a CardDTO from a {@link GathererCard}.
      *

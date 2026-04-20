@@ -45,6 +45,7 @@ public class Controller {
 
     public void controllerGameStar(){
         game.gameStart();
+        game.notifyChanges();
     }
 
 

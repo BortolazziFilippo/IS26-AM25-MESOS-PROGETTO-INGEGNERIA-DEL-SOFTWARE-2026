@@ -529,6 +529,10 @@ public class Game implements GameView {
         market.addObserver(vv);
     }
 
+    public void notifyChanges(){
+        this.market.notifyMarketChanged();
+        this.board.notifyBoardChanged();
+    }
 
 }
 
