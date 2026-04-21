@@ -13,8 +13,8 @@ public class DefaultTile extends Tile {
      * @param foodPerSlotPosition food added (positive) or subtracted (negative) when a player occupies this tile
      */
     public DefaultTile( int foodPerSlotPosition ) {
-        this.foodPerSlotPosition=foodPerSlotPosition;
         super(null);
+        this.foodPerSlotPosition=foodPerSlotPosition;
     }
 
     /**

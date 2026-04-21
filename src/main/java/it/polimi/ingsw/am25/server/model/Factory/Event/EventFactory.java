@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Card.EventCard;
 import it.polimi.ingsw.am25.server.model.Effect.Event.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.EventDTO;
 
 import java.io.InputStream;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventFactory {
+    private static final String LOG_PREFIX = "[SERVER][EVENT_FACTORY]";
+
     public EventFactory() {
     }
 
@@ -79,8 +82,12 @@ public class EventFactory {
                 eventEffect=new ShamanEvent(15,-7);
                 break;
             default:
-                System.err.println(getClass()+"Errore associazione eventi");
+                logServerError("Unrecognised event ID: " + eventCard.getEventID());
         }
         return eventEffect ;
+    }
+
+    private void logServerError(String message) {
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 }

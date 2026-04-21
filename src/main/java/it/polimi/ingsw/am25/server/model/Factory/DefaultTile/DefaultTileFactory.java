@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.model.Factory.DefaultTile;
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
 import it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultTileFactory {
+    private static final String LOG_PREFIX = "[SERVER][DEFAULT_TILE_FACTORY]";
 
     public DefaultTileFactory() {
     }
@@ -31,7 +33,7 @@ public class DefaultTileFactory {
                 inputStream= DeckFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerDefaultTile.json");
                 break;
             default:
-                System.err.println(getClass() +": Errore numero giocatori");
+                logServerError("Invalid player number: " + playerNumber);
         }
         if(inputStream==null){
             throw new RuntimeException(getClass()+" errore apertura file");
@@ -41,5 +43,9 @@ public class DefaultTileFactory {
         DefaultTile[] defaultTiles= gson.fromJson(reader,DefaultTile[].class);
         return new ArrayList<>(Arrays.stream(defaultTiles).toList());
 
+    }
+
+    private void logServerError(String message) {
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 }

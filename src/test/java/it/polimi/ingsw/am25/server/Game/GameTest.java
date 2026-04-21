@@ -137,19 +137,19 @@ class GameTest {
     void testAddPlayer() {
         //test the player count, which should initially be 1 (host only)
         assertEquals(1, game.getPlayerList().size());
-        assertEquals(List.of(host), game.getPlayerList());
+        assertTrue(game.getPlayerList().contains(host));
 
         //normal addition of a second player
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertEquals(2, game.getPlayerList().size());
-        assertEquals(List.of(host, player2), game.getPlayerList());
+        assertTrue(game.getPlayerList().containsAll(List.of(host, player2)));
 
         // when the lobby is full, an exception is thrown but the player is still added
         GameReadyToStartException ex = assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
         assertEquals("The lobby is full, game can start", ex.getMessage());
         assertEquals(3, game.getPlayerList().size());
-        assertEquals(List.of(host, player2, player3), game.getPlayerList());
+        assertTrue(game.getPlayerList().containsAll(List.of(host, player2, player3)));
     }
 
     @Test
@@ -258,7 +258,7 @@ class GameTest {
 
         //verify that there is only one winner
         assertEquals(1, winners.size());
-        assertEquals(player2, winners.getFirst());
+        assertEquals(player2, winners.get(0));
 
         //tiebreaker case: food decides the winner
         //reset and create a new game for convenience
@@ -283,7 +283,7 @@ class GameTest {
 
         //verify that host is the sole winner
         assertEquals(1, winners.size());
-        assertEquals(host, winners.getFirst());
+        assertEquals(host, winners.get(0));
 
         //tie on both PP and food, so multiple winners are expected
         //reset again

@@ -16,8 +16,8 @@ public class BuildingDTO extends CardDTO implements Serializable {
     private  EVENT_TYPE applyOn;
 
     public BuildingDTO(BuildingCard buildingCard) {
-        this.buildingID = buildingCard.getBuildingID();
         super(buildingCard.getEra());
+        this.buildingID = buildingCard.getBuildingID();
     }
 
 

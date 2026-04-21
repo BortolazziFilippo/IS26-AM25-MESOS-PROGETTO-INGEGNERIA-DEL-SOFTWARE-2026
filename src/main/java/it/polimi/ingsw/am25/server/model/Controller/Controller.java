@@ -36,10 +36,14 @@ public class Controller {
      *
      * @param player player to add
      */
-    //TODO: add an exception for the case where a game is already in progress
-    public void addPlayer(Player player) throws GameReadyToStartException {
+    public void addPlayer(Player player) {
         if (game.getGamePhase() == GAME_PHASE.SETUP) {
-            game.addPlayer(player);
+            try {
+                game.addPlayer(player);
+            } catch (GameReadyToStartException e) {
+                game.gameStart();
+                game.notifyChanges();
+            }
         }
     }
 

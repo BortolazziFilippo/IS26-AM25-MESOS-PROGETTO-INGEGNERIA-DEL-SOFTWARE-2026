@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.rmi.RemoteException;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
+    private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
     private List<PlayerDTO> playerDTOS=new ArrayList<>();
     private Controller controller;
@@ -31,12 +33,12 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             throw new IllegalStateException("Game already started");
         }
         this.requiredPlayers = playerNumber;
-        // Creo la VirtualView per l'Host e gli associo il suo telecomando!
+        // Create the VirtualView for the host and bind their remote interface.
         ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, playerHost.getNickName());
         waitingPlayers.add(hostView);
         playerDTOS.add(playerHost);
 
-        System.out.println(playerHost.getNickName() + " Game created for " + playerNumber);
+        logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
     }
 
     @Override
@@ -51,20 +53,20 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             throw new NameOrColorAlreadyTakenException("Errore: Nickname o colore del Totem già in uso!");
         }
 
-        // Creo la VirtualView per il nuovo giocatore
+        // Create the VirtualView for the new player and bind their remote interface.
         ServerVirtualView playerView = new ServerVirtualView(clientRemoteInterface, playerDTO.getNickName());
         waitingPlayers.add(playerView);
         playerDTOS.add(playerDTO);
-        System.out.println(playerDTO.getNickName() + " si è unito! (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
+        logServerEvent("Player '" + playerDTO.getNickName() + "' joined (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
 
-        // Se siamo tutti, avviamo il gioco!
+        // All players are in — start the game!
         if (waitingPlayers.size() == requiredPlayers) {
             isGameStarted = true;
             setupAndStartGame();
         }
     }
     private void setupAndStartGame() {
-        System.out.println("Game starting! Creating Controller and Game...");
+        logServerEvent("All players ready. Setting up the game...");
         Controller controller = new Controller();
 
         // CRUCIAL SAVE: We save the controller so other RMI methods
@@ -72,8 +74,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         this.controller = controller;
 
         // 1. Extract the Host data (they are always at position 0)
-        PlayerDTO hostDTO = playerDTOS.getFirst();
-        ServerVirtualView hostView = waitingPlayers.getFirst();
+        PlayerDTO hostDTO = playerDTOS.get(0);
+        ServerVirtualView hostView = waitingPlayers.get(0);
 
         // 2. Create the Host player and initialize the game in the Model
         Player playerHost = new Player(hostDTO.getNickName(), hostDTO.getColorTotem(), hostView);
@@ -90,24 +92,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
             // Create and add the new player by pairing their DTO with their View
             Player newPlayer = new Player(currentDTO.getNickName(), currentDTO.getColorTotem(), currentView);
-            try {
-                controller.addPlayer(newPlayer);
-            } catch (GameReadyToStartException e) {
-                System.out.println("Game full, starting now");
-            }
-
+            controller.addPlayer(newPlayer);
         }
 
-        System.out.println("All players successfully added to the Model!");
+        logServerEvent("All players added to the model. Synchronizing initial state to clients...");
         // ----------------------------------------------------------------
         // 5. MASS INITIAL SYNCHRONIZATION ON CLIENTS
         // ----------------------------------------------------------------
-        System.out.println("Synchronizing initial state on clients...");
         for (ServerVirtualView view : waitingPlayers) {
             // Pass the complete list of PlayerDTOs to EVERY VirtualView
             view.forceInitialPlayersSync(this.playerDTOS);
         }
-        System.out.println("All clients are synced. The game is ready!");
+        logServerEvent("All clients synced. The game is ready!");
         controller.controllerGameStar();
     }
 
@@ -133,5 +129,9 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     public synchronized void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException, Exception {
         Player playerTemp=new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
+    }
+
+    private void logServerEvent(String message) {
+        System.out.println(LOG_PREFIX + " " + message);
     }
 }

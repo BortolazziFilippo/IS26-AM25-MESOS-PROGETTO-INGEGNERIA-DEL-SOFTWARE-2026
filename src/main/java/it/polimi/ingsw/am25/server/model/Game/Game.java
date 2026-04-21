@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 
 public class Game implements GameView {
+    private static final String LOG_PREFIX = "[SERVER][GAME]";
     private ERA currentEra = ERA.ERA_I;
     private Board board;
     private BoardView boardView;
@@ -88,14 +89,17 @@ public class Game implements GameView {
      * - it sets the game to the next phase, it notifies the player updating the views
      */
     public void gameStart() {
+        if (gamePhase != GAME_PHASE.SETUP) {
+            return;
+        }
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
         for (Player player : players.values().stream().toList()) {
             try{
-                board.placePlayerOnDefaultTile(player, random.getFirst());
+                board.placePlayerOnDefaultTile(player, random.get(0));
             } catch (TileOccupiedException e) {
                 throw new RuntimeException(getClass()+" Errore gamestart placePlayer");
             }
-            random.removeFirst();
+            random.remove(0);
         }
         turnManager.updatePlacingOrder();
         try {
@@ -110,18 +114,19 @@ public class Game implements GameView {
     }
 
     /**
-     * this method try placing a player on the selected position, in case something goes wrong it throws exception (look in the methods called to see more)
-     * if is detected that all the player are placed it set the game to the next phases
+     * Places a player on an offer tile during the placing phase.
+     * If all players have already placed, it signals the end of placing phase.
      *
-     * @param player   player to place
-     * @param position position to place the player
-     * @throws IndexOutOfBoundsException postion not valid
-     * @throws TileOccupiedException     tile already occupied
+     * @param player player to place
+     * @param position target offer-tile index
+     * @throws IndexOutOfBoundsException if the position is not valid
+     * @throws TileOccupiedException if the target tile is already occupied
      */
     public void placePlayer(Player player, int position) throws IndexOutOfBoundsException, TileOccupiedException,EndOfPlacingPhaseException {
         Player player1=players.get(player.getNickname());
         board.placePlayerOnOffertile(player1, position);
-        //dopo che il giocatore si è posizionato prova a impostare il prossimo, se non ci sono prossimi tutti hanno posizionato
+        logServerEvent("Player '" + player1.getNickname() + "' placed on offer tile position " + position);
+        // Try to set the next placing player; if there is none, placing phase is over.
         try {
             this.playerToPlace = turnManager.getNextPlacingPlayer();
         } catch (EndOfPlacingPhaseException e) {
@@ -143,8 +148,8 @@ public class Game implements GameView {
             throw new RuntimeException(getClass()+" errore transizione placing->playing");
         }
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
-        //in caso il player sia sulla casella A questo non ha azioni da svolgere, aggiunge 3 di cibo
-        //questo controllo si fa solo prima volta, in caso ci sia un giocatore sopra casella A questo deve essere il primo per forza
+        // If the player is on tile A, they have no actions and only gain food.
+        // This check is needed only for the first playing player.
         checkPlayerOfferTile(playerToPlay);
         if(this.gamePhase==GAME_PHASE.LAST_ROUND_PLACING_PHASE){
             gamePhase=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION;
@@ -157,15 +162,15 @@ public class Game implements GameView {
     }
 
     /**
-     * this method checks if a player is on the offertile with ID A, in case it adds the food
-     * and goes to the next player.
-     * only the first player can be on the offerTileA
+     * Checks whether the given player is on offer tile A.
+     * If so, grants the tile-A food bonus and advances to the next player.
      *
      * @param player player to check
      */
     private void checkPlayerOfferTile(Player player) {
         if (offertilePlayerIsOn.getOfferTileID() == 'A') {
             player.manageFoodAndPP(UtilitiesConstant.FOOD_OFFERTILE_A);
+            logServerEvent("Player '" + player.getNickname() + "' received " + UtilitiesConstant.FOOD_OFFERTILE_A + " food from offer tile A");
             try {
                 this.playerToPlay = turnManager.getNextPlayingPlayer();
             }catch (EndOfPlayingPhaseException e) {
@@ -199,8 +204,8 @@ public class Game implements GameView {
         Player topWinner = winners.get(0);
 
         List<Player> winningPlayers = new ArrayList<>();
-        if(winners.getFirst().getPrestigePoint() == winners.get(1).getPrestigePoint()){
-            if(winners.getFirst().getFood() == winners.get(1).getFood()){
+        if(winners.get(0).getPrestigePoint() == winners.get(1).getPrestigePoint()){
+            if(winners.get(0).getFood() == winners.get(1).getFood()){
                 winningPlayers = winners.stream()
                         .filter(player -> player.getPrestigePoint() == topWinner.getPrestigePoint()
                         && player.getFood() == topWinner.getFood())
@@ -225,20 +230,19 @@ public class Game implements GameView {
      * If the game is already in END_GAME, delegates to {@link #endGameIter()}.
      * @throws EndGameException when the game is finished
      */
-    //da aggiungere il caso venga rilevata una deckFinished, bisogna impostare gamePhase alla fine
     public void nextRoundIter() throws EndGameException{
         if(this.gamePhase!=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
-            //se viene rilevata deck finished exception vuol dire che il deck è finito
-            //rimane quindi ancora un round da fare, dopodiché, quando verrà chiamato questo metodo nuovametne
-            //lancera l'endgame iter, quindi lancio eventi finali e conteggio punti
+            // If the deck is exhausted, there is one final round before end-game scoring.
             board.returnOnDefaultTiles();
             players.values().forEach(Player::triggerEndRoundBuilding);
             try {
                 market.endOfRoundMarketActions();
                 this.gamePhase=GAME_PHASE.PLACING_PHASE;
+                logServerEvent("Round ended. Advancing to PLACING_PHASE");
                 notifyGamePhaseChanged();
             }catch (DeckFinishedException e) {
-                this.gamePhase=GAME_PHASE.LAST_ROUND_PLACING_PHASE;//qui imposto il valore a last round
+                this.gamePhase=GAME_PHASE.LAST_ROUND_PLACING_PHASE;
+                logServerEvent("Deck exhausted. Advancing to LAST_ROUND_PLACING_PHASE");
                 notifyGamePhaseChanged();
             }
         }else{
@@ -280,6 +284,7 @@ public class Game implements GameView {
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
             default -> market.selectCardFromTopList(position, player1);
         }
+        logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from top list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneTopAction();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
             throw new NoMoreActionToDo();
@@ -331,6 +336,7 @@ public class Game implements GameView {
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
             default -> market.selectCardFromBottomList(position, player1);
         }
+        logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from bottom list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
             throw new NoMoreActionToDo();
@@ -346,6 +352,7 @@ public class Game implements GameView {
     public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
         this.playerToPlay = turnManager.getNextPlayingPlayer();
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
+        logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
         notifyPlayerToPlayChanged();
     }
 
@@ -383,7 +390,7 @@ public class Game implements GameView {
      */
     public Market getMarket() {
         return this.market;
-    } // da aggiungere in UML
+    }
 
     /**
      * Returns the board instance for this game.
@@ -534,6 +541,8 @@ public class Game implements GameView {
         this.board.notifyBoardChanged();
     }
 
+    private void logServerEvent(String message) {
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
+    }
+
 }
-
-

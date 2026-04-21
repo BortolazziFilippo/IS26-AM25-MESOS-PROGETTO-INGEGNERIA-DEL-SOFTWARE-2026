@@ -31,7 +31,7 @@ public class ThreeMoreShamanStar extends BuildingEffect{
             player.addCardToTribe(new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE));
             flag = true;
         }else{
-            player.getTribe().removeLast();
+            player.getTribe().remove(player.getTribe().size() - 1);
             flag = false;
         }
     }

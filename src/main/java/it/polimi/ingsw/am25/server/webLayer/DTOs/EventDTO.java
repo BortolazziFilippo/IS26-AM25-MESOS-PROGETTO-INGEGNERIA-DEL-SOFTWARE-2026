@@ -15,14 +15,14 @@ public class EventDTO extends CardDTO implements Serializable {
     private  EVENT_TYPE eventType;
 
     public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
+        super(era);
         this.eventID = eventID;
         this.eventType = eventType;
-        super(era);
     }
     public EventDTO(EventCard eventCard) {
+        super(eventCard.getEra());
         this.eventID = eventCard.getEventID();
         this.eventType = eventCard.getEventType();
-        super(eventCard.getEra());
     }
 
     public int getEventID() {

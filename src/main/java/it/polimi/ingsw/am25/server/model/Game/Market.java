@@ -143,9 +143,9 @@ public class Market {
                 throw new DeckFinishedException();
             }
             //Extract the first card from the deck end add it to the top card list and then remove it from the deck
-            cardToAdd=deck.getFirst();
+            cardToAdd=deck.get(0);
             topCardList.add(cardToAdd);
-            deck.removeFirst();
+            deck.remove(0);
         }
         if (cardToAdd!=null){
             //check if the last drawn card is from a different ERA, if so it launches a ChangedEraException notifying the caller

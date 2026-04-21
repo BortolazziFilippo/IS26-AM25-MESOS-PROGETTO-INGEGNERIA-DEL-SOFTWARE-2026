@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.model.Effect.Building;
 import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Card.InventorCard;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
  * added to the tribe since the last time this effect was evaluated.
  */
 public class FoodOnNewCoupleInventors extends BuildingEffect {
+    private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private List<Card> beforeTurnCards = new ArrayList<>();
     private List<InventorCard> pairsCards = new ArrayList<>();
 
@@ -60,8 +62,12 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
             player.manageFoodAndPP(3*count);
         }
         else{
-            System.out.println("Non ci sono coppie di carte d'inventori che abbiano la stessa icona");
+            logServerEvent("No matching Inventor card pairs found this turn");
         }
 
+    }
+
+    private void logServerEvent(String message) {
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 }

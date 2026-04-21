@@ -19,8 +19,8 @@ class OfferTileFactoryTest {
         List<OfferTile> offerTiles= offerTileFactory.offertileBuilder(2);
         assertEquals(4,offerTiles.size());
 
-        assertEquals('B',offerTiles.getFirst().getOfferTileID());
-        assertEquals(new Action(0,1),offerTiles.getFirst().getActionAvailable());
+        assertEquals('B',offerTiles.get(0).getOfferTileID());
+        assertEquals(new Action(0,1),offerTiles.get(0).getActionAvailable());
 
         assertEquals('C',offerTiles.get(1).getOfferTileID());
         assertEquals(new Action(1,0),offerTiles.get(1).getActionAvailable());
@@ -34,7 +34,7 @@ class OfferTileFactoryTest {
         //TWO PLAYER
         offerTiles= offerTileFactory.offertileBuilder(3);
         assertEquals(5,offerTiles.size());
-        assertEquals('B',offerTiles.getFirst().getOfferTileID());
+        assertEquals('B',offerTiles.get(0).getOfferTileID());
         assertEquals('C',offerTiles.get(1).getOfferTileID());
 
         assertEquals('D',offerTiles.get(2).getOfferTileID());
@@ -46,7 +46,7 @@ class OfferTileFactoryTest {
         //TWO PLAYER
         offerTiles= offerTileFactory.offertileBuilder(4);
         assertEquals(6,offerTiles.size());
-        assertEquals('B',offerTiles.getFirst().getOfferTileID());
+        assertEquals('B',offerTiles.get(0).getOfferTileID());
         assertEquals('C',offerTiles.get(1).getOfferTileID());
         assertEquals('D',offerTiles.get(2).getOfferTileID());
         assertEquals('E',offerTiles.get(3).getOfferTileID());
@@ -58,7 +58,7 @@ class OfferTileFactoryTest {
         //TWO PLAYER
         offerTiles= offerTileFactory.offertileBuilder(5);
         assertEquals(7,offerTiles.size());
-        assertEquals('A',offerTiles.getFirst().getOfferTileID());
+        assertEquals('A',offerTiles.get(0).getOfferTileID());
         assertEquals(new Action(0,0),offerTiles.get(0).getActionAvailable());
         assertEquals('B',offerTiles.get(1).getOfferTileID());
         assertEquals('C',offerTiles.get(2).getOfferTileID());

@@ -2,11 +2,61 @@ package it.polimi.ingsw.am25.server.model.Utilities;
 
 import it.polimi.ingsw.am25.server.model.Card.Card;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface UtilitiesFunction {
+    String LOG_PREFIX = "[SERVER][UTILS]";
+    String LOG_FILE = "server.log";
+    DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    AtomicReference<PrintWriter> LOG_WRITER = new AtomicReference<>(null);
+
+    /**
+     * Initialises (or resets) the log file. Call once at server startup.
+     * Every call truncates the previous content.
+     */
+    static void initLog() {
+        try {
+            PrintWriter old = LOG_WRITER.getAndSet(new PrintWriter(new FileWriter(LOG_FILE, false)));
+            if (old != null) {
+                old.close();
+            }
+        } catch (IOException e) {
+            System.err.println("[ERROR] Failed to initialise log file: " + e.getMessage());
+        }
+    }
+
+    static void logInfo(String prefix, String message) {
+        String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + " " + message;
+        System.out.println(line);
+        PrintWriter writer = LOG_WRITER.get();
+        if (writer != null) {
+            writer.println(line);
+            writer.flush();
+        }
+    }
+
+    static void logError(String prefix, String message) {
+        String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + "[ERROR] " + message;
+        System.err.println(line);
+        PrintWriter writer = LOG_WRITER.get();
+        if (writer != null) {
+            writer.println(line);
+            writer.flush();
+        }
+    }
+
+    static void logError(String message) {
+        logError(LOG_PREFIX, message);
+    }
+
     static int bindCorrectNumberOfTopListCard(int playerNumber) {
         return switch (playerNumber) {
             case 2 -> UtilitiesConstant.TWO_PLAYER_TOP_CARD;
@@ -14,7 +64,7 @@ public interface UtilitiesFunction {
             case 4 -> UtilitiesConstant.FOUR_PLAYER_TOP_CARD;
             case 5 -> UtilitiesConstant.FIVE_PLAYER_TOP_CARD;
             default -> {
-                System.err.println("Utilities error binding");
+                logError("Invalid player number for top-list binding: " + playerNumber);
                 yield -1;
             }
         };
@@ -27,7 +77,7 @@ public interface UtilitiesFunction {
             case 4 -> UtilitiesConstant.FOUR_PLAYER_BOTTOM_CARD;
             case 5 -> UtilitiesConstant.FIVE_PLAYER_BOTTOM_CARD;
             default -> {
-                System.err.println("Utilities error binding");
+                logError("Invalid player number for bottom-list binding: " + playerNumber);
                 yield -1;
             }
         };
@@ -38,7 +88,7 @@ public interface UtilitiesFunction {
         for (Card card : listToParse) {
             switch (card.getCardType()) {
                 case BUILDER:
-                    setCards.set(0, setCards.getFirst() + 1);
+                    setCards.set(0, setCards.get(0) + 1);
                     break;
                 case ARTIST:
                     setCards.set(1, setCards.get(1) + 1);
@@ -56,7 +106,7 @@ public interface UtilitiesFunction {
                     setCards.set(5, setCards.get(5) + 1);
                     break;
                 default:
-                    System.err.println(" errore identificazione carta");
+                    logError("Unrecognised card type in occurrence count: " + card.getCardType());
 
             }
         }

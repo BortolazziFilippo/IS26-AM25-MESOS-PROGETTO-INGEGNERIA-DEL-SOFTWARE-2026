@@ -39,8 +39,8 @@ public class TurnManager {
      */
     public Player getNextPlayingPlayer() throws EndOfPlayingPhaseException {
         if(!playingOrder.isEmpty()){
-            Player playerToRet=playingOrder.getFirst();
-            playingOrder.removeFirst();
+            Player playerToRet=playingOrder.get(0);
+            playingOrder.remove(0);
             return playerToRet;
         }else{
             throw new EndOfPlayingPhaseException("Tutti i giocatori hanno risolto le loro azioni");
@@ -56,8 +56,8 @@ public class TurnManager {
      */
     public Player getNextPlacingPlayer() throws EndOfPlacingPhaseException{
         if(!placingOrder.isEmpty()){
-            Player playerToRet=placingOrder.getFirst();
-            placingOrder.removeFirst();
+            Player playerToRet=placingOrder.get(0);
+            placingOrder.remove(0);
             return playerToRet;
         }else{
             throw new EndOfPlacingPhaseException("Tutti i giocatori sono stati posizionati");

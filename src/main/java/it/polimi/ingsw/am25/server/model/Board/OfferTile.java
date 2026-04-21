@@ -16,9 +16,9 @@ public class OfferTile extends Tile{
      * @param offerTileID single-character identifier for this tile (e.g. 'A', 'B', …)
      */
     public OfferTile(int drawTop, int drawBot, char offerTileID){
+        super(null);
         this.actionAvailable = new Action(drawTop, drawBot);
         this.offerTileID = offerTileID;
-        super(null);
     }
     /**
      * Copy constructor — creates a defensive copy of another offer tile.
@@ -26,9 +26,9 @@ public class OfferTile extends Tile{
      * @param offerTile the tile to copy
      */
     public OfferTile(OfferTile offerTile){
+        super(null);
         this.actionAvailable = new Action(offerTile.getActionAvailable());
         this.offerTileID = offerTile.offerTileID;
-        super(null);
     }
     /**
      * Returns the single-character identifier of this offer tile.

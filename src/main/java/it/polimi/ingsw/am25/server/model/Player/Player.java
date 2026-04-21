@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Player {
+    private static final String LOG_PREFIX = "[SERVER][PLAYER]";
     private final String nickname;
     private final Totem totem;
     private int food;
@@ -31,9 +33,10 @@ public class Player {
     }
 
     /**
-     * default constructor of player
-     * @param nickname name of the player
-     * @param color color of the totem
+     * Builds a player with the provided nickname and totem color.
+     *
+     * @param nickname player's nickname
+     * @param color totem color
      */
     public Player(String nickname, COLOR color) {
             this.nickname = nickname;
@@ -45,10 +48,11 @@ public class Player {
     }
 
     /**
-     * contructor of player with virtual view
-     * @param nickname name of the player
-     * @param color color of the totem
-     * @param virtualView virtual view to bind
+     * Builds a player and subscribes the provided virtual view as observer.
+     *
+     * @param nickname player's nickname
+     * @param color totem color
+     * @param virtualView observer to bind
      */
     public Player(String nickname, COLOR color, ServerVirtualView virtualView) {
         this.nickname = nickname;
@@ -62,9 +66,9 @@ public class Player {
     }
 
     /**
-     * constructor from player DTO
+     * Builds a player from a DTO snapshot.
      *
-     * @param playerDTO player
+     * @param playerDTO player data transfer object
      */
     public Player(PlayerDTO playerDTO){
         this.nickname=playerDTO.getNickName();
@@ -76,12 +80,14 @@ public class Player {
     }
 
     /**
-     * method to manage the player's food amount. Mainly to be used when returning to the default tile
-     * since if the player doesn't have enough food it automatically removes two PP per food below zero and then set food to 0.
-     * This second behavior sometimes could not be wanted, if so before calling you should check the amount of food available.
-     * @param foodAmount food to be removed
+     * Updates the player's food amount.
+     * If food would go below zero, the deficit is converted into prestige-point loss
+     * at a ratio of 2 PP per missing food, then food is clamped to zero.
+     *
+     * @param foodAmount delta to apply to food (positive or negative)
      */
     public void manageFoodAndPP(int foodAmount){
+        int previousFood = this.food;
         if(foodAmount < 0){
             if( (this.food + foodAmount) < 0){
                 this.food += foodAmount;
@@ -95,18 +101,23 @@ public class Player {
         else{
             this.food += foodAmount;
         }
+        logServerEvent(
+                "Updated food for player '" + nickname + "': " + previousFood + " -> " + this.food +
+                        " (delta " + foodAmount + ")"
+        );
         notifyPPChanged();
         notifyFoodChanged();
     }
 
     /**
-     * this method tries to buy the card, if the player cannot afford it, it throws not enough food exception
-     * @param selectedBuildingCard building to be bought
+     * Attempts to purchase a building card.
+     *
+     * @param selectedBuildingCard building to buy
+     * @throws NotEnoughFoodException if the player cannot afford the card
      */
     public void tryBuyBuilding( BuildingCard selectedBuildingCard) throws NotEnoughFoodException{
-        int cost;
-        cost=selectedBuildingCard.getFoodCost();
-        cost=cost-this.getBuilderDiscount();
+        int originalCost = selectedBuildingCard.getFoodCost();
+        int cost = originalCost - this.getBuilderDiscount();
         if(cost<0){
             cost=0;
         }
@@ -115,17 +126,27 @@ public class Player {
         }else{
             this.food-=cost;
             selectedBuildingCard.addCardToPlayer(this);
+            logServerEvent(
+                    "Player '" + nickname + "' bought building #" + selectedBuildingCard.getBuildingID() +
+                            " (cost " + originalCost + ", discounted to " + cost + ")"
+            );
             notifyFoodChanged();
         }
 
     }
 
     /**
-     * Method used to manage player's PP. It adds or subtracts the amount
-     * @param PPamount amount to be managed
+     * Updates player's prestige points.
+     *
+     * @param PPamount delta to apply (positive or negative)
      */
     public void managePP(int PPamount){
+        int previousPP = this.prestigePoint;
         this.prestigePoint += PPamount;
+        logServerEvent(
+                "Updated prestige points for player '" + nickname + "': " + previousPP + " -> " + this.prestigePoint +
+                        " (delta " + PPamount + ")"
+        );
         notifyPPChanged();
     }
     /**
@@ -146,20 +167,24 @@ public class Player {
     }
 
     /**
-     * method used to add a villager card to the tribe
-     * @param card card to be added
+     * Adds a non-building card to the player's tribe.
+     *
+     * @param card card to add
      */
     public void addCardToTribe(Card card){
         this.tribe.add(card);
+        logServerEvent("Added " + formatCardForLog(card) + " to player '" + nickname + "'");
         notifyCardAdded(card);
     }
 
     /**
-     * Method to add a building card to the list of buildings
-     * @param buildingCard building to be added
+     * Adds a building card to the player's building area.
+     *
+     * @param buildingCard building card to add
      */
     public void addBuilding(BuildingCard buildingCard){
         this.buildingCards.add(buildingCard);
+        logServerEvent("Added building #" + buildingCard.getBuildingID() + " to player '" + nickname + "'");
         notifyCardAdded(buildingCard);
     }
     /**
@@ -186,10 +211,10 @@ public class Player {
     public int getNumberOfDifferentInventorIcon(){
         return (int) tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
-                .map(InventorCard.class::cast)    // 1. Cast each Card to InventorCard
-                .map(InventorCard::getInvIcon)    // 2. Extract the inventor icon
-                .distinct()                       // 3. Keep only distinct icons
-                .count();                         // 4. Count how many remain
+                .map(InventorCard.class::cast)
+                .map(InventorCard::getInvIcon)
+                .distinct()
+                .count();
     }
     /**
      *
@@ -258,24 +283,24 @@ public class Player {
     }
 
     /**
-     * this method trigger the end round buildings and apply their effect
+     * Triggers all end-round building effects owned by this player.
      */
     public void triggerEndRoundBuilding(){
         this.buildingCards.stream()
                 .filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
-        notifyPlayerChanged();//here it notifies the changes
+        notifyPlayerChanged();
     }
 
     /**
-     * this method trigger the end round buildings and apply their effect
+     * Triggers all end-game building effects owned by this player.
      */
     public void triggerEndGameBuilding(){
         this.buildingCards
                 .stream()
                 .filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
-        notifyPlayerChanged();//here it notifies the changes
+        notifyPlayerChanged();
     }
     /**
      * Returns an unmodifiable view of all villager cards in the player's tribe.
@@ -301,7 +326,8 @@ public class Player {
     }
 
     /**
-     * thi method subscribe an observer
+     * Subscribes an observer.
+     *
      * @param observerToAdd observer to subscribe
      */
     public void addObserver(PlayerObserver observerToAdd){
@@ -311,7 +337,8 @@ public class Player {
     }
 
     /**
-     * this method unsubscribe an observer
+     * Unsubscribes an observer.
+     *
      * @param observerToRemove observer to unsubscribe
      */
     public void removeObserver(PlayerObserver observerToRemove){
@@ -350,6 +377,17 @@ public class Player {
         for(PlayerObserver observer:observers){
             observer.notifyCardAddedToTribe(this.nickname,cardAdded);
         }
+    }
+
+    private String formatCardForLog(Card card) {
+        if (card instanceof BuildingCard buildingCard) {
+            return "building #" + buildingCard.getBuildingID();
+        }
+        return card.getCardType() + " card (" + card.getEra() + ")";
+    }
+
+    private void logServerEvent(String message) {
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
     @Override

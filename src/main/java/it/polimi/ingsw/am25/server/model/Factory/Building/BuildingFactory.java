@@ -14,8 +14,10 @@ import java.io.Reader;
 import java.util.*;
 
 import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction.shuffledFromYToXExclusive;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 public class BuildingFactory {
+    private static final String LOG_PREFIX = "[SERVER][BUILDING_FACTORY]";
 
     public BuildingFactory() {
     }
@@ -45,7 +47,7 @@ public class BuildingFactory {
             case 2:
                 //ERA 1
                 randomNumber=shuffledFromYToXExclusive(0,6);
-                listToReturn.add(tempList.get(randomNumber.getFirst()));
+                listToReturn.add(tempList.get(randomNumber.get(0)));
                 //ERA 2
                 randomNumber=shuffledFromYToXExclusive(6,13);
                 for (int i = 0; i < 2; i++) {
@@ -109,7 +111,7 @@ public class BuildingFactory {
                 }
                 break;
             default:
-                System.err.println(getClass() + ": Parametro PlayerNumber non valido" );
+                logServerError("Invalid player number: " + playerNumber);
         }
         for (BuildingCard n:listToReturn){
             n.setBuildingEffect(returnCorrectBuildingEffect(n,boardView));
@@ -190,8 +192,8 @@ public class BuildingFactory {
                 effectToReturn = new TwentyFivePPEndGame();
                 break;
             default:
-                // Gestione per ID non previsti
-                System.err.println("ID Edificio non riconosciuto: " + buildingToSetEffect.getBuildingID());
+                // Unrecognised building ID — this should never happen if the JSON is correct.
+                logServerError("Unrecognised building ID: " + buildingToSetEffect.getBuildingID());
                 break;
         }
         return effectToReturn;
@@ -211,5 +213,9 @@ public class BuildingFactory {
         }
         Collections.shuffle(number);
         return  number;
+    }
+
+    private void logServerError(String message) {
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 }

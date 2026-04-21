@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.server.model.Factory.Event.EventFactory;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeckFactory {
+    private static final String LOG_PREFIX = "[SERVER][DECK_FACTORY]";
+
     public DeckFactory(){
 
     }
@@ -40,7 +43,7 @@ public class DeckFactory {
                 inputStream= DefaultTileFactory.class.getResourceAsStream("/CardResources/json/FivePlayersCard.json");
                 break;
             default:
-                System.err.println(getClass() +": Errore numero giocatori");
+                logServerError("Invalid player number: " + playerNumber);
 
         }
         if(inputStream==null){
@@ -52,26 +55,26 @@ public class DeckFactory {
 
         for (CardDTO temp: cardDTOS){
             switch (temp.getCardType()){
-                case CARD_TYPE.ARTIST :
+                case ARTIST :
                     cardToReturn.add(new ArtistCard(temp.getEra(),temp.getCardType()));
                     break;
-                case CARD_TYPE.BUILDER:
+                case BUILDER:
                     cardToReturn.add(new BuilderCard(temp.getEra(),temp.getCardType(),temp.getFoodDiscount(),temp.getFinalPrestigePoint()));
                     break;
-                case CARD_TYPE.GATHERER:
+                case GATHERER:
                     cardToReturn.add(new GathererCard(temp.getEra(),temp.getCardType()));
                     break;
-                case CARD_TYPE.HUNTER:
+                case HUNTER:
                     cardToReturn.add(new HuntersCard(temp.getEra(),temp.getCardType(),temp.isHasIcon()));
                     break;
-                case CARD_TYPE.INVENTOR:
+                case INVENTOR:
                     cardToReturn.add(new InventorCard(temp.getEra(),temp.getCardType(),temp.getInvIcon()));
                     break;
-                case CARD_TYPE.SHAMAN:
+                case SHAMAN:
                     cardToReturn.add(new ShamanCard(temp.getEra(),temp.getCardType(),temp.getStarNumber()));
                     break;
                 default:
-                    System.err.println(getClass()+ ": Errore creazione carte" + temp.getCardType().toString());
+                    logServerError("Unrecognised card type: " + temp.getCardType());
             }
         }
 
@@ -79,5 +82,9 @@ public class DeckFactory {
         cardToReturn.addAll(listEventToMerge);
         return cardToReturn;
 
+    }
+
+    private void logServerError(String message) {
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 }

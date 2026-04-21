@@ -14,6 +14,7 @@ import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
 import java.rmi.RemoteException;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
+    private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
     private final ClientRemoteInterface clientStub;
     //_________________________________________________________________________________________
@@ -72,19 +74,19 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try{
             clientStub.playerUpdateFood(nickname,newFood);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error food updating "+ nickname);
+            logServerError("Failed to update food for player '" + nickname + "'");
         }
     }
 
     public void forceInitialPlayersSync(List<PlayerDTO> allPlayers) {
         for (PlayerDTO player : allPlayers) {
-            // 1. Popoliamo la mappa locale della Virtual View
+            // Keep the local virtual-view cache aligned with the current player snapshot.
             this.playersMap.put(player.getNickName(), player);
-            // 2. Usiamo il telecomando per inviare il giocatore al Client!
+            // Push the player snapshot to the client.
             try {
                 clientStub.playerAdded(player);
             } catch (Exception e) {
-                System.err.println("Error sync  " + nickname);
+                logServerError("Failed to sync player '" + nickname + "'");
             }
         }
     }
@@ -105,21 +107,21 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try{
            clientStub.initializeMarket(this.topCards,this.bottomCards,this.topBuildings);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Errore sync market initialized "+ nickname);
+            logServerError("Failed to sync market for player '" + nickname + "'");
         }
 
     }
 
     @Override
     public void onTopCardRefreshed(List<Card> topCards) {
-        //when this method is called the top card had been moved down and replaced with new ones
+        // When this callback is triggered, previous top cards have already moved to bottom.
         bottomCards=List.copyOf(this.topCards);
         this.topCards=topCards.stream().map(Card::toDTO).toList();
 
         try{
             clientStub.topCardRefreshed(this.topCards);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error sync top card refreshed " + nickname);
+            logServerError("Failed to notify top card refresh for player '" + nickname + "'");
         }
 
     }
@@ -132,7 +134,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try{
             clientStub.boardInitialize(this.offerTileList,this.defaultTileList);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error sync board initialized " + nickname);
+            logServerError("Failed to sync board for player '" + nickname + "'");
         }
     }
 
@@ -142,7 +144,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.orderOnDefaultTile(order);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error comunicating playerOrderDefault tile "+ nickname);
+            logServerError("Failed to send default tile order for player '" + nickname + "'");
         }
     }
 
@@ -151,7 +153,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.playerPlacedOnOffertile(player.getNickname(),tilePosition);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Errore comunicating player placed on offertile "+ nickname);
+            logServerError("Failed to notify player placed on offer tile for player '" + nickname + "'");
         }
 
     }
@@ -162,7 +164,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try{
             clientStub.gameWinners(this.winners);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error notifying game winners");
+            logServerError("Failed to notify game winners");
         }
     }
 
@@ -176,7 +178,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.initializeGame(this.currentEra,this.currentGamePhase,null,null);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error notifying initialize game "+ nickname);
+            logServerError("Failed to send game initialization for player '" + nickname + "'");
         }
     }
 
@@ -187,7 +189,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try{
             clientStub.playerAdded(player);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error notifying player added "+ nickname);
+            logServerError("Failed to notify player added for player '" + nickname + "'");
         }
 
     }
@@ -198,7 +200,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.eraChanged(this.currentEra);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("Error notifying era changed "+ nickname);
+            logServerError("Failed to notify era change for player '" + nickname + "'");
         }
 
     }
@@ -209,7 +211,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.gamePhaseChanged(currentGamePhase);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("error notifying game phase "+ nickname);
+            logServerError("Failed to notify game phase change for player '" + nickname + "'");
         }
 
     }
@@ -221,7 +223,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace));
         }catch (java.rmi.RemoteException e) {
-            System.err.println("error notifying player to place changed "+ nickname);
+            logServerError("Failed to notify player-to-place change for player '" + nickname + "'");
         }
     }
 
@@ -232,7 +234,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay));
         }catch (java.rmi.RemoteException e) {
-            System.err.println("error notifying player to play changed "+ nickname);
+            logServerError("Failed to notify player-to-play change for player '" + nickname + "'");
         }
 
     }
@@ -244,7 +246,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.topBuildingRefreshed(this.topBuildings);
         }catch (java.rmi.RemoteException e) {
-            System.err.println("error notifying top buildings refreshed "+ nickname);
+            logServerError("Failed to notify top buildings refresh for player '" + nickname + "'");
         }
     }
 
@@ -255,7 +257,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topBuildRemoved(position);
             }catch (java.rmi.RemoteException e) {
-                System.err.println("Error notifying card removed "+ nickname);
+                logServerError("Failed to notify top building removed at position " + position + " for player '" + nickname + "'");
             }
 
         }else{
@@ -263,7 +265,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topCardRemoved(position);
             }catch (java.rmi.RemoteException e) {
-                System.err.println("Error notifying card removed "+ nickname);
+                logServerError("Failed to notify top card removed at position " + position + " for player '" + nickname + "'");
             }
         }
 
@@ -276,14 +278,14 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.bottomBuildRemoved(position);
             }catch (java.rmi.RemoteException e) {
-                System.err.println("Error notifying card removed "+ nickname);
+                logServerError("Failed to notify bottom building removed at position " + position + " for player '" + nickname + "'");
             }
         }else{
             this.bottomCards.remove(position);
             try {
                 clientStub.bottomCardRemoved(position);
             }catch (java.rmi.RemoteException e) {
-                System.err.println("Error notifying card removed "+ nickname);
+                logServerError("Failed to notify bottom card removed at position " + position + " for player '" + nickname + "'");
             }
         }
     }
@@ -293,8 +295,16 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         try {
             clientStub.addedCardToTribe(playername,cardAdded.toDTO());
         } catch (RemoteException e) {
-            System.err.println("Error notifying card added to tribe");
+            logServerError("Failed to notify card added to tribe for player '" + playername + "'");
         }
 
+    }
+
+    private void logServerEvent(String message) {
+        System.out.println(LOG_PREFIX + " " + message);
+    }
+
+    private void logServerError(String message) {
+        System.err.println(LOG_PREFIX + "[ERROR] " + message);
     }
 }

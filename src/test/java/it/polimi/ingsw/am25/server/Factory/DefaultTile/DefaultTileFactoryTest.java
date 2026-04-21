@@ -17,20 +17,20 @@ class DefaultTileFactoryTest {
         //twoPlayer
         List<DefaultTile> defaultTiles = factory.buildDefaultTiles(2);
         assertEquals(2, defaultTiles.size());
-        assertEquals(1,defaultTiles.getFirst().getFoodPerSlotPosition());
+        assertEquals(1,defaultTiles.get(0).getFoodPerSlotPosition());
         assertEquals(-1,defaultTiles.get(1).getFoodPerSlotPosition());
 
         //three player
         defaultTiles = factory.buildDefaultTiles(3);
         assertEquals(3, defaultTiles.size());
-        assertEquals(2,defaultTiles.getFirst().getFoodPerSlotPosition());
+        assertEquals(2,defaultTiles.get(0).getFoodPerSlotPosition());
         assertEquals(0,defaultTiles.get(1).getFoodPerSlotPosition());
         assertEquals(-1,defaultTiles.get(2).getFoodPerSlotPosition());
 
         //four Player
         defaultTiles = factory.buildDefaultTiles(4);
         assertEquals(4, defaultTiles.size());
-        assertEquals(2,defaultTiles.getFirst().getFoodPerSlotPosition());
+        assertEquals(2,defaultTiles.get(0).getFoodPerSlotPosition());
         assertEquals(1,defaultTiles.get(1).getFoodPerSlotPosition());
         assertEquals(0,defaultTiles.get(2).getFoodPerSlotPosition());
         assertEquals(-1,defaultTiles.get(3).getFoodPerSlotPosition());
@@ -38,7 +38,7 @@ class DefaultTileFactoryTest {
         //five player
         defaultTiles = factory.buildDefaultTiles(5);
         assertEquals(5, defaultTiles.size());
-        assertEquals(3,defaultTiles.getFirst().getFoodPerSlotPosition());
+        assertEquals(3,defaultTiles.get(0).getFoodPerSlotPosition());
         assertEquals(1,defaultTiles.get(1).getFoodPerSlotPosition());
         assertEquals(0,defaultTiles.get(2).getFoodPerSlotPosition());
         assertEquals(0,defaultTiles.get(3).getFoodPerSlotPosition());

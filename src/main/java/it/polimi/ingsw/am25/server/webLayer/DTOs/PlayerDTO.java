@@ -46,7 +46,8 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * constructor that convert player to playerDTO
+     * Builds a DTO snapshot from a player instance.
+     *
      * @param player player to convert
      */
     public PlayerDTO(Player player){
