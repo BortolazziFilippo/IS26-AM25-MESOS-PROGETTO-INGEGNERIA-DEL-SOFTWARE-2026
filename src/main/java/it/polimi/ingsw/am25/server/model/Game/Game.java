@@ -230,27 +230,37 @@ public class Game implements GameView {
      * If the game is already in END_GAME, delegates to {@link #endGameIter()}.
      * @throws EndGameException when the game is finished
      */
-    public void nextRoundIter() throws EndGameException{
-        if(this.gamePhase!=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
-            // If the deck is exhausted, there is one final round before end-game scoring.
+    public void nextRoundIter() throws EndGameException {
+        if(this.gamePhase != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
+
+            // 1. Tutti i giocatori tornano alla casella di partenza
             board.returnOnDefaultTiles();
+            // 2. Ricalcoliamo l'ordine di turno basandoci sulle posizioni!
+            turnManager.updatePlacingOrder();
+            // 3. Attiviamo gli edifici di fine round (come Draw One More Card)
             players.values().forEach(Player::triggerEndRoundBuilding);
+            // 4. Aggiorniamo il mercato e impostiamo la nuova fase
             try {
                 market.endOfRoundMarketActions();
-                this.gamePhase=GAME_PHASE.PLACING_PHASE;
-                this.playerToPlace=turnManager.getNextPlacingPlayer();
-                notifyPlayerToPlaceChanged();
-                logServerEvent("Round ended. Advancing to PLACING_PHASE");
-                notifyGamePhaseChanged();
-            }catch (DeckFinishedException e) {
-                this.gamePhase=GAME_PHASE.LAST_ROUND_PLACING_PHASE;
+                this.gamePhase = GAME_PHASE.PLACING_PHASE;
+            } catch (DeckFinishedException e) {
+                this.gamePhase = GAME_PHASE.LAST_ROUND_PLACING_PHASE;
                 logServerEvent("Deck exhausted. Advancing to LAST_ROUND_PLACING_PHASE");
-                notifyGamePhaseChanged();
             }
-        }else{
+
+            // 5. Ora chiediamo il giocatore a prescindere dal try/catch precedente!
+            try {
+                this.playerToPlace = turnManager.getNextPlacingPlayer();
+                logServerEvent("Round ended. Advancing to " + this.gamePhase);
+                notifyGamePhaseChanged();
+                notifyPlayerToPlaceChanged();
+            } catch (EndOfPlacingPhaseException e) {
+                // Non dovrebbe mai scattare qui all'inizio del round, ma serve per firma
+                e.printStackTrace();
+            }
+        } else {
             throw new EndGameException("Game finished");
         }
-
     }
 
     /**
