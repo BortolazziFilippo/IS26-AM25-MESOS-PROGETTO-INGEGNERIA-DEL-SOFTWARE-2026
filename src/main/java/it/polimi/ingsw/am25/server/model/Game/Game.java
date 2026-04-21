@@ -156,7 +156,7 @@ public class Game implements GameView {
         }else{
             this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
         }
-
+        notifyActionChanged();
         notifyGamePhaseChanged();
         notifyPlayerToPlayChanged();
     }
@@ -286,9 +286,11 @@ public class Game implements GameView {
         }
         logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from top list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneTopAction();
+        notifyActionChanged();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
             throw new NoMoreActionToDo();
         }
+
     }
 
     /**
@@ -338,6 +340,7 @@ public class Game implements GameView {
         }
         logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from bottom list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
+        notifyActionChanged();
         if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
             throw new NoMoreActionToDo();
         }
@@ -352,6 +355,7 @@ public class Game implements GameView {
     public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
         this.playerToPlay = turnManager.getNextPlayingPlayer();
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
+        notifyActionChanged();
         logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
         notifyPlayerToPlayChanged();
     }
@@ -539,6 +543,12 @@ public class Game implements GameView {
     public void notifyChanges(){
         this.market.notifyMarketChanged();
         this.board.notifyBoardChanged();
+    }
+
+    public void notifyActionChanged(){
+        for(GameObserver observer:observers){
+            observer.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(),this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom());
+        }
     }
 
     private void logServerEvent(String message) {

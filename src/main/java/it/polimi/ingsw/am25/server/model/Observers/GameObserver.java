@@ -38,4 +38,9 @@ public interface GameObserver {
     void onPlayerToPlayChanged(
             Player newPlayerToPlay
     );
+
+    void actionOfferTileChanged(
+        int drawTop,
+        int drawBottom
+    );
 }

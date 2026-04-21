@@ -336,6 +336,10 @@ public class Player {
         }
     }
 
+    public List<PlayerObserver> getObservers(){
+        return this.observers;
+    }
+
     /**
      * Unsubscribes an observer.
      *
@@ -396,6 +400,14 @@ public class Player {
         return Objects.equals(nickname, player.nickname) && totem.equals(player.totem);
     }
 
+    /**
+     * method for building Card draw one more card
+     */
+    public void requestExtraDraw() {
+        for (PlayerObserver observer : observers) {
+            observer.requestExtraDraw(this.nickname);
+        }
+    }
     public int checkpoints(){
         int finalPoints = 0;
         long artistPoints = 0;

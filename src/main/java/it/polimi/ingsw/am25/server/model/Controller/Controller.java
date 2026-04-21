@@ -3,8 +3,10 @@ package it.polimi.ingsw.am25.server.model.Controller;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
+import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.List;
 public class Controller {
     private Game game;
     private List<Player> players;
-
+    private String LOG_PREFIX="[CONTROLLER]";
 
     public Controller() {
     }
@@ -120,6 +122,10 @@ public class Controller {
                     } catch (NoMoreActionToDo e) {
                         advanceTurnOrRound();
                     }
+                }else {
+                    UtilitiesFunction.logError(LOG_PREFIX,player.getNickname()+ " tried to draw a card from top list but has no action for it");
+                    throw new ActionNotAvailable("Cannot draw top card");
+
                 }
             }
         }
@@ -180,6 +186,9 @@ public class Controller {
                     } catch (NoMoreActionToDo e) {
                         advanceTurnOrRound();
                     }
+                }else{
+                    UtilitiesFunction.logError(LOG_PREFIX,player.getNickname()+ " tried to draw a card from bottom list but has no action for it");
+                    throw new ActionNotAvailable("Cannot draw bottom card");
                 }
             }
         }
@@ -210,6 +219,21 @@ public class Controller {
         }
     }
 
+    public void selectExtraCard(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
+        // Esegue fisicamente la pesca dalle carte in cima
+        game.selectGenericCardTopLists(cardType, position, player);
+
+        // SVEGLIA IL SERVER: cerca la ServerVirtualView tra gli observer del player
+        for (PlayerObserver obs : player.getObservers()) {
+            if (obs instanceof ServerVirtualView) {
+                ServerVirtualView svv = (it.polimi.ingsw.am25.server.webLayer.ServerVirtualView) obs;
+                synchronized (svv.extraDrawLock) {
+                    svv.extraDrawLock.notifyAll();
+                }
+                break;
+            }
+        }
+    }
 
     /**
      * Returns {@code true} if it is the given player's turn to place their totem.

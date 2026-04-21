@@ -24,7 +24,7 @@ public class DrawOneMoreCard extends BuildingEffect {
      */
     @Override
     public void applyEffect(Player player) {
-        // requires the controller implementation
-        // this effect calls the card selection function from the market's top list, but it needs the position chosen by the player
+        // Scatena la richiesta verso il Client
+        player.requestExtraDraw();
     }
 }

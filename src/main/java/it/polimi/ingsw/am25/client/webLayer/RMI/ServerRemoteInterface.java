@@ -12,8 +12,10 @@ public interface ServerRemoteInterface extends Remote {
     void createGame(PlayerDTO playerHost, int PlayerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException,IllegalStateException;
     void addPlayer(PlayerDTO playerDTO,ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException;
     void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException;
-    void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position)throws RemoteException,IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException;
+    void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position)throws RemoteException,IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, ActionNotAvailable;
     void selectCardFromBottomList(PlayerDTO player,CARD_TYPE cardType, int position)throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException,RemoteException;
     void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException,Exception;
 
+    // method for select one more card
+    void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException;
 }

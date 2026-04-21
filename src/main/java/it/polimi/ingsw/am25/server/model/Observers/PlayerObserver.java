@@ -29,4 +29,5 @@ public interface PlayerObserver {
             String playername,
             Card cardAdded
     );
+    void requestExtraDraw(String nickname);
 }

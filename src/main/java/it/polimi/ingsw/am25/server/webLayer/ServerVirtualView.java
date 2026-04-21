@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.server.webLayer;
 
+import it.polimi.ingsw.am25.server.model.Board.Action;
 import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
@@ -46,6 +47,8 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private List<OffertileDTO> offerTileList;
     private List<DefaultTileDTO> defaultTileList;
     //_________________________________________________________________________________________
+    //Lock for draw one more card
+    public final Object extraDrawLock = new Object();
 
 
     public ServerVirtualView(ClientRemoteInterface clientStub, String nickname) {
@@ -100,30 +103,29 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
-        this.topCards=topCards.stream().map(Card::toDTO).toList();
-        this.bottomCards=bottomCards.stream().map(Card::toDTO).toList();
-        this.topBuildings=topBuildings.stream().map(BuildingDTO::new).toList();
-        this.bottomBuildings=new ArrayList<>();
-        try{
-           clientStub.initializeMarket(this.topCards,this.bottomCards,this.topBuildings);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to sync market for player '" + nickname + "'");
+        // FIX: Avvolgiamo tutto in new ArrayList<>() per renderli modificabili dal .remove()
+        this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
+        this.bottomCards = new ArrayList<>(bottomCards.stream().map(Card::toDTO).toList());
+        this.topBuildings = new ArrayList<>(topBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
+        try {
+            clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
+        } catch (RemoteException e) {
+            System.err.println("Errore di connessione: initializeMarket");
         }
 
     }
 
     @Override
     public void onTopCardRefreshed(List<Card> topCards) {
-        // When this callback is triggered, previous top cards have already moved to bottom.
-        bottomCards=List.copyOf(this.topCards);
-        this.topCards=topCards.stream().map(Card::toDTO).toList();
-
-        try{
-            clientStub.topCardRefreshed(this.topCards);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify top card refresh for player '" + nickname + "'");
+        if (this.topCards != null) {
+            this.bottomCards = new ArrayList<>(this.topCards);
         }
-
+        this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
+        try {
+            clientStub.topCardRefreshed(this.topCards);
+        } catch (RemoteException e) {
+            System.err.println("Errore di connessione: topCardRefreshed");
+        }
     }
 
     @Override
@@ -240,13 +242,18 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     }
 
     @Override
-    public void onTopBuildingRefreshed(List<BuildingCard> topCards) {
-        this.bottomBuildings=List.copyOf(this.topBuildings);
-        this.topBuildings=topCards.stream().map(BuildingDTO::new).toList();
+    public void onTopBuildingRefreshed(List<BuildingCard> topBuildingCards) {
+        if (this.topBuildings != null) {
+            this.bottomBuildings = new ArrayList<>(this.topBuildings);
+        }
+
+        // FIX: Cast esplicito a BuildingDTO aggiunto!
+        this.topBuildings = new ArrayList<>(topBuildingCards.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
+
         try {
             clientStub.topBuildingRefreshed(this.topBuildings);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify top buildings refresh for player '" + nickname + "'");
+        } catch (RemoteException e) {
+            System.err.println("Errore di connessione: topBuildingRefreshed");
         }
     }
 
@@ -296,6 +303,39 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             clientStub.addedCardToTribe(playername,cardAdded.toDTO());
         } catch (RemoteException e) {
             logServerError("Failed to notify card added to tribe for player '" + playername + "'");
+        }
+
+    }
+
+
+
+    @Override
+    public void requestExtraDraw(String nickname) {
+        try {
+            //ask client
+            clientStub.askExtraDraw();
+            //wait for answer
+            synchronized (extraDrawLock) {
+                extraDrawLock.wait();
+            }
+        } catch (RemoteException e) {
+            System.err.println("Errore di connessione con il client " + nickname + " per extra draw.");
+            logServerError("Error comunicating draw one more card");
+            UtilitiesFunction.logError(LOG_PREFIX,"Error comunicating draw one more card");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logServerError("Error managing thread");
+            UtilitiesFunction.logError(LOG_PREFIX,"Error managing thread");
+        }
+    }
+
+    @Override
+    public void actionOfferTileChanged(int drawTop, int drawBottom) {
+        try {
+            clientStub.actionAvailableChanged(new ActionDTO(drawTop,drawBottom));
+        } catch (RemoteException e) {
+            logServerError("Error comunicating offertile changed");
+            UtilitiesFunction.logError(LOG_PREFIX,"Error comunicating offertile changed");
         }
 
     }

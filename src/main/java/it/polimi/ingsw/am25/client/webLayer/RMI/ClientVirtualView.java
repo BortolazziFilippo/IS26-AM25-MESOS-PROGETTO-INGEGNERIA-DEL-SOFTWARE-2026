@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.webLayer.RMI;
 
+import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
@@ -7,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private GAME_PHASE currentGamePhase;
     private String playerToPlace;
     private String playerToPlay;
-
+    private int drawTop;
+    private int drawBot;
     Map<String,PlayerDTO> playersMap= new HashMap<>();
 
     // MARKET DTO
@@ -36,6 +39,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     // We use this lock to pause the player when it's not their turn!
     public final Object turnLock = new Object();
+    public boolean needsExtraDraw = false;
 
     public ClientVirtualView() throws RemoteException {
         super();
@@ -110,17 +114,21 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     @Override
     public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) throws RemoteException {
-        System.out.println("CHiamato metodo initialize market");
-        this.topCards=topCards;
-        this.bottomCards=bottomCards;
-        this.topBuildings=topBuildings;
+        // Garantiamo che le liste siano mutabili
+        this.topCards = new ArrayList<>(topCards);
+        this.bottomCards = new ArrayList<>(bottomCards);
+        this.topBuildings = new ArrayList<>(topBuildings);
     }
 
     @Override
-    public void addedCardToTribe(String nickname, CardDTO cardDTO) {
-        PlayerDTO temp= playersMap.get(nickname);
+    public void addedCardToTribe(String nickname, CardDTO cardDTO) throws RemoteException {
+        PlayerDTO temp = playersMap.get(nickname);
+        if (temp == null) {
+            temp = new PlayerDTO(nickname, 0, 0, null);
+        }
+
         temp.addCardToTribe(cardDTO);
-        playersMap.put(temp.getNickName(),temp);
+        playersMap.put(nickname, temp);
     }
 
     @Override
@@ -145,14 +153,18 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     @Override
     public void topBuildingRefreshed(List<BuildingDTO> topBuildingCards) throws RemoteException {
-        this.bottomBuildings=List.copyOf(this.topBuildings);
-        this.topBuildings=topBuildingCards;
+        if (this.topBuildings != null) {
+            this.bottomBuildings = new ArrayList<>(this.topBuildings);
+        }
+        this.topBuildings = new ArrayList<>(topBuildingCards);
     }
 
     @Override
     public void topCardRefreshed(List<CardDTO> topCards) throws RemoteException {
-        this.bottomCards=List.copyOf(topCards);
-        this.topCards=topCards;
+        if (this.topCards != null) {
+            this.bottomCards = new ArrayList<>(this.topCards);
+        }
+        this.topCards = new ArrayList<>(topCards);
     }
 
     @Override
@@ -181,5 +193,46 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     @Override
     public void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile) throws RemoteException {
+    }
+
+    @Override
+    public void askExtraDraw() throws RemoteException {
+        synchronized (turnLock) {
+            this.needsExtraDraw = true;
+            turnLock.notifyAll(); // Sveglia la TUI!
+        }
+    }
+
+    @Override
+    public void actionAvailableChanged(ActionDTO action) throws RemoteException {
+        this.drawBot=action.getDrawBot();
+        this.drawTop=action.getDrawTop();
+    }
+
+    public int getTopCardSize(){
+        return this.topCards.size();
+    }
+    public int getTopBuildingSize(){
+        return this.topBuildings.size();
+    }
+    public int getBottomCardSize(){
+        return this.bottomCards.size();
+    }
+    public int getBottomBuildingSize(){
+        return this.bottomBuildings.size();
+    }
+
+    public CARD_TYPE getTopCardType(int position){
+        return this.topCards.get(position).getCardType();
+    }
+    public CARD_TYPE getBottomCardType(int position){
+        return this.bottomCards.get(position).getCardType();
+    }
+
+    public int getDrawBot() {
+        return drawBot;
+    }
+    public int getDrawTop(){
+        return drawTop;
     }
 }

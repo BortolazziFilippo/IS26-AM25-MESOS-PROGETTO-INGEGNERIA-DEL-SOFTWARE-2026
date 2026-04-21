@@ -17,6 +17,7 @@ public interface ClientRemoteInterface extends Remote {
     void gamePhaseChanged(GAME_PHASE gamePhase)throws RemoteException;
     void playerToPlaceChanged(PlayerDTO playerChanged)throws RemoteException;
     void playerToPlayChanged(PlayerDTO playerChanged)throws RemoteException;
+    void actionAvailableChanged(ActionDTO action) throws RemoteException;
     // Market updates
     void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings)throws RemoteException;
     void topCardRemoved(int position)throws RemoteException;
@@ -34,6 +35,8 @@ public interface ClientRemoteInterface extends Remote {
     void playerPlacedOnOffertile(String PlayerNickname,int offertilePosition)throws RemoteException;
     void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile)throws RemoteException;
 
+    // draw one more card
+    void askExtraDraw() throws RemoteException;
 
 
 }

@@ -131,6 +131,15 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         controller.playerDoNothing(playerTemp);
     }
 
+    @Override
+    public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
+        try {
+            controller.selectExtraCard(new  Player( player), cardType, position);
+        } catch (Exception e) {
+            throw new RemoteException(e.getMessage());
+        }
+    }
+
     private void logServerEvent(String message) {
         System.out.println(LOG_PREFIX + " " + message);
     }

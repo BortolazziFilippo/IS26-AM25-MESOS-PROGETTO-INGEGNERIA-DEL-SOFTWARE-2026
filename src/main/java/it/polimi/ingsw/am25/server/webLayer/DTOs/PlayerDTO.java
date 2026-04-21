@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PlayerDTO implements Serializable {
     @Serial
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
     private String nickName;
     private int food;
     private int prestigePoint;
@@ -42,7 +42,10 @@ public class PlayerDTO implements Serializable {
     }
 
     public void addCardToTribe(CardDTO cardDTO){
-        cardDtoList.add(cardDTO);
+        if (this.cardDtoList == null) {
+            this.cardDtoList = new ArrayList<>();
+        }
+        this.cardDtoList.add(cardDTO);
     }
 
     /**
