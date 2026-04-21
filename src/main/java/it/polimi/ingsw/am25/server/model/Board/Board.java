@@ -31,12 +31,14 @@ public class Board implements BoardView {
      * according to the food-per-slot value of their assigned default tile.
      */
     public void returnOnDefaultTiles(){
+        int counter=-1;
         List<Player> pl= new ArrayList<>(this.offerTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
         for(DefaultTile defaultTile:defaultTiles){
+            counter++;
             defaultTile.placePlayer(pl.get(0));
             defaultTile.getPlayerOn().manageFoodAndPP(defaultTile.getFoodPerSlotPosition());
             logServerEvent(
-                    "Moved player '" + defaultTile.getPlayerOn().getNickname() + "' to default tile and applied food delta " +
+                    "Moved player '" + defaultTile.getPlayerOn().getNickname() + "' to default "+ counter +" tile and applied food delta " +
                             defaultTile.getFoodPerSlotPosition()
             );
             this.offerTiles.stream().filter(offerTile -> Objects.equals(pl.get(0),offerTile.getPlayerOn())).forEach(Tile::removePlayer);

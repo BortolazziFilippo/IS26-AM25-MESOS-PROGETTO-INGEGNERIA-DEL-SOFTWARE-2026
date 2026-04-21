@@ -23,11 +23,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
     private final ClientRemoteInterface clientStub;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     //_________________________________________________________________________________________
     private List<PlayerDTO> winners;
     private ERA currentEra;
@@ -35,7 +38,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private String playerToPlace;
     private String playerToPlay;
     //_________________________________________________________________________________________
-    Map<String,PlayerDTO> playersMap= new HashMap<>();
+    Map<String, PlayerDTO> playersMap = new HashMap<>();
     //_________________________________________________________________________________________
     //MARKET DTO
     private List<CardDTO> topCards;
@@ -52,33 +55,39 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
 
     public ServerVirtualView(ClientRemoteInterface clientStub, String nickname) {
-        this.clientStub=clientStub;
-        this.nickname=nickname;
+        this.clientStub = clientStub;
+        this.nickname = nickname;
     }
 
     @Override
-    public void notifyPPChanged(String nickname,int newPP) {
-        PlayerDTO pl=playersMap.get(nickname);
+    public void notifyPPChanged(String nickname, int newPP) {
+        PlayerDTO pl = playersMap.get(nickname);
         pl.setPrestigePoint(newPP);
-        playersMap.put(nickname,pl);
-        try {
-            clientStub.playerUpdatePP(nickname,newPP);
-        }catch (java.rmi.RemoteException e) {
-            throw new RuntimeException(e);
-        }
+        playersMap.put(nickname, pl);
+        executor.submit(() -> {
+            try {
+                clientStub.playerUpdatePP(nickname, newPP);
+            } catch (java.rmi.RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
 
     }
 
     @Override
-    public void notifyFoodChanged(String nickname,int newFood) {
-        PlayerDTO pl=playersMap.get(nickname);
+    public void notifyFoodChanged(String nickname, int newFood) {
+        PlayerDTO pl = playersMap.get(nickname);
         pl.setFood(newFood);
-        playersMap.put(nickname,pl);
-        try{
-            clientStub.playerUpdateFood(nickname,newFood);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to update food for player '" + nickname + "'");
-        }
+        playersMap.put(nickname, pl);
+        executor.submit(() -> {
+            try {
+                clientStub.playerUpdateFood(nickname, newFood);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to update food for player '" + nickname + "'");
+            }
+        });
+
     }
 
     public void forceInitialPlayersSync(List<PlayerDTO> allPlayers) {
@@ -97,7 +106,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
-        playersMap.put(nickname,new PlayerDTO(nickname,food,prestigePoint,totem.getColor()));
+        playersMap.put(nickname, new PlayerDTO(nickname, food, prestigePoint, totem.getColor()));
 
     }
 
@@ -107,11 +116,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
         this.bottomCards = new ArrayList<>(bottomCards.stream().map(Card::toDTO).toList());
         this.topBuildings = new ArrayList<>(topBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
-        try {
-            clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
-        } catch (RemoteException e) {
-            System.err.println("Errore di connessione: initializeMarket");
-        }
+
+        executor.submit(() -> {
+            try {
+                clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
+            } catch (RemoteException e) {
+                System.err.println("Errore di connessione: initializeMarket");
+            }
+        });
+
 
     }
 
@@ -121,123 +134,154 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             this.bottomCards = new ArrayList<>(this.topCards);
         }
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
-        try {
-            clientStub.topCardRefreshed(this.topCards);
-        } catch (RemoteException e) {
-            System.err.println("Errore di connessione: topCardRefreshed");
-        }
+        executor.submit(() -> {
+            try {
+                clientStub.topCardRefreshed(this.topCards);
+            } catch (RemoteException e) {
+                System.err.println("Errore di connessione: topCardRefreshed");
+            }
+        });
     }
 
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
-        this.offerTileList=offerTileList.stream().map(OffertileDTO::new).toList();
-        this.defaultTileList=defaultTileList.stream().map(DefaultTileDTO::new).toList();
-
-        try{
-            clientStub.boardInitialize(this.offerTileList,this.defaultTileList);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to sync board for player '" + nickname + "'");
-        }
+        this.offerTileList = offerTileList.stream().map(OffertileDTO::new).toList();
+        this.defaultTileList = defaultTileList.stream().map(DefaultTileDTO::new).toList();
+        executor.submit(() -> {
+            try {
+                clientStub.boardInitialize(this.offerTileList, this.defaultTileList);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to sync board for player '" + nickname + "'");
+            }
+        });
     }
 
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
-        List<PlayerDTO> order=playerOrder.stream().map(PlayerDTO::new).toList();
-        try {
-            clientStub.orderOnDefaultTile(order);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to send default tile order for player '" + nickname + "'");
-        }
+        List<PlayerDTO> order = playerOrder.stream().map(PlayerDTO::new).toList();
+        executor.submit(() -> {
+            try {
+                clientStub.orderOnDefaultTile(order);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to send default tile order for player '" + nickname + "'");
+            }
+        });
+
     }
 
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
-        try {
-            clientStub.playerPlacedOnOffertile(player.getNickname(),tilePosition);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify player placed on offer tile for player '" + nickname + "'");
-        }
+        executor.submit(() -> {
+            try {
+                clientStub.playerPlacedOnOffertile(player.getNickname(), tilePosition);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify player placed on offer tile for player '" + nickname + "'");
+            }
+        });
+
 
     }
 
     @Override
     public void gameWinners(List<Player> winners) {
-        this.winners=winners.stream().map(PlayerDTO::new).toList();
-        try{
-            clientStub.gameWinners(this.winners);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify game winners");
-        }
+        this.winners = winners.stream().map(PlayerDTO::new).toList();
+
+        executor.submit(() -> {
+            try {
+                clientStub.gameWinners(this.winners);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify game winners");
+            }
+        });
+
+
     }
 
     @Override
     public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
-        this.currentEra=currentEra;
-        this.currentGamePhase=gamePhase;
-        this.playerToPlace=null;
-        this.playerToPlay=null;
+        this.currentEra = currentEra;
+        this.currentGamePhase = gamePhase;
+        this.playerToPlace = null;
+        this.playerToPlay = null;
+        executor.submit(() -> {
+            try {
+                clientStub.initializeGame(this.currentEra, this.currentGamePhase, null, null);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to send game initialization for player '" + nickname + "'");
+            }
+        });
 
-        try {
-            clientStub.initializeGame(this.currentEra,this.currentGamePhase,null,null);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to send game initialization for player '" + nickname + "'");
-        }
     }
 
     @Override
     public void onPlayerAdded(Player playerAdded) {
-        PlayerDTO player=new PlayerDTO(playerAdded);
-        playersMap.put(playerAdded.getNickname(),player);
-        try{
-            clientStub.playerAdded(player);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify player added for player '" + nickname + "'");
-        }
+        PlayerDTO player = new PlayerDTO(playerAdded);
+        playersMap.put(playerAdded.getNickname(), player);
+        executor.submit(()->{
+            try {
+                clientStub.playerAdded(player);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify player added for player '" + nickname + "'");
+            }
+        });
+
 
     }
 
     @Override
     public void onEraChanged(ERA currentEra) {
-        this.currentEra=currentEra;
-        try {
-            clientStub.eraChanged(this.currentEra);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify era change for player '" + nickname + "'");
-        }
+        this.currentEra = currentEra;
+        executor.submit(()->{
+            try {
+                clientStub.eraChanged(this.currentEra);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify era change for player '" + nickname + "'");
+            }
+        });
+
 
     }
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
-        this.currentGamePhase=gamePhase;
-        try {
-            clientStub.gamePhaseChanged(currentGamePhase);
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify game phase change for player '" + nickname + "'");
-        }
+        this.currentGamePhase = gamePhase;
+        executor.submit(()->{
+            try {
+                clientStub.gamePhaseChanged(currentGamePhase);
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify game phase change for player '" + nickname + "'");
+            }
+        });
+
 
     }
 
     @Override
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
-        this.playerToPlay=null;
-        this.playerToPlace=newPlayerToPlace.getNickname();
-        try {
-            clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace));
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify player-to-place change for player '" + nickname + "'");
-        }
+        this.playerToPlay = null;
+        this.playerToPlace = newPlayerToPlace.getNickname();
+        executor.submit(()->{
+            try {
+                clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace));
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify player-to-place change for player '" + nickname + "'");
+            }
+        });
+
     }
 
     @Override
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
-        this.playerToPlace=null;
-        this.playerToPlay=newPlayerToPlay.getNickname();
-        try {
-            clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay));
-        }catch (java.rmi.RemoteException e) {
-            logServerError("Failed to notify player-to-play change for player '" + nickname + "'");
-        }
+        this.playerToPlace = null;
+        this.playerToPlay = newPlayerToPlay.getNickname();
+        executor.submit(()->{
+            try {
+                clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay));
+            } catch (java.rmi.RemoteException e) {
+                logServerError("Failed to notify player-to-play change for player '" + nickname + "'");
+            }
+        });
+
 
     }
 
@@ -249,94 +293,115 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
         // FIX: Cast esplicito a BuildingDTO aggiunto!
         this.topBuildings = new ArrayList<>(topBuildingCards.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
+        executor.submit(()->{
+            try {
+                clientStub.topBuildingRefreshed(this.topBuildings);
+            } catch (RemoteException e) {
+                System.err.println("Errore di connessione: topBuildingRefreshed");
+            }
+        });
 
-        try {
-            clientStub.topBuildingRefreshed(this.topBuildings);
-        } catch (RemoteException e) {
-            System.err.println("Errore di connessione: topBuildingRefreshed");
-        }
     }
 
     @Override
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
-        if(cardType==CARD_TYPE.BUILDING){
+        if (cardType == CARD_TYPE.BUILDING) {
             this.topBuildings.remove(position);
-            try {
-                clientStub.topBuildRemoved(position);
-            }catch (java.rmi.RemoteException e) {
-                logServerError("Failed to notify top building removed at position " + position + " for player '" + nickname + "'");
-            }
+            executor.submit(()->{
+                try {
+                    clientStub.topBuildRemoved(position);
+                } catch (java.rmi.RemoteException e) {
+                    logServerError("Failed to notify top building removed at position " + position + " for player '" + nickname + "'");
+                }
+            });
 
-        }else{
+
+        } else {
             this.topCards.remove(position);
-            try {
-                clientStub.topCardRemoved(position);
-            }catch (java.rmi.RemoteException e) {
-                logServerError("Failed to notify top card removed at position " + position + " for player '" + nickname + "'");
-            }
+            executor.submit(()->{
+                try {
+                    clientStub.topCardRemoved(position);
+                } catch (java.rmi.RemoteException e) {
+                    logServerError("Failed to notify top card removed at position " + position + " for player '" + nickname + "'");
+                }
+            });
+
         }
 
     }
 
     @Override
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
-        if(cardType==CARD_TYPE.BUILDING){
+        if (cardType == CARD_TYPE.BUILDING) {
             this.bottomBuildings.remove(position);
-            try {
-                clientStub.bottomBuildRemoved(position);
-            }catch (java.rmi.RemoteException e) {
-                logServerError("Failed to notify bottom building removed at position " + position + " for player '" + nickname + "'");
-            }
-        }else{
+            executor.submit(()->{
+                try {
+                    clientStub.bottomBuildRemoved(position);
+                } catch (java.rmi.RemoteException e) {
+                    logServerError("Failed to notify bottom building removed at position " + position + " for player '" + nickname + "'");
+                }
+            });
+
+        } else {
             this.bottomCards.remove(position);
-            try {
-                clientStub.bottomCardRemoved(position);
-            }catch (java.rmi.RemoteException e) {
-                logServerError("Failed to notify bottom card removed at position " + position + " for player '" + nickname + "'");
-            }
+            executor.submit(()->{
+                try {
+                    clientStub.bottomCardRemoved(position);
+                } catch (java.rmi.RemoteException e) {
+                    logServerError("Failed to notify bottom card removed at position " + position + " for player '" + nickname + "'");
+                }
+            });
         }
     }
 
     @Override
     public void notifyCardAddedToTribe(String playername, Card cardAdded) {
-        try {
-            clientStub.addedCardToTribe(playername,cardAdded.toDTO());
-        } catch (RemoteException e) {
-            logServerError("Failed to notify card added to tribe for player '" + playername + "'");
-        }
+        executor.submit(()->{
+            try {
+                clientStub.addedCardToTribe(playername, cardAdded.toDTO());
+            } catch (RemoteException e) {
+                logServerError("Failed to notify card added to tribe for player '" + playername + "'");
+            }
+        });
+
 
     }
 
 
-
     @Override
     public void requestExtraDraw(String nickname) {
-        try {
-            //ask client
-            clientStub.askExtraDraw();
-            //wait for answer
-            synchronized (extraDrawLock) {
-                extraDrawLock.wait();
+        // La richiesta via rete la facciamo fare al thread separato
+        executor.submit(() -> {
+            try {
+                clientStub.askExtraDraw();
+            } catch (RemoteException e) {
+                System.err.println("❌ Client disconnesso durante l'extra draw!");
+                // SBLOCCA IL SERVER DI EMERGENZA SE IL CLIENT CADE!
+                synchronized (extraDrawLock) {
+                    extraDrawLock.notifyAll();
+                }
             }
-        } catch (RemoteException e) {
-            System.err.println("Errore di connessione con il client " + nickname + " per extra draw.");
-            logServerError("Error comunicating draw one more card");
-            UtilitiesFunction.logError(LOG_PREFIX,"Error comunicating draw one more card");
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logServerError("Error managing thread");
-            UtilitiesFunction.logError(LOG_PREFIX,"Error managing thread");
+        });
+        synchronized (extraDrawLock) {
+            try {
+                extraDrawLock.wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
     @Override
     public void actionOfferTileChanged(int drawTop, int drawBottom) {
-        try {
-            clientStub.actionAvailableChanged(new ActionDTO(drawTop,drawBottom));
-        } catch (RemoteException e) {
-            logServerError("Error comunicating offertile changed");
-            UtilitiesFunction.logError(LOG_PREFIX,"Error comunicating offertile changed");
-        }
+        executor.submit(()->{
+            try {
+                clientStub.actionAvailableChanged(new ActionDTO(drawTop, drawBottom));
+            } catch (RemoteException e) {
+                logServerError("Error comunicating offertile changed");
+                UtilitiesFunction.logError(LOG_PREFIX, "Error comunicating offertile changed");
+            }
+        });
+
 
     }
 

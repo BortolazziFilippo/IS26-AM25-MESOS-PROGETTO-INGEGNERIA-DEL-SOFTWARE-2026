@@ -238,6 +238,8 @@ public class Game implements GameView {
             try {
                 market.endOfRoundMarketActions();
                 this.gamePhase=GAME_PHASE.PLACING_PHASE;
+                this.playerToPlace=turnManager.getNextPlacingPlayer();
+                notifyPlayerToPlaceChanged();
                 logServerEvent("Round ended. Advancing to PLACING_PHASE");
                 notifyGamePhaseChanged();
             }catch (DeckFinishedException e) {
