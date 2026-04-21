@@ -59,10 +59,13 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
         }
         if(count>0){
             count = count/2;
+            UtilitiesFunction.logInfo(LOG_PREFIX,
+                    "FoodOnNewCoupleInventors: player '" + player.getNickname() + "' formed " + count +
+                            " new matching Inventor pair(s), awarding " + (3 * count) + " food");
             player.manageFoodAndPP(3*count);
         }
         else{
-            logServerEvent("No matching Inventor card pairs found this turn");
+            logServerEvent("FoodOnNewCoupleInventors: no matching Inventor card pairs found this turn for player '" + player.getNickname() + "'");
         }
 
     }

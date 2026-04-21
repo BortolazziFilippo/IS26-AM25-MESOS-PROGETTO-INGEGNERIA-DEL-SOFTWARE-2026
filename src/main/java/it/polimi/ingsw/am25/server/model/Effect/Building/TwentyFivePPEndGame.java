@@ -1,12 +1,14 @@
 package it.polimi.ingsw.am25.server.model.Effect.Building;
 
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 
 /**
  * Building effect that awards 25 prestige points at the end of the game.
  */
 public class TwentyFivePPEndGame extends BuildingEffect{
+    private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
     /**
      * Default constructor for TwentyFivePPEndGame.
@@ -21,6 +23,8 @@ public class TwentyFivePPEndGame extends BuildingEffect{
      */
     @Override
     public void applyEffect(Player player) {
+        UtilitiesFunction.logInfo(LOG_PREFIX,
+                "TwentyFivePPEndGame: awarding 25 PP to player '" + player.getNickname() + "' at end of game");
         player.managePP(25);
 
     }

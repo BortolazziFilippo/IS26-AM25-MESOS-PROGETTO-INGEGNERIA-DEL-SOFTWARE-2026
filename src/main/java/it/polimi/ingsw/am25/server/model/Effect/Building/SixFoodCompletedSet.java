@@ -15,6 +15,7 @@ import java.util.List;
  * complete N sets, and each set is scored only once.
  */
 public class SixFoodCompletedSet extends BuildingEffect {
+    private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private boolean alreadyUsed = false;
     private  List<Integer> setCard;
     private List<Card> listOldCard;
@@ -40,6 +41,8 @@ public class SixFoodCompletedSet extends BuildingEffect {
             setCard = new ArrayList<>(Collections.nCopies(quantity,0));
             listOldCard=new ArrayList<>(player.getTribe());
             this.alreadyUsed=true;
+            UtilitiesFunction.logInfo(LOG_PREFIX,
+                    "SixFoodCompletedSet: initialised card counters for player '" + player.getNickname() + "'");
         }else{
             List<Card> listOfNewCard = player.getTribe();
             List<Card> difference = new ArrayList<>(listOfNewCard);
@@ -50,9 +53,19 @@ public class SixFoodCompletedSet extends BuildingEffect {
 
             UtilitiesFunction.countOccurrence(difference, setCard);
 
+            int setsAwarded = 0;
             while (!setCard.contains(0)){
                 player.manageFoodAndPP(5);
                 setCard.replaceAll(integer -> integer-1);
+                setsAwarded++;
+            }
+            if (setsAwarded > 0) {
+                UtilitiesFunction.logInfo(LOG_PREFIX,
+                        "SixFoodCompletedSet: player '" + player.getNickname() + "' completed " + setsAwarded +
+                                " full set(s), awarded " + (setsAwarded * 5) + " food");
+            } else {
+                UtilitiesFunction.logInfo(LOG_PREFIX,
+                        "SixFoodCompletedSet: player '" + player.getNickname() + "' has not completed a new full set, no food awarded");
             }
         }
     }

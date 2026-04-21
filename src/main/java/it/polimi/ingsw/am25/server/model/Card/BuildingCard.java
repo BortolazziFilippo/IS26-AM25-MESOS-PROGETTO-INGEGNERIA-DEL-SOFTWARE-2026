@@ -5,10 +5,12 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 public class BuildingCard extends Card {
+    private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int buildingID;
     private  BuildingEffect buildingEffect;
     private final int foodCost;
@@ -83,7 +85,15 @@ public class BuildingCard extends Card {
      * @param player the player to apply the effect to
      */
     public void applyBuildingEffect(Player player) {
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "Applying building #" + buildingID + " (trigger: " + applyOn + ") to player '" + player.getNickname() + "'"
+        );
         this.buildingEffect.applyEffect(player);
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "Completed building #" + buildingID + " for player '" + player.getNickname() + "'"
+        );
     }
     @Override
     public void addCardToPlayer(Player player) {

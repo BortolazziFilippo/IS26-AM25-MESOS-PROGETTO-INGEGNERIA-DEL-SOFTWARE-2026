@@ -1,7 +1,9 @@
 package it.polimi.ingsw.am25.server.model.Effect.Event;
 
+import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
 
@@ -12,6 +14,7 @@ import java.util.List;
  * Building effects tagged {@link EVENT_TYPE#PAINTINGS} are also triggered.
  */
 public class ArtistEvent extends EventEffect{
+    private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int artistNeeded;
     private final int PPLost;
     private final int PPtoMultiply;
@@ -37,10 +40,39 @@ public class ArtistEvent extends EventEffect{
      */
     @Override
     public void solveEvent(List<Player> playersList) {
-        playersList.stream().filter(player -> player.getArtistNumber()>=artistNeeded).forEach(player -> player.managePP(PPtoMultiply*player.getArtistNumber()));
-        playersList.stream().filter(player -> player.getArtistNumber()<artistNeeded).forEach(player -> player.managePP(-PPLost));
-        for(Player pl:playersList){
-            pl.getBuildingCards().stream().filter(buildingCard-> buildingCard.getApplyOn()== EVENT_TYPE.PAINTINGS).forEach(buildingCard->buildingCard.applyBuildingEffect(pl));
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "PAINTINGS event started: players with at least " + artistNeeded + " Artists gain " +
+                        PPtoMultiply + " PP per Artist, others lose " + PPLost + " PP"
+        );
+        for (Player player : playersList) {
+            int artistCount = player.getArtistNumber();
+            if (artistCount >= artistNeeded) {
+                int ppGain = PPtoMultiply * artistCount;
+                UtilitiesFunction.logInfo(
+                        LOG_PREFIX,
+                        "PAINTINGS event on player '" + player.getNickname() + "': artists=" + artistCount +
+                                ", PP delta=" + ppGain
+                );
+                player.managePP(ppGain);
+            } else {
+                UtilitiesFunction.logInfo(
+                        LOG_PREFIX,
+                        "PAINTINGS event on player '" + player.getNickname() + "': artists=" + artistCount +
+                                ", PP delta=-" + PPLost
+                );
+                player.managePP(-PPLost);
+            }
+            List<BuildingCard> triggeredBuildings = player.getBuildingCards().stream()
+                    .filter(buildingCard -> buildingCard.getApplyOn() == EVENT_TYPE.PAINTINGS)
+                    .toList();
+            triggeredBuildings.forEach(buildingCard -> buildingCard.applyBuildingEffect(player));
+            UtilitiesFunction.logInfo(
+                    LOG_PREFIX,
+                    "PAINTINGS event triggered " + triggeredBuildings.size() + " building effect(s) for player '" +
+                            player.getNickname() + "'"
+            );
         }
+        UtilitiesFunction.logInfo(LOG_PREFIX, "PAINTINGS event completed");
     }
 }

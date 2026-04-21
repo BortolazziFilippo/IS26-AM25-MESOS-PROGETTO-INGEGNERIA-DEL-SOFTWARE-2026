@@ -209,16 +209,23 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         this.drawTop=action.getDrawTop();
     }
 
-    public int getTopCardSize(){
+    public int getTopCardSize() {
+        if (this.topCards == null) return 0;
         return this.topCards.size();
     }
-    public int getTopBuildingSize(){
-        return this.topBuildings.size();
-    }
-    public int getBottomCardSize(){
+
+    public int getBottomCardSize() {
+        if (this.bottomCards == null) return 0;
         return this.bottomCards.size();
     }
-    public int getBottomBuildingSize(){
+
+    public int getTopBuildingSize() {
+        if (this.topBuildings == null) return 0;
+        return this.topBuildings.size();
+    }
+
+    public int getBottomBuildingSize() {
+        if (this.bottomBuildings == null) return 0;
         return this.bottomBuildings.size();
     }
 

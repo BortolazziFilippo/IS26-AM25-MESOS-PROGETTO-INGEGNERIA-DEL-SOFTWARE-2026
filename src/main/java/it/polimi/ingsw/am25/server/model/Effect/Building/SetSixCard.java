@@ -12,6 +12,7 @@ import java.util.List;
  * the six tribe-card types that was added since the last evaluation.
  */
 public class SetSixCard extends BuildingEffect{
+    private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int foodToGive = 5;
     private List<Card> oldCards = new ArrayList<>();
     /**
@@ -42,7 +43,14 @@ public class SetSixCard extends BuildingEffect{
         oldCards = fullTribe;
         if (!setCards.contains(0)) {
             setCompleti = Collections.min(setCards);
-            player.managePP(6 * setCompleti);
+            int ppGain = 6 * setCompleti;
+            UtilitiesFunction.logInfo(LOG_PREFIX,
+                    "SetSixCard: player '" + player.getNickname() + "' completed " + setCompleti +
+                            " full set(s) of all 6 card types, awarding " + ppGain + " PP");
+            player.managePP(ppGain);
+        } else {
+            UtilitiesFunction.logInfo(LOG_PREFIX,
+                    "SetSixCard: player '" + player.getNickname() + "' has not completed a full set this evaluation, no PP awarded");
         }
     }
 }

@@ -1,7 +1,9 @@
 package it.polimi.ingsw.am25.server.model.Effect.Event;
 
+import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
 /**
@@ -10,6 +12,7 @@ import java.util.List;
  * Building effects tagged {@link EVENT_TYPE#HUNT} are also triggered.
  */
 public class HuntEvent extends EventEffect {
+    private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int food;
     private final int PPtoMultiply;
     /**
@@ -31,8 +34,30 @@ public class HuntEvent extends EventEffect {
      */
     @Override
     public void solveEvent(List<Player> playersList) {
-        playersList.forEach(player -> player.manageFoodAndPP(food));
-        playersList.forEach(player -> player.managePP(PPtoMultiply*player.getHunterNumber()));
-        playersList.forEach(player -> player.getBuildingCards().stream().filter(buildingCard->buildingCard.getApplyOn()== EVENT_TYPE.HUNT).forEach(buildingCard->buildingCard.applyBuildingEffect(player)));
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "HUNT event started: all players gain " + food + " food and " + PPtoMultiply + " PP per Hunter"
+        );
+        for (Player player : playersList) {
+            int hunterCount = player.getHunterNumber();
+            int ppGain = PPtoMultiply * hunterCount;
+            UtilitiesFunction.logInfo(
+                    LOG_PREFIX,
+                    "HUNT event on player '" + player.getNickname() + "': hunters=" + hunterCount +
+                            ", food delta=" + food + ", PP delta=" + ppGain
+            );
+            player.manageFoodAndPP(food);
+            player.managePP(ppGain);
+            List<BuildingCard> triggeredBuildings = player.getBuildingCards().stream()
+                    .filter(buildingCard -> buildingCard.getApplyOn() == EVENT_TYPE.HUNT)
+                    .toList();
+            triggeredBuildings.forEach(buildingCard -> buildingCard.applyBuildingEffect(player));
+            UtilitiesFunction.logInfo(
+                    LOG_PREFIX,
+                    "HUNT event triggered " + triggeredBuildings.size() + " building effect(s) for player '" +
+                            player.getNickname() + "'"
+            );
+        }
+        UtilitiesFunction.logInfo(LOG_PREFIX, "HUNT event completed");
     }
 }

@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.EventDTO;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class EventCard extends Card
 {
+    private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int eventID;
     private final EVENT_TYPE eventType;
     private EventEffect eventEffect;
@@ -70,7 +72,15 @@ public class EventCard extends Card
      */
     public void applyEventEffect(List<Player> PlayersList)
     {
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "Executing event #" + eventID + " (" + eventType + ") for " + PlayersList.size() + " players"
+        );
         this.eventEffect.solveEvent(PlayersList);
+        UtilitiesFunction.logInfo(
+                LOG_PREFIX,
+                "Completed event #" + eventID + " (" + eventType + ")"
+        );
     }
     @Override
     public void addCardToPlayer(Player player) throws NotSelectableCardException {
