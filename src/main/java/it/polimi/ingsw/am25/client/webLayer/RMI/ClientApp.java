@@ -20,17 +20,17 @@ public class ClientApp {
         }
 
         try {
-            // 1. TROVA IL PROPRIO IP AUTOMATICAMENTE
+            //search my ip
             String myIp = getLocalIPv4();
+
             System.setProperty("java.rmi.server.hostname", myIp);
             System.out.println("🌐 Tentativo di connessione al Server [" + serverIp + "] dal Client [" + myIp + "]...");
 
-            // 2. SETUP CONNESSIONE RMI
             Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
             ServerRemoteInterface serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
             ClientVirtualView clientHandler = new ClientVirtualView();
 
-            // 3. AVVIA LA TUI
+            // starts ui
             ClientTUI tui = new ClientTUI(serverStub, clientHandler);
             tui.start();
 
