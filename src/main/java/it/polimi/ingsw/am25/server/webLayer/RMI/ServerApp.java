@@ -17,17 +17,12 @@ public class ServerApp {
         try {
             String myIp = getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", myIp);
-            System.out.println("🌐 Server RMI in avvio sull'IP: " + myIp);
 
-            // 2. AVVIO STANDARD RMI
             ServerNetworkHandler serverObject = new ServerNetworkHandler();
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("MesosServer", serverObject);
-
             clearScreen();
             UtilitiesFunction.logInfo(LOG_PREFIX, " RMI server started and ready on IP: " + myIp);
-            logServerEvent("RMI server started and ready on IP: " + myIp);
-            new java.util.Scanner(System.in).nextLine();
             new java.util.Scanner(System.in).nextLine(); //this line keeps the server from shutting down
         } catch (Exception e) {
             e.printStackTrace();
