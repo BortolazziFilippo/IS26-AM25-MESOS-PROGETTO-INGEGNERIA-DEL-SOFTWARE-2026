@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 
+import javax.xml.transform.Source;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -31,9 +32,9 @@ public class CardDTO implements Serializable {
         this.cardType = card.getCardType();
     }
 
-    public CardDTO(ERA era){
+    public CardDTO(ERA era,CARD_TYPE cardType){
         this.era=era;
-
+        this.cardType=cardType;
     }
     /**
      * Constructs a CardDTO from a {@link GathererCard}.
@@ -121,5 +122,28 @@ public class CardDTO implements Serializable {
 
     public boolean isHasIcon() {
         return hasIcon;
+    }
+
+    @Override
+    public String toString() {
+        switch (cardType){
+            case SHAMAN:
+                return this.starNumber.toString();
+            case HUNTER:
+                if(hasIcon){
+                    return "Con icona";
+
+                }else{
+                    return "Senza icona";
+
+                }
+            case BUILDER:
+                return "PP: "+this.finalPrestigePoint + "Sconto: "+this.foodDiscount;
+
+            case INVENTOR:
+                return "Icona: "+this.invIcon;
+            default:
+                return this.cardType.toString()+" ";
+        }
     }
 }

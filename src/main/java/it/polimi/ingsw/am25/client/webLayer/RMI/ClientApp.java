@@ -12,15 +12,15 @@ import java.util.Enumeration;
 public class ClientApp {
 
     public static void main(String[] args) {
-        // Se non scrivi l'IP del server, di default prova sul tuo stesso PC
+        //if no ip si written default sets loopback
         String serverIp = "127.0.0.1";
 
         if (args.length > 0) {
-            serverIp = args[0]; // Prende l'IP del server dal terminale
+            serverIp = args[0]; //gets ip from terminal
         }
 
         try {
-            //search my ip
+            //search client ip
             String myIp = getLocalIPv4();
 
             System.setProperty("java.rmi.server.hostname", myIp);
@@ -40,7 +40,7 @@ public class ClientApp {
         }
     }
 
-    // --- IL METODO AUTOMATICO ---
+    // ---  AUTOMATIC BINDER---
     public static String getLocalIPv4() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();

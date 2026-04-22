@@ -242,4 +242,20 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public int getDrawTop(){
         return drawTop;
     }
+
+    public List<CardDTO> getTopCards() {
+        return (this.topCards == null) ? new ArrayList<>() : this.topCards;
+    }
+
+    public List<CardDTO> getBottomCards() {
+        return (this.bottomCards == null) ? new ArrayList<>() : this.bottomCards;
+    }
+
+    public List<BuildingDTO> getTopBuildings() {
+        return (this.topBuildings == null) ? new ArrayList<>() : this.topBuildings;
+    }
+
+    public List<BuildingDTO> getBottomBuildings() {
+        return (this.bottomBuildings == null) ? new ArrayList<>() : this.bottomBuildings;
+    }
 }

@@ -6,9 +6,11 @@ import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Scanner;
 
 public class ClientTUI {
@@ -86,6 +88,7 @@ public class ClientTUI {
                     System.out.println("2 - Pesca carta da sopra (Fase Azioni)");
                     System.out.println("3 - Pesca carta da sotto (Fase Azioni)");
                     System.out.println("4 - Passa il turno");
+                    printMarket();
                     break;
                 default:
                     System.out.println("In attesa del caricamento...");
@@ -228,6 +231,9 @@ public class ClientTUI {
             System.out.println("1 - Carta Tribù");
             System.out.println("2 - Carta Edificio");
             System.out.println("q - Annulla e torna al menu principale");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
+            System.out.print("\nScelta: ");
             System.out.print("Scelta: ");
 
             String input = scanner.nextLine();
@@ -252,7 +258,11 @@ public class ClientTUI {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOPRA) ---");
-            System.out.print("Inserisci la posizione della carta (1 a " + clientHandler.getTopCardSize() + ") oppure 'q' per cambiare mazzo: ");
+
+            // MOSTRA LE CARTE PRIMA DI CHIEDERE L'INPUT
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
+
+            System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
@@ -285,7 +295,11 @@ public class ClientTUI {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOPRA) ---");
-            System.out.print("Inserisci la posizione della carta (1 a " + clientHandler.getTopBuildingSize() + ") oppure 'q' per cambiare mazzo: ");
+
+            // MOSTRA GLI EDIFICI PRIMA DI CHIEDERE L'INPUT
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
+
+            System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
@@ -295,7 +309,8 @@ public class ClientTUI {
             }
             try {
                 int position = Integer.parseInt(input) - 1;
-                if (position < 0 || position >= clientHandler.getTopCardSize()) {
+                // FIX: prima controllavi getTopCardSize() invece di getTopBuildingSize()
+                if (position < 0 || position >= clientHandler.getTopBuildingSize()) {
                     System.err.println("\n❌ Errore: Posizione fuori limite.");
                     pauseAndClear();
                     continue;
@@ -325,7 +340,9 @@ public class ClientTUI {
             System.out.println("1 - Carta Tribù");
             System.out.println("2 - Carta Edificio");
             System.out.println("q - Annulla e torna al menu principale");
-            System.out.print("Scelta: ");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
+            System.out.print("\nScelta: ");
 
             String input = scanner.nextLine();
             if (input.equalsIgnoreCase("q")) {
@@ -349,9 +366,10 @@ public class ClientTUI {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOTTO) ---");
-            System.out.print("Inserisci la posizione della carta (1 a " + clientHandler.getBottomCardSize() + ") oppure 'q' per cambiare mazzo: ");
+            // MOSTRA LE CARTE
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
+            System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
-
             if (input.equalsIgnoreCase("q")) {
                 clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
@@ -382,7 +400,11 @@ public class ClientTUI {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOTTO) ---");
-            System.out.print("Inserisci la posizione della carta (1 a " + clientHandler.getBottomBuildingSize() + ") oppure 'q' per cambiare mazzo: ");
+
+            // MOSTRA GLI EDIFICI
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
+
+            System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
@@ -392,7 +414,8 @@ public class ClientTUI {
             }
             try {
                 int position = Integer.parseInt(input) - 1;
-                if (position < 0 || position >= clientHandler.getBottomCardSize()) {
+                // FIX: prima controllavi getBottomCardSize() invece di getBottomBuildingSize()
+                if (position < 0 || position >= clientHandler.getBottomBuildingSize()) {
                     System.err.println("\n❌ Errore: Posizione fuori limite.");
                     pauseAndClear();
                     continue;
@@ -436,12 +459,35 @@ public class ClientTUI {
             System.out.print("Scelta: ");
             String scelta = scanner.nextLine();
 
-            System.out.print("Inserisci la posizione della carta (1 a " + clientHandler.getTopCardSize() + "): ");
+            int maxLimit = 0;
+
+            // STAMPA LA LISTA IN BASE ALLA SCELTA
+            if (scelta.equals("1")) {
+                printCardList("CARTE TRIBÙ DISPONIBILI", clientHandler.getTopCards());
+                maxLimit = clientHandler.getTopCardSize();
+            } else if (scelta.equals("2")) {
+                printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getTopBuildings());
+                maxLimit = clientHandler.getTopBuildingSize();
+            } else {
+                System.err.println("\n❌ Scelta mazzo non valida. Digita 1 o 2.");
+                pauseAndClear();
+                clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                continue;
+            }
+
+            System.out.print("\nInserisci la posizione della carta (1 a " + maxLimit + ") oppure 'q' per cambiare mazzo: ");
             String inputPos = scanner.nextLine();
+
+            if (inputPos.equalsIgnoreCase("q")) {
+                clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                continue;
+            }
 
             try {
                 int position = Integer.parseInt(inputPos) - 1;
-                if (position < 0 || position >= clientHandler.getTopCardSize()) {
+                if (position < 0 || position >= maxLimit) {
                     System.err.println("\n❌ Errore: Posizione fuori limite.");
                     pauseAndClear();
                     clearScreen();
@@ -452,15 +498,9 @@ public class ClientTUI {
                 if (scelta.equals("1")) {
                     serverStub.selectExtraCard(myPlayer, CARD_TYPE.ARTIST, position);
                     isDrawn = true;
-                } else if (scelta.equals("2")) {
+                } else {
                     serverStub.selectExtraCard(myPlayer, CARD_TYPE.BUILDING, position);
                     isDrawn = true;
-                } else {
-                    System.err.println("\n❌ Scelta mazzo non valida. Digita 1 o 2.");
-                    pauseAndClear();
-                    clearScreen();
-                    System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
-                    continue;
                 }
 
                 System.out.println("\n✅ Carta extra pescata con successo!");
@@ -498,7 +538,6 @@ public class ClientTUI {
     }
 
     private String extractCleanError(Exception e) {
-        e.printStackTrace();
         if (e.getMessage() != null && e.getMessage().contains(":")) {
             String[] parts = e.getMessage().split(":");
             return parts[parts.length - 1].trim();
@@ -622,4 +661,53 @@ public class ClientTUI {
         }
         return index;
     }
+    // ==========================================================
+    // METODI DI STAMPA MERCATO
+    // ==========================================================
+
+    /**
+     * Stampa l'intero mercato (Sopra, Sotto, Edifici)
+     */
+    public void printMarket() {
+        System.out.println("\n=============================================================");
+        System.out.println("                       🏪 IL MERCATO 🏪                      ");
+        System.out.println("=============================================================");
+
+        printCardList("CARTE NORMALI (SOPRA)", clientHandler.getTopCards());
+        printCardList("CARTE EDIFICIO (SOPRA)", clientHandler.getTopBuildings());
+
+        System.out.println("-------------------------------------------------------------");
+
+        printCardList("CARTE NORMALI (SOTTO)", clientHandler.getBottomCards());
+        printCardList("CARTE EDIFICIO (SOTTO)", clientHandler.getBottomBuildings());
+
+        System.out.println("=============================================================\n");
+    }
+
+    /**
+     * Metodo universale per stampare una singola riga del mercato
+     */
+    //List<? ...> means an unknown type except it extends CardDTO
+    private void printCardList(String title, List<? extends CardDTO> cards) {
+        System.out.println("\n▶ " + title + ":");
+
+        if (cards == null || cards.isEmpty()) {
+            System.out.println("   [Nessuna carta disponibile in questa fila]");
+            return;
+        }
+
+        // Intestazione della tabella
+        System.out.printf("   %-4s | %-15s | %s\n", "Pos", "Tipo Carta", "Descrizione");
+
+        // Allarghiamo la linea a 90 trattini visto che la descrizione del toString sarà lunga
+        System.out.println("   " + "-".repeat(90));
+
+        for (int i = 0; i < cards.size(); i++) {
+            CardDTO card = cards.get(i);
+            String type = card.getCardType().toString();
+
+            System.out.printf("   [%d]  | %-15s | %s\n", (i + 1), type, card.toString());
+        }
+    }
+
 }

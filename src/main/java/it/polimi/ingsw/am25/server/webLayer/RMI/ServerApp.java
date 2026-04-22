@@ -17,15 +17,14 @@ public class ServerApp {
         try {
             String myIp = getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", myIp);
-
             ServerNetworkHandler serverObject = new ServerNetworkHandler();
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("MesosServer", serverObject);
             clearScreen();
-            UtilitiesFunction.logInfo(LOG_PREFIX, " RMI server started and ready on IP: " + myIp);
+            logServerEvent("Creato server all'IP "+ myIp);
             new java.util.Scanner(System.in).nextLine(); //this line keeps the server from shutting down
         } catch (Exception e) {
-            e.printStackTrace();
+            UtilitiesFunction.logError(LOG_PREFIX +" "+e);
         }
 
     }
@@ -39,14 +38,13 @@ public class ServerApp {
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
-                    // Prendi solo il vero IPv4
                     if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
                         return addr.getHostAddress();
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Impossibile rilevare l'IP automaticamente.");
+            UtilitiesFunction.logError(LOG_PREFIX +" Impossibile rilevare l'IP automaticamente.");
         }
         return "127.0.0.1"; // Fallback sicuro
     }
