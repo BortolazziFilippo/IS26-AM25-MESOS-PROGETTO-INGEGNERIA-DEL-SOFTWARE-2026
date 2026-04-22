@@ -2,8 +2,12 @@ package it.polimi.ingsw.am25.server.webLayer.RMI;
 
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Enumeration;
 
 public class ServerApp {
     private static final String LOG_PREFIX = "[SERVER][APP]";
@@ -11,20 +15,47 @@ public class ServerApp {
     public static void main(String[] args) {
         UtilitiesFunction.initLog();
         try {
-            // Creating server object
+            String myIp = getLocalIPv4();
+            System.setProperty("java.rmi.server.hostname", myIp);
+            System.out.println("🌐 Server RMI in avvio sull'IP: " + myIp);
+
+            // 2. AVVIO STANDARD RMI
             ServerNetworkHandler serverObject = new ServerNetworkHandler();
-            // Turning on registry rmi
             Registry registry = LocateRegistry.createRegistry(1099);
-            // publishing server
             registry.rebind("MesosServer", serverObject);
+
             clearScreen();
-            logServerEvent("RMI server started and ready!");
+            UtilitiesFunction.logInfo(LOG_PREFIX, " RMI server started and ready on IP: " + myIp);
+            logServerEvent("RMI server started and ready on IP: " + myIp);
+            new java.util.Scanner(System.in).nextLine();
             new java.util.Scanner(System.in).nextLine(); //this line keeps the server from shutting down
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
+
+    public static String getLocalIPv4() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp() || iface.isVirtual()) continue;
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    // Prendi solo il vero IPv4
+                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Impossibile rilevare l'IP automaticamente.");
+        }
+        return "127.0.0.1"; // Fallback sicuro
+    }
+
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
