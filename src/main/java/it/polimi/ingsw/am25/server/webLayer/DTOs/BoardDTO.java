@@ -1,8 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
-import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
-import it.polimi.ingsw.am25.server.model.Board.OfferTile;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;

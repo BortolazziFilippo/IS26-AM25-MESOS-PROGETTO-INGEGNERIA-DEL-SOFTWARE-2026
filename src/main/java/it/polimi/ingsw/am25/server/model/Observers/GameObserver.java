@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.server.model.Observers;
 
-import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Player.Player;

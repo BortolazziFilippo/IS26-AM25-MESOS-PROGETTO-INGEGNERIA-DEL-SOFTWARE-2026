@@ -16,7 +16,7 @@ public class Board implements BoardView {
     private static final String LOG_PREFIX = "[SERVER][BOARD]";
     private final List<OfferTile> offerTiles;
     private final List<DefaultTile> defaultTiles;
-    private  GameView gameView;
+    private final GameView gameView;
     private final  List<BoardObserver> observers=new ArrayList<>();
 
     /**

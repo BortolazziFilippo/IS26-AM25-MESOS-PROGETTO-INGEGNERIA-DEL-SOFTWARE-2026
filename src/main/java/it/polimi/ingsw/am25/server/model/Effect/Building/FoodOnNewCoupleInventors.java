@@ -3,11 +3,12 @@ package it.polimi.ingsw.am25.server.model.Effect.Building;
 import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Card.InventorCard;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Building effect that awards 3 food for each new pair of Inventor cards sharing the same icon
  * added to the tribe since the last time this effect was evaluated.
@@ -15,7 +16,7 @@ import java.util.List;
 public class FoodOnNewCoupleInventors extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private List<Card> beforeTurnCards = new ArrayList<>();
-    private List<InventorCard> pairsCards = new ArrayList<>();
+    private final List<InventorCard> pairsCards = new ArrayList<>();
 
     /**
      * Default constructor for FoodOnNewCoupleInventors.

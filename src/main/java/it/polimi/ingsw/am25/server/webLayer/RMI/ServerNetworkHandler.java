@@ -6,12 +6,10 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
-import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +17,7 @@ import java.util.Objects;
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
-    private List<PlayerDTO> playerDTOS=new ArrayList<>();
+    private final List<PlayerDTO> playerDTOS=new ArrayList<>();
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
@@ -164,7 +162,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * @param playerDTO parameter playerDTO.
      */
     @Override
-    public synchronized void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException, Exception {
+    public synchronized void playerDoNothing(PlayerDTO playerDTO) throws Exception {
         Player playerTemp=new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
     }

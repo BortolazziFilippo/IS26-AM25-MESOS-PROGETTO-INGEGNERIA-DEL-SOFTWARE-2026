@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer;
 
-import it.polimi.ingsw.am25.server.model.Board.Action;
 import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
@@ -14,8 +13,8 @@ import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
 import java.rmi.RemoteException;
@@ -134,7 +133,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
-        playersMap.put(nickname, new PlayerDTO(nickname, food, prestigePoint, totem.getColor()));
+        playersMap.put(nickname, new PlayerDTO(nickname, food, prestigePoint, totem.color()));
 
     }
 

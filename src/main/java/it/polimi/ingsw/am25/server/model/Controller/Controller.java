@@ -14,7 +14,7 @@ import java.util.List;
 public class Controller {
     private Game game;
     private List<Player> players;
-    private String LOG_PREFIX="[CONTROLLER]";
+    private final String LOG_PREFIX="[CONTROLLER]";
 
     /**
      * Creates a new controller instance.
@@ -251,8 +251,7 @@ public class Controller {
 
         // WAKE THE SERVER: find the ServerVirtualView among the player observers
         for (PlayerObserver obs : player.getObservers()) {
-            if (obs instanceof ServerVirtualView) {
-                ServerVirtualView svv = (it.polimi.ingsw.am25.server.webLayer.ServerVirtualView) obs;
+            if (obs instanceof ServerVirtualView svv) {
                 synchronized (svv.extraDrawLock) {
                     svv.extraDrawLock.notifyAll();
                 }

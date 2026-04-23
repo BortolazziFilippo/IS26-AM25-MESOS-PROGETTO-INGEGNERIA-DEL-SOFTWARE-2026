@@ -15,7 +15,7 @@ public class ClientApp {
      * Executes main.
      * @param args parameter args.
      */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         //if no ip si written default sets loopback
         String serverIp = "127.0.0.1";
 

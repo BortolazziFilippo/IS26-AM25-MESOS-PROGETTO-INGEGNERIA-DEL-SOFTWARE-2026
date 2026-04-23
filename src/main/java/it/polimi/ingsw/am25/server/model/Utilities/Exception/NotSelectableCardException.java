@@ -8,5 +8,5 @@ public class NotSelectableCardException extends RuntimeException {
     public NotSelectableCardException(String message) {
         super(message);
     }
-    public NotSelectableCardException(){};
+    public NotSelectableCardException(){}
 }

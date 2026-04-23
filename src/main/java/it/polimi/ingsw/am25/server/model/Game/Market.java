@@ -10,21 +10,23 @@ import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
-
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Market {
-    private List<Card> topCardList;
-    private List<BuildingCard> topBuildingList;
-    private List<Card> bottomCardList;
-    private List<BuildingCard> bottomBuildingList;
-    private List<Card> deck ;
-    private List<BuildingCard> buildingCards;
-    private  GameView gameView;
+    private final List<Card> topCardList;
+    private final List<BuildingCard> topBuildingList;
+    private final List<Card> bottomCardList;
+    private final List<BuildingCard> bottomBuildingList;
+    private final List<Card> deck ;
+    private final List<BuildingCard> buildingCards;
+    private final GameView gameView;
     private final List<MarketObserver> observers = new ArrayList<>();
 
 

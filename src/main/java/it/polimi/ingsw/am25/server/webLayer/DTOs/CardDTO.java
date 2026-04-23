@@ -1,21 +1,19 @@
 package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
 import it.polimi.ingsw.am25.server.model.Card.*;
-import it.polimi.ingsw.am25.server.model.Card.ShamanCard;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 
-import javax.xml.transform.Source;
 import java.io.Serial;
 import java.io.Serializable;
 
 public class CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private  CARD_TYPE cardType;
-    private  ERA era;
+    private final CARD_TYPE cardType;
+    private final ERA era;
     private INV_ICON invIcon;
     private SHAMAN_STAR starNumber;
     private int foodDiscount;
@@ -180,7 +178,7 @@ public class CardDTO implements Serializable {
             case INVENTOR:
                 return "Icona: "+this.invIcon;
             default:
-                return this.cardType.toString()+" ";
+                return this.cardType +" ";
         }
     }
 }

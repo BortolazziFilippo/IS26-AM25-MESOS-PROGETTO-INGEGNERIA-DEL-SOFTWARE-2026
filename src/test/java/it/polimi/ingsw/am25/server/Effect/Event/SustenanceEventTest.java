@@ -25,7 +25,7 @@ class SustenanceEventTest {
     private EventCard eventCard;
 
 
-    private List<Player> players=new ArrayList<>();
+    private final List<Player> players=new ArrayList<>();
     @BeforeEach
     void createPlayer(){
         this.p1= new Player("Lorem Ipsum", COLOR.RED);

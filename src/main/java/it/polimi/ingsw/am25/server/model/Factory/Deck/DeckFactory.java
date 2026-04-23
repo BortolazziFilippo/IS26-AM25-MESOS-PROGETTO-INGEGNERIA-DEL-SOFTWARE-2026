@@ -2,11 +2,10 @@ package it.polimi.ingsw.am25.server.model.Factory.Deck;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Card.*;
-import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.server.model.Factory.Event.EventFactory;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

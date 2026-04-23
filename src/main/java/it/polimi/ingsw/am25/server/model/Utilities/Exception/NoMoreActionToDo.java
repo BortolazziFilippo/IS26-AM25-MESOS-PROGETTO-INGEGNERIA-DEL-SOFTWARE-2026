@@ -8,5 +8,5 @@ public class NoMoreActionToDo extends RuntimeException {
     public NoMoreActionToDo(String message) {
         super(message);
     }
-    public NoMoreActionToDo(){};
+    public NoMoreActionToDo(){}
 }

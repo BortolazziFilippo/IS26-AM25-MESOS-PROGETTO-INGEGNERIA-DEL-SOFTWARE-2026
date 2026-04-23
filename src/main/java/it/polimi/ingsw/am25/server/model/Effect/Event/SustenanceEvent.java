@@ -8,8 +8,6 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
 
-import static java.lang.Math.abs;
-
 public class SustenanceEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int foodPerCharacter;

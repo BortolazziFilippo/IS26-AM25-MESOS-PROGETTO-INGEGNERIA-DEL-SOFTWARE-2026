@@ -1,11 +1,7 @@
 package it.polimi.ingsw.am25.server.model.Player;
 
 import it.polimi.ingsw.am25.server.model.Card.*;
-import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Enums.COLOR;
-import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
-import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
-import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
+import it.polimi.ingsw.am25.server.model.Enums.*;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;

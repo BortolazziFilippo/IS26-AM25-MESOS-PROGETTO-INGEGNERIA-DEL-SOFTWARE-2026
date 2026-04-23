@@ -3,18 +3,19 @@ package it.polimi.ingsw.am25.server.model.Factory.Building;
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
-
 import it.polimi.ingsw.am25.server.model.Effect.Building.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction.shuffledFromYToXExclusive;
-import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 public class BuildingFactory {
     private static final String LOG_PREFIX = "[SERVER][BUILDING_FACTORY]";

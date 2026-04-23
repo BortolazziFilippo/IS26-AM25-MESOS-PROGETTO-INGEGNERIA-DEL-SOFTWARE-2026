@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.server.webLayer.DTOs;
 
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
-import it.polimi.ingsw.am25.server.model.Player.Player;
 
 import java.io.Serial;
 import java.io.Serializable;
