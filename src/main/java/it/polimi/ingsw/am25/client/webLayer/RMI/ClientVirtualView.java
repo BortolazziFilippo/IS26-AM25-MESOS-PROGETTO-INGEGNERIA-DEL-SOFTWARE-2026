@@ -35,6 +35,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     // --- LOCKS ---
     public final Object gameStartLock = new Object();
     public boolean isGameStarted = false;
+    public volatile boolean connectionError=false;
     private final Object stateLock=new Object();
 
     // We use this lock to pause the player when it's not their turn!
@@ -339,10 +340,26 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void actionAvailableChanged(ActionDTO action) throws RemoteException {
-        this.drawBot=action.getDrawBot();
-        this.drawTop=action.getDrawTop();
+        synchronized (turnLock){
+            this.drawBot=action.getDrawBot();
+            this.drawTop=action.getDrawTop();
+            turnLock.notifyAll();
+        }
+
+
     }
 
+    @Override
+    public void showErrorMessage(String message) throws RemoteException {
+        synchronized (gameStartLock) {
+            this.connectionError = true;
+            gameStartLock.notifyAll();
+        }
+
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
     /**
      * Returns top card size.
      * @return the result of the operation.

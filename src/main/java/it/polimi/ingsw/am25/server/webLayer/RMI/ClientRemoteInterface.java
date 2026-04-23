@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.SimpleTimeZone;
 
 public interface ClientRemoteInterface extends Remote {
     // Game updates
@@ -38,5 +39,6 @@ public interface ClientRemoteInterface extends Remote {
     // draw one more card
     void askExtraDraw() throws RemoteException;
 
+    void showErrorMessage(String errorMessage) throws RemoteException;
 
 }

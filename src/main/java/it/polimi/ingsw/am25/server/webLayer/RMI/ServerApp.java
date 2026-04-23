@@ -39,7 +39,7 @@ public class ServerApp {
                     UtilitiesFunction.logError(LOG_PREFIX+"Errore irreversibile server" + e);
                 }
             }).start();
-            logServerEvent("Server acceso e in attesa di connessioni");
+            logServerEvent("Server RMI acceso e in attesa di connessioni porta 1099");
         } catch (Exception e) {
             UtilitiesFunction.logError(LOG_PREFIX+"ERRORE CRITICO ALL'AVVIO DEL SERVER! \nSe l'errore dice 'Port already in use', chiudi i vecchi server aperti in background."+e);
         }

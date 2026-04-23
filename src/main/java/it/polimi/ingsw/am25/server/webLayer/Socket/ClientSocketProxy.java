@@ -335,4 +335,17 @@ public class ClientSocketProxy implements ClientRemoteInterface {
             e.printStackTrace();
         }
     }
+    @Override
+    public void showErrorMessage(String errorMessage) throws RemoteException {
+        try {
+            synchronized (out) {
+                out.writeObject(new it.polimi.ingsw.am25.client.webLayer.Socket.messages.ErrorMessage(errorMessage));
+                out.flush();
+                out.reset();
+            }
+        } catch (java.io.IOException e) {
+            UtilitiesFunction.logError(PREFIX, "Errore nella comunicazione del messaggio di errore");
+            e.printStackTrace();
+        }
+    }
 }

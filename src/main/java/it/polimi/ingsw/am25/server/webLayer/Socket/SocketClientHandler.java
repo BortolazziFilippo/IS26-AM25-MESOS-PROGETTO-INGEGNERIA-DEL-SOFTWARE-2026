@@ -24,25 +24,38 @@ public class SocketClientHandler extends Thread{
     @Override
     public void run() {
         try {
-            out=new ObjectOutputStream(socket.getOutputStream());
+            out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
-            in=new ObjectInputStream(socket.getInputStream());
-            ClientSocketProxy clientSocketProxy= new ClientSocketProxy(out);
-            while (true){
-                ClientToServerMessage message=(ClientToServerMessage) in.readObject();
-                message.execute(serverLogic,clientSocketProxy);
+            in = new ObjectInputStream(socket.getInputStream());
+            ClientSocketProxy clientSocketProxy = new ClientSocketProxy(out);
+
+            while (true) {
+                ClientToServerMessage message;
+                try {
+                    // Lettura del messaggio: se cade la rete lancia eccezione e chiude la socket
+                    message = (ClientToServerMessage) in.readObject();
+                } catch (IOException | ClassNotFoundException e) {
+                    throw e; // Rilancia per farlo catturare dal catch esterno e disconnettere
+                }
+
+                try {
+                    // Esecuzione logica: se c'è un errore di gioco, NON chiudiamo la connessione
+                    message.execute(serverLogic, clientSocketProxy);
+                } catch (Exception e) {
+                    UtilitiesFunction.logError(PREFIX + " Errore logica partita: " + e.getMessage());
+                    // Notifichiamo l'errore al client tramite il proxy
+                    clientSocketProxy.showErrorMessage(e.getMessage());
+                }
             }
-        }catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Un client si è disconnesso.");
-            //TODO:gestire disconnessione
-        } catch (Exception e) {
-            UtilitiesFunction.logError(PREFIX+"Errore Socket "+e);
+            //TODO: gestire disconnessione
         } finally {
-            try { socket.close();
+            try {
+                socket.close();
             } catch(IOException e) {
-                UtilitiesFunction.logError(PREFIX+"Errore Socket "+e);
+                UtilitiesFunction.logError(PREFIX + "Errore Socket " + e);
             }
         }
-
     }
 }

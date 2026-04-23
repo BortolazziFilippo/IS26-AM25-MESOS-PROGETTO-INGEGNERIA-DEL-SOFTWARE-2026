@@ -41,7 +41,6 @@ public class ClientTUI {
      */
     public void start() {
         boolean inGame = false;
-
         // ==========================================================
         // 1. LOBBY LOOP
         // ==========================================================
@@ -174,19 +173,46 @@ public class ClientTUI {
         System.out.println();
         int playerNumber = numberOfPlayer();
 
+        clientHandler.connectionError = false;
+        clientHandler.isGameStarted = false;
+
         try {
             serverStub.createGame(player, playerNumber, clientHandler);
-            System.out.println("\n✅ Partita creata con successo!");
-            this.myPlayer = player;
-            pauseAndClear();
-            return true;
         } catch (RemoteException e) {
             System.err.println("\n❌ Errore: comunicazione con il Server fallita.");
+            pauseAndClear();
+            return false;
         } catch (IllegalStateException e) {
             System.err.println("\n❌ Errore: lobby già presente.");
+            pauseAndClear();
+            return false;
         }
+
+        clearScreen();
+        System.out.println("\nRichiesta inviata. In attesa che si connettano gli altri giocatori...");
+
+        synchronized (clientHandler.gameStartLock) {
+            while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
+                try {
+                    clientHandler.gameStartLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+        }
+
+        if(clientHandler.connectionError){
+            clientHandler.connectionError = false;
+            System.err.println("❌ Gioco già creato, unisciti tramite 'Aggiungi Giocatore'.");
+            pauseAndClear();
+            return false;
+        }
+        System.out.println("\n✅ Tutti i giocatori sono connessi! La partita inizia!");
+        // 3. SET PLAYER E RETURN TRUE!
+        this.myPlayer = player;
         pauseAndClear();
-        return false;
+        return true;
     }
 
     /**
@@ -200,18 +226,41 @@ public class ClientTUI {
         String nickname = scanner.nextLine();
         COLOR colorTotem = bindTotemColor();
         PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
-
+        clientHandler.connectionError = false;
+        clientHandler.isGameStarted = false;
         try {
             serverStub.addPlayer(player, clientHandler);
-            System.out.println("\n✅ Unito alla partita con successo!");
-            this.myPlayer = player;
-            pauseAndClear();
-            return true;
         } catch (Exception e) {
+            //FOR RMI THE ERROR IS CATCHED HERE
             System.err.println("\n❌ Impossibile unirsi: " + extractCleanError(e));
+            pauseAndClear();
+            return false;
         }
+        clearScreen();
+        System.out.println("\nRichiesta inviata. In attesa che si connettano gli altri giocatori...");
+        synchronized (clientHandler.gameStartLock) {
+            while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
+                try {
+                    clientHandler.gameStartLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+        }
+        //woke up, checking the reason
+        if (clientHandler.connectionError) {
+            //if got inside an error occured and already printed by clientVirtualView
+            clientHandler.connectionError=false;
+            System.err.println("❌ Unione alla partita annullata.");
+            pauseAndClear();
+            return false;
+        }
+
+        System.out.println("\n✅ Tutti i giocatori sono connessi! La partita inizia!");
+        this.myPlayer = player;
         pauseAndClear();
-        return false;
+        return true;
     }
 
     // ==========================================================
@@ -227,19 +276,49 @@ public class ClientTUI {
         boolean isPlaced = false;
 
         while (!isPlaced) {
+            //resetting
+            clientHandler.connectionError = false;
             int position = getPlacingIndex();
-            if (position == -1) return; // -1 significa che l'utente ha premuto 'q'
-
+            if (position == -1) return; //user pressed q
             try {
+
                 serverStub.placingPlayer(myPlayer, position);
-                System.out.println("\n✅ Totem posizionato con successo nella casella " + (position + 1) + "!");
-                pauseAndClear();
-                isPlaced = true;
             } catch (Exception e) {
-                System.err.println("\n❌ Errore: " + extractCleanError(e));
+                // catched by RMI
+                System.err.println("\n❌ Errore RMI: " + extractCleanError(e));
                 pauseAndClear();
                 clearScreen();
                 System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
+                continue;
+            }
+            System.out.println("\nIn attesa di conferma dal server...");
+            synchronized (clientHandler.turnLock) {
+
+                while (!clientHandler.connectionError &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.PLACING_PHASE ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_PLACING_PHASE) &&
+                        clientHandler.getPlayerToPlace() != null &&
+                        clientHandler.getPlayerToPlace().equals(myPlayer.getNickName())) {
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            }
+            // woke up
+            if (clientHandler.connectionError) {
+                // socket:
+                System.err.println("❌ Casella gia occupata");
+                pauseAndClear();
+                clearScreen();
+                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
+            } else {
+                // SUCCESS: server accepted move and went to next player
+                System.out.println("\n✅ Totem posizionato con successo nella casella " + (position + 1) + "!");
+                pauseAndClear();
+                isPlaced = true; //ending while loop
             }
         }
     }
@@ -286,11 +365,12 @@ public class ClientTUI {
      * @return the result of the operation.
      */
     private boolean drawTopTribeCard() {
-        while (true) {
+        boolean isDrawn = false;
+        while (!isDrawn) {
+            clientHandler.connectionError = false;
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOPRA) ---");
 
-            // SHOW CARDS PRIMA DI CHIEDERE L'INPUT
             printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
 
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
@@ -301,6 +381,8 @@ public class ClientTUI {
                 System.out.println("--- PESCA CARTA (SOPRA) ---");
                 return false;
             }
+            int azioniSopraPrecedenti = clientHandler.getDrawTop();
+            int azioniSottoPrecedenti = clientHandler.getDrawBot();
             try {
                 int position = Integer.parseInt(input) - 1;
                 if (position < 0 || position >= clientHandler.getTopCardSize()) {
@@ -309,17 +391,49 @@ public class ClientTUI {
                     continue;
                 }
                 serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.ARTIST, position); // Artist = placeholder for Tribe
-                System.out.println("\n✅ Carta Tribù pescata con successo!");
-                pauseAndClear();
-                return true;
+
             } catch (NumberFormatException e) {
                 System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
                 pauseAndClear();
+                continue;
             } catch (Exception e) {
+                // instant rmi method error
                 System.err.println("\n❌ Impossibile pescare: " + extractCleanError(e));
                 pauseAndClear();
+                continue;
             }
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            synchronized (clientHandler.turnLock) {
+                //  leave if there is an error, the phase changes or if the round is ended or the action point are decreased
+                while (!clientHandler.connectionError &&
+                        clientHandler.getDrawTop() == azioniSopraPrecedenti &&
+                        clientHandler.getDrawBot() == azioniSottoPrecedenti &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                        clientHandler.getPlayerToPlay() != null &&
+                        clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
+            }
+            if (clientHandler.connectionError) {
+                // error sent from server
+                System.err.println("\n❌ Impossibile pescare.");
+                pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\n✅ Carta pescata con successo o turno concluso!");
+            pauseAndClear();
+            isDrawn = true;
+            return true;
         }
+        return true;
     }
 
     /**
@@ -327,96 +441,103 @@ public class ClientTUI {
      * @return the result of the operation.
      */
     private boolean drawTopBuildingCard() {
-        while (true) {
+        boolean isDrawn = false;
+        while (!isDrawn) {
+
+            clientHandler.connectionError = false;
+
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOPRA) ---");
 
-            // SHOW BUILDINGS PRIMA DI CHIEDERE L'INPUT
-            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
 
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
-
             if (input.equalsIgnoreCase("q")) {
                 clearScreen();
                 System.out.println("--- PESCA CARTA (SOPRA) ---");
                 return false;
             }
+            int azioniSopraPrecedenti = clientHandler.getDrawTop();
+            int azioniSottoPrecedenti = clientHandler.getDrawBot();
             try {
                 int position = Integer.parseInt(input) - 1;
-                // FIX: prima controllavi getTopCardSize() invece di getTopBuildingSize()
                 if (position < 0 || position >= clientHandler.getTopBuildingSize()) {
                     System.err.println("\n❌ Errore: Posizione fuori limite.");
                     pauseAndClear();
                     continue;
                 }
                 serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.BUILDING, position);
-                System.out.println("\n✅ Carta Edificio pescata con successo!");
-                pauseAndClear();
-                return true;
+
             } catch (NumberFormatException e) {
                 System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
                 pauseAndClear();
+                continue;
             } catch (Exception e) {
                 System.err.println("\n❌ Impossibile pescare: " + extractCleanError(e));
                 pauseAndClear();
+                continue;
             }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+
+            synchronized (clientHandler.turnLock) {
+                //  leave if there is an error, the phase changes or if the round is ended or the action point are decreased
+                while (!clientHandler.connectionError &&
+                        clientHandler.getDrawTop() == azioniSopraPrecedenti &&
+                        clientHandler.getDrawBot() == azioniSottoPrecedenti &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                        clientHandler.getPlayerToPlay() != null &&
+                        clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
+            }
+
+
+            if (clientHandler.connectionError) {
+                System.err.println("\n❌ Impossibile pescare.");
+                pauseAndClear();
+                continue;
+            }
+
+
+            System.out.println("\n✅ Carta Edificio pescata con successo o turno concluso!");
+            pauseAndClear();
+            isDrawn = true;
+            return true;
         }
+        return true;
     }
 
     // --- DRAW FROM BOTTOM ---
     /**
      * Executes draw bottom card.
      */
-    private void drawBottomCard() {
-        clearScreen();
-        System.out.println("--- PESCA CARTA (SOTTO) ---");
-
+    private boolean drawBottomCard() {
         boolean isDrawn = false;
         while (!isDrawn) {
-            System.out.println("\nCosa vuoi pescare?");
-            System.out.println("1 - Carta Tribù");
-            System.out.println("2 - Carta Edificio");
-            System.out.println("q - Annulla e torna al menu principale");
-            printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
-            printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
-            System.out.print("\nScelta: ");
-
-            String input = scanner.nextLine();
-            if (input.equalsIgnoreCase("q")) {
-                System.out.println("\nAzione annullata.");
-                pauseAndClear();
-                return;
-            } else if (input.equals("1")) {
-                isDrawn = drawBottomTribeCard();
-            } else if (input.equals("2")) {
-                isDrawn = drawBottomBuildingCard();
-            } else {
-                System.err.println("\n❌ Errore: Inserisci 1 o 2.");
-                pauseAndClear();
-                clearScreen();
-                System.out.println("--- PESCA CARTA (SOTTO) ---");
-            }
-        }
-    }
-
-    /**
-     * Executes draw bottom tribe card.
-     * @return the result of the operation.
-     */
-    private boolean drawBottomTribeCard() {
-        while (true) {
+            clientHandler.connectionError = false;
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOTTO) ---");
-            // SHOW CARDS
+
             printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
+
             if (input.equalsIgnoreCase("q")) {
                 clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
                 return false;
             }
+            int azioniSopraPrecedenti = clientHandler.getDrawTop();
+            int azioniSottoPrecedenti = clientHandler.getDrawBot();
             try {
                 int position = Integer.parseInt(input) - 1;
                 if (position < 0 || position >= clientHandler.getBottomCardSize()) {
@@ -425,29 +546,57 @@ public class ClientTUI {
                     continue;
                 }
                 serverStub.selectCardFromBottomList(myPlayer, CARD_TYPE.ARTIST, position);
-                System.out.println("\n✅ Carta Tribù pescata con successo!");
-                pauseAndClear();
-                return true;
             } catch (NumberFormatException e) {
                 System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
                 pauseAndClear();
+                continue;
             } catch (Exception e) {
                 System.err.println("\n❌ Impossibile pescare: " + extractCleanError(e));
                 pauseAndClear();
+                continue;
             }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            synchronized (clientHandler.turnLock) {
+                //  leave if there is an error, the phase changes or if the round is ended or the action point are decreased
+                while (!clientHandler.connectionError &&
+                        clientHandler.getDrawTop() == azioniSopraPrecedenti &&
+                        clientHandler.getDrawBot() == azioniSottoPrecedenti &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                        clientHandler.getPlayerToPlay() != null &&
+                        clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
+            }
+
+            if (clientHandler.connectionError) {
+                System.err.println("\n❌ Impossibile pescare.");
+                pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\n✅ Carta Tribù pescata con successo o turno concluso!");
+            pauseAndClear();
+            isDrawn = true;
+            return true;
         }
+        return true;
     }
 
-    /**
-     * Executes draw bottom building card.
-     * @return the result of the operation.
-     */
     private boolean drawBottomBuildingCard() {
-        while (true) {
+        boolean isDrawn = false;
+        while (!isDrawn) {
+            clientHandler.connectionError = false;
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOTTO) ---");
 
-            // SHOW BUILDINGS
             printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
 
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
@@ -458,40 +607,94 @@ public class ClientTUI {
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
                 return false;
             }
+            int azioniSopraPrecedenti = clientHandler.getDrawTop();
+            int azioniSottoPrecedenti = clientHandler.getDrawBot();
+
             try {
                 int position = Integer.parseInt(input) - 1;
-                // FIX: prima controllavi getBottomCardSize() invece di getBottomBuildingSize()
                 if (position < 0 || position >= clientHandler.getBottomBuildingSize()) {
                     System.err.println("\n❌ Errore: Posizione fuori limite.");
                     pauseAndClear();
                     continue;
                 }
                 serverStub.selectCardFromBottomList(myPlayer, CARD_TYPE.BUILDING, position);
-                System.out.println("\n✅ Carta Edificio pescata con successo!");
-                pauseAndClear();
-                return true;
             } catch (NumberFormatException e) {
                 System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
                 pauseAndClear();
+                continue;
             } catch (Exception e) {
                 System.err.println("\n❌ Impossibile pescare: " + extractCleanError(e));
                 pauseAndClear();
+                continue;
             }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            synchronized (clientHandler.turnLock) {
+                //  leave if there is an error, the phase changes or if the round is ended or the action point are decreased
+                while (!clientHandler.connectionError &&
+                        clientHandler.getDrawTop() == azioniSopraPrecedenti &&
+                        clientHandler.getDrawBot() == azioniSottoPrecedenti &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                        clientHandler.getPlayerToPlay() != null &&
+                        clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
+            }
+
+            if (clientHandler.connectionError) {
+                System.err.println("\n❌ Impossibile pescare.");
+                pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\n✅ Carta Edificio pescata con successo o turno concluso!");
+            pauseAndClear();
+            isDrawn = true;
+            return true;
         }
+        return true;
     }
 
-    /**
-     * Executes pass turn.
-     */
     private void passTurn() {
+        clientHandler.connectionError = false;
         clearScreen();
         System.out.println("--- PASSA TURNO ---");
         try {
             serverStub.playerDoNothing(myPlayer);
-            System.out.println("\n✅ Turno terminato.");
-            pauseAndClear();
         } catch (Exception e) {
             System.err.println("\n❌ Impossibile passare il turno: " + extractCleanError(e));
+            pauseAndClear();
+            return;
+        }
+        System.out.println("\nIn attesa di conferma dal server...");
+        //i want to be blocked until:
+        //there is a connection error, the phase changes th player changes
+        synchronized (clientHandler.turnLock) {
+            while (!clientHandler.connectionError &&
+                    (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                            clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                    clientHandler.getPlayerToPlay() != null &&
+                    clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                try {
+                    clientHandler.turnLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ Impossibile passare il turno.");
+            pauseAndClear();
+        } else {
+            System.out.println("\n✅ Turno terminato.");
             pauseAndClear();
         }
     }
@@ -739,9 +942,11 @@ public class ClientTUI {
                     break;
                 } else {
                     System.err.println("\n❌ Errore: L'indice deve essere tra 1 e " + clientHandler.getOfferTileSize() + ".");
+                    pauseAndClear();
                 }
             } catch (NumberFormatException e) {
                 System.err.println("\n❌ Errore: Devi inserire un NUMERO intero valido.");
+                pauseAndClear();
             }
         }
         return index;
