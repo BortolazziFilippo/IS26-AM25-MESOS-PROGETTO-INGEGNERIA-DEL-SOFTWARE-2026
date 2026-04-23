@@ -6,12 +6,12 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
-public class SelectExtraCard implements ClientToServerMessage {
+public class SelectExtraCardMessage implements ClientToServerMessage {
     private final PlayerDTO playerDTO;
     private final CARD_TYPE cardType;
     private final int position;
 
-    public SelectExtraCard(PlayerDTO playerDTO, CARD_TYPE cardType, int position) {
+    public SelectExtraCardMessage(PlayerDTO playerDTO, CARD_TYPE cardType, int position) {
         this.playerDTO = playerDTO;
         this.cardType = cardType;
         this.position = position;
