@@ -15,7 +15,6 @@ public interface ServerRemoteInterface extends Remote {
     void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position)throws RemoteException,IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, ActionNotAvailable;
     void selectCardFromBottomList(PlayerDTO player,CARD_TYPE cardType, int position)throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException,RemoteException;
     void playerDoNothing(PlayerDTO playerDTO) throws Exception;
-
     // method for select one more card
     void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException;
 }

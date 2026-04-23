@@ -557,6 +557,7 @@ public class Game implements GameView {
         if (nextPosition < allEras.length) {
             this.currentEra = allEras[nextPosition];
         }
+        logServerEvent("Era changed: "+currentEra);
         notifyEraChanged();
     }
 
