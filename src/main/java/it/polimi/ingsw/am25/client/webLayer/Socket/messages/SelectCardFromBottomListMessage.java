@@ -19,6 +19,6 @@ public class SelectCardFromBottomListMessage implements ClientToServerMessage {
 
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
-        serverRemoteInterface.selectCardFromTopList(playerDTO,cardType,position);
+        serverRemoteInterface.selectCardFromBottomList(playerDTO,cardType,position);
     }
 }

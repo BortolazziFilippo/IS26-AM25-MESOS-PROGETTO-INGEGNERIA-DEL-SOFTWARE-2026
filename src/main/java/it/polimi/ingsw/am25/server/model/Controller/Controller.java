@@ -248,9 +248,8 @@ public class Controller {
     public void selectExtraCard(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         // Actually perform the draw from top cards
         game.selectGenericCardTopLists(cardType, position, player);
-
         // WAKE THE SERVER: find the ServerVirtualView among the player observers
-        for (PlayerObserver obs : player.getObservers()) {
+        for (PlayerObserver obs : game.getSpecificPlayer(player).getObservers()) {
             if (obs instanceof ServerVirtualView svv) {
                 synchronized (svv.extraDrawLock) {
                     svv.extraDrawLock.notifyAll();

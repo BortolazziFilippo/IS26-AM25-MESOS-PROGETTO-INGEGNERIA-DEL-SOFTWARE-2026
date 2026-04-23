@@ -174,7 +174,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
         executor.submit(() -> {
             try {
-                clientStub.topCardRefreshed(this.topCards);
+                clientStub.topCardRefreshed(new ArrayList<>(this.topCards));
             } catch (RemoteException e) {
                 System.err.println("Errore di connessione: topCardRefreshed");
             }

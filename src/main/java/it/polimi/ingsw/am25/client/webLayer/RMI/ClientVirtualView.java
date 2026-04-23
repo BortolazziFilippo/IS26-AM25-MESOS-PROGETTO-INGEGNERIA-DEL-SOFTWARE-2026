@@ -8,34 +8,34 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class ClientVirtualView extends UnicastRemoteObject implements ClientRemoteInterface{
-    private List<PlayerDTO> winners;
-    private ERA currentEra;
-    private GAME_PHASE currentGamePhase;
-    private String playerToPlace;
-    private String playerToPlay;
-    private int drawTop;
-    private int drawBot;
-    Map<String,PlayerDTO> playersMap= new HashMap<>();
+    private  List<PlayerDTO> winners;
+    private volatile ERA currentEra;
+    private volatile GAME_PHASE currentGamePhase;
+    private volatile String playerToPlace;
+    private volatile String playerToPlay;
+    private volatile int drawTop;
+    private volatile int drawBot;
+    private final Map<String,PlayerDTO> playersMap= new ConcurrentHashMap<>();
 
     // MARKET DTO
-    private List<CardDTO> topCards;
-    private List<CardDTO> bottomCards;
-    private List<BuildingDTO> topBuildings;
-    private List<BuildingDTO> bottomBuildings;
+    private  List<CardDTO> topCards;
+    private  List<CardDTO> bottomCards;
+    private  List<BuildingDTO> topBuildings;
+    private  List<BuildingDTO> bottomBuildings;
 
     // BOARD DTO
-    private List<OffertileDTO> offerTileList;
-    private List<DefaultTileDTO> defaultTileList;
+    private  List<OffertileDTO> offerTileList;
+    private  List<DefaultTileDTO> defaultTileList;
 
     // --- LOCKS ---
     public final Object gameStartLock = new Object();
     public boolean isGameStarted = false;
+    private final Object stateLock=new Object();
 
     // We use this lock to pause the player when it's not their turn!
     public final Object turnLock = new Object();
@@ -58,7 +58,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public int getOfferTileSize(){
-        return offerTileList.size();
+        synchronized (stateLock){
+            return offerTileList.size();
+        }
+
     }
     /**
      * Executes initialize game.
@@ -81,7 +84,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void gameWinners(List<PlayerDTO> playerDTOSWinner) throws RemoteException {
-        this.winners=playerDTOSWinner;
+        synchronized (stateLock){
+            this.winners=playerDTOSWinner;
+        }
+
     }
 
     /**
@@ -159,9 +165,12 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) throws RemoteException {
         // Ensure that lists are mutable
-        this.topCards = new ArrayList<>(topCards);
-        this.bottomCards = new ArrayList<>(bottomCards);
-        this.topBuildings = new ArrayList<>(topBuildings);
+        synchronized (stateLock){
+            this.topCards = new ArrayList<>(topCards);
+            this.bottomCards = new ArrayList<>(bottomCards);
+            this.topBuildings = new ArrayList<>(topBuildings);
+        }
+
     }
 
     /**
@@ -186,7 +195,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void topCardRemoved(int position) throws RemoteException {
-        this.topCards.remove(position);
+        synchronized (stateLock){
+            this.topCards.remove(position);
+        }
+
     }
 
     /**
@@ -195,7 +207,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void topBuildRemoved(int position) throws RemoteException {
-        this.topBuildings.remove(position);
+        synchronized (stateLock){
+            this.topBuildings.remove(position);
+        }
+
     }
 
     /**
@@ -204,7 +219,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void bottomCardRemoved(int position) throws RemoteException {
-        this.bottomCards.remove(position);
+        synchronized (stateLock){
+            this.bottomCards.remove(position);
+        }
+
     }
 
     /**
@@ -213,7 +231,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void bottomBuildRemoved(int position) throws RemoteException {
-        this.bottomBuildings.remove(position);
+        synchronized (stateLock){
+            this.bottomBuildings.remove(position);
+        }
+
     }
 
     /**
@@ -222,10 +243,13 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void topBuildingRefreshed(List<BuildingDTO> topBuildingCards) throws RemoteException {
-        if (this.topBuildings != null) {
-            this.bottomBuildings = new ArrayList<>(this.topBuildings);
+        synchronized (stateLock){
+            if (this.topBuildings != null) {
+                this.bottomBuildings = new ArrayList<>(this.topBuildings);
+            }
+            this.topBuildings = new ArrayList<>(topBuildingCards);
         }
-        this.topBuildings = new ArrayList<>(topBuildingCards);
+
     }
 
     /**
@@ -234,10 +258,13 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void topCardRefreshed(List<CardDTO> topCards) throws RemoteException {
-        if (this.topCards != null) {
-            this.bottomCards = new ArrayList<>(this.topCards);
+        synchronized (stateLock){
+            if (this.topCards != null) {
+                this.bottomCards = new ArrayList<>(this.topCards);
+            }
+            this.topCards = new ArrayList<>(topCards);
         }
-        this.topCards = new ArrayList<>(topCards);
+
     }
 
     /**
@@ -271,8 +298,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void boardInitialize(List<OffertileDTO> offerTileList, List<DefaultTileDTO> defaultTileList) throws RemoteException {
-        this.offerTileList=offerTileList;
-        this.defaultTileList=defaultTileList;
+        synchronized (stateLock){
+            this.offerTileList=offerTileList;
+            this.defaultTileList=defaultTileList;
+        }
+
     }
 
     /**
@@ -318,8 +348,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public int getTopCardSize() {
-        if (this.topCards == null) return 0;
-        return this.topCards.size();
+        synchronized (stateLock){
+            if (this.topCards == null) return 0;
+            return this.topCards.size();
+        }
+
     }
 
     /**
@@ -327,8 +360,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public int getBottomCardSize() {
-        if (this.bottomCards == null) return 0;
-        return this.bottomCards.size();
+        synchronized (stateLock){
+            if (this.bottomCards == null) return 0;
+            return this.bottomCards.size();
+        }
+
     }
 
     /**
@@ -336,8 +372,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public int getTopBuildingSize() {
-        if (this.topBuildings == null) return 0;
-        return this.topBuildings.size();
+        synchronized (stateLock){
+            if (this.topBuildings == null) return 0;
+            return this.topBuildings.size();
+        }
+
     }
 
     /**
@@ -345,8 +384,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public int getBottomBuildingSize() {
-        if (this.bottomBuildings == null) return 0;
-        return this.bottomBuildings.size();
+        synchronized (stateLock){
+            if (this.bottomBuildings == null) return 0;
+            return this.bottomBuildings.size();
+        }
+
     }
 
     /**
@@ -355,7 +397,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public CARD_TYPE getTopCardType(int position){
-        return this.topCards.get(position).getCardType();
+        synchronized (stateLock){
+            return this.topCards.get(position).getCardType();
+        }
+
     }
     /**
      * Returns bottom card type.
@@ -363,7 +408,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public CARD_TYPE getBottomCardType(int position){
-        return this.bottomCards.get(position).getCardType();
+        synchronized (stateLock){
+            return this.bottomCards.get(position).getCardType();
+        }
+
     }
 
     /**
@@ -386,7 +434,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public List<CardDTO> getTopCards() {
-        return (this.topCards == null) ? new ArrayList<>() : this.topCards;
+        synchronized (stateLock){
+            return (this.topCards == null) ? new ArrayList<>() : this.topCards;
+        }
+
     }
 
     /**
@@ -394,7 +445,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public List<CardDTO> getBottomCards() {
-        return (this.bottomCards == null) ? new ArrayList<>() : this.bottomCards;
+        synchronized (stateLock){
+            return (this.bottomCards == null) ? new ArrayList<>() : this.bottomCards;
+        }
+
     }
 
     /**
@@ -402,7 +456,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public List<BuildingDTO> getTopBuildings() {
-        return (this.topBuildings == null) ? new ArrayList<>() : this.topBuildings;
+        synchronized (stateLock){
+            return (this.topBuildings == null) ? new ArrayList<>() : this.topBuildings;
+        }
+
     }
 
     /**
@@ -410,6 +467,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @return the result of the operation.
      */
     public List<BuildingDTO> getBottomBuildings() {
-        return (this.bottomBuildings == null) ? new ArrayList<>() : this.bottomBuildings;
+        synchronized (stateLock){
+            return (this.bottomBuildings == null) ? new ArrayList<>() : this.bottomBuildings;
+        }
+
     }
 }

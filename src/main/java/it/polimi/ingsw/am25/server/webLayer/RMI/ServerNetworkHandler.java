@@ -174,7 +174,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * @param position parameter position.
      */
     @Override
-    public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
+    public synchronized void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
         try {
             controller.selectExtraCard(new  Player( player), cardType, position);
         } catch (Exception e) {

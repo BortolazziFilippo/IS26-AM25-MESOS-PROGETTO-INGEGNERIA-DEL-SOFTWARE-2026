@@ -543,6 +543,10 @@ public class Game implements GameView {
         return this.players.values().stream().toList();
     }
 
+    public Player getSpecificPlayer(Player player){
+        return players.get(player.getNickname());
+    }
+
     /**
      * Advances the game to the next era.
      * If the current era is already the last one, the era is left unchanged.

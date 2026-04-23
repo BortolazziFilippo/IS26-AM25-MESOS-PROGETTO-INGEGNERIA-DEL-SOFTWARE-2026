@@ -14,6 +14,6 @@ public class PlayerDoNothingMessage implements ClientToServerMessage {
 
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
-
+        serverRemoteInterface.playerDoNothing(playerDTO);
     }
 }
