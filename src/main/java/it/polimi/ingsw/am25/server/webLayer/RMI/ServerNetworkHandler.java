@@ -23,10 +23,19 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
+    /**
+     * Creates a new server network handler instance.
+     */
     public ServerNetworkHandler() throws RemoteException{
         super();
     }
 
+    /**
+     * Executes create game.
+     * @param playerHost parameter playerHost.
+     * @param playerNumber parameter playerNumber.
+     * @param clientRemoteInterface parameter clientRemoteInterface.
+     */
     @Override
     public synchronized void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
         if (requiredPlayers > 0) {
@@ -41,6 +50,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
     }
 
+    /**
+     * Executes add player.
+     * @param playerDTO parameter playerDTO.
+     * @param clientRemoteInterface parameter clientRemoteInterface.
+     */
     @Override
     public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
         if (requiredPlayers == 0) {
@@ -65,6 +79,9 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             setupAndStartGame();
         }
     }
+    /**
+     * Sets up and start game.
+     */
     private void setupAndStartGame() {
         logServerEvent("All players ready. Setting up the game...");
         Controller controller = new Controller();
@@ -107,30 +124,57 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         controller.controllerGameStar();
     }
 
+    /**
+     * Executes placing player.
+     * @param playerToPlace parameter playerToPlace.
+     * @param position parameter position.
+     */
     @Override
     public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
         Player playerTemp=new Player(playerToPlace.getNickName(),playerToPlace.getColorTotem());
         controller.placingPlayer(playerTemp,position);
     }
 
+    /**
+     * Executes select card from top list.
+     * @param player parameter player.
+     * @param cardType parameter cardType.
+     * @param position parameter position.
+     */
     @Override
     public synchronized void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         Player playerTemp=new Player(player);
         controller.selectCardFromTopList(playerTemp,cardType,position);
     }
 
+    /**
+     * Executes select card from bottom list.
+     * @param player parameter player.
+     * @param cardType parameter cardType.
+     * @param position parameter position.
+     */
     @Override
     public synchronized void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
         Player playerTemp=new Player(player);
         controller.selectCardFromBottomList(playerTemp,cardType,position);
     }
 
+    /**
+     * Executes player do nothing.
+     * @param playerDTO parameter playerDTO.
+     */
     @Override
     public synchronized void playerDoNothing(PlayerDTO playerDTO) throws RuntimeException, Exception {
         Player playerTemp=new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
     }
 
+    /**
+     * Executes select extra card.
+     * @param player parameter player.
+     * @param cardType parameter cardType.
+     * @param position parameter position.
+     */
     @Override
     public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
         try {
@@ -140,6 +184,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private void logServerEvent(String message) {
         System.out.println(LOG_PREFIX + " " + message);
     }

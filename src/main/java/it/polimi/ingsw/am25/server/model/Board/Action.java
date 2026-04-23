@@ -53,6 +53,11 @@ public class Action {
     public void subtractOneBotAction(){
         this.drawBot-=1;
     }
+    /**
+     * Executes equals.
+     * @param o parameter o.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Action action)) return false;

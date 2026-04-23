@@ -14,8 +14,16 @@ import java.util.List;
 public class OfferTileFactory {
     private static final String LOG_PREFIX = "[SERVER][OFFER_TILE_FACTORY]";
 
+    /**
+     * Creates a new offer tile factory instance.
+     */
     public OfferTileFactory() {
     }
+    /**
+     * Executes offertile builder.
+     * @param playerNumber parameter playerNumber.
+     * @return the result of the operation.
+     */
     public List<OfferTile> offertileBuilder(int playerNumber){
         InputStream inputStream=null;
         switch (playerNumber){
@@ -44,6 +52,10 @@ public class OfferTileFactory {
         return new ArrayList<>(Arrays.stream(offerTiles).toList());
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }

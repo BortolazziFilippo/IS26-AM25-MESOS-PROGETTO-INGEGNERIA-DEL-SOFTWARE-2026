@@ -10,6 +10,10 @@ public class OffertileDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private final char offerTileID;
 
+    /**
+     * Creates a new offertile dto instance.
+     * @param offerTile parameter offerTile.
+     */
     public OffertileDTO(OfferTile offerTile) {
         this.offerTileID = offerTile.getOfferTileID();
     }

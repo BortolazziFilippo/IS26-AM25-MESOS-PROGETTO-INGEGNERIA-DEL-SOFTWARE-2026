@@ -15,8 +15,16 @@ import java.util.List;
 public class DefaultTileFactory {
     private static final String LOG_PREFIX = "[SERVER][DEFAULT_TILE_FACTORY]";
 
+    /**
+     * Creates a new default tile factory instance.
+     */
     public DefaultTileFactory() {
     }
+    /**
+     * Executes build default tiles.
+     * @param playerNumber parameter playerNumber.
+     * @return the result of the operation.
+     */
     public List<DefaultTile> buildDefaultTiles(int playerNumber){
         InputStream inputStream=null;
         switch (playerNumber){
@@ -45,6 +53,10 @@ public class DefaultTileFactory {
 
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }

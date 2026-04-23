@@ -16,9 +16,17 @@ public class Controller {
     private List<Player> players;
     private String LOG_PREFIX="[CONTROLLER]";
 
+    /**
+     * Creates a new controller instance.
+     */
     public Controller() {
     }
 
+    /**
+     * Executes create game.
+     * @param playerHost parameter playerHost.
+     * @param playerNumber parameter playerNumber.
+     */
     public void createGame(Player playerHost, int playerNumber) throws IllegalStateException{
         if(this.game==null){
             this.game=new Game(playerHost,playerNumber);
@@ -27,6 +35,10 @@ public class Controller {
         }
 
     }
+    /**
+     * Executes link observer.
+     * @param virtualView parameter virtualView.
+     */
     public void linkObserver(ServerVirtualView virtualView){
         game.linkObserver(virtualView);
     }
@@ -49,6 +61,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Executes controller game star.
+     */
     public void controllerGameStar(){
         game.gameStart();
         game.notifyChanges();
@@ -68,6 +83,11 @@ public class Controller {
      * @throws TileOccupiedException if the target tile is already occupied by another player.
      */
     //TODO: build proper exceptions for this case
+    /**
+     * Executes placing player.
+     * @param playerToPlace parameter playerToPlace.
+     * @param position parameter position.
+     */
     public void placingPlayer(Player playerToPlace, int position) throws IndexOutOfBoundsException, TileOccupiedException {
         if (game.getGamePhase() == GAME_PHASE.PLACING_PHASE || game.getGamePhase() == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             if (checkIsPlayerPlacingTurn(playerToPlace)) {
@@ -219,11 +239,17 @@ public class Controller {
         }
     }
 
+    /**
+     * Executes select extra card.
+     * @param player parameter player.
+     * @param cardType parameter cardType.
+     * @param position parameter position.
+     */
     public void selectExtraCard(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        // Esegue fisicamente la pesca dalle carte in cima
+        // Actually perform the draw from top cards
         game.selectGenericCardTopLists(cardType, position, player);
 
-        // SVEGLIA IL SERVER: cerca la ServerVirtualView tra gli observer del player
+        // WAKE THE SERVER: find the ServerVirtualView among the player observers
         for (PlayerObserver obs : player.getObservers()) {
             if (obs instanceof ServerVirtualView) {
                 ServerVirtualView svv = (it.polimi.ingsw.am25.server.webLayer.ServerVirtualView) obs;

@@ -10,9 +10,17 @@ public abstract class Card {
     protected ERA era;
     protected CARD_TYPE cardType;
 
+    /**
+     * Returns era.
+     * @return the result of the operation.
+     */
     public ERA getEra() {
         return era;
     }
+    /**
+     * Returns card type.
+     * @return the result of the operation.
+     */
     public CARD_TYPE getCardType(){
         return cardType;
     }

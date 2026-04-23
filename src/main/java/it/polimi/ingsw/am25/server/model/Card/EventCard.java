@@ -58,10 +58,18 @@ public class EventCard extends Card
         this.eventEffect = eventEffect;
     }
 
+    /**
+     * Returns event id.
+     * @return the result of the operation.
+     */
     public int getEventID() {
         return eventID;
     }
 
+    /**
+     * Returns event type.
+     * @return the result of the operation.
+     */
     public EVENT_TYPE getEventType() {
         return eventType;
     }
@@ -82,11 +90,20 @@ public class EventCard extends Card
                 "Completed event #" + eventID + " (" + eventType + ")"
         );
     }
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) throws NotSelectableCardException {
         throw new NotSelectableCardException("Events cannot be selected");
     }
 
+    /**
+     * Executes equals.
+     * @param obj parameter obj.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof EventCard toCompare){
@@ -95,6 +112,10 @@ public class EventCard extends Card
             return false;
         }
     }
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new EventDTO(this);

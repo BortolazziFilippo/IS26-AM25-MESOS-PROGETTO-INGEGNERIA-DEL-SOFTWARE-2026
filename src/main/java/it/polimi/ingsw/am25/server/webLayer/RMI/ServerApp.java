@@ -12,6 +12,10 @@ import java.util.Enumeration;
 public class ServerApp {
     private static final String LOG_PREFIX = "[SERVER][APP]";
 
+    /**
+     * Executes main.
+     * @param args parameter args.
+     */
     public static void main(String[] args) {
         UtilitiesFunction.initLog();
         try {
@@ -29,6 +33,10 @@ public class ServerApp {
 
     }
 
+    /**
+     * Returns local ipv4.
+     * @return the result of the operation.
+     */
     public static String getLocalIPv4() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
@@ -49,11 +57,18 @@ public class ServerApp {
         return "127.0.0.1"; // Fallback sicuro
     }
 
+    /**
+     * Executes clear screen.
+     */
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private static void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }

@@ -33,6 +33,11 @@ public interface UtilitiesFunction {
         }
     }
 
+    /**
+     * Logs an informational message to console and log file.
+     * @param prefix parameter prefix.
+     * @param message parameter message.
+     */
     static void logInfo(String prefix, String message) {
         String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + " " + message;
         System.out.println(line);
@@ -43,6 +48,11 @@ public interface UtilitiesFunction {
         }
     }
 
+    /**
+     * Logs an error message to console and log file.
+     * @param prefix parameter prefix.
+     * @param message parameter message.
+     */
     static void logError(String prefix, String message) {
         String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + "[ERROR] " + message;
         System.err.println(line);
@@ -53,10 +63,19 @@ public interface UtilitiesFunction {
         }
     }
 
+    /**
+     * Logs an error message using the default utility prefix.
+     * @param message parameter message.
+     */
     static void logError(String message) {
         logError(LOG_PREFIX, message);
     }
 
+    /**
+     * Returns the number of top-list cards based on player count.
+     * @param playerNumber parameter playerNumber.
+     * @return the result of the operation.
+     */
     static int bindCorrectNumberOfTopListCard(int playerNumber) {
         return switch (playerNumber) {
             case 2 -> UtilitiesConstant.TWO_PLAYER_TOP_CARD;
@@ -70,6 +89,11 @@ public interface UtilitiesFunction {
         };
     }
 
+    /**
+     * Returns the number of bottom-list cards based on player count.
+     * @param playerNumber parameter playerNumber.
+     * @return the result of the operation.
+     */
     static int bindCorrectNumberOfBottomListCard(int playerNumber) {
         return switch (playerNumber) {
             case 2 -> UtilitiesConstant.TWO_PLAYER_BOTTOM_CARD;
@@ -83,6 +107,11 @@ public interface UtilitiesFunction {
         };
     }
 
+    /**
+     * Counts card occurrences by type into the destination counters list.
+     * @param listToParse parameter listToParse.
+     * @param setCards parameter setCards.
+     */
     static void countOccurrence(List<Card> listToParse, List<Integer> setCards) {
         int quantity = 6;
         for (Card card : listToParse) {

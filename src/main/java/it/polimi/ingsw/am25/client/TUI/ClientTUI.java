@@ -25,12 +25,20 @@ public class ClientTUI {
     private final String BLUE = "\033[34;49;1m";
     private final String PURPLE = "\033[35;49;1m";
 
+    /**
+     * Creates a new client tui instance.
+     * @param serverStub parameter serverStub.
+     * @param clientHandler parameter clientHandler.
+     */
     public ClientTUI(ServerRemoteInterface serverStub, ClientVirtualView clientHandler) {
         this.serverStub = serverStub;
         this.clientHandler = clientHandler;
         this.scanner = new Scanner(System.in);
     }
 
+    /**
+     * Executes start.
+     */
     public void start() {
         boolean inGame = false;
 
@@ -152,6 +160,10 @@ public class ClientTUI {
     // --- LOBBY METHODS ---
     // ==========================================================
 
+    /**
+     * Executes create game.
+     * @return the result of the operation.
+     */
     private boolean createGame() {
         clearScreen();
         System.out.println("--- CREAZIONE PARTITA ---");
@@ -177,6 +189,10 @@ public class ClientTUI {
         return false;
     }
 
+    /**
+     * Executes add player.
+     * @return the result of the operation.
+     */
     private boolean addPlayer() {
         clearScreen();
         System.out.println("--- AGGIUNTA GIOCATORE ---");
@@ -202,6 +218,9 @@ public class ClientTUI {
     // --- AZIONI DI GIOCO ---
     // ==========================================================
 
+    /**
+     * Executes place player.
+     */
     private void placePlayer() {
         clearScreen();
         System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
@@ -225,7 +244,10 @@ public class ClientTUI {
         }
     }
 
-    // --- PESCA DA SOPRA ---
+    // --- DRAW FROM TOP ---
+    /**
+     * Executes draw top card.
+     */
     private void drawTopCard() {
         clearScreen();
         System.out.println("--- PESCA CARTA (SOPRA) ---");
@@ -259,12 +281,16 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes draw top tribe card.
+     * @return the result of the operation.
+     */
     private boolean drawTopTribeCard() {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOPRA) ---");
 
-            // MOSTRA LE CARTE PRIMA DI CHIEDERE L'INPUT
+            // SHOW CARDS PRIMA DI CHIEDERE L'INPUT
             printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
 
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
@@ -282,7 +308,7 @@ public class ClientTUI {
                     pauseAndClear();
                     continue;
                 }
-                serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.ARTIST, position); // Artist = Placeholder per Tribù
+                serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.ARTIST, position); // Artist = placeholder for Tribe
                 System.out.println("\n✅ Carta Tribù pescata con successo!");
                 pauseAndClear();
                 return true;
@@ -296,12 +322,16 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes draw top building card.
+     * @return the result of the operation.
+     */
     private boolean drawTopBuildingCard() {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOPRA) ---");
 
-            // MOSTRA GLI EDIFICI PRIMA DI CHIEDERE L'INPUT
+            // SHOW BUILDINGS PRIMA DI CHIEDERE L'INPUT
             printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
 
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
@@ -334,7 +364,10 @@ public class ClientTUI {
         }
     }
 
-    // --- PESCA DA SOTTO ---
+    // --- DRAW FROM BOTTOM ---
+    /**
+     * Executes draw bottom card.
+     */
     private void drawBottomCard() {
         clearScreen();
         System.out.println("--- PESCA CARTA (SOTTO) ---");
@@ -367,11 +400,15 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes draw bottom tribe card.
+     * @return the result of the operation.
+     */
     private boolean drawBottomTribeCard() {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOTTO) ---");
-            // MOSTRA LE CARTE
+            // SHOW CARDS
             printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
@@ -401,12 +438,16 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes draw bottom building card.
+     * @return the result of the operation.
+     */
     private boolean drawBottomBuildingCard() {
         while (true) {
             clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOTTO) ---");
 
-            // MOSTRA GLI EDIFICI
+            // SHOW BUILDINGS
             printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
 
             System.out.print("\nInserisci la posizione della carta (1 a " + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
@@ -439,6 +480,9 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes pass turn.
+     */
     private void passTurn() {
         clearScreen();
         System.out.println("--- PASSA TURNO ---");
@@ -452,6 +496,9 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Executes handle extra draw.
+     */
     private void handleExtraDraw() {
         clearScreen();
         System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
@@ -466,7 +513,7 @@ public class ClientTUI {
 
             int maxLimit = 0;
 
-            // STAMPA LA LISTA IN BASE ALLA SCELTA
+            // PRINT THE LIST BASED ON THE CHOICE
             if (scelta.equals("1")) {
                 printCardList("CARTE TRIBÙ DISPONIBILI", clientHandler.getTopCards());
                 maxLimit = clientHandler.getTopCardSize();
@@ -531,17 +578,28 @@ public class ClientTUI {
     // --- HELPER METHODS ---
     // ==========================================================
 
+    /**
+     * Executes pause and clear.
+     */
     private void pauseAndClear() {
         System.out.println("\n(Premi INVIO per continuare...)");
         scanner.nextLine();
         clearScreen();
     }
 
+    /**
+     * Executes clear screen.
+     */
     private void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    /**
+     * Executes extract clean error.
+     * @param e parameter e.
+     * @return the result of the operation.
+     */
     private String extractCleanError(Exception e) {
         if (e.getMessage() != null && e.getMessage().contains(":")) {
             String[] parts = e.getMessage().split(":");
@@ -550,6 +608,9 @@ public class ClientTUI {
         return e.getMessage() != null ? e.getMessage() : "Errore sconosciuto";
     }
 
+    /**
+     * Executes wait for game start.
+     */
     private void waitForGameStart() {
         System.out.println("\n⏳ In attesa che si connettano gli altri giocatori...");
         synchronized (clientHandler.gameStartLock) {
@@ -567,6 +628,9 @@ public class ClientTUI {
         pauseAndClear();
     }
 
+    /**
+     * Executes wait for my turn.
+     */
     private void waitForMyTurn() {
         boolean wasWaiting = false;
 
@@ -602,6 +666,10 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Checks whether my turn.
+     * @return the result of the operation.
+     */
     private boolean isMyTurn() {
         if (myPlayer == null) return false;
         if (clientHandler.needsExtraDraw) return true;
@@ -614,6 +682,10 @@ public class ClientTUI {
         return false;
     }
 
+    /**
+     * Executes number of player.
+     * @return the result of the operation.
+     */
     private int numberOfPlayer() {
         int numOfPlayers = 0;
         while (true) {
@@ -629,6 +701,10 @@ public class ClientTUI {
         return numOfPlayers;
     }
 
+    /**
+     * Executes bind totem color.
+     * @return the result of the operation.
+     */
     private COLOR bindTotemColor() {
         while (true) {
             System.out.println("\nScegli colore totem:");
@@ -645,6 +721,10 @@ public class ClientTUI {
         }
     }
 
+    /**
+     * Returns placing index.
+     * @return the result of the operation.
+     */
     private int getPlacingIndex() {
         int index = -1;
         while (true) {
@@ -667,11 +747,11 @@ public class ClientTUI {
         return index;
     }
     // ==========================================================
-    // METODI DI STAMPA MERCATO
+    // MARKET PRINT METHODS
     // ==========================================================
 
     /**
-     * Stampa l'intero mercato (Sopra, Sotto, Edifici)
+     * Prints the whole market (Top, Bottom, Buildings)
      */
     public void printMarket() {
         System.out.println("\n=============================================================");
@@ -689,10 +769,13 @@ public class ClientTUI {
         System.out.println("=============================================================\n");
     }
 
-    /**
-     * Metodo universale per stampare una singola riga del mercato
-     */
+
     //List<? ...> means an unknown type except it extends CardDTO
+    /**
+     * Executes print card list.
+     * @param title parameter title.
+     * @param cards parameter cards.
+     */
     private void printCardList(String title, List<? extends CardDTO> cards) {
         System.out.println("\n▶ " + title + ":");
 
@@ -701,10 +784,10 @@ public class ClientTUI {
             return;
         }
 
-        // Intestazione della tabella
+        // Table header
         System.out.printf("   %-4s | %-15s | %s\n", "Pos", "Tipo Carta", "Descrizione");
 
-        // Allarghiamo la linea a 90 trattini visto che la descrizione del toString sarà lunga
+        // Widen the line to 90 dashes because the toString description can be long
         System.out.println("   " + "-".repeat(90));
 
         for (int i = 0; i < cards.size(); i++) {

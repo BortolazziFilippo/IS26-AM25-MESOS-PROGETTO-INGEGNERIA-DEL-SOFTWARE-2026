@@ -11,6 +11,10 @@ import java.util.Enumeration;
 
 public class ClientApp {
 
+    /**
+     * Executes main.
+     * @param args parameter args.
+     */
     public static void main(String[] args) {
         //if no ip si written default sets loopback
         String serverIp = "127.0.0.1";
@@ -41,6 +45,10 @@ public class ClientApp {
     }
 
     // ---  AUTOMATIC BINDER---
+    /**
+     * Returns local ipv4.
+     * @return the result of the operation.
+     */
     public static String getLocalIPv4() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();

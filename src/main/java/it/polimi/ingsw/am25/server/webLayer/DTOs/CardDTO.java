@@ -32,6 +32,11 @@ public class CardDTO implements Serializable {
         this.cardType = card.getCardType();
     }
 
+    /**
+     * Creates a new card dto instance.
+     * @param era parameter era.
+     * @param cardType parameter cardType.
+     */
     public CardDTO(ERA era,CARD_TYPE cardType){
         this.era=era;
         this.cardType=cardType;
@@ -96,34 +101,66 @@ public class CardDTO implements Serializable {
     }
 
 
+    /**
+     * Returns card type.
+     * @return the result of the operation.
+     */
     public CARD_TYPE getCardType() {
         return cardType;
     }
 
+    /**
+     * Returns era.
+     * @return the result of the operation.
+     */
     public ERA getEra() {
         return era;
     }
 
+    /**
+     * Returns inv icon.
+     * @return the result of the operation.
+     */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
 
+    /**
+     * Returns star number.
+     * @return the result of the operation.
+     */
     public SHAMAN_STAR getStarNumber() {
         return starNumber;
     }
 
+    /**
+     * Returns food discount.
+     * @return the result of the operation.
+     */
     public int getFoodDiscount() {
         return foodDiscount;
     }
 
+    /**
+     * Returns final prestige point.
+     * @return the result of the operation.
+     */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
     }
 
+    /**
+     * Checks whether has icon.
+     * @return the result of the operation.
+     */
     public boolean isHasIcon() {
         return hasIcon;
     }
 
+    /**
+     * Executes to string.
+     * @return the result of the operation.
+     */
     @Override
     public String toString() {
         switch (cardType){

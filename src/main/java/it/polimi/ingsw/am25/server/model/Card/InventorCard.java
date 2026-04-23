@@ -21,19 +21,36 @@ public class InventorCard extends Card{
         this.era=era;
     }
 
+    /**
+     * Returns inv icon.
+     * @return the result of the operation.
+     */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
 
+    /**
+     * Executes equals.
+     * @param o parameter o.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof InventorCard that)) return false;
         return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
     }
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

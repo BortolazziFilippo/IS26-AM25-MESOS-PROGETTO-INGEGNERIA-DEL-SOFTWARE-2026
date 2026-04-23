@@ -19,6 +19,10 @@ public class Board implements BoardView {
     private  GameView gameView;
     private final  List<BoardObserver> observers=new ArrayList<>();
 
+    /**
+     * Creates a new board instance.
+     * @param gameView parameter gameView.
+     */
     public Board(GameView gameView) {
         this.gameView = gameView;
         defaultTiles=new DefaultTileFactory().buildDefaultTiles(gameView.getPlayerNumber());
@@ -164,10 +168,10 @@ public class Board implements BoardView {
     }
 
 
+
     /**
-     * Returns the players currently on offer tiles, in tile order.
-     *
-     * @return ordered list of players on offer tiles
+     * Returns ordered player on offer tile.
+     * @return the result of the operation.
      */
     @Override
     public List<Player> getOrderedPlayerOnOfferTile() {
@@ -218,6 +222,10 @@ public class Board implements BoardView {
         return new OfferTile(offerTileToReturn);
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }

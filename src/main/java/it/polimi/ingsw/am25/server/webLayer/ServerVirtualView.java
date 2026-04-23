@@ -54,11 +54,21 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public final Object extraDrawLock = new Object();
 
 
+    /**
+     * Creates a new server virtual view instance.
+     * @param clientStub parameter clientStub.
+     * @param nickname parameter nickname.
+     */
     public ServerVirtualView(ClientRemoteInterface clientStub, String nickname) {
         this.clientStub = clientStub;
         this.nickname = nickname;
     }
 
+    /**
+     * Executes notify ppchanged.
+     * @param nickname parameter nickname.
+     * @param newPP parameter newPP.
+     */
     @Override
     public void notifyPPChanged(String nickname, int newPP) {
         PlayerDTO pl = playersMap.get(nickname);
@@ -75,6 +85,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes notify food changed.
+     * @param nickname parameter nickname.
+     * @param newFood parameter newFood.
+     */
     @Override
     public void notifyFoodChanged(String nickname, int newFood) {
         PlayerDTO pl = playersMap.get(nickname);
@@ -90,6 +105,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes force initial players sync.
+     * @param allPlayers parameter allPlayers.
+     */
     public void forceInitialPlayersSync(List<PlayerDTO> allPlayers) {
         for (PlayerDTO player : allPlayers) {
             // Keep the local virtual-view cache aligned with the current player snapshot.
@@ -103,6 +122,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Executes on player changed.
+     * @param nickname parameter nickname.
+     * @param totem parameter totem.
+     * @param food parameter food.
+     * @param prestigePoint parameter prestigePoint.
+     * @param tribe parameter tribe.
+     * @param buildingCards parameter buildingCards.
+     */
     @Override
     @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
@@ -110,6 +138,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on market changed.
+     * @param topCards parameter topCards.
+     * @param bottomCards parameter bottomCards.
+     * @param topBuildings parameter topBuildings.
+     * @param bottomBuildings parameter bottomBuildings.
+     */
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
         // FIX: Avvolgiamo tutto in new ArrayList<>() per renderli modificabili dal .remove()
@@ -128,6 +163,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on top card refreshed.
+     * @param topCards parameter topCards.
+     */
     @Override
     public void onTopCardRefreshed(List<Card> topCards) {
         if (this.topCards != null) {
@@ -143,6 +182,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         });
     }
 
+    /**
+     * Executes on board changed.
+     * @param offerTileList parameter offerTileList.
+     * @param defaultTileList parameter defaultTileList.
+     */
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
         this.offerTileList = offerTileList.stream().map(OffertileDTO::new).toList();
@@ -156,6 +200,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         });
     }
 
+    /**
+     * Executes player to default tile.
+     * @param playerOrder parameter playerOrder.
+     */
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
         List<PlayerDTO> order = playerOrder.stream().map(PlayerDTO::new).toList();
@@ -169,6 +217,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes player placed on offertile.
+     * @param player parameter player.
+     * @param tilePosition parameter tilePosition.
+     */
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
         executor.submit(() -> {
@@ -182,6 +235,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes game winners.
+     * @param winners parameter winners.
+     */
     @Override
     public void gameWinners(List<Player> winners) {
         this.winners = winners.stream().map(PlayerDTO::new).toList();
@@ -197,6 +254,14 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on game changed.
+     * @param currentEra parameter currentEra.
+     * @param players parameter players.
+     * @param gamePhase parameter gamePhase.
+     * @param playerToPlace parameter playerToPlace.
+     * @param playerToPlay parameter playerToPlay.
+     */
     @Override
     public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
         this.currentEra = currentEra;
@@ -213,6 +278,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on player added.
+     * @param playerAdded parameter playerAdded.
+     */
     @Override
     public void onPlayerAdded(Player playerAdded) {
         PlayerDTO player = new PlayerDTO(playerAdded);
@@ -228,6 +297,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on era changed.
+     * @param currentEra parameter currentEra.
+     */
     @Override
     public void onEraChanged(ERA currentEra) {
         this.currentEra = currentEra;
@@ -242,6 +315,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on game phase changed.
+     * @param gamePhase parameter gamePhase.
+     */
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         this.currentGamePhase = gamePhase;
@@ -256,6 +333,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on player to place changed.
+     * @param newPlayerToPlace parameter newPlayerToPlace.
+     */
     @Override
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
         this.playerToPlay = null;
@@ -270,6 +351,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on player to play changed.
+     * @param newPlayerToPlay parameter newPlayerToPlay.
+     */
     @Override
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
         this.playerToPlace = null;
@@ -285,6 +370,10 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on top building refreshed.
+     * @param topBuildingCards parameter topBuildingCards.
+     */
     @Override
     public void onTopBuildingRefreshed(List<BuildingCard> topBuildingCards) {
         if (this.topBuildings != null) {
@@ -303,6 +392,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on card removed from top.
+     * @param position parameter position.
+     * @param cardType parameter cardType.
+     */
     @Override
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
@@ -330,6 +424,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes on card removed from bottom.
+     * @param position parameter position.
+     * @param cardType parameter cardType.
+     */
     @Override
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
@@ -354,6 +453,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Executes notify card added to tribe.
+     * @param playername parameter playername.
+     * @param cardAdded parameter cardAdded.
+     */
     @Override
     public void notifyCardAddedToTribe(String playername, Card cardAdded) {
         executor.submit(()->{
@@ -368,15 +472,19 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     }
 
 
+    /**
+     * Executes request extra draw.
+     * @param nickname parameter nickname.
+     */
     @Override
     public void requestExtraDraw(String nickname) {
-        // La richiesta via rete la facciamo fare al thread separato
+        // Perform the network request in a separate thread
         executor.submit(() -> {
             try {
                 clientStub.askExtraDraw();
             } catch (RemoteException e) {
                 System.err.println("❌ Client disconnesso durante l'extra draw!");
-                // SBLOCCA IL SERVER DI EMERGENZA SE IL CLIENT CADE!
+                // EMERGENCY-UNLOCK THE SERVER IF THE CLIENT CRASHES!
                 synchronized (extraDrawLock) {
                     extraDrawLock.notifyAll();
                 }
@@ -391,6 +499,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Executes action offer tile changed.
+     * @param drawTop parameter drawTop.
+     * @param drawBottom parameter drawBottom.
+     */
     @Override
     public void actionOfferTileChanged(int drawTop, int drawBottom) {
         executor.submit(()->{
@@ -405,10 +518,18 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private void logServerEvent(String message) {
         System.out.println(LOG_PREFIX + " " + message);
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         System.err.println(LOG_PREFIX + "[ERROR] " + message);
     }

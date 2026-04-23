@@ -95,11 +95,20 @@ public class BuildingCard extends Card {
                 "Completed building #" + buildingID + " for player '" + player.getNickname() + "'"
         );
     }
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addBuilding(this);
     }
 
+    /**
+     * Executes equals.
+     * @param obj parameter obj.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof BuildingCard toCompare){
@@ -109,6 +118,10 @@ public class BuildingCard extends Card {
         }
     }
 
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new BuildingDTO(this);

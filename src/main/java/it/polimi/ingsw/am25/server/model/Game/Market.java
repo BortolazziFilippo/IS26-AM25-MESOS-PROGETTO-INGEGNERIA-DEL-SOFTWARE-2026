@@ -347,6 +347,9 @@ public class Market {
            observer.onTopCardRefreshed(topCardsSnapshot);
         }
     }
+    /**
+     * Executes notify top building refreshed.
+     */
     private void notifyTopBuildingRefreshed(){
         List<BuildingCard> topBuildingSnapshot = List.copyOf(topBuildingList);
         for(MarketObserver observer: observers){
@@ -354,12 +357,22 @@ public class Market {
         }
     }
 
+    /**
+     * Executes notify card remove from top.
+     * @param position parameter position.
+     * @param card parameter card.
+     */
     private void notifyCardRemoveFromTop(int position, CARD_TYPE card){
         for(MarketObserver observer: observers){
             observer.onCardRemovedFromTop(position, card);
         }
     }
 
+    /**
+     * Executes notify card removed from bottom.
+     * @param position parameter position.
+     * @param card parameter card.
+     */
     private void notifyCardRemovedFromBottom(int position, CARD_TYPE card){
         for(MarketObserver observer: observers){
             observer.onCardRemovedFromBottom(position, card);
@@ -371,6 +384,10 @@ public class Market {
      * @return returns true if a event is found in bottom list
      */
     //this method may no longer be needed
+    /**
+     * Executes check events presence.
+     * @return the result of the operation.
+     */
     @Deprecated
     private boolean checkEventsPresence(){
         //standard null-guard exception

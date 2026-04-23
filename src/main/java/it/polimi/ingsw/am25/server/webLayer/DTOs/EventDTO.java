@@ -15,25 +15,47 @@ public class EventDTO extends CardDTO implements Serializable {
     private  int eventID;
     private  EVENT_TYPE eventType;
 
+    /**
+     * Creates a new event dto instance.
+     * @param eventID parameter eventID.
+     * @param era parameter era.
+     * @param eventType parameter eventType.
+     */
     public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
         super(era,CARD_TYPE.EVENT);
         this.eventID = eventID;
         this.eventType = eventType;
     }
+    /**
+     * Creates a new event dto instance.
+     * @param eventCard parameter eventCard.
+     */
     public EventDTO(EventCard eventCard) {
         super(eventCard.getEra(), CARD_TYPE.EVENT);
         this.eventID = eventCard.getEventID();
         this.eventType = eventCard.getEventType();
     }
 
+    /**
+     * Returns event id.
+     * @return the result of the operation.
+     */
     public int getEventID() {
         return eventID;
     }
 
+    /**
+     * Returns event type.
+     * @return the result of the operation.
+     */
     public EVENT_TYPE getEventType() {
         return eventType;
     }
 
+    /**
+     * Executes to string.
+     * @return the result of the operation.
+     */
     @Override
     public String toString() {
         switch (eventID){

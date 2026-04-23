@@ -16,6 +16,10 @@ public class BuildingDTO extends CardDTO implements Serializable {
     private  int endGamePP;
     private  EVENT_TYPE applyOn;
 
+    /**
+     * Creates a new building dto instance.
+     * @param buildingCard parameter buildingCard.
+     */
     public BuildingDTO(BuildingCard buildingCard) {
         super(buildingCard.getEra(), CARD_TYPE.BUILDING);
         this.foodCost=buildingCard.getFoodCost();
@@ -24,22 +28,42 @@ public class BuildingDTO extends CardDTO implements Serializable {
     }
 
 
+    /**
+     * Returns food cost.
+     * @return the result of the operation.
+     */
     public int getFoodCost() {
         return foodCost;
     }
 
+    /**
+     * Returns end game pp.
+     * @return the result of the operation.
+     */
     public int getEndGamePP() {
         return endGamePP;
     }
 
+    /**
+     * Returns apply on.
+     * @return the result of the operation.
+     */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
 
+    /**
+     * Returns building id.
+     * @return the result of the operation.
+     */
     public int getBuildingID() {
         return buildingID;
     }
 
+    /**
+     * Executes to string.
+     * @return the result of the operation.
+     */
     @Override
     public String toString() {
         String effectDescription = "";

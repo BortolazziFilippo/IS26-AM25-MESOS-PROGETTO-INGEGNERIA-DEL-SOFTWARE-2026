@@ -10,6 +10,10 @@ public class DefaultTileDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private final int foodPerSlotPosition;
 
+    /**
+     * Creates a new default tile dto instance.
+     * @param defaultTile parameter defaultTile.
+     */
     public DefaultTileDTO(DefaultTile defaultTile) {
         this.foodPerSlotPosition = defaultTile.getFoodPerSlotPosition();
     }

@@ -16,6 +16,9 @@ import java.util.List;
 public class EventFactory {
     private static final String LOG_PREFIX = "[SERVER][EVENT_FACTORY]";
 
+    /**
+     * Creates a new event factory instance.
+     */
     public EventFactory() {
     }
 
@@ -42,6 +45,11 @@ public class EventFactory {
         }
         return listToReturn;
     }
+    /**
+     * Executes event binder.
+     * @param eventCard parameter eventCard.
+     * @return the result of the operation.
+     */
     private EventEffect eventBinder(EventCard eventCard){
         EventEffect eventEffect=null;
         switch (eventCard.getEventID()){
@@ -87,6 +95,10 @@ public class EventFactory {
         return eventEffect ;
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }

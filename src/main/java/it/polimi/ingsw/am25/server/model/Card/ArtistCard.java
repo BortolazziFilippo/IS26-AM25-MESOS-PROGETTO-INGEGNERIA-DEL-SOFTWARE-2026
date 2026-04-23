@@ -16,11 +16,20 @@ public class ArtistCard extends Card{
         this.cardType=cardType;
     }
 
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
 
+    /**
+     * Executes equals.
+     * @param obj parameter obj.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof ArtistCard toCompare){
@@ -30,6 +39,10 @@ public class ArtistCard extends Card{
         }
     }
 
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

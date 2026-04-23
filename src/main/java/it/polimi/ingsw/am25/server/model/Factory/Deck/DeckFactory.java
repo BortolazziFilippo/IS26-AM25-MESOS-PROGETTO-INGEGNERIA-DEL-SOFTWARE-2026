@@ -17,6 +17,9 @@ import java.util.List;
 public class DeckFactory {
     private static final String LOG_PREFIX = "[SERVER][DECK_FACTORY]";
 
+    /**
+     * Creates a new deck factory instance.
+     */
     public DeckFactory(){
 
     }
@@ -84,6 +87,10 @@ public class DeckFactory {
 
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }

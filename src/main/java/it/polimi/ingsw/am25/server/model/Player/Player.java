@@ -28,6 +28,10 @@ public class Player {
     private final List<PlayerObserver> observers= new ArrayList<>();
 
 
+    /**
+     * Returns nickname.
+     * @return the result of the operation.
+     */
     public String getNickname() {
         return nickname;
     }
@@ -311,6 +315,10 @@ public class Player {
         return tribe;
     }
 
+    /**
+     * Returns totem.
+     * @return the result of the operation.
+     */
     public Totem getTotem() {
         return totem;
     }
@@ -336,6 +344,10 @@ public class Player {
         }
     }
 
+    /**
+     * Returns observers.
+     * @return the result of the operation.
+     */
     public List<PlayerObserver> getObservers(){
         return this.observers;
     }
@@ -365,24 +377,39 @@ public class Player {
             );
         }
     }
+    /**
+     * Executes notify food changed.
+     */
     private void notifyFoodChanged(){
         for(PlayerObserver observer:observers){
             observer.notifyFoodChanged(this.nickname,food);
         }
     }
 
+    /**
+     * Executes notify ppchanged.
+     */
     private void notifyPPChanged(){
         for(PlayerObserver observer:observers){
             observer.notifyPPChanged(this.nickname,prestigePoint);
         }
     }
 
+    /**
+     * Executes notify card added.
+     * @param cardAdded parameter cardAdded.
+     */
     private void notifyCardAdded(Card cardAdded){
         for(PlayerObserver observer:observers){
             observer.notifyCardAddedToTribe(this.nickname,cardAdded);
         }
     }
 
+    /**
+     * Executes format card for log.
+     * @param card parameter card.
+     * @return the result of the operation.
+     */
     private String formatCardForLog(Card card) {
         if (card instanceof BuildingCard buildingCard) {
             return "building #" + buildingCard.getBuildingID();
@@ -390,10 +417,19 @@ public class Player {
         return card.getCardType() + " card (" + card.getEra() + ")";
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
+    /**
+     * Executes equals.
+     * @param o parameter o.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Player player)) return false;
@@ -408,6 +444,10 @@ public class Player {
             observer.requestExtraDraw(this.nickname);
         }
     }
+    /**
+     * Executes checkpoints.
+     * @return the result of the operation.
+     */
     public int checkpoints(){
         int finalPoints = 0;
         long artistPoints = 0;

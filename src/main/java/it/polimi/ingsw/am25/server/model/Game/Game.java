@@ -192,7 +192,7 @@ public class Game implements GameView {
      *
      */
     public List<Player> checkWinner() {
-        //questa è solo per completezza ma se il costruttore funziona non dovrebbe mai verificarsi
+        // This is only for completeness, but if the constructor works it should never happen
         if (this.players == null || this.players.isEmpty()) {
             throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
         }
@@ -233,13 +233,13 @@ public class Game implements GameView {
     public void nextRoundIter() throws EndGameException {
         if(this.gamePhase != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
 
-            // 1. Tutti i giocatori tornano alla casella di partenza
+            // 1. all player goes back to default tile
             board.returnOnDefaultTiles();
-            // 2. Ricalcoliamo l'ordine di turno basandoci sulle posizioni!
+            // 2. ricalculating order
             turnManager.updatePlacingOrder();
-            // 3. Attiviamo gli edifici di fine round (come Draw One More Card)
+            // 3. Activate end-of-round buildings (such as Draw One More Card)
             players.values().forEach(Player::triggerEndRoundBuilding);
-            // 4. Aggiorniamo il mercato e impostiamo la nuova fase
+            // 4. Update the market and set the new phase
             try {
                 this.gamePhase=GAME_PHASE.SOLVING_EVENTS;
                 notifyGamePhaseChanged();
@@ -250,14 +250,14 @@ public class Game implements GameView {
                 logServerEvent("Deck exhausted. Advancing to LAST_ROUND_PLACING_PHASE");
             }
 
-            // 5. Ora chiediamo il giocatore a prescindere dal try/catch precedente!
+            // 5. Now ask the player regardless of the previous try/catch!
             try {
                 this.playerToPlace = turnManager.getNextPlacingPlayer();
                 logServerEvent("Round ended. Advancing to " + this.gamePhase);
                 notifyGamePhaseChanged();
                 notifyPlayerToPlaceChanged();
             } catch (EndOfPlacingPhaseException e) {
-                // Non dovrebbe mai scattare qui all'inizio del round, ma serve per firma
+                // should never be triggered
                 e.printStackTrace();
             }
         } else {
@@ -478,24 +478,36 @@ public class Game implements GameView {
         }
     }
 
+    /**
+     * Executes notify era changed.
+     */
     private void notifyEraChanged(){
         for(GameObserver observer:observers){
             observer.onEraChanged(this.currentEra);
         }
     }
 
+    /**
+     * Executes notify game phase changed.
+     */
     private void notifyGamePhaseChanged(){
         for(GameObserver observer:observers){
             observer.onGamePhaseChanged(gamePhase);
         }
     }
 
+    /**
+     * Executes notify player to place changed.
+     */
     private void notifyPlayerToPlaceChanged(){
         for(GameObserver observer:observers){
             observer.onPlayerToPlaceChanged(playerToPlace);
         }
     }
 
+    /**
+     * Executes notify player to play changed.
+     */
     private void notifyPlayerToPlayChanged(){
         for(GameObserver observer:observers){
             observer.onPlayerToPlayChanged(playerToPlay);
@@ -548,23 +560,37 @@ public class Game implements GameView {
         notifyEraChanged();
     }
 
+    /**
+     * Executes link observer.
+     * @param vv parameter vv.
+     */
     public void linkObserver(ServerVirtualView vv){
         this.addObserver(vv);
         board.addObserver(vv);
         market.addObserver(vv);
     }
 
+    /**
+     * Executes notify changes.
+     */
     public void notifyChanges(){
         this.market.notifyMarketChanged();
         this.board.notifyBoardChanged();
     }
 
+    /**
+     * Executes notify action changed.
+     */
     public void notifyActionChanged(){
         for(GameObserver observer:observers){
             observer.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(),this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom());
         }
     }
 
+    /**
+     * Executes log server event.
+     * @param message parameter message.
+     */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }

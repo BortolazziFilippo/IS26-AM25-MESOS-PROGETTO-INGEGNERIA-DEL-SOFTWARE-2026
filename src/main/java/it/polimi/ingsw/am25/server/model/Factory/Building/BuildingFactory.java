@@ -19,6 +19,9 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class BuildingFactory {
     private static final String LOG_PREFIX = "[SERVER][BUILDING_FACTORY]";
 
+    /**
+     * Creates a new building factory instance.
+     */
     public BuildingFactory() {
     }
 
@@ -215,6 +218,10 @@ public class BuildingFactory {
         return  number;
     }
 
+    /**
+     * Executes log server error.
+     * @param message parameter message.
+     */
     private void logServerError(String message) {
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }

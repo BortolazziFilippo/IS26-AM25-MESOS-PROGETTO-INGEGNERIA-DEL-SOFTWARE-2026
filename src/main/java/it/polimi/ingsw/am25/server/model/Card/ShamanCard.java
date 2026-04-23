@@ -38,16 +38,29 @@ public class ShamanCard extends Card{
             case THREE -> 3;
         };
     }
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
 
+    /**
+     * Executes equals.
+     * @param o parameter o.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ShamanCard that)) return false;
         return starNumber == that.starNumber && this.cardType==that.cardType && this.era==that.era;
     }
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

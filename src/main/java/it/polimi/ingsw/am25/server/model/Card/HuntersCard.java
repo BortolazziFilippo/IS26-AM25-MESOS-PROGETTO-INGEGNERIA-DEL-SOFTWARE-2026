@@ -22,10 +22,18 @@ public class HuntersCard extends Card{
     }
 
 
+    /**
+     * Returns has icon.
+     * @return the result of the operation.
+     */
     public boolean getHasICON() {
 
         return hasICON;
     }
+    /**
+     * Executes add card to player.
+     * @param player parameter player.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         if(this.hasICON){
@@ -35,6 +43,11 @@ public class HuntersCard extends Card{
 
     }
 
+    /**
+     * Executes equals.
+     * @param obj parameter obj.
+     * @return the result of the operation.
+     */
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof HuntersCard toCompare) {
@@ -43,6 +56,10 @@ public class HuntersCard extends Card{
             return false;
         }
     }
+    /**
+     * Executes to dto.
+     * @return the result of the operation.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);
