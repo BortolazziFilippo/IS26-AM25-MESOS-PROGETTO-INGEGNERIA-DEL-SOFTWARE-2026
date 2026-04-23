@@ -5,7 +5,6 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
@@ -19,6 +18,12 @@ public class ClientTUI {
     private final ClientVirtualView clientHandler;
     private final Scanner scanner;
     private PlayerDTO myPlayer = null;
+    private final String RESET="\u001b[0m";
+    private final String RED = "\033[31;49;1m";
+    private final String GREEN = "\033[32;49;1m";
+    private final String YELLOW = "\033[33;49;1m";
+    private final String BLUE = "\033[34;49;1m";
+    private final String PURPLE = "\033[35;49;1m";
 
     public ClientTUI(ServerRemoteInterface serverStub, ClientVirtualView clientHandler) {
         this.serverStub = serverStub;
@@ -152,7 +157,7 @@ public class ClientTUI {
         System.out.println("--- CREAZIONE PARTITA ---");
         System.out.print("Inserisci nome giocatore: ");
         String nickname = scanner.nextLine();
-        COLOR colorTotem = bindColor();
+        COLOR colorTotem = bindTotemColor();
         PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
         System.out.println();
         int playerNumber = numberOfPlayer();
@@ -177,7 +182,7 @@ public class ClientTUI {
         System.out.println("--- AGGIUNTA GIOCATORE ---");
         System.out.print("Inserisci nome giocatore: ");
         String nickname = scanner.nextLine();
-        COLOR colorTotem = bindColor();
+        COLOR colorTotem = bindTotemColor();
         PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
 
         try {
@@ -624,10 +629,10 @@ public class ClientTUI {
         return numOfPlayers;
     }
 
-    private COLOR bindColor() {
+    private COLOR bindTotemColor() {
         while (true) {
             System.out.println("\nScegli colore totem:");
-            System.out.println("1-ROSSO\n2-BLUE\n3-YELLOW\n4-GREEN\n5-PURPLE");
+            System.out.println(RED+"1-ROSSO"+BLUE+"\n2-BLU"+YELLOW+"\n3-GIALLO"+GREEN+"\n4-GREEN"+PURPLE+"\n5-PURPLE"+RESET);
             System.out.print("Scelta: ");
             switch (scanner.nextLine()) {
                 case "1": return COLOR.RED;

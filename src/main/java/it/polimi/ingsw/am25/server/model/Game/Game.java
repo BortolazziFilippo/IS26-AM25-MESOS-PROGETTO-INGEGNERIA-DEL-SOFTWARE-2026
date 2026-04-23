@@ -241,6 +241,8 @@ public class Game implements GameView {
             players.values().forEach(Player::triggerEndRoundBuilding);
             // 4. Aggiorniamo il mercato e impostiamo la nuova fase
             try {
+                this.gamePhase=GAME_PHASE.SOLVING_EVENTS;
+                notifyGamePhaseChanged();
                 market.endOfRoundMarketActions();
                 this.gamePhase = GAME_PHASE.PLACING_PHASE;
             } catch (DeckFinishedException e) {
