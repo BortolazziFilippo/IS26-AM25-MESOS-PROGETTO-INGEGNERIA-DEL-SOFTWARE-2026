@@ -4,10 +4,15 @@ import it.polimi.ingsw.am25.client.TUI.ClientTUI;
 import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
+import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
+import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Enumeration;
@@ -23,27 +28,42 @@ public class ClientApp {
         ClientUtilitiesFunction.initLog();
         //if no ip si written default sets loopback
         String serverIp = "127.0.0.1";
-
-        if (args.length > 0) {
+        String method="RMI";
+        if (args.length ==2 ) {
             serverIp = args[0]; //gets ip from terminal
+             method=args[1];
+            if (!method.equalsIgnoreCase("RMI") && !method.equalsIgnoreCase("SOCKET")) {
+                System.err.println("❌ METODO non valido! Usa 'RMI' o 'SOCKET'.");
+                return;
+            }
         }
 
+
         try {
-            //search client ip
-            String myIp = getLocalIPv4();
-
-            System.setProperty("java.rmi.server.hostname", myIp);
-            ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Tentativo di connessione al Server [" + serverIp + "] dal Client [" + myIp + "]...");
-
-            Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
-            ServerRemoteInterface serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
+            ServerRemoteInterface serverStub;
             ClientVirtualView clientHandler = new ClientVirtualView();
-            ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Connessione al server completata con successo.");
 
-            // starts ui
+            if(method.equalsIgnoreCase("RMI")){
+                String myIp = getLocalIPv4();
+                System.setProperty("java.rmi.server.hostname", myIp);
+                ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Tentativo di connessione al Server [" + serverIp + "] dal Client [" + myIp + "]...");
+                Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
+                serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
+
+            }else{
+                ClientUtilitiesFunction.logInfo(LOG_PREFIX,"Connessione tramite socket al Server ["+ serverIp+"]");
+                Socket socket= new Socket(serverIp,6969);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                serverStub=new ServerSocketProxy(out);
+                ServerListener listener=new ServerListener(in,clientHandler);
+                listener.start();
+            }
+            ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Connessione al server completata con successo.");
             ClientTUI tui = new ClientTUI(serverStub, clientHandler);
             ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Avvio dell'interfaccia TUI client.");
             tui.start();
+
 
         } catch (Exception e) {
             ClientUtilitiesFunction.logError(LOG_PREFIX, "Errore critico di connessione. Il Server " + serverIp + " è acceso? Dettaglio: " + e.getMessage());

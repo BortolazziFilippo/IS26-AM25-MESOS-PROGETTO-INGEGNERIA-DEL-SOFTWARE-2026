@@ -15,7 +15,7 @@ public class OrderOnDefaultTileMessage implements ServerToClientMessage {
     }
 
     @Override
-    public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
+    public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.orderOnDefaultTile(orderOnDefaultTile);
     }
 }

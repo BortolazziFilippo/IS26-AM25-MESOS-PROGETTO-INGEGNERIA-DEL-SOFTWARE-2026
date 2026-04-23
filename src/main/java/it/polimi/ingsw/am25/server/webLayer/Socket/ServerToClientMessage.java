@@ -6,6 +6,5 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import java.io.Serializable;
 
 public interface ServerToClientMessage extends Serializable {
-
-    void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception;
+    void execute(ClientRemoteInterface clientRemoteInterface) throws Exception;
 }

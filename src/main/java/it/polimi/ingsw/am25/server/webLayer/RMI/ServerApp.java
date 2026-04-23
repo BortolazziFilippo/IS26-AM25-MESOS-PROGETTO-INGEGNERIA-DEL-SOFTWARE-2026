@@ -1,10 +1,10 @@
 package it.polimi.ingsw.am25.server.webLayer.RMI;
 
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
+import java.io.IOException;
+import java.net.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Enumeration;
@@ -26,9 +26,22 @@ public class ServerApp {
             registry.rebind("MesosServer", serverObject);
             clearScreen();
             logServerEvent("Creato server all'IP "+ myIp);
-            new java.util.Scanner(System.in).nextLine(); //this line keeps the server from shutting down
+            new Thread(() -> {
+                try (ServerSocket serverSocket = new ServerSocket(6969)) {
+                    System.out.println("✅ Socket Server in ascolto sulla porta 6969");
+                    while (true) {
+                        Socket clientSocket = serverSocket.accept();
+                        logServerEvent("Nuovo client Socket connesso! IP: " + clientSocket.getInetAddress());
+                        SocketClientHandler handler = new SocketClientHandler(clientSocket, serverObject);
+                        handler.start();
+                    }
+                } catch (IOException e) {
+                    UtilitiesFunction.logError(LOG_PREFIX+"Errore irreversibile server" + e);
+                }
+            }).start();
+            logServerEvent("Server acceso e in attesa di connessioni");
         } catch (Exception e) {
-            UtilitiesFunction.logError(LOG_PREFIX +" "+e);
+            UtilitiesFunction.logError(LOG_PREFIX+"ERRORE CRITICO ALL'AVVIO DEL SERVER! \nSe l'errore dice 'Port already in use', chiudi i vecchi server aperti in background."+e);
         }
 
     }
