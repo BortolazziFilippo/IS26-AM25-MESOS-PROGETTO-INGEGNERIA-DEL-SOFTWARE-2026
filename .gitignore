@@ -41,4 +41,5 @@ build/
 .idea
 target
 server.log
+client.log
 
