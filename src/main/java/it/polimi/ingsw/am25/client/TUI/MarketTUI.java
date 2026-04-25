@@ -1,0 +1,503 @@
+package it.polimi.ingsw.am25.client.TUI;
+
+import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
+import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
+import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Handles all market interactions: drawing cards from the top or bottom of the
+ * market, passing the turn, picking an extra card from a special effect, and
+ * printing the current market state.
+ */
+public class MarketTUI {
+
+    private final ServerRemoteInterface serverStub;
+    private final ClientVirtualView clientHandler;
+    private final Scanner scanner;
+    private final TUIUtils utils;
+    private final PlayerDTO myPlayer;
+
+    /**
+     * Creates a new MarketTUI instance.
+     * @param serverStub    the remote server interface.
+     * @param clientHandler the client's virtual view.
+     * @param scanner       the shared input scanner.
+     * @param utils         the shared TUI utilities.
+     * @param myPlayer      the local player DTO.
+     */
+    public MarketTUI(ServerRemoteInterface serverStub, ClientVirtualView clientHandler,
+                     Scanner scanner, TUIUtils utils, PlayerDTO myPlayer) {
+        this.serverStub = serverStub;
+        this.clientHandler = clientHandler;
+        this.scanner = scanner;
+        this.utils = utils;
+        this.myPlayer = myPlayer;
+    }
+
+    // ==========================================================
+    // DRAW FROM TOP
+    // ==========================================================
+
+    /**
+     * Asks the player whether to draw a tribe or building card from the top,
+     * then delegates to the appropriate method.
+     */
+    public void drawTopCard() {
+        utils.clearScreen();
+        System.out.println("--- PESCA CARTA (SOPRA) ---");
+
+        boolean isDrawn = false;
+        while (!isDrawn) {
+            System.out.println("\nCosa vuoi pescare?");
+            System.out.println("1 - Carta Tribù");
+            System.out.println("2 - Carta Edificio");
+            System.out.println("q - Annulla e torna al menu principale");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
+            System.out.print("\nScelta: ");
+
+            String input = scanner.nextLine();
+            if (input.equalsIgnoreCase("q")) {
+                System.out.println("\nAzione annullata.");
+                utils.pauseAndClear();
+                return;
+            } else if (input.equals("1")) {
+                isDrawn = drawTopTribeCard();
+            } else if (input.equals("2")) {
+                isDrawn = drawTopBuildingCard();
+            } else {
+                System.err.println("\n❌ Errore: Inserisci 1 o 2.");
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOPRA) ---");
+            }
+        }
+    }
+
+    /**
+     * Handles drawing a tribe card from the top of the market.
+     * @return {@code true} if the card was drawn successfully.
+     */
+    private boolean drawTopTribeCard() {
+        while (true) {
+            clientHandler.connectionError = false;
+            utils.clearScreen();
+            System.out.println("--- PESCA CARTA TRIBÙ (SOPRA) ---");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
+
+            System.out.print("\nInserisci la posizione della carta (1 a "
+                    + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("q")) {
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOPRA) ---");
+                return false;
+            }
+
+            int prevTop = clientHandler.getDrawTop();
+            int prevBot = clientHandler.getDrawBot();
+
+            try {
+                int position = Integer.parseInt(input) - 1;
+                if (position < 0 || position >= clientHandler.getTopCardSize()) {
+                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    utils.pauseAndClear();
+                    continue;
+                }
+                serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.ARTIST, position);
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                utils.pauseAndClear();
+                continue;
+            } catch (Exception e) {
+                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                utils.pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            if (waitForActionChange(prevTop, prevBot)) return false;
+
+            System.out.println("\n✅ Carta pescata con successo o turno concluso!");
+            utils.pauseAndClear();
+            return true;
+        }
+    }
+
+    /**
+     * Handles drawing a building card from the top of the market.
+     * @return {@code true} if the card was drawn successfully.
+     */
+    private boolean drawTopBuildingCard() {
+        while (true) {
+            clientHandler.connectionError = false;
+            utils.clearScreen();
+            System.out.println("--- PESCA CARTA EDIFICIO (SOPRA) ---");
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
+
+            System.out.print("\nInserisci la posizione della carta (1 a "
+                    + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("q")) {
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOPRA) ---");
+                return false;
+            }
+
+            int prevTop = clientHandler.getDrawTop();
+            int prevBot = clientHandler.getDrawBot();
+
+            try {
+                int position = Integer.parseInt(input) - 1;
+                if (position < 0 || position >= clientHandler.getTopBuildingSize()) {
+                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    utils.pauseAndClear();
+                    continue;
+                }
+                serverStub.selectCardFromTopList(myPlayer, CARD_TYPE.BUILDING, position);
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                utils.pauseAndClear();
+                continue;
+            } catch (Exception e) {
+                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                utils.pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            if (waitForActionChange(prevTop, prevBot)) return false;
+
+            System.out.println("\n✅ Carta Edificio pescata con successo o turno concluso!");
+            utils.pauseAndClear();
+            return true;
+        }
+    }
+
+    // ==========================================================
+    // DRAW FROM BOTTOM
+    // ==========================================================
+
+    /**
+     * Handles drawing a tribe card from the bottom of the market.
+     * @return {@code true} if the card was drawn successfully.
+     */
+    public boolean drawBottomCard() {
+        while (true) {
+            clientHandler.connectionError = false;
+            utils.clearScreen();
+            System.out.println("--- PESCA CARTA TRIBÙ (SOTTO) ---");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
+
+            System.out.print("\nInserisci la posizione della carta (1 a "
+                    + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("q")) {
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOTTO) ---");
+                return false;
+            }
+
+            int prevTop = clientHandler.getDrawTop();
+            int prevBot = clientHandler.getDrawBot();
+
+            try {
+                int position = Integer.parseInt(input) - 1;
+                if (position < 0 || position >= clientHandler.getBottomCardSize()) {
+                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    utils.pauseAndClear();
+                    continue;
+                }
+                serverStub.selectCardFromBottomList(myPlayer, CARD_TYPE.ARTIST, position);
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                utils.pauseAndClear();
+                continue;
+            } catch (Exception e) {
+                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                utils.pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            if (waitForActionChange(prevTop, prevBot)) return false;
+
+            System.out.println("\n✅ Carta Tribù pescata con successo o turno concluso!");
+            utils.pauseAndClear();
+            return true;
+        }
+    }
+
+    /**
+     * Handles drawing a building card from the bottom of the market.
+     * @return {@code true} if the card was drawn successfully.
+     */
+    public boolean drawBottomBuildingCard() {
+        while (true) {
+            clientHandler.connectionError = false;
+            utils.clearScreen();
+            System.out.println("--- PESCA CARTA EDIFICIO (SOTTO) ---");
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
+
+            System.out.print("\nInserisci la posizione della carta (1 a "
+                    + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("q")) {
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOTTO) ---");
+                return false;
+            }
+
+            int prevTop = clientHandler.getDrawTop();
+            int prevBot = clientHandler.getDrawBot();
+
+            try {
+                int position = Integer.parseInt(input) - 1;
+                if (position < 0 || position >= clientHandler.getBottomBuildingSize()) {
+                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    utils.pauseAndClear();
+                    continue;
+                }
+                serverStub.selectCardFromBottomList(myPlayer, CARD_TYPE.BUILDING, position);
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                utils.pauseAndClear();
+                continue;
+            } catch (Exception e) {
+                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                utils.pauseAndClear();
+                continue;
+            }
+
+            System.out.println("\nIn attesa di conferma dal server...");
+
+            if (waitForActionChange(prevTop, prevBot)) return false;
+
+            System.out.println("\n✅ Carta Edificio pescata con successo o turno concluso!");
+            utils.pauseAndClear();
+            return true;
+        }
+    }
+
+    // ==========================================================
+    // PASS TURN
+    // ==========================================================
+
+    /**
+     * Sends a "do nothing" action to the server to pass the current turn.
+     */
+    public void passTurn() {
+        clientHandler.connectionError = false;
+        utils.clearScreen();
+        System.out.println("--- PASSA TURNO ---");
+
+        try {
+            serverStub.playerDoNothing(myPlayer);
+        } catch (Exception e) {
+            System.err.println("\n❌ Impossibile passare il turno: " + utils.extractCleanError(e));
+            utils.pauseAndClear();
+            return;
+        }
+
+        System.out.println("\nIn attesa di conferma dal server...");
+
+        synchronized (clientHandler.turnLock) {
+            while (!clientHandler.connectionError &&
+                    (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                            clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                    clientHandler.getPlayerToPlay() != null &&
+                    clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                try {
+                    clientHandler.turnLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ Impossibile passare il turno.");
+            utils.pauseAndClear();
+        } else {
+            System.out.println("\n✅ Turno terminato.");
+            utils.pauseAndClear();
+        }
+    }
+
+    // ==========================================================
+    // EXTRA DRAW (special building effect)
+    // ==========================================================
+
+    /**
+     * Handles the "Draw One More Card" special building effect.
+     * The player picks one extra card from the top of any deck.
+     */
+    public void handleExtraDraw() {
+        utils.clearScreen();
+        System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+
+        boolean isDrawn = false;
+        while (!isDrawn) {
+            System.out.println("\nScegli da quale mazzo in CIMA vuoi pescare la carta extra:");
+            System.out.println("1 - Carta Tribù");
+            System.out.println("2 - Carta Edificio");
+            System.out.print("Scelta: ");
+            String scelta = scanner.nextLine();
+
+            int maxLimit;
+            if (scelta.equals("1")) {
+                printCardList("CARTE TRIBÙ DISPONIBILI", clientHandler.getTopCards());
+                maxLimit = clientHandler.getTopCardSize();
+            } else if (scelta.equals("2")) {
+                printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getTopBuildings());
+                maxLimit = clientHandler.getTopBuildingSize();
+            } else {
+                System.err.println("\n❌ Scelta mazzo non valida. Digita 1 o 2.");
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                continue;
+            }
+
+            System.out.print("\nInserisci la posizione della carta (1 a " + maxLimit
+                    + ") oppure 'q' per cambiare mazzo: ");
+            String inputPos = scanner.nextLine();
+
+            if (inputPos.equalsIgnoreCase("q")) {
+                utils.clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                continue;
+            }
+
+            try {
+                int position = Integer.parseInt(inputPos) - 1;
+                if (position < 0 || position >= maxLimit) {
+                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    utils.pauseAndClear();
+                    utils.clearScreen();
+                    System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                    continue;
+                }
+
+                if (scelta.equals("1")) {
+                    serverStub.selectExtraCard(myPlayer, CARD_TYPE.ARTIST, position);
+                } else {
+                    serverStub.selectExtraCard(myPlayer, CARD_TYPE.BUILDING, position);
+                }
+
+                System.out.println("\n✅ Carta extra pescata con successo!");
+                utils.pauseAndClear();
+                isDrawn = true;
+
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+            } catch (Exception e) {
+                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+            }
+        }
+
+        clientHandler.needsExtraDraw = false;
+    }
+
+    // ==========================================================
+    // MARKET DISPLAY
+    // ==========================================================
+
+    /**
+     * Prints the full market state (top and bottom rows for both tribes and buildings).
+     */
+    public void printMarket() {
+        System.out.println("\n=============================================================");
+        System.out.println("                       🏪 IL MERCATO 🏪                      ");
+        System.out.println("=============================================================");
+
+        printCardList("CARTE NORMALI (SOPRA)", clientHandler.getTopCards());
+        printCardList("CARTE EDIFICIO (SOPRA)", clientHandler.getTopBuildings());
+
+        System.out.println("-------------------------------------------------------------");
+
+        printCardList("CARTE NORMALI (SOTTO)", clientHandler.getBottomCards());
+        printCardList("CARTE EDIFICIO (SOTTO)", clientHandler.getBottomBuildings());
+
+        System.out.println("=============================================================\n");
+    }
+
+    /**
+     * Prints a formatted table for a list of cards.
+     * @param title the label to display above the table.
+     * @param cards the list of cards to show.
+     */
+    private void printCardList(String title, List<? extends CardDTO> cards) {
+        System.out.println("\n▶ " + title + ":");
+
+        if (cards == null || cards.isEmpty()) {
+            System.out.println("   [Nessuna carta disponibile in questa fila]");
+            return;
+        }
+
+        System.out.printf("   %-4s | %-15s | %s\n", "Pos", "Tipo Carta", "Descrizione");
+        System.out.println("   " + "-".repeat(90));
+
+        for (int i = 0; i < cards.size(); i++) {
+            CardDTO card = cards.get(i);
+            System.out.printf("   [%d]  | %-15s | %s\n", (i + 1), card.getCardType(), card);
+        }
+    }
+
+    // ==========================================================
+    // PRIVATE HELPERS
+    // ==========================================================
+
+    /**
+     * Blocks until the server acknowledges the action (action points change,
+     * phase changes, or connection error).
+     * @param prevTop the previous draw-top count before the action.
+     * @param prevBot the previous draw-bot count before the action.
+     * @return {@code true} if a connection error occurred.
+     */
+    private boolean waitForActionChange(int prevTop, int prevBot) {
+        synchronized (clientHandler.turnLock) {
+            while (!clientHandler.connectionError &&
+                    clientHandler.getDrawTop() == prevTop &&
+                    clientHandler.getDrawBot() == prevBot &&
+                    (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                            clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) &&
+                    clientHandler.getPlayerToPlay() != null &&
+                    clientHandler.getPlayerToPlay().equals(myPlayer.getNickName())) {
+                try {
+                    clientHandler.turnLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return true;
+                }
+            }
+        }
+
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ Impossibile pescare.");
+            utils.pauseAndClear();
+            return true;
+        }
+        return false;
+    }
+}
