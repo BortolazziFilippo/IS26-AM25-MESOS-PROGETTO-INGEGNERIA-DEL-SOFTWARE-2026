@@ -68,8 +68,9 @@ public class ClientTUI {
         // 2. GAME LOOP
         // myPlayer is now known — build the game-phase helpers.
         // ==========================================================
-        PlacementTUI placementTUI = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
-        MarketTUI    marketTUI    = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        PlacementTUI   placementTUI   = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        MarketTUI      marketTUI      = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        PlayerStatusTUI playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
 
         while (true) {
             waitForMyTurn();
@@ -101,9 +102,16 @@ public class ClientTUI {
                     System.out.println("In attesa del caricamento...");
                     break;
             }
+            System.out.println("i - Stato giocatori");
 
             System.out.print("\nScelta: ");
             String mossa = scanner.nextLine();
+
+            // "i" is available in any game phase
+            if (mossa.equalsIgnoreCase("i")) {
+                playerStatusTUI.printAllPlayersStatus();
+                continue;
+            }
 
             switch (mossa) {
                 case "1":
