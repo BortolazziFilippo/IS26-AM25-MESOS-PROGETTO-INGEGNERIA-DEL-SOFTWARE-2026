@@ -35,8 +35,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     // --- LOCKS ---
     public final Object gameStartLock = new Object();
     public boolean isGameStarted = false;
-    public volatile boolean connectionError=false;
-    private final Object stateLock=new Object();
+    public volatile boolean connectionError = false;
+    public volatile String lastErrorMessage = null;
+    private final Object stateLock = new Object();
 
     // We use this lock to pause the player when it's not their turn!
     public final Object turnLock = new Object();

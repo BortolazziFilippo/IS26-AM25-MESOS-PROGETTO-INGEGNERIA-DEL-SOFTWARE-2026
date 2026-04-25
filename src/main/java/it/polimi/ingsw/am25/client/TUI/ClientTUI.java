@@ -51,19 +51,7 @@ public class ClientTUI {
         LobbyTUI lobbyTUI = new LobbyTUI(serverStub, clientHandler, scanner, utils);
 
         while (myPlayer == null) {
-            utils.clearScreen();
-            System.out.println("--- MENU PRINCIPALE ---");
-            System.out.println("1 - Crea gioco");
-            System.out.println("2 - Entra in una partita");
-            System.out.print("Scelta: ");
-
-            switch (scanner.nextLine()) {
-                case "1": myPlayer = lobbyTUI.createGame(); break;
-                case "2": myPlayer = lobbyTUI.addPlayer();  break;
-                default:
-                    System.err.println("❌ Scelta non valida.");
-                    utils.pauseAndClear();
-            }
+            myPlayer = lobbyTUI.connect();
         }
 
         // ==========================================================
