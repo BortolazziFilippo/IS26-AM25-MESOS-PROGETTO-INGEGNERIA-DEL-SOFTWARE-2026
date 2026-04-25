@@ -116,7 +116,6 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void gamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
         this.currentGamePhase=gamePhase;
-
         if (gamePhase == GAME_PHASE.PLACING_PHASE) {
             this.isGameStarted = true;
             synchronized (gameStartLock) {

@@ -61,7 +61,7 @@ public class ArtistEvent extends EventEffect{
                         "PAINTINGS event on player '" + player.getNickname() + "': artists=" + artistCount +
                                 ", PP delta=-" + PPLost
                 );
-                player.managePP(-PPLost);
+                player.managePP(PPLost);
             }
             List<BuildingCard> triggeredBuildings = player.getBuildingCards().stream()
                     .filter(buildingCard -> buildingCard.getApplyOn() == EVENT_TYPE.PAINTINGS)

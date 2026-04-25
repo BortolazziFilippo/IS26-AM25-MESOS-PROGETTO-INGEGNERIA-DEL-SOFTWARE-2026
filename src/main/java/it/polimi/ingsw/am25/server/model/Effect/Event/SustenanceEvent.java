@@ -20,7 +20,7 @@ public class SustenanceEvent extends EventEffect {
      */
     public SustenanceEvent(int foodPerCharacter, int PPLost) {
         this.foodPerCharacter = foodPerCharacter;
-        this.PPLost = PPLost;
+        this.PPLost = -PPLost;
     }
     /**
      * Solves the sustenance event for all players:

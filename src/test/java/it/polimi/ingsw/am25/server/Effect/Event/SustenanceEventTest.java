@@ -38,7 +38,7 @@ class SustenanceEventTest {
         players.add(p2);
         players.add(p3);
         eventCard=new EventCard(ERA.ERA_III, CARD_TYPE.EVENT,1, EVENT_TYPE.SUSTENANCE);
-        eventCard.setEventEffect(new SustenanceEvent(1,2));
+        eventCard.setEventEffect(new SustenanceEvent(1,-2));
         p1.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
         p1.addCardToTribe(new ArtistCard(ERA.ERA_III,CARD_TYPE.ARTIST));
 

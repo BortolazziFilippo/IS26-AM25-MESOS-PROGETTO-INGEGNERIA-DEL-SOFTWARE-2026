@@ -18,7 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArtistEventTest {
-
+    //FIXME:sistemare numeri
     @Test
     void solveEvent() {
 
@@ -40,7 +40,7 @@ class ArtistEventTest {
         playerList.add(player3);
         playerList.add(player4);
         EventCard eventCard= new EventCard(ERA.ERA_III,CARD_TYPE.EVENT,10, EVENT_TYPE.PAINTINGS);
-        eventCard.setEventEffect(new ArtistEvent(3,2,3));
+        eventCard.setEventEffect(new ArtistEvent(3,-2,3));
         eventCard.applyEventEffect(playerList);
 
         assertEquals(-2,player1.getPrestigePoint());
@@ -74,7 +74,7 @@ class ArtistEventTest {
         player3.addBuilding(buildingCard);
 
         EventCard eventCard= new EventCard(ERA.ERA_III,CARD_TYPE.EVENT,10, EVENT_TYPE.PAINTINGS);
-        eventCard.setEventEffect(new ArtistEvent(3,2,3));
+        eventCard.setEventEffect(new ArtistEvent(3,-2,3));
 
         eventCard.applyEventEffect(playerList);
 
