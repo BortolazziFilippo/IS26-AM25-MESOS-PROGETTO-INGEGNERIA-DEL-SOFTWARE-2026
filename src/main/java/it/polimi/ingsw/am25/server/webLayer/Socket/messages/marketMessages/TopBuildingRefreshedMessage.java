@@ -10,10 +10,15 @@ import java.util.List;
 public class TopBuildingRefreshedMessage implements ServerToClientMessage {
     private final List<BuildingDTO> topList;
 
+    /**
+     * Creates a message carrying the refreshed top building row.
+     * @param topList the new top building row.
+     */
     public TopBuildingRefreshedMessage(List<BuildingDTO> topList) {
         this.topList = topList;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#topBuildingRefreshed}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.topBuildingRefreshed(topList);

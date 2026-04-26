@@ -25,23 +25,23 @@ public class ServerApp {
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("MesosServer", serverObject);
             clearScreen();
-            logServerEvent("Creato server all'IP "+ myIp);
+            logServerEvent("Server started at IP " + myIp);
             new Thread(() -> {
                 try (ServerSocket serverSocket = new ServerSocket(6969)) {
-                    System.out.println("✅ Socket Server in ascolto sulla porta 6969");
+                    logServerEvent("Socket server listening on port 6969");
                     while (true) {
                         Socket clientSocket = serverSocket.accept();
-                        logServerEvent("Nuovo client Socket connesso! IP: " + clientSocket.getInetAddress());
+                        logServerEvent("New socket client connected. IP: " + clientSocket.getInetAddress());
                         SocketClientHandler handler = new SocketClientHandler(clientSocket, serverObject);
                         handler.start();
                     }
                 } catch (IOException e) {
-                    UtilitiesFunction.logError(LOG_PREFIX+"Errore irreversibile server" + e);
+                    UtilitiesFunction.logError(LOG_PREFIX, "Fatal socket server error: " + e.getMessage());
                 }
             }).start();
-            logServerEvent("Server RMI acceso e in attesa di connessioni porta 1099");
+            logServerEvent("RMI server listening on port 1099");
         } catch (Exception e) {
-            UtilitiesFunction.logError(LOG_PREFIX+"ERRORE CRITICO ALL'AVVIO DEL SERVER! \nSe l'errore dice 'Port already in use', chiudi i vecchi server aperti in background."+e);
+            UtilitiesFunction.logError(LOG_PREFIX, "Critical startup error. If 'Port already in use', close existing server instances. Detail: " + e.getMessage());
         }
 
     }
@@ -65,9 +65,9 @@ public class ServerApp {
                 }
             }
         } catch (Exception e) {
-            UtilitiesFunction.logError(LOG_PREFIX +" Impossibile rilevare l'IP automaticamente.");
+            UtilitiesFunction.logError(LOG_PREFIX, "Cannot detect local IP automatically, falling back to 127.0.0.1.");
         }
-        return "127.0.0.1"; // Fallback sicuro
+        return "127.0.0.1"; // safe fallback
     }
 
     /**
@@ -78,10 +78,6 @@ public class ServerApp {
         System.out.flush();
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private static void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }

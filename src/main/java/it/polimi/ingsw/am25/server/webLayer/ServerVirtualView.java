@@ -155,7 +155,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: initializeMarket");
+                logServerError("Connection error: initializeMarket");
             }
         });
 
@@ -176,7 +176,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topCardRefreshed(new ArrayList<>(this.topCards));
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: topCardRefreshed");
+                logServerError("Connection error: topCardRefreshed");
             }
         });
     }
@@ -385,7 +385,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topBuildingRefreshed(this.topBuildings);
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: topBuildingRefreshed");
+                logServerError("Connection error: topBuildingRefreshed");
             }
         });
 
@@ -482,8 +482,8 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.askExtraDraw();
             } catch (RemoteException e) {
-                System.err.println("❌ Client disconnesso durante l'extra draw!");
-                // EMERGENCY-UNLOCK THE SERVER IF THE CLIENT CRASHES!
+                logServerError("Client disconnected during extra draw — releasing lock.");
+                // Emergency-unlock the server if the client crashes.
                 synchronized (extraDrawLock) {
                     extraDrawLock.notifyAll();
                 }
@@ -517,19 +517,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private void logServerEvent(String message) {
-        System.out.println(LOG_PREFIX + " " + message);
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
-    /**
-     * Executes log server error.
-     * @param message parameter message.
-     */
     private void logServerError(String message) {
-        System.err.println(LOG_PREFIX + "[ERROR] " + message);
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 }

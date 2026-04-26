@@ -13,6 +13,11 @@ public class ServerListener extends Thread{
         this.in = in;
         this.clientRemoteInterface = clientRemoteInterface;
     }
+    /**
+     * Continuously reads server-to-client messages from the socket stream and
+     * dispatches each one to the {@link ClientRemoteInterface}. Terminates on
+     * any I/O or deserialization error.
+     */
     @Override
     public void run() {
         try {

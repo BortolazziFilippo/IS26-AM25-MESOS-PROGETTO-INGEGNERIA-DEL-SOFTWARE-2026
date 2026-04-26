@@ -14,7 +14,7 @@ import java.util.List;
 public class Controller {
     private Game game;
     private List<Player> players;
-    private final String LOG_PREFIX="[CONTROLLER]";
+    private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
 
     /**
      * Creates a new controller instance.
@@ -124,7 +124,6 @@ public class Controller {
      * @throws NotSelectableCardException if the player attempts to select an Event card.
      * @throws EmptyMarketException if the top list contains no selectable cards.
      */
-    //TODO: build proper exceptions for this case
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() == GAME_PHASE.RESOLVE_ACTION || game.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             if (checkIsPlayerPlayingTurn(player)) {

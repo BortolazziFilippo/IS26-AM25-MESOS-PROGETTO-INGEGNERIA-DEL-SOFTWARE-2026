@@ -24,6 +24,13 @@ public abstract class Card {
     public CARD_TYPE getCardType(){
         return cardType;
     }
+    /**
+     * Adds this card to the given player, applying any immediate effects.
+     * @param player the player who receives the card.
+     * @throws NotSelectableCardException if this card type cannot be selected by a player.
+     */
     public abstract void addCardToPlayer(Player player) throws NotSelectableCardException;
+
+    /** @return a DTO representation of this card for network transfer. */
     public abstract CardDTO toDTO();
 }

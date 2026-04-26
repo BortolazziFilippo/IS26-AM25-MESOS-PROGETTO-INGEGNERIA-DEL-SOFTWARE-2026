@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Controller.Controller;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
@@ -182,11 +183,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private void logServerEvent(String message) {
-        System.out.println(LOG_PREFIX + " " + message);
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 }

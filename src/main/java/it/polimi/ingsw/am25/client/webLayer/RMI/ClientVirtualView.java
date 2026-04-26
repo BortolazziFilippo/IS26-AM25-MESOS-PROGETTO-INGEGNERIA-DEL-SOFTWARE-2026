@@ -51,8 +51,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     // --- GETTERS (Needed by the ClientApp to check whose turn it is) ---
+    /** @return the current game phase. */
     public GAME_PHASE getGamePhase() { return currentGamePhase; }
+    /** @return the nickname of the player who must place next, or {@code null}. */
     public String getPlayerToPlace() { return playerToPlace; }
+    /** @return the nickname of the player who must act next, or {@code null}. */
     public String getPlayerToPlay() { return playerToPlay; }
 
     /**
@@ -349,13 +352,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     }
 
+    /**
+     * Receives an error message from the server, stores it, and wakes up any waiting threads.
+     * @param message the error description sent by the server.
+     */
     @Override
     public void showErrorMessage(String message) throws RemoteException {
+        this.lastErrorMessage = message;
         synchronized (gameStartLock) {
             this.connectionError = true;
             gameStartLock.notifyAll();
         }
-
         synchronized (turnLock) {
             turnLock.notifyAll();
         }

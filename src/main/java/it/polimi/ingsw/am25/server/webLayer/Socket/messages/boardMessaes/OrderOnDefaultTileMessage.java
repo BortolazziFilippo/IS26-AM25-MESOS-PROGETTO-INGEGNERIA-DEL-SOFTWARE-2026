@@ -10,10 +10,15 @@ import java.util.List;
 public class OrderOnDefaultTileMessage implements ServerToClientMessage {
     private final List<PlayerDTO> orderOnDefaultTile;
 
+    /**
+     * Creates a message carrying the player order on the default tile.
+     * @param orderOnDefaultTile ordered list of players.
+     */
     public OrderOnDefaultTileMessage(List<PlayerDTO> orderOnDefaultTile) {
         this.orderOnDefaultTile = orderOnDefaultTile;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#orderOnDefaultTile}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.orderOnDefaultTile(orderOnDefaultTile);

@@ -12,6 +12,13 @@ public class InitializeGameMessage implements ServerToClientMessage {
     private final String playerToPlace;
     private final String playerToPlay;
 
+    /**
+     * Creates a message carrying the initial game state.
+     * @param currentEra the starting era.
+     * @param gamePhase the starting game phase.
+     * @param playerToPlace the first player to place.
+     * @param playerToPlay the first player to play.
+     */
     public InitializeGameMessage(ERA currentEra, GAME_PHASE gamePhase, String playerToPlace, String playerToPlay) {
         this.currentEra = currentEra;
         this.gamePhase = gamePhase;
@@ -19,6 +26,7 @@ public class InitializeGameMessage implements ServerToClientMessage {
         this.playerToPlay = playerToPlay;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#initializeGame}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.initializeGame(currentEra,gamePhase,playerToPlace,playerToPlay);

@@ -543,6 +543,11 @@ public class Game implements GameView {
         return this.players.values().stream().toList();
     }
 
+    /**
+     * Returns the model {@link Player} instance that matches the given player's nickname.
+     * @param player the player whose nickname is used for the lookup.
+     * @return the matching {@link Player}, or {@code null} if not found.
+     */
     public Player getSpecificPlayer(Player player){
         return players.get(player.getNickname());
     }

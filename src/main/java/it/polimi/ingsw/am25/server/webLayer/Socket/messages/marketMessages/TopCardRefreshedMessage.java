@@ -10,10 +10,15 @@ import java.util.List;
 public class TopCardRefreshedMessage implements ServerToClientMessage {
     private final List<CardDTO> topCards;
 
+    /**
+     * Creates a message carrying the refreshed top card row.
+     * @param topCards the new top card row.
+     */
     public TopCardRefreshedMessage(List<CardDTO> topCards) {
         this.topCards = topCards;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#topCardRefreshed}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.topCardRefreshed(topCards);

@@ -149,7 +149,7 @@ public interface UtilitiesFunction {
      */
      static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
         if (y > x) {
-            throw new IllegalArgumentException("y deve essere <= x");
+            throw new IllegalArgumentException("y must be <= x");
         }
 
         ArrayList<Integer> numbers = new ArrayList<>();

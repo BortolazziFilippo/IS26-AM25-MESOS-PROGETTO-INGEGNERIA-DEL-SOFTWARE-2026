@@ -12,11 +12,17 @@ public class BoardInitializeMessages implements ServerToClientMessage {
     private final List<OffertileDTO> offertileDTOS;
     private final List<DefaultTileDTO> defaultTileDTOS;
 
+    /**
+     * Creates a message carrying the initial board state.
+     * @param offertileDTOS the offer tiles.
+     * @param defaultTileDTOS the default tiles.
+     */
     public BoardInitializeMessages(List<OffertileDTO> offertileDTOS, List<DefaultTileDTO> defaultTileDTOS) {
         this.offertileDTOS = offertileDTOS;
         this.defaultTileDTOS = defaultTileDTOS;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#boardInitialize}. */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.boardInitialize(offertileDTOS,defaultTileDTOS);

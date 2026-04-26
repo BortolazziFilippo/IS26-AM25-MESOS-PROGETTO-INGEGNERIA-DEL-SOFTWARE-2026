@@ -8,10 +8,15 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 public class AddPlayerMessage implements ClientToServerMessage {
     private final PlayerDTO playerDTO;
 
+    /**
+     * Creates a message requesting that the given player join the current lobby.
+     * @param playerDTO the player who wants to join.
+     */
     public AddPlayerMessage(PlayerDTO playerDTO) {
         this.playerDTO = playerDTO;
     }
 
+    /** Dispatches this message by calling {@link ServerRemoteInterface#addPlayer}. */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
         serverRemoteInterface.addPlayer(playerDTO,clientRemoteInterface);

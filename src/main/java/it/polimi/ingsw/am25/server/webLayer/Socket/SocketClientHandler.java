@@ -10,17 +10,27 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class SocketClientHandler extends Thread{
-    private final String PREFIX="[SERVER][SOCKET]";
+    private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final Socket socket;
     private final ServerRemoteInterface serverLogic;
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
+    /**
+     * Creates a new handler for the given client socket.
+     * @param socket      the accepted client socket.
+     * @param serverLogic the server logic that processes incoming messages.
+     */
     public SocketClientHandler(Socket socket,ServerRemoteInterface serverLogic){
         this.socket=socket;
         this.serverLogic=serverLogic;
     }
 
+    /**
+     * Reads messages from the client socket in a loop, dispatches them to the server logic,
+     * and forwards any game errors back to the client without closing the connection.
+     * The loop exits when the socket is closed or the network drops.
+     */
     @Override
     public void run() {
         try {
@@ -32,29 +42,29 @@ public class SocketClientHandler extends Thread{
             while (true) {
                 ClientToServerMessage message;
                 try {
-                    // Lettura del messaggio: se cade la rete lancia eccezione e chiude la socket
+                    // If the network drops, readObject throws and closes the socket.
                     message = (ClientToServerMessage) in.readObject();
                 } catch (IOException | ClassNotFoundException e) {
-                    throw e; // Rilancia per farlo catturare dal catch esterno e disconnettere
+                    throw e; // Re-throw to be caught by the outer handler and disconnect.
                 }
 
                 try {
-                    // Esecuzione logica: se c'è un errore di gioco, NON chiudiamo la connessione
+                    // Game logic errors do NOT close the connection.
                     message.execute(serverLogic, clientSocketProxy);
                 } catch (Exception e) {
-                    UtilitiesFunction.logError(PREFIX + " Errore logica partita: " + e.getMessage());
-                    // Notifichiamo l'errore al client tramite il proxy
+                    UtilitiesFunction.logError(LOG_PREFIX, "Game logic error: " + e.getMessage());
+                    // Notify the client of the error via the proxy.
                     clientSocketProxy.showErrorMessage(e.getMessage());
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Un client si è disconnesso.");
-            //TODO: gestire disconnessione
+            UtilitiesFunction.logInfo(LOG_PREFIX, "A client disconnected.");
+            // TODO: handle disconnection
         } finally {
             try {
                 socket.close();
-            } catch(IOException e) {
-                UtilitiesFunction.logError(PREFIX + "Errore Socket " + e);
+            } catch (IOException e) {
+                UtilitiesFunction.logError(LOG_PREFIX, "Socket error on close: " + e.getMessage());
             }
         }
     }

@@ -7,10 +7,15 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 public class TopCardRemovedMessage implements ServerToClientMessage {
     private final int position;
 
+    /**
+     * Creates a message indicating that a card was removed from the top row.
+     * @param position the index of the removed card.
+     */
     public TopCardRemovedMessage(int position) {
         this.position = position;
     }
 
+    /** Dispatches this message by calling {@link ClientRemoteInterface#topCardRemoved}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.topCardRemoved(position);
