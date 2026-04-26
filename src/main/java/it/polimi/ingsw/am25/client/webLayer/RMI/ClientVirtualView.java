@@ -21,6 +21,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private volatile int drawTop;
     private volatile int drawBot;
     private final Map<String,PlayerDTO> playersMap= new ConcurrentHashMap<>();
+    private final List<String> resolvedEvents =  new ArrayList<>();
 
     // MARKET DTO
     private  List<CardDTO> topCards;
@@ -488,4 +489,27 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         }
 
     }
+
+    @Override
+    public void eventResolved(String eventdescription) throws RemoteException {
+        synchronized (stateLock){
+            resolvedEvents.add(eventdescription);
+        }
+        synchronized (turnLock){
+            turnLock.notifyAll();
+        }
+    }
+
+    public List<String> getResolvedEvents() {
+        synchronized (stateLock){
+            return new ArrayList<>(resolvedEvents);
+        }
+    }
+
+    public void clearResolvedEvents() {
+        synchronized (stateLock){
+            resolvedEvents.clear();
+        }
+    }
+
 }

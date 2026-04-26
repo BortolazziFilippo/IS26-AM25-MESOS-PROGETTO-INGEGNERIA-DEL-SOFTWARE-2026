@@ -99,6 +99,9 @@ public class ClientTUI {
                     System.out.println("4 - Passa il turno");
                     marketTUI.printMarket();
                     break;
+                case SOLVING_EVENTS:
+                    new SolvingEventsTUI(clientHandler, utils).solveEvents();
+                    continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurnsi
                 default:
                     System.out.println("In attesa del caricamento...");
                     break;
@@ -209,6 +212,8 @@ public class ClientTUI {
             return myPlayer.getNickName().equals(clientHandler.getPlayerToPlace());
         } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             return myPlayer.getNickName().equals(clientHandler.getPlayerToPlay());
+        } else if (phase == GAME_PHASE.SOLVING_EVENTS) {
+            return true;
         }
         return false;
     }

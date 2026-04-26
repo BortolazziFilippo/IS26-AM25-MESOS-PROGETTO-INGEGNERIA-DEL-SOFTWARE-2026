@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.model.Observers;
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 
 import java.util.List;
 
@@ -30,6 +31,8 @@ public interface MarketObserver {
             int position,
             CARD_TYPE cardType
     );
+
+    void eventSolved(int eventID, EVENT_TYPE eventType);
 
 
 }

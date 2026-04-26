@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Card.EventCard;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
@@ -444,8 +445,12 @@ public class Market {
         List<EventCard> eventToBeSolved= this.bottomCardList.stream().filter(card -> card.getCardType()==CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
         if(!eventToBeSolved.isEmpty()){
             eventToBeSolved.sort(Comparator.comparing(EventCard::getEventType).thenComparing(EventCard::getEra));
-            eventToBeSolved.forEach(eventCard -> eventCard.applyEventEffect(gameView.getPlayerList()));
+            eventToBeSolved.forEach(eventCard -> {
+                eventCard.applyEventEffect(gameView.getPlayerList());
+                notifyResolvedEvent(eventCard.getEventID(), eventCard.getEventType());
+            });
         }
+
     }
 
     /**
@@ -494,6 +499,11 @@ public class Market {
         buildingCards.removeIf(buildingCard -> buildingCard.getEra()==ERA.ERA_I);
     }
 
+    private void notifyResolvedEvent(int eventID, EVENT_TYPE eventType){
+        for(MarketObserver observer: observers){
+            observer.eventSolved(eventID, eventType);
+        }
+    }
 
 
 }

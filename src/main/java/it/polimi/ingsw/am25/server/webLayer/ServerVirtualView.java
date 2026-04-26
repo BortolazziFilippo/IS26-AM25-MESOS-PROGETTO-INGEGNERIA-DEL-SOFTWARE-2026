@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Observers.BoardObserver;
 import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
@@ -531,5 +532,18 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     private void logServerError(String message) {
         System.err.println(LOG_PREFIX + "[ERROR] " + message);
+    }
+
+    @Override
+    public void eventSolved (int eventID, EVENT_TYPE eventType) {
+        String description = "Evento #" + eventID + " (" + eventType + ") risolto";
+        executor.submit(()->{
+            try {
+                clientStub.eventResolved(description);
+            } catch (RemoteException e) {
+                logServerError("Failed to notify event solved for player: " + description);
+            }
+        });
+
     }
 }

@@ -41,4 +41,5 @@ public interface ClientRemoteInterface extends Remote {
 
     void showErrorMessage(String errorMessage) throws RemoteException;
 
+    void eventResolved(String description) throws RemoteException;
 }
