@@ -91,6 +91,12 @@ public class MarketTUI {
             System.out.println("--- PESCA CARTA TRIBÙ (SOPRA) ---");
             printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
 
+            if (clientHandler.getTopCardSize() == 0) {
+                System.out.println("\nNon ci sono carte Tribù selezionabili.");
+                utils.pauseAndClear();
+                return false;
+            }
+
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
@@ -143,6 +149,12 @@ public class MarketTUI {
             System.out.println("--- PESCA CARTA EDIFICIO (SOPRA) ---");
             printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
 
+            if (clientHandler.getTopBuildingSize() == 0) {
+                System.out.println("\nNon ci sono carte Edificio selezionabili.");
+                utils.pauseAndClear();
+                return false;
+            }
+
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
@@ -190,19 +202,59 @@ public class MarketTUI {
 
     /**
      * Handles drawing a tribe card from the bottom of the market.
+
+     */
+    public void drawBottomCard() {
+        utils.clearScreen();
+        System.out.println("--- PESCA CARTA (SOTTO) ---");
+
+        boolean isDrawn = false;
+        while (!isDrawn) {
+            System.out.println("\nCosa vuoi pescare?");
+            System.out.println("1 - Carta Tribù");
+            System.out.println("2 - Carta Edificio");
+            System.out.println("q - Annulla e torna al menu principale");
+            printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
+            printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
+            System.out.print("\nScelta: ");
+
+            String input = scanner.nextLine();
+            if (input.equalsIgnoreCase("q")) {
+                System.out.println("\nAzione annullata.");
+                utils.pauseAndClear();
+                return;
+            } else if (input.equals("1")) {
+                isDrawn = drawBottomTribeCard();
+            } else if (input.equals("2")) {
+                isDrawn = drawBottomBuildingCard();
+            } else {
+                System.err.println("\n❌ Errore: Inserisci 1 o 2.");
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOTTO) ---");
+            }
+        }
+    }
+    /**
+     * Handles drawing a tribe card from the bottom of the market.
      * @return {@code true} if the card was drawn successfully.
      */
-    public boolean drawBottomCard() {
+    private boolean drawBottomTribeCard(){
         while (true) {
             clientHandler.connectionError = false;
             utils.clearScreen();
             System.out.println("--- PESCA CARTA TRIBÙ (SOTTO) ---");
             printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
 
+            if (clientHandler.getBottomCardSize() == 0) {
+                System.out.println("\nNon ci sono carte Tribù selezionabili.");
+                utils.pauseAndClear();
+                return false;
+            }
+
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
             String input = scanner.nextLine();
-
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
@@ -250,6 +302,12 @@ public class MarketTUI {
             utils.clearScreen();
             System.out.println("--- PESCA CARTA EDIFICIO (SOTTO) ---");
             printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
+
+            if (clientHandler.getBottomBuildingSize() == 0) {
+                System.out.println("\nNon ci sono carte Edificio selezionabili.");
+                utils.pauseAndClear();
+                return false;
+            }
 
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
