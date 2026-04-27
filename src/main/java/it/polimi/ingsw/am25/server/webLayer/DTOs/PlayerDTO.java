@@ -73,6 +73,14 @@ public class PlayerDTO implements Serializable {
      * Executes add card to tribe.
      * @param cardDTO parameter cardDTO.
      */
+    /**
+     * Returns the player's tribe card list.
+     * @return the list of CardDTOs in the tribe.
+     */
+    public List<CardDTO> getCardDtoList() {
+        return cardDtoList;
+    }
+
     public void addCardToTribe(CardDTO cardDTO){
         if (this.cardDtoList == null) {
             this.cardDtoList = new ArrayList<>();

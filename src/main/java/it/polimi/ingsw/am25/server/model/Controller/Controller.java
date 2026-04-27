@@ -54,6 +54,34 @@ public class Controller {
     public void linkObserver(ServerVirtualView virtualView){
         game.linkObserver(virtualView);
     }
+
+    /**
+     * Returns all players currently in the game.
+     * @return unmodifiable list of {@link Player} instances.
+     */
+    public List<Player> getAllPlayers() {
+        return game.getPlayerList();
+    }
+
+    /**
+     * Cross-registers every provided {@link ServerVirtualView} as a
+     * {@link it.polimi.ingsw.am25.server.model.Observers.PlayerObserver} on every player.
+     *
+     * <p>By default each {@link Player} only notifies its own view when its tribe
+     * changes. Calling this method after all players have been created ensures that
+     * <em>every</em> client receives the {@code addedCardToTribe} notification
+     * whenever <em>any</em> player draws a card, so all clients can display an
+     * up-to-date view of the other players' tribes.
+     *
+     * @param views the list of all connected {@link ServerVirtualView} instances.
+     */
+    public void crossRegisterPlayerObservers(List<ServerVirtualView> views) {
+        for (Player player : game.getPlayerList()) {
+            for (ServerVirtualView view : views) {
+                player.addObserver(view); // addObserver is idempotent (ignores duplicates)
+            }
+        }
+    }
     /**
      * Adds a player to the game lobby.
      * If the lobby is already full (game not in SETUP phase) the call is silently ignored.

@@ -131,9 +131,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             controller.addPlayer(newPlayer);
         }
 
+        // ----------------------------------------------------------------
+        // 5. CROSS-REGISTER: every view observes every player's tribe changes.
+        //    By default each Player only notifies its own ServerVirtualView, so
+        //    other clients would never receive addedCardToTribe events for cards
+        //    drawn by other players. After this call every draw is broadcast to
+        //    all connected clients.
+        // ----------------------------------------------------------------
+        controller.crossRegisterPlayerObservers(waitingPlayers);
+
         logServerEvent("All players added to the model. Synchronizing initial state to clients...");
         // ----------------------------------------------------------------
-        // 5. MASS INITIAL SYNCHRONIZATION ON CLIENTS
+        // 6. MASS INITIAL SYNCHRONIZATION ON CLIENTS
         // ----------------------------------------------------------------
         for (ServerVirtualView view : waitingPlayers) {
             // Pass the complete list of PlayerDTOs to EVERY VirtualView

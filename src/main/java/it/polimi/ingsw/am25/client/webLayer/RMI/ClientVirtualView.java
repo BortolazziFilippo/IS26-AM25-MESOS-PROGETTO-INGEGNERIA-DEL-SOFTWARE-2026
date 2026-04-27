@@ -11,6 +11,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Client-side implementation of {@link ClientRemoteInterface}. Receives game-state
@@ -473,6 +474,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             return this.bottomCards.get(position).getCardType();
         }
 
+    }
+
+    /**
+     * Returns an unmodifiable snapshot of all players currently in the game,
+     * sorted alphabetically by nickname.
+     * @return list of {@link PlayerDTO} snapshots.
+     */
+    public List<PlayerDTO> getPlayers() {
+        return playersMap.values().stream()
+                .sorted(Comparator.comparing(PlayerDTO::getNickName))
+                .collect(Collectors.toList());
     }
 
     /**
