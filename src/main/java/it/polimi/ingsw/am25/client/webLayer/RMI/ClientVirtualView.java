@@ -89,7 +89,21 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.winners=playerDTOSWinner;
         }
+        synchronized (stateLock){
+            turnLock.notifyAll();
+        }
 
+    }
+
+    /**
+     * metodo getter per i vincitori
+     * @return
+     */
+
+    public List<PlayerDTO> getWinners() {
+        synchronized (stateLock){
+            return winners;
+        }
     }
 
     /**

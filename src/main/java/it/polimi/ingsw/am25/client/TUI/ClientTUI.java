@@ -101,7 +101,10 @@ public class ClientTUI {
                     break;
                 case SOLVING_EVENTS:
                     new SolvingEventsTUI(clientHandler, utils).solveEvents();
-                    continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurnsi
+                    continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurns
+                case END_GAME:
+                    new EndGameTUI(clientHandler, utils).finished(clientHandler.getWinners());
+                    return;
                 default:
                     System.out.println("In attesa del caricamento...");
                     break;
@@ -213,6 +216,9 @@ public class ClientTUI {
         } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
             return myPlayer.getNickName().equals(clientHandler.getPlayerToPlay());
         } else if (phase == GAME_PHASE.SOLVING_EVENTS) {
+            return true;
+        }
+        else if (phase == GAME_PHASE.END_GAME) {
             return true;
         }
         return false;

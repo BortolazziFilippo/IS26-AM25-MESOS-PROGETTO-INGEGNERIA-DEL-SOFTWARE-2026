@@ -348,4 +348,18 @@ public class ClientSocketProxy implements ClientRemoteInterface {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void eventResolved(String message){
+        try {
+            synchronized (out) {
+                out.writeObject(new ResolvedEventMessage(message));
+                out.flush();
+                out.reset();
+            }
+        }catch (java.io.IOException e){
+            UtilitiesFunction.logError(PREFIX, "Error comunicating event resolved");
+            e.printStackTrace();
+        }
+    }
 }
