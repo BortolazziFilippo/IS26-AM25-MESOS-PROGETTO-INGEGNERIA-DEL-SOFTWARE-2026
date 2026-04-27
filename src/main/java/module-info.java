@@ -1,3 +1,6 @@
+/**
+ * Module descriptor for the Mesos board-game application.
+ */
 module it.polimi.ingsw.am25 {
     requires javafx.controls;
     requires javafx.fxml;
@@ -14,6 +17,21 @@ module it.polimi.ingsw.am25 {
     opens it.polimi.ingsw.am25.server.model.Player to com.google.gson;
     opens it.polimi.ingsw.am25.server.model.Card to com.google.gson;
     opens it.polimi.ingsw.am25 to javafx.fxml;
-    exports it.polimi.ingsw.am25.client.TUI to java.rmi;
+    exports it.polimi.ingsw.am25.client.TUI;
     exports it.polimi.ingsw.am25.client to java.rmi;
+    exports it.polimi.ingsw.am25.server.model.Controller;
+    exports it.polimi.ingsw.am25.server.model.Game;
+    exports it.polimi.ingsw.am25.server.model.Player;
+    exports it.polimi.ingsw.am25.server.model.Board;
+    exports it.polimi.ingsw.am25.server.model.Card;
+    exports it.polimi.ingsw.am25.server.model.Enums;
+    exports it.polimi.ingsw.am25.server.model.Observers;
+    exports it.polimi.ingsw.am25.server.model.Utilities;
+    exports it.polimi.ingsw.am25.server.model.Utilities.Exception;
+    exports it.polimi.ingsw.am25.server.model.Factory.Building;
+    exports it.polimi.ingsw.am25.server.model.Factory.DefaultTile;
+    exports it.polimi.ingsw.am25.server.model.Factory.Deck;
+    exports it.polimi.ingsw.am25.server.model.Factory.OfferTile;
+    exports it.polimi.ingsw.am25.server.model.Factory.Event;
+    exports it.polimi.ingsw.am25.server.webLayer;
 }

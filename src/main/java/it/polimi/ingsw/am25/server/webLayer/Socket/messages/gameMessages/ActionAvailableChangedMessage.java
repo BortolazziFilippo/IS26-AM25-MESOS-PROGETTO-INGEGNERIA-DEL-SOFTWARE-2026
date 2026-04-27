@@ -5,6 +5,9 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.ActionDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Socket message that notifies the client that the available actions for the current turn have changed.
+ */
 public class ActionAvailableChangedMessage implements ServerToClientMessage {
     private final ActionDTO actionDTO;
 

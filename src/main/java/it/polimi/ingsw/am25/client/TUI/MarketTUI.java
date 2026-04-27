@@ -201,8 +201,8 @@ public class MarketTUI {
     // ==========================================================
 
     /**
-     * Handles drawing a tribe card from the bottom of the market.
-
+     * Asks the player whether to draw a tribe or building card from the bottom,
+     * then delegates to the appropriate method.
      */
     public void drawBottomCard() {
         utils.clearScreen();
@@ -296,7 +296,7 @@ public class MarketTUI {
      * Handles drawing a building card from the bottom of the market.
      * @return {@code true} if the card was drawn successfully.
      */
-    public boolean drawBottomBuildingCard() {
+    private boolean drawBottomBuildingCard() {
         while (true) {
             clientHandler.connectionError = false;
             utils.clearScreen();

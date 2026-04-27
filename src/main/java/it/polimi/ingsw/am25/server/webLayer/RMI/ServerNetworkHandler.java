@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * RMI server-side entry point for all Mesos client actions. Manages the game lobby,
+ * registers client stubs, and delegates game logic to the {@link Controller}.
+ * Also used as the target for Socket clients via {@link it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler}.
+ */
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
@@ -25,6 +30,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     /**
      * Initializes the RMI network handler and exports it as a remote object,
      * making it reachable by Mesos clients via the RMI registry.
+     * @throws RemoteException if the RMI export fails.
      */
     public ServerNetworkHandler() throws RemoteException{
         super();

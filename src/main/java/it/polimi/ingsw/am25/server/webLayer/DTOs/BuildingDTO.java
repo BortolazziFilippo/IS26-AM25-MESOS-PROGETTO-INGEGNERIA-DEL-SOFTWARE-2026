@@ -7,6 +7,10 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * DTO for a {@link it.polimi.ingsw.am25.server.model.Card.BuildingCard}, carrying
+ * the building ID, food cost, end-game prestige points, and trigger event type.
+ */
 public class BuildingDTO extends CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 2L;

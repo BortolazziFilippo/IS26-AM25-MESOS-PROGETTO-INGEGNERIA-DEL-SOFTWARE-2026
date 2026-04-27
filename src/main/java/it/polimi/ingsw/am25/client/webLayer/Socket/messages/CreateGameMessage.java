@@ -5,6 +5,9 @@ import it.polimi.ingsw.am25.client.webLayer.Socket.ClientToServerMessage;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+/**
+ * Client-to-server Socket message that requests creation of a new game lobby.
+ */
 public class CreateGameMessage implements ClientToServerMessage {
     private final PlayerDTO playerHostL;
     private final int playerNumber;

@@ -6,6 +6,10 @@ import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents an Inventor tribe card. Each Inventor card carries an {@link it.polimi.ingsw.am25.server.model.Enums.INV_ICON};
+ * having one of each distinct icon in the tribe grants a prestige-point bonus at end of game.
+ */
 public class InventorCard extends Card{
     private final INV_ICON invIcon;
 

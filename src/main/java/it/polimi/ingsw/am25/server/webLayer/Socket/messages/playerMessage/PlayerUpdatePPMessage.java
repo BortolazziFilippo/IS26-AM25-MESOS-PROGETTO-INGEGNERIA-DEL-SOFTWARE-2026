@@ -4,6 +4,9 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Server-to-client Socket message that notifies the client of an updated prestige-point total for a player.
+ */
 public class PlayerUpdatePPMessage implements ServerToClientMessage {
     private final String nickname;
     private final int PP;

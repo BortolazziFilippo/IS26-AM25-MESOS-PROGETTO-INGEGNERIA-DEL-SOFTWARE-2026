@@ -25,6 +25,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Server-side per-client view. Listens to all model observers and forwards each event
+ * to the client's {@link ClientRemoteInterface} stub (RMI or Socket proxy).
+ * Maintains a local snapshot of the game state so it can send full DTOs when needed.
+ */
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
@@ -50,6 +55,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private List<DefaultTileDTO> defaultTileList;
     //_________________________________________________________________________________________
     //Lock for draw one more card
+    /** Lock used to block the server until the client responds to the draw-one-more request. */
     public final Object extraDrawLock = new Object();
 
 

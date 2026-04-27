@@ -11,6 +11,11 @@ import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.List;
 
+/**
+ * MVC controller for a Mesos game session. Validates player actions against the current
+ * game phase and turn, delegates them to the {@link Game} model, and handles all phase
+ * transitions (placing → resolve-action → next round → end game).
+ */
 public class Controller {
     private Game game;
     private List<Player> players;

@@ -7,6 +7,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Data-transfer object for the overall game state, carrying the current era, phase,
+ * and which players are next to place and play.
+ */
 public class GameDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

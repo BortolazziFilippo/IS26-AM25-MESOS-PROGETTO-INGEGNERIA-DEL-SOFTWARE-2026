@@ -17,6 +17,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
+/**
+ * Core game model for a Mesos session. Manages the board, market, turn order, era
+ * progression, and all game-phase transitions from setup through end-game.
+ * Notifies registered {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}s on every state change.
+ */
 public class Game implements GameView {
     private static final String LOG_PREFIX = "[SERVER][GAME]";
     private ERA currentEra = ERA.ERA_I;
@@ -181,15 +186,11 @@ public class Game implements GameView {
     }
 
     /**
-     * Calculates the winner based on the prestige points and on the amount of food in the case of a tie
-     * a single player if there is a clear winner by prestige points
-     * a single player if prestige points are tied but one has more food
-     * multiple players if both prestige points and food are equal. At the end it notifies all the players
-     * who is/are the winner/s
-     * @return
-     * a list of Players
-     *
-     *
+     * Determines the winner(s) at game end and notifies all observers.
+     * Returns a single player when there is a clear prestige-point leader, a single player
+     * when prestige points are tied but one has more food, or multiple players when both
+     * prestige points and food are equal.
+     * @return the list of winning players (one or more).
      */
     public List<Player> checkWinner() {
         // This is only for completeness, but if the constructor works it should never happen
@@ -308,9 +309,9 @@ public class Game implements GameView {
     }
 
     /**
-     * Checks if the current player has any legal moves available.
-     * * @return false if the player cannot perform any action (e.g., market is empty or only contains events,
-     * and the player has no other options). Returns true if the player has at least one valid action.
+     * Checks whether the current playing player has at least one legal market action.
+     * @return {@code true} if the player can draw from at least one non-blocked market row;
+     *         {@code false} if both rows are empty or contain only events, or the player has no remaining draws.
      */
     public boolean canCurrentPlayingPlayerDoSomething() {
 

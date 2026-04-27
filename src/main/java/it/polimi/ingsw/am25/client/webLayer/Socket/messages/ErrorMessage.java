@@ -3,6 +3,10 @@ package it.polimi.ingsw.am25.client.webLayer.Socket.messages;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Server-to-client Socket message that delivers an error description to the client
+ * (e.g. invalid action, wrong turn, lobby full).
+ */
 public class ErrorMessage implements ServerToClientMessage {
     private final String errorMessage;
 

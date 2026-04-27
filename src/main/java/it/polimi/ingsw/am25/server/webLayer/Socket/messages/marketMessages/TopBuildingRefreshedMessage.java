@@ -7,6 +7,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
 import java.util.List;
 
+/**
+ * Server-to-client Socket message that notifies the client the top building row has been refreshed.
+ */
 public class TopBuildingRefreshedMessage implements ServerToClientMessage {
     private final List<BuildingDTO> topList;
 

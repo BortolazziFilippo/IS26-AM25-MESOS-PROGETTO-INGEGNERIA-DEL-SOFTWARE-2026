@@ -8,6 +8,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
 import java.util.List;
 
+/**
+ * Socket message that sends the initial board state (offer tiles and default tiles) to the client at game start.
+ */
 public class BoardInitializeMessages implements ServerToClientMessage {
     private final List<OffertileDTO> offertileDTOS;
     private final List<DefaultTileDTO> defaultTileDTOS;

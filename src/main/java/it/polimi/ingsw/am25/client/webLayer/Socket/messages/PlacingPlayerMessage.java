@@ -5,6 +5,9 @@ import it.polimi.ingsw.am25.client.webLayer.Socket.ClientToServerMessage;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+/**
+ * Client-to-server Socket message that requests a totem placement on an offer tile.
+ */
 public class PlacingPlayerMessage implements ClientToServerMessage {
     private final PlayerDTO playerDTO;
     private final int position;

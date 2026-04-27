@@ -9,8 +9,15 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Enumeration;
 
+/**
+ * Entry point for the Mesos server. Starts the RMI registry on port 1099 and a Socket
+ * listener on port 6969, then delegates all client connections to {@link ServerNetworkHandler}.
+ */
 public class ServerApp {
     private static final String LOG_PREFIX = "[SERVER][APP]";
+
+    /** Creates a new server app instance. */
+    public ServerApp() {}
 
     /**
      * Executes main.

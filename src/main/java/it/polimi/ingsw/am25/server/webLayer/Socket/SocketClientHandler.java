@@ -9,6 +9,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+/**
+ * Server-side thread that handles a single Socket client connection.
+ * Reads serialized {@link ClientToServerMessage} objects from the socket stream
+ * and dispatches each to the shared {@link ServerRemoteInterface}, then writes
+ * back a {@link it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface} Socket proxy.
+ */
 public class SocketClientHandler extends Thread{
     private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final Socket socket;

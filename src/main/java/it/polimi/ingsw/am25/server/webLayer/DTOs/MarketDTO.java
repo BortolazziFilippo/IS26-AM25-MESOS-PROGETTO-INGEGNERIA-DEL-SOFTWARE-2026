@@ -4,6 +4,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Data-transfer object for the market state, carrying the top and bottom card rows
+ * and the top and bottom building rows.
+ */
 public class MarketDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

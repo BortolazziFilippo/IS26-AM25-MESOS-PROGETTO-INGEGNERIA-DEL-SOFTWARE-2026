@@ -4,6 +4,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * DTO carrying the full board state (offer tiles and default tiles) for network transfer.
+ */
 public class BoardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

@@ -82,6 +82,20 @@
                     <mainClass>it.polimi.ingsw.am25.client.ClientApp</mainClass>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/module-info.java</sourceFileExclude>
+                    </sourceFileExcludes>
+                    <show>protected</show>
+                    <additionalJOptions>
+                        <additionalJOption>-Xdoclint:all,-missing</additionalJOption>
+                    </additionalJOptions>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

@@ -5,6 +5,10 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents a Builder tribe member card. Builders reduce the food cost of purchasing buildings
+ * and award prestige points at the end of the game.
+ */
 public class BuilderCard extends Card{
     private final int foodDiscount;
     private int finalPrestigePoint;

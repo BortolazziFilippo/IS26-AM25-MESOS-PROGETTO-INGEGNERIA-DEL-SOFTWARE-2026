@@ -5,6 +5,10 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents a Gatherer tribe card. Gatherers do not grant food directly but reduce
+ * the food penalty during sustenance events (3 food discount per Gatherer).
+ */
 public class GathererCard extends Card{
     /**
      * Default GathererCard constructor.

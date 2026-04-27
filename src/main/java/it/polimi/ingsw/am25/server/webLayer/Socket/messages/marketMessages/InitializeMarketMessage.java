@@ -8,6 +8,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
 import java.util.List;
 
+/**
+ * Server-to-client Socket message that pushes the initial market state (top/bottom card and building rows).
+ */
 public class InitializeMarketMessage implements ServerToClientMessage {
     private final List<CardDTO> topCards;
     private final List<CardDTO> bottomCards;

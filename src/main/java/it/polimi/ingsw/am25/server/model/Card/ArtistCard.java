@@ -5,6 +5,10 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents an Artist tribe member card. Artists contribute to the painting event
+ * and may provide food bonuses through building effects.
+ */
 public class ArtistCard extends Card{
     /**
      * Default ArtistCard contructor

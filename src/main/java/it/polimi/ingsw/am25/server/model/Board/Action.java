@@ -4,7 +4,9 @@ package it.polimi.ingsw.am25.server.model.Board;
  * how many cards they may draw from the top list and how many from the bottom list.
  */
 public class Action {
+    /** Remaining number of cards the player may draw from the current-round (top) market row. */
     public int drawTop;
+    /** Remaining number of cards the player may draw from the previous-round (bottom) market row. */
     public int drawBot;
     /**
      * Creates a new Action with the given draw counts.

@@ -6,6 +6,9 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Socket message that notifies the client that a tribe card was added to a player's tribe.
+ */
 public class AddedCardToTribeMessage implements ServerToClientMessage {
     private final String nickname;
     private final CardDTO cardDTO;

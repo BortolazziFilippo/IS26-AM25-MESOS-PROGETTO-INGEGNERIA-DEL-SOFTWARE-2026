@@ -17,6 +17,11 @@ import java.util.List;
 
 import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction.shuffledFromYToXExclusive;
 
+/**
+ * Factory that reads building definitions from JSON and assembles the correct set of
+ * {@link it.polimi.ingsw.am25.server.model.Card.BuildingCard}s for the given player count,
+ * binding each card to its corresponding {@link it.polimi.ingsw.am25.server.model.Effect.Building.BuildingEffect}.
+ */
 public class BuildingFactory {
     private static final String LOG_PREFIX = "[SERVER][BUILDING_FACTORY]";
 
@@ -30,6 +35,14 @@ public class BuildingFactory {
      * method use to build the right amount of building
      * @param playerNumber number of players
      * @return List ordered by ERA with the right amount of building
+     */
+    /**
+     * Builds the building deck for the given player count, selecting the correct number of
+     * buildings per era and binding each to its effect.
+     *
+     * @param playerNumber the number of players in the game (2–5).
+     * @param boardView    read-only board reference needed by position-dependent building effects.
+     * @return list of {@link BuildingCard}s ordered by era.
      */
     public List<BuildingCard> createBuildingDeck (int playerNumber, BoardView boardView){
 

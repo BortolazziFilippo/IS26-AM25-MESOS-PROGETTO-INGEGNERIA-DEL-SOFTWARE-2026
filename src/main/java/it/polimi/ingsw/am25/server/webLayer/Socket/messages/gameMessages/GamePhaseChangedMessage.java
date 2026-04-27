@@ -5,6 +5,9 @@ import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Server-to-client Socket message that notifies the client the game phase has changed.
+ */
 public class GamePhaseChangedMessage implements ServerToClientMessage {
     private final GAME_PHASE gamePhase;
 

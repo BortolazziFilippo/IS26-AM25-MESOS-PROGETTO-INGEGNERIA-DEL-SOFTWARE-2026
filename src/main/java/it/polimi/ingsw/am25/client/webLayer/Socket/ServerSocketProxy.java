@@ -13,6 +13,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 
+/**
+ * Client-side proxy that implements {@link ServerRemoteInterface} over a Socket connection.
+ * Each call is serialized as a {@link ClientToServerMessage} and sent to the server,
+ * allowing the client to treat Socket and RMI connections identically.
+ */
 public class ServerSocketProxy implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[CLIENT][SOCKET_PROXY]";
 

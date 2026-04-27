@@ -13,6 +13,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Builds the Mesos card deck for a given player count by loading card definitions
+ * from JSON resources and merging in the era event cards.
+ */
 public class DeckFactory {
     private static final String LOG_PREFIX = "[SERVER][DECK_FACTORY]";
 

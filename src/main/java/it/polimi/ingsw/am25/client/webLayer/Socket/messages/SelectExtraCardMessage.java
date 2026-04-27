@@ -6,6 +6,9 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+/**
+ * Client-to-server Socket message requesting an extra card draw triggered by the draw-one-more building effect.
+ */
 public class SelectExtraCardMessage implements ClientToServerMessage {
     private final PlayerDTO playerDTO;
     private final CARD_TYPE cardType;

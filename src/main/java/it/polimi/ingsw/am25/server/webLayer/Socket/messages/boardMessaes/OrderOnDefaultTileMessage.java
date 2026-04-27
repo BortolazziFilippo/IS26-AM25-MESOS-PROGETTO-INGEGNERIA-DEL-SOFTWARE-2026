@@ -7,6 +7,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
 import java.util.List;
 
+/**
+ * Server-to-client Socket message that notifies the client of the updated player order on the default tiles.
+ */
 public class OrderOnDefaultTileMessage implements ServerToClientMessage {
     private final List<PlayerDTO> orderOnDefaultTile;
 

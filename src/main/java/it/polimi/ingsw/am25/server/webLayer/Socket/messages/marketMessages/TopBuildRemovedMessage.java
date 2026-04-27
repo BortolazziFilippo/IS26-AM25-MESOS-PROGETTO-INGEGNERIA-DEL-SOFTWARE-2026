@@ -4,6 +4,9 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Server-to-client Socket message that notifies the client a building was removed from the top market row.
+ */
 public class TopBuildRemovedMessage implements ServerToClientMessage {
     private final int position;
 

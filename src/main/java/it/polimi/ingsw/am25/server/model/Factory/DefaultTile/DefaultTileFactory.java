@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Builds the set of default tiles for a given player count by loading tile
+ * definitions from JSON resources.
+ */
 public class DefaultTileFactory {
     private static final String LOG_PREFIX = "[SERVER][DEFAULT_TILE_FACTORY]";
 

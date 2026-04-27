@@ -9,6 +9,10 @@ import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * DTO for a Mesos card, carrying the type, era, and any role-specific attributes
+ * (invention icon, shaman star, food discount, prestige points, hunter icon flag).
+ */
 public class CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

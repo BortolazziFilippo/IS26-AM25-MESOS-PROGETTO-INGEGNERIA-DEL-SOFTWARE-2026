@@ -12,11 +12,17 @@ public class TUIUtils {
 
     private final Scanner scanner;
 
+    /** ANSI reset sequence — restores the default terminal colour. */
     public static final String RESET  = "[0m";
+    /** ANSI bold-red colour sequence. */
     public static final String RED    = "\033[31;49;1m";
+    /** ANSI bold-green colour sequence. */
     public static final String GREEN  = "\033[32;49;1m";
+    /** ANSI bold-yellow colour sequence. */
     public static final String YELLOW = "\033[33;49;1m";
+    /** ANSI bold-blue colour sequence. */
     public static final String BLUE   = "\033[34;49;1m";
+    /** ANSI bold-purple colour sequence. */
     public static final String PURPLE = "\033[35;49;1m";
 
     /**
