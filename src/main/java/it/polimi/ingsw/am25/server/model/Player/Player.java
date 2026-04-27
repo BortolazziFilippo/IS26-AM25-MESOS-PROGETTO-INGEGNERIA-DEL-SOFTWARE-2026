@@ -110,7 +110,6 @@ public class Player {
                 "Updated food for player '" + nickname + "': " + previousFood + " -> " + this.food +
                         " (delta " + foodAmount + ")"
         );
-        notifyPPChanged();
         notifyFoodChanged();
     }
 

@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -63,7 +64,7 @@ public class ClientTUI {
         PlayerStatusTUI playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
 
         while (true) {
-            waitForMyTurn();
+            waitForMyTurn(playerStatusTUI);
 
             if (clientHandler.needsExtraDraw) {
                 marketTUI.handleExtraDraw();
@@ -78,6 +79,7 @@ public class ClientTUI {
             switch (clientHandler.getGamePhase()) {
                 case PLACING_PHASE, LAST_ROUND_PLACING_PHASE:
                     System.out.println("1 - Piazza Totem (Fase Piazzamento)");
+                    System.out.println("i - Stato giocatori");
                     break;
                 case RESOLVE_ACTION, LAST_ROUND_RESOLVE_ACTION:
                     System.out.println("Azioni disponibili:");
@@ -86,24 +88,24 @@ public class ClientTUI {
                     System.out.println("2 - Pesca carta da sopra (Fase Azioni)");
                     System.out.println("3 - Pesca carta da sotto (Fase Azioni)");
                     System.out.println("4 - Passa il turno");
+                    System.out.println("i - Stato giocatori");
                     marketTUI.printMarket();
                     break;
                 default:
                     System.out.println("In attesa del caricamento...");
                     break;
             }
-            System.out.println("i - Stato giocatori");
 
             System.out.print("\nScelta: ");
-            String mossa = scanner.nextLine();
+            String move = scanner.nextLine().trim();
 
             // "i" is available in any game phase
-            if (mossa.equalsIgnoreCase("i")) {
+            if (move.equalsIgnoreCase("i")) {
                 playerStatusTUI.printAllPlayersStatus();
                 continue;
             }
 
-            switch (mossa) {
+            switch (move) {
                 case "1":
                     if (clientHandler.getGamePhase() == GAME_PHASE.PLACING_PHASE ||
                             clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
@@ -154,42 +156,70 @@ public class ClientTUI {
 
     /**
      * Blocks the current thread until it is this player's turn.
-     * Prints a waiting message while blocked and a notification when the turn arrives.
+     * Wakes every 300 ms to check for "i"/"b" input while waiting.
      */
-    private void waitForMyTurn() {
-        boolean wasWaiting = false;
+    private void waitForMyTurn(PlayerStatusTUI playerStatusTUI) {
+        if (isMyTurn()) return;
 
-        synchronized (clientHandler.turnLock) {
-            while (!isMyTurn()) {
-                wasWaiting = true;
-                utils.clearScreen();
-                System.out.println("⏳ In attesa del tuo turno...");
+        printWaitingScreen();
 
-                String currentPlayer = "";
-                GAME_PHASE phase = clientHandler.getGamePhase();
-                if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
-                    currentPlayer = clientHandler.getPlayerToPlace();
-                } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
-                    currentPlayer = clientHandler.getPlayerToPlay();
+        while (!isMyTurn()) {
+            // Release the lock for up to 300 ms so the server can notify us.
+            synchronized (clientHandler.turnLock) {
+                if (!isMyTurn()) {
+                    try {
+                        clientHandler.turnLock.wait(300);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                 }
+            }
 
-                if (currentPlayer != null && !currentPlayer.isEmpty()) {
-                    System.out.println("Attualmente sta giocando: " + currentPlayer);
-                }
+            if (isMyTurn()) break;
 
-                try {
-                    clientHandler.turnLock.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+            // Check for pending keyboard input without blocking.
+            try {
+                if (System.in.available() > 0) {
+                    String input = scanner.nextLine().trim();
+                    if (input.equalsIgnoreCase("i")) {
+                        playerStatusTUI.printAllPlayersStatus();
+                    } else if (input.equalsIgnoreCase("b")) {
+                        // TODO: mettere board view
+                    }
+                    if (!isMyTurn()) printWaitingScreen();
                 }
+            } catch (IOException e) {
+                // ignore read errors on stdin
             }
         }
 
-        if (wasWaiting) {
-            utils.clearScreen();
-            System.out.println("🔔 È IL TUO TURNO!");
-            utils.pauseAndClear();
+        utils.clearScreen();
+        System.out.println("🔔 E' IL TUO TURNO!");
+        utils.pauseAndClear();
+    }
+
+    /** Prints the static waiting screen with available commands. */
+    private void printWaitingScreen() {
+        utils.clearScreen();
+        System.out.println("Sei in attesa del tuo turno...");
+        System.out.println();
+
+        String currentPlayer = "";
+        GAME_PHASE phase = clientHandler.getGamePhase();
+        if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            currentPlayer = clientHandler.getPlayerToPlace();
+        } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
+            currentPlayer = clientHandler.getPlayerToPlay();
         }
+        if (currentPlayer != null && !currentPlayer.isEmpty()) {
+            System.out.println("Sta giocando: " + currentPlayer);
+            System.out.println();
+        }
+
+        System.out.println("  [i] Informazioni giocatori");
+        System.out.println("  [b] Informazioni board");
+        System.out.print("\nScelta: ");
     }
 
     /**

@@ -24,6 +24,6 @@ public class PlayerUpdatePPMessage implements ServerToClientMessage {
     /** Dispatches this message by calling {@link ClientRemoteInterface#playerUpdatePP}. */
     @Override
     public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
-        clientRemoteInterface.playerUpdateFood(nickname,PP);
+        clientRemoteInterface.playerUpdatePP(nickname,PP);
     }
 }
