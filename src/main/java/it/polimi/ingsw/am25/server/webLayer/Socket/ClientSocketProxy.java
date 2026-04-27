@@ -20,6 +20,11 @@ import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 import java.util.List;
 
+/**
+ * Proxy for {@link ClientRemoteInterface} over a Socket connection,
+ * allowing the server to treat a Socket client as an RMI stub.
+ */
+
 public class ClientSocketProxy implements ClientRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final ObjectOutputStream out;

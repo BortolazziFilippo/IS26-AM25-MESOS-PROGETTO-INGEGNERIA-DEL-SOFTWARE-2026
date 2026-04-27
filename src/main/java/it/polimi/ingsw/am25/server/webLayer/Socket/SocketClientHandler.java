@@ -50,6 +50,7 @@ public class SocketClientHandler extends Thread{
 
                 try {
                     // Game logic errors do NOT close the connection.
+                    //here arrives a "generic" message which implements the execute method.
                     message.execute(serverLogic, clientSocketProxy);
                 } catch (Exception e) {
                     UtilitiesFunction.logError(LOG_PREFIX, "Game logic error: " + e.getMessage());

@@ -21,9 +21,9 @@ public class ServerApp {
         try {
             String myIp = getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", myIp);
-            ServerNetworkHandler serverObject = new ServerNetworkHandler();
+            ServerNetworkHandler serverNetworkHandler = new ServerNetworkHandler();
             Registry registry = LocateRegistry.createRegistry(1099);
-            registry.rebind("MesosServer", serverObject);
+            registry.rebind("MesosServer", serverNetworkHandler);
             clearScreen();
             logServerEvent("Server started at IP " + myIp);
             new Thread(() -> {
@@ -32,7 +32,7 @@ public class ServerApp {
                     while (true) {
                         Socket clientSocket = serverSocket.accept();
                         logServerEvent("New socket client connected. IP: " + clientSocket.getInetAddress());
-                        SocketClientHandler handler = new SocketClientHandler(clientSocket, serverObject);
+                        SocketClientHandler handler = new SocketClientHandler(clientSocket, serverNetworkHandler);
                         handler.start();
                     }
                 } catch (IOException e) {
