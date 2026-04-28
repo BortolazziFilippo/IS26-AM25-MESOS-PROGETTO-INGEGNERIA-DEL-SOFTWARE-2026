@@ -198,7 +198,9 @@ public class ClientTUI {
         if (wasWaiting) {
             utils.clearScreen();
             System.out.println("🔔 È IL TUO TURNO!");
-            utils.pauseAndClear();
+            if(clientHandler.getGamePhase() != GAME_PHASE.SOLVING_EVENTS) {
+                utils.pauseAndClear();
+            }
         }
     }
 
