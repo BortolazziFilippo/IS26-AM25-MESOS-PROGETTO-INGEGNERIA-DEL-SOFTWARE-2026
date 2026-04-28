@@ -13,15 +13,18 @@ public class SolvingEventsTUI {
     }
 
     public void solveEvents() {
-        clientVirtualView.clearResolvedEvents();
+        // NB: NON chiamare clearResolvedEvents() qui all'inizio.
+        // Tra la sveglia su turnLock e l'arrivo della TUI a questa riga, il
+        // server (single-thread executor) puo' aver gia' inviato tutti gli
+        // eventResolved della fase: cancellandoli ora li perderemmo.
 
         tuiUtils.clearScreen();
-        System.out.println("⚙\uFE0F  --- RISOLUZIONE EVENTI ---");
+        System.out.println("⚙️  --- RISOLUZIONE EVENTI ---");
         System.out.println("Gli eventi dell'era sono in corso di risoluzione...");
         System.out.println("⏳ Attendi la fine della risoluzione...");
 
         synchronized (clientVirtualView.turnLock) {
-            while (clientVirtualView.getGamePhase() == GAME_PHASE.SOLVING_EVENTS){
+            while (clientVirtualView.getGamePhase() == GAME_PHASE.SOLVING_EVENTS) {
                 System.out.println("Eventi risolti finora: ");
                 clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event.toString()));
                 System.out.println();
@@ -34,8 +37,19 @@ public class SolvingEventsTUI {
                 }
             }
         }
+
+        // Stampa finale: copre due casi che il while da solo perde
+        //  1) la fase e' gia' cambiata quando arriviamo qui (loop mai eseguito)
+        //  2) un eventResolved e' arrivato insieme al cambio di fase
+        //     (la wait esce ma non rifa' la stampa prima del controllo while)
         tuiUtils.clearScreen();
-        System.out.println("Gli eventi sono stati risolti");
+        System.out.println("✅ Gli eventi sono stati risolti:");
+        clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event.toString()));
+
+        // Puliamo ORA, dopo che l'utente ha avuto modo di vederli, cosi'
+        // la prossima fase SOLVING_EVENTS partira' da una lista vuota.
+        clientVirtualView.clearResolvedEvents();
+
         tuiUtils.pauseAndClear();
     }
 }

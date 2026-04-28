@@ -322,15 +322,17 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         this.currentGamePhase = gamePhase;
-        executor.submit(()->{
+        // Sempre asincrono tramite il single-thread executor: garantisce ordine
+        // FIFO con tutte le altre notifiche (eventResolved, playerToPlayChanged,
+        // playerToPlaceChanged, ecc.) ed evita race condition dovute a chiamate
+        // RMI emesse da thread diversi del server.
+        executor.submit(() -> {
             try {
                 clientStub.gamePhaseChanged(currentGamePhase);
             } catch (java.rmi.RemoteException e) {
                 logServerError("Failed to notify game phase change for player '" + nickname + "'");
             }
         });
-
-
     }
 
     /**
@@ -536,14 +538,17 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     @Override
     public void eventSolved (int eventID, EVENT_TYPE eventType) {
-        String description = "Evento #" + eventID + " (" + eventType + ") risolto";
-        executor.submit(()->{
+        final String description = "Evento #" + eventID + " (" + eventType + ") risolto";
+        // Passa attraverso il single-thread executor per preservare l'ordine FIFO
+        // rispetto a notifyPP/Food, gamePhaseChanged, playerToPlay/PlaceChanged.
+        // In precedenza era sincrono e bypassava la coda, generando una race
+        // condition con i task asincroni già in coda.
+        executor.submit(() -> {
             try {
                 clientStub.eventResolved(description);
             } catch (RemoteException e) {
-                logServerError("Failed to notify event solved for player: " + description);
+                logServerError("Failed to notify event resolved: " + description);
             }
         });
-
     }
 }
