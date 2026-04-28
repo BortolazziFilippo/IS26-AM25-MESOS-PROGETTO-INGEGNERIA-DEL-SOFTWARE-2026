@@ -74,6 +74,18 @@ public class ClientTUI {
         MarketTUI    marketTUI    = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
 
         while (true) {
+            // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
+            // dal suo wait loop su gamePhaseChanged(SOLVING_EVENTS) e, prima che
+            // il thread TUI arrivi a waitForMyTurn(), l'executor ha già consegnato
+            // tutti gli eventResolved + gamePhaseChanged(PLACING_PHASE). In quel
+            // caso lo switch qui sotto vedrebbe PLACING_PHASE e salterebbe
+            // SOLVING_EVENTS. Gli eventResolved sono garantiti nella lista perché
+            // l'executor li invia in ordine FIFO, tutti prima di PLACING_PHASE.
+            if (!clientHandler.getResolvedEvents().isEmpty()) {
+                new SolvingEventsTUI(clientHandler, utils).solveEvents();
+                continue;
+            }
+
             waitForMyTurn();
 
             if (clientHandler.needsExtraDraw) {

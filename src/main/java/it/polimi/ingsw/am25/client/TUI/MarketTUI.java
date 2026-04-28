@@ -334,7 +334,11 @@ public class MarketTUI {
             utils.pauseAndClear();
         } else {
             System.out.println("\n✅ Turno terminato.");
-            utils.pauseAndClear();
+            // Non chiamare pauseAndClear() qui: bloccare il thread su
+            // scanner.nextLine() farebbe perdere i turnLock.notifyAll() di
+            // SOLVING_EVENTS (eventResolved, gamePhaseChanged). Tornando subito
+            // a waitForMyTurn() il thread si mette in turnLock.wait() e risponde
+            // correttamente alle notifiche in arrivo.
         }
     }
 
