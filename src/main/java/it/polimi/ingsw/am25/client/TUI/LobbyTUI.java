@@ -19,6 +19,17 @@ public class LobbyTUI {
     /** Message sent by the server when no game lobby exists yet. */
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
 
+    private final static String LOGO= """
+            $$\\      $$\\ $$$$$$$$\\  $$$$$$\\   $$$$$$\\   $$$$$$\\ \s
+            $$$\\    $$$ |$$  _____|$$  __$$\\ $$  __$$\\ $$  __$$\\\s
+            $$$$\\  $$$$ |$$ |      $$ /  \\__|$$ /  $$ |$$ /  \\__|
+            $$\\$$\\$$ $$ |$$$$$\\    \\$$$$$$\\  $$ |  $$ |\\$$$$$$\\ \s
+            $$ \\$$$  $$ |$$  __|    \\____$$\\ $$ |  $$ | \\____$$\\\s
+            $$ |\\$  /$$ |$$ |      $$\\   $$ |$$ |  $$ |$$\\   $$ |
+            $$ | \\_/ $$ |$$$$$$$$\\ \\$$$$$$  | $$$$$$  |\\$$$$$$  |
+            \\__|     \\__|\\________| \\______/  \\______/  \\______/\s
+
+            """;
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
     private final Scanner scanner;
@@ -50,6 +61,7 @@ public class LobbyTUI {
     public PlayerDTO connect() {
         while (true) {
             utils.clearScreen();
+            System.out.println(LOGO);
             System.out.println("--- CONNESSIONE AL GIOCO ---");
             System.out.print("Inserisci nome giocatore: ");
             String nickname = scanner.nextLine().trim();
