@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -114,7 +115,8 @@ public class PlacementTUI {
             }
 
             if (input.equalsIgnoreCase("b")) {
-                // TODO: mettere board view
+                utils.clearScreen();
+                printBoard();
                 utils.pauseAndClear();
                 System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
                 continue;
@@ -140,5 +142,28 @@ public class PlacementTUI {
                 utils.pauseAndClear();
             }
         }
+    }
+
+    /**
+     * Prints the current board state: offer tiles with the player on each one (if any).
+     */
+    private void printBoard() {
+        System.out.println("\n=============================================================");
+        System.out.println("                        IL BOARD                             ");
+        System.out.println("=============================================================");
+
+        var tiles = clientHandler.getOfferTileList();
+        var occupants = clientHandler.getOfferTileOccupants();
+
+        System.out.println("\n▶ CASELLE OFFERTA:");
+        System.out.printf("   %-5s | %-4s | %s\n", "Pos", "ID", "Giocatore");
+        System.out.println("   " + "-".repeat(40));
+
+        for (int i = 0; i < tiles.size(); i++) {
+            String player = occupants.getOrDefault(i, "[libera]");
+            System.out.printf("   [%d]   | %-4s | %s\n", (i + 1), tiles.get(i).getOfferTileID(), player);
+        }
+
+        System.out.println("=============================================================\n");
     }
 }
