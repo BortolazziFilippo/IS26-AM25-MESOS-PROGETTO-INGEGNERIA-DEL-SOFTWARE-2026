@@ -11,48 +11,90 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
+/**
+ * Client-side implementation of {@link ClientRemoteInterface}. Receives game-state
+ * push notifications from the server and stores them in volatile fields that the TUI
+ * reads. Exposes lock objects ({@link #gameStartLock}, {@link #turnLock}) so the TUI
+ * can block until the relevant state change arrives.
+ */
 public class ClientVirtualView extends UnicastRemoteObject implements ClientRemoteInterface{
+    /** Latest list of winning players; set when the game ends. */
     private  List<PlayerDTO> winners;
+    /** The era the game is currently in. */
     private volatile ERA currentEra;
+    /** The phase the game is currently in. */
     private volatile GAME_PHASE currentGamePhase;
+    /** Nickname of the player whose turn it is to place their totem. */
     private volatile String playerToPlace;
+    /** Nickname of the player whose turn it is to resolve actions. */
     private volatile String playerToPlay;
+    /** Remaining top-row draw count for the current player's offer tile. */
     private volatile int drawTop;
+    /** Remaining bottom-row draw count for the current player's offer tile. */
     private volatile int drawBot;
+    /** Map of all players in the game, keyed by nickname. */
     private final Map<String,PlayerDTO> playersMap= new ConcurrentHashMap<>();
     private final List<String> resolvedEvents =  new ArrayList<>();
 
     // MARKET DTO
+    /** Current top card row of the market. */
     private  List<CardDTO> topCards;
+    /** Current bottom card row of the market. */
     private  List<CardDTO> bottomCards;
+    /** Current top building row of the market. */
     private  List<BuildingDTO> topBuildings;
+    /** Current bottom building row of the market. */
     private  List<BuildingDTO> bottomBuildings;
 
     // BOARD DTO
+    /** Current list of offer tiles on the board. */
     private  List<OffertileDTO> offerTileList;
+    /** Current list of default tiles on the board. */
     private  List<DefaultTileDTO> defaultTileList;
 
     // --- LOCKS ---
+    /** Lock used to block the TUI until the game transitions from lobby to the first placing phase. */
     public final Object gameStartLock = new Object();
+    /** {@code true} once the first {@link #gamePhaseChanged} with {@code PLACING_PHASE} is received. */
     public boolean isGameStarted = false;
-    public volatile boolean connectionError=false;
-    private final Object stateLock=new Object();
-
-    // We use this lock to pause the player when it's not their turn!
+    /** Set to {@code true} when the server sends an error; checked by the TUI after waking up. */
+    public volatile boolean connectionError = false;
+    /** The last error message received from the server, or {@code null} if none. */
+    public volatile String lastErrorMessage = null;
+    private final Object stateLock = new Object();
+    /** Lock used to pause the TUI between turns; notified on phase change, turn change, or error. */
     public final Object turnLock = new Object();
+    /** {@code true} when the server has asked this client to pick an extra card (draw-one-more effect). */
     public boolean needsExtraDraw = false;
 
     /**
-     * Creates a new client virtual view instance.
+     * Creates a new client virtual view and exports it as an RMI remote object.
+     *
+     * @throws RemoteException if the RMI export fails.
      */
     public ClientVirtualView() throws RemoteException {
         super();
     }
 
     // --- GETTERS (Needed by the ClientApp to check whose turn it is) ---
+    /**
+     * Returns the current game phase.
+     * @return the current {@link GAME_PHASE}.
+     */
     public GAME_PHASE getGamePhase() { return currentGamePhase; }
+
+    /**
+     * Returns the nickname of the player who must place their totem next.
+     * @return the placing player's nickname, or {@code null} if not set yet.
+     */
     public String getPlayerToPlace() { return playerToPlace; }
+
+    /**
+     * Returns the nickname of the player who must resolve their actions next.
+     * @return the playing player's nickname, or {@code null} if not set yet.
+     */
     public String getPlayerToPlay() { return playerToPlay; }
 
     /**
@@ -363,13 +405,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     }
 
+    /**
+     * Receives an error message from the server, stores it, and wakes up any waiting threads.
+     * @param message the error description sent by the server.
+     */
     @Override
     public void showErrorMessage(String message) throws RemoteException {
+        this.lastErrorMessage = message;
         synchronized (gameStartLock) {
             this.connectionError = true;
             gameStartLock.notifyAll();
         }
-
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
@@ -443,6 +489,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             return this.bottomCards.get(position).getCardType();
         }
 
+    }
+
+    /**
+     * Returns an unmodifiable snapshot of all players currently in the game,
+     * sorted alphabetically by nickname.
+     * @return list of {@link PlayerDTO} snapshots.
+     */
+    public List<PlayerDTO> getPlayers() {
+        return playersMap.values().stream()
+                .sorted(Comparator.comparing(PlayerDTO::getNickName))
+                .collect(Collectors.toList());
     }
 
     /**

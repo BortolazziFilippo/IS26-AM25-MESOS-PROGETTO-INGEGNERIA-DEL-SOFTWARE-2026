@@ -8,6 +8,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data-transfer object for a Mesos player, carrying the nickname, food total,
+ * prestige-point total, totem color, and the list of tribe cards.
+ */
 public class PlayerDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 3L;
@@ -69,6 +73,14 @@ public class PlayerDTO implements Serializable {
      * Executes add card to tribe.
      * @param cardDTO parameter cardDTO.
      */
+    /**
+     * Returns the player's tribe card list.
+     * @return the list of CardDTOs in the tribe.
+     */
+    public List<CardDTO> getCardDtoList() {
+        return cardDtoList;
+    }
+
     public void addCardToTribe(CardDTO cardDTO){
         if (this.cardDtoList == null) {
             this.cardDtoList = new ArrayList<>();

@@ -13,6 +13,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Builds the set of Mesos event cards by loading event definitions from JSON
+ * and binding each card to its concrete {@link it.polimi.ingsw.am25.server.model.Effect.Event.EventEffect} implementation.
+ */
 public class EventFactory {
     private static final String LOG_PREFIX = "[SERVER][EVENT_FACTORY]";
 
@@ -23,8 +27,8 @@ public class EventFactory {
     }
 
     /**
-     *
-     * @return a list with the event ordered by ERA
+     * Loads event cards from JSON and binds each to its effect implementation.
+     * @return a list of all event cards ordered by ERA.
      */
     public List<EventCard> createEvent(){
         List<EventCard> templist=new ArrayList<>();

@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Controller.Controller;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
@@ -14,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * RMI server-side entry point for all Mesos client actions. Manages the game lobby,
+ * registers client stubs, and delegates game logic to the {@link Controller}.
+ * Also used as the target for Socket clients via {@link it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler}.
+ */
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
@@ -22,17 +28,23 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
     /**
-     * Creates a new server network handler instance.
+     * Initializes the RMI network handler and exports it as a remote object,
+     * making it reachable by Mesos clients via the RMI registry.
+     * @throws RemoteException if the RMI export fails.
      */
     public ServerNetworkHandler() throws RemoteException{
         super();
     }
 
     /**
-     * Executes create game.
-     * @param playerHost parameter playerHost.
-     * @param playerNumber parameter playerNumber.
-     * @param clientRemoteInterface parameter clientRemoteInterface.
+     * Creates a new Mesos game lobby hosted by the given player.
+     * Registers the host's RMI stub so the server can push game events (board updates,
+     * phase changes, market refreshes, etc.) back to them during the game.
+     *
+     * @param playerHost            the host's data (nickname and totem color).
+     * @param playerNumber          the number of players required to start the game (2–5).
+     * @param clientRemoteInterface the host's RMI stub, saved to notify them of game events.
+     * @throws IllegalStateException if a lobby is already open on this server.
      */
     @Override
     public synchronized void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
@@ -49,9 +61,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes add player.
-     * @param playerDTO parameter playerDTO.
-     * @param clientRemoteInterface parameter clientRemoteInterface.
+     * Adds a player to the existing Mesos lobby and registers their RMI stub.
+     * If this player fills the last required slot, the game starts automatically.
+     *
+     * @param playerDTO             the joining player's data (nickname and totem color).
+     * @param clientRemoteInterface the player's RMI stub, saved to notify them of game events.
+     * @throws GameFullException               if no lobby exists yet (no host has called {@link #createGame}).
+     * @throws GameStartedException            if the game is already running.
+     * @throws NameOrColorAlreadyTakenException if the chosen nickname or totem color is already taken by another player.
      */
     @Override
     public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
@@ -78,7 +95,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
     /**
-     * Sets up and start game.
+     * Bootstraps the Mesos game once all players have joined.
+     * Instantiates the {@link Controller}, builds {@link Player} objects for every participant,
+     * registers all {@link ServerVirtualView}s as observers, pushes the initial board/market/player
+     * state to every client, and kicks off the first placing phase.
+     * Called automatically when the lobby reaches {@code requiredPlayers}.
      */
     private void setupAndStartGame() {
         logServerEvent("All players ready. Setting up the game...");
@@ -110,9 +131,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             controller.addPlayer(newPlayer);
         }
 
+        // ----------------------------------------------------------------
+        // 5. CROSS-REGISTER: every view observes every player's tribe changes.
+        //    By default each Player only notifies its own ServerVirtualView, so
+        //    other clients would never receive addedCardToTribe events for cards
+        //    drawn by other players. After this call every draw is broadcast to
+        //    all connected clients.
+        // ----------------------------------------------------------------
+        controller.crossRegisterPlayerObservers(waitingPlayers);
+
         logServerEvent("All players added to the model. Synchronizing initial state to clients...");
         // ----------------------------------------------------------------
-        // 5. MASS INITIAL SYNCHRONIZATION ON CLIENTS
+        // 6. MASS INITIAL SYNCHRONIZATION ON CLIENTS
         // ----------------------------------------------------------------
         for (ServerVirtualView view : waitingPlayers) {
             // Pass the complete list of PlayerDTOs to EVERY VirtualView
@@ -123,9 +153,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes placing player.
-     * @param playerToPlace parameter playerToPlace.
-     * @param position parameter position.
+     * Places the player's totem on the offer tile at the given board position
+     * during the placing phase. The chosen tile determines how many draws from
+     * the top and bottom market rows the player will have in the resolve-action phase.
+     *
+     * @param playerToPlace the player placing their totem.
+     * @param position      the index of the target offer tile on the board.
+     * @throws TileOccupiedException     if another player's totem is already on that tile.
+     * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
     @Override
     public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
@@ -134,10 +169,17 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes select card from top list.
-     * @param player parameter player.
-     * @param cardType parameter cardType.
-     * @param position parameter position.
+     * Lets the player pick a card from the current-round (top) market row during the
+     * resolve-action phase. Tribe member cards (Hunter, Gatherer, Builder, etc.) are added
+     * to the player's tribe for free; building cards cost food equal to their price.
+     *
+     * @param player   the player making the selection.
+     * @param cardType the type of card being selected (tribe member or {@link CARD_TYPE#BUILDING}).
+     * @param position the index of the card in the top row.
+     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
+     * @throws NotSelectableCardException if the card at that position is an event card and cannot be picked.
+     * @throws EmptyMarketException       if the top row has no selectable cards.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     @Override
     public synchronized void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
@@ -146,10 +188,16 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes select card from bottom list.
-     * @param player parameter player.
-     * @param cardType parameter cardType.
-     * @param position parameter position.
+     * Lets the player pick a card from the previous-round (bottom) market row during the
+     * resolve-action phase.
+     *
+     * @param player   the player making the selection.
+     * @param cardType the type of card being selected (tribe member or {@link CARD_TYPE#BUILDING}).
+     * @param position the index of the card in the bottom row.
+     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
+     * @throws NotSelectableCardException if the card at that position is an event card and cannot be picked.
+     * @throws EmptyMarketException       if the bottom row has no selectable cards.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     @Override
     public synchronized void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
@@ -158,8 +206,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes player do nothing.
-     * @param playerDTO parameter playerDTO.
+     * Signals that the player voluntarily skips their draw action for this turn,
+     * without selecting any card from the market.
+     *
+     * @param playerDTO the player who is skipping their action.
      */
     @Override
     public synchronized void playerDoNothing(PlayerDTO playerDTO) throws Exception {
@@ -168,10 +218,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Executes select extra card.
-     * @param player parameter player.
-     * @param cardType parameter cardType.
-     * @param position parameter position.
+     * Selects the bonus card granted by the draw-one-more mechanic (triggered after
+     * the server calls {@code askExtraDraw} on the client). The player picks one additional
+     * card from either market row on top of their normal action.
+     * Any checked exception from the controller is rethrown as a {@link RemoteException}.
+     *
+     * @param player   the player claiming the extra card.
+     * @param cardType the type of card being selected (tribe member or {@link CARD_TYPE#BUILDING}).
+     * @param position the index of the card in the relevant market row.
      */
     @Override
     public synchronized void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
@@ -182,11 +236,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private void logServerEvent(String message) {
-        System.out.println(LOG_PREFIX + " " + message);
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 }

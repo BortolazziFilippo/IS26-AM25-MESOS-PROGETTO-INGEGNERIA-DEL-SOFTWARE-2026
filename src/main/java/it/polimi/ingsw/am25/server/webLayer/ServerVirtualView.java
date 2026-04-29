@@ -26,6 +26,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Server-side per-client view. Listens to all model observers and forwards each event
+ * to the client's {@link ClientRemoteInterface} stub (RMI or Socket proxy).
+ * Maintains a local snapshot of the game state so it can send full DTOs when needed.
+ */
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
@@ -51,6 +56,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private List<DefaultTileDTO> defaultTileList;
     //_________________________________________________________________________________________
     //Lock for draw one more card
+    /** Lock used to block the server until the client responds to the draw-one-more request. */
     public final Object extraDrawLock = new Object();
 
 
@@ -156,7 +162,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: initializeMarket");
+                logServerError("Connection error: initializeMarket");
             }
         });
 
@@ -177,7 +183,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topCardRefreshed(new ArrayList<>(this.topCards));
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: topCardRefreshed");
+                logServerError("Connection error: topCardRefreshed");
             }
         });
     }
@@ -388,7 +394,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.topBuildingRefreshed(this.topBuildings);
             } catch (RemoteException e) {
-                System.err.println("Errore di connessione: topBuildingRefreshed");
+                logServerError("Connection error: topBuildingRefreshed");
             }
         });
 
@@ -485,8 +491,8 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             try {
                 clientStub.askExtraDraw();
             } catch (RemoteException e) {
-                System.err.println("❌ Client disconnesso durante l'extra draw!");
-                // EMERGENCY-UNLOCK THE SERVER IF THE CLIENT CRASHES!
+                logServerError("Client disconnected during extra draw — releasing lock.");
+                // Emergency-unlock the server if the client crashes.
                 synchronized (extraDrawLock) {
                     extraDrawLock.notifyAll();
                 }
@@ -520,20 +526,12 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private void logServerEvent(String message) {
-        System.out.println(LOG_PREFIX + " " + message);
+        UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
-    /**
-     * Executes log server error.
-     * @param message parameter message.
-     */
     private void logServerError(String message) {
-        System.err.println(LOG_PREFIX + "[ERROR] " + message);
+        UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 
     @Override

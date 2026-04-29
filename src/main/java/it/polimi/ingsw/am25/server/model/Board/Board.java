@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The Mesos game board, containing the offer tiles (where players place their totems
+ * during the placing phase) and the default tiles (where players return at the end
+ * of each round to collect food).
+ */
 public class Board implements BoardView {
     private static final String LOG_PREFIX = "[SERVER][BOARD]";
     private final List<OfferTile> offerTiles;

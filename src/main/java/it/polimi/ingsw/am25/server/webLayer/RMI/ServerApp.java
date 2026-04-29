@@ -9,8 +9,15 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Enumeration;
 
+/**
+ * Entry point for the Mesos server. Starts the RMI registry on port 1099 and a Socket
+ * listener on port 6969, then delegates all client connections to {@link ServerNetworkHandler}.
+ */
 public class ServerApp {
     private static final String LOG_PREFIX = "[SERVER][APP]";
+
+    /** Creates a new server app instance. */
+    public ServerApp() {}
 
     /**
      * Executes main.
@@ -21,27 +28,27 @@ public class ServerApp {
         try {
             String myIp = getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", myIp);
-            ServerNetworkHandler serverObject = new ServerNetworkHandler();
+            ServerNetworkHandler serverNetworkHandler = new ServerNetworkHandler();
             Registry registry = LocateRegistry.createRegistry(1099);
-            registry.rebind("MesosServer", serverObject);
+            registry.rebind("MesosServer", serverNetworkHandler);
             clearScreen();
-            logServerEvent("Creato server all'IP "+ myIp);
+            logServerEvent("Server started at IP " + myIp);
             new Thread(() -> {
                 try (ServerSocket serverSocket = new ServerSocket(6969)) {
-                    System.out.println("✅ Socket Server in ascolto sulla porta 6969");
+                    logServerEvent("Socket server listening on port 6969");
                     while (true) {
                         Socket clientSocket = serverSocket.accept();
-                        logServerEvent("Nuovo client Socket connesso! IP: " + clientSocket.getInetAddress());
-                        SocketClientHandler handler = new SocketClientHandler(clientSocket, serverObject);
+                        logServerEvent("New socket client connected. IP: " + clientSocket.getInetAddress());
+                        SocketClientHandler handler = new SocketClientHandler(clientSocket, serverNetworkHandler);
                         handler.start();
                     }
                 } catch (IOException e) {
-                    UtilitiesFunction.logError(LOG_PREFIX+"Errore irreversibile server" + e);
+                    UtilitiesFunction.logError(LOG_PREFIX, "Fatal socket server error: " + e.getMessage());
                 }
             }).start();
-            logServerEvent("Server RMI acceso e in attesa di connessioni porta 1099");
+            logServerEvent("RMI server listening on port 1099");
         } catch (Exception e) {
-            UtilitiesFunction.logError(LOG_PREFIX+"ERRORE CRITICO ALL'AVVIO DEL SERVER! \nSe l'errore dice 'Port already in use', chiudi i vecchi server aperti in background."+e);
+            UtilitiesFunction.logError(LOG_PREFIX, "Critical startup error. If 'Port already in use', close existing server instances. Detail: " + e.getMessage());
         }
 
     }
@@ -65,9 +72,9 @@ public class ServerApp {
                 }
             }
         } catch (Exception e) {
-            UtilitiesFunction.logError(LOG_PREFIX +" Impossibile rilevare l'IP automaticamente.");
+            UtilitiesFunction.logError(LOG_PREFIX, "Cannot detect local IP automatically, falling back to 127.0.0.1.");
         }
-        return "127.0.0.1"; // Fallback sicuro
+        return "127.0.0.1"; // safe fallback
     }
 
     /**
@@ -78,10 +85,6 @@ public class ServerApp {
         System.out.flush();
     }
 
-    /**
-     * Executes log server event.
-     * @param message parameter message.
-     */
     private static void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }

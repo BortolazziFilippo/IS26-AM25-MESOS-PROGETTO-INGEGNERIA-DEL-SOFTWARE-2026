@@ -2,6 +2,9 @@ package it.polimi.ingsw.am25.server.model.Player;
 
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 
+/**
+ * Immutable value object representing a player's totem, identified by its {@link COLOR}.
+ */
 public record Totem(COLOR color) {
     /**
      * Creates a new totem instance.

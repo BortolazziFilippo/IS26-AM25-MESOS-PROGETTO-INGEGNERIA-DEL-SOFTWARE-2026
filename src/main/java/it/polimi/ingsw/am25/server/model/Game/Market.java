@@ -20,6 +20,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Manages the Mesos card and building market. Holds the top and bottom card rows,
+ * the top building row, and the underlying deck. Notifies registered
+ * {@link MarketObserver}s on every change (draws, refreshes, event resolutions).
+ */
 public class Market {
     private final List<Card> topCardList;
     private final List<BuildingCard> topBuildingList;
@@ -32,9 +37,10 @@ public class Market {
 
 
     /**
-     * default constructor of Market
-     * it initializes the deck and the building
-     *
+     * Initializes the market by building the deck and buildings for the given player count,
+     * then populates both the bottom and top card/building rows.
+     * @param gameView read-only view of the game, used to determine the player count.
+     * @param boardView read-only view of the board, passed to the building factory.
      */
     public Market(GameView gameView, BoardView boardView) {
         this.topCardList= new ArrayList<>();

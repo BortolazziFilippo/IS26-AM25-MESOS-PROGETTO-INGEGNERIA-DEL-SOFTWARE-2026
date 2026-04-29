@@ -6,6 +6,10 @@ import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents a Shaman tribe card. Shamans contribute star points that determine the winner
+ * of shamanic-ritual events, granting prestige points to the player with the highest total.
+ */
 public class ShamanCard extends Card{
     private final SHAMAN_STAR starNumber;
 
@@ -22,14 +26,15 @@ public class ShamanCard extends Card{
     }
 
     /**
-     * @return the SHAMAN_STAR enum value of this card
+     * Returns the {@link SHAMAN_STAR} enum value of this card.
+     * @return the star value enum.
      */
     public SHAMAN_STAR getShamanStar() {
         return starNumber;
     }
     /**
-     *
-     * @return return int value of star
+     * Returns the numeric value of this card's star rating (1, 2, or 3).
+     * @return the integer star count.
      */
     public int getStarNumber() {
         return switch (starNumber) {

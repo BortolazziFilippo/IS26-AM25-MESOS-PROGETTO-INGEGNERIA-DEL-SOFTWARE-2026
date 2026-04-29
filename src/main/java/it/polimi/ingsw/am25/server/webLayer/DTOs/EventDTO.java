@@ -8,6 +8,10 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * Data-transfer object for an event card, carrying the event ID and type
+ * so the client can display a human-readable description of the event.
+ */
 public class EventDTO extends CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

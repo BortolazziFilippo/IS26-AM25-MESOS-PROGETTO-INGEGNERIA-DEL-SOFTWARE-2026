@@ -4,6 +4,10 @@ import it.polimi.ingsw.am25.server.model.Board.Action;
 
 import java.io.Serializable;
 
+/**
+ * DTO carrying the number of top-row and bottom-row draws available to the current player
+ * on their chosen offer tile.
+ */
 public class ActionDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     int drawTop;

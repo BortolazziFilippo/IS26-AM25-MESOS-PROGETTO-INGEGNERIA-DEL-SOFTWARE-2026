@@ -8,6 +8,10 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
 
+/**
+ * Event effect for a sustenance event: each tribe member costs food,
+ * Gatherers discount the cost, and players who cannot pay lose prestige points instead.
+ */
 public class SustenanceEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int foodPerCharacter;

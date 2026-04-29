@@ -5,6 +5,10 @@ import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * Data-transfer object for an offer tile, carrying the tile's letter ID
+ * (A–E depending on player count) so the client can identify which tile was occupied.
+ */
 public class OffertileDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

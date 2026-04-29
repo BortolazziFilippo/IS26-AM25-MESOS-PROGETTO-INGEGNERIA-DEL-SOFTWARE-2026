@@ -9,6 +9,11 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents a building card in Mesos. Buildings are purchased with food during the
+ * resolve-action phase and may trigger special effects during the game or award
+ * prestige points at the end.
+ */
 public class BuildingCard extends Card {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int buildingID;

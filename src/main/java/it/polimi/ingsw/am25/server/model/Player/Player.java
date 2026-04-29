@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents a Mesos player. Holds the player's nickname, totem, food total,
+ * prestige-point total, tribe cards, and buildings. Notifies registered
+ * {@link PlayerObserver}s on every state change.
+ */
 public class Player {
     private static final String LOG_PREFIX = "[SERVER][PLAYER]";
     private final String nickname;
@@ -105,7 +110,6 @@ public class Player {
                 "Updated food for player '" + nickname + "': " + previousFood + " -> " + this.food +
                         " (delta " + foodAmount + ")"
         );
-        notifyPPChanged();
         notifyFoodChanged();
     }
 
@@ -217,8 +221,8 @@ public class Player {
                 .count();
     }
     /**
-     *
-     * @return the number of total shaman star a player has
+     * Returns the total number of Shaman stars across all Shaman cards in the tribe.
+     * @return the sum of star values for all Shaman cards.
      */
     public int getShamanStarTotal(){
         int countStar = 0;
@@ -231,8 +235,8 @@ public class Player {
     }
 
     /**
-     *
-     * @return the total discount of the builder a player has
+     * Returns the total food discount granted by all Builder cards in the tribe.
+     * @return the sum of food discounts across all Builder cards.
      */
     public int getBuilderDiscount(){
 
@@ -244,8 +248,8 @@ public class Player {
     }
 
     /**
-     *
-     * @return return the discount given by the gatherer during sustenance event
+     * Returns the food penalty reduction granted by Gatherer cards during a sustenance event (3 per Gatherer).
+     * @return the total food discount from Gatherer cards.
      */
     public int getGatherDiscount(){
 
@@ -255,8 +259,8 @@ public class Player {
     }
 
     /**
-     *
-     * @return return the number of Hunter in tribe
+     * Returns the number of Hunter cards in the player's tribe.
+     * @return the hunter count.
      */
     public int getHunterNumber(){
         return (int) tribe.stream().
@@ -265,8 +269,8 @@ public class Player {
     }
 
     /**
-     *
-     * @return return the number of artists in the tribe
+     * Returns the number of Artist cards in the player's tribe.
+     * @return the artist count.
      */
     public int getArtistNumber(){
         return (int) this.tribe.stream()
@@ -275,8 +279,8 @@ public class Player {
     }
 
     /**
-     *
-     * @return the total size of the tribe
+     * Returns the total number of cards in the player's tribe.
+     * @return the tribe size.
      */
     public int getNumberOfCard(){
         return this.tribe.size();

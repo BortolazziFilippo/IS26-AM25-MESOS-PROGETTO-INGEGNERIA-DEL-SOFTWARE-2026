@@ -18,6 +18,8 @@ public class PlacementTUI {
     private final Scanner scanner;
     private final TUIUtils utils;
     private final PlayerDTO myPlayer;
+    private final PlayerStatusTUI playerStatusTUI;
+    private final MarketTUI marketTUI;
 
     /**
      * Creates a new PlacementTUI instance.
@@ -34,6 +36,8 @@ public class PlacementTUI {
         this.scanner = scanner;
         this.utils = utils;
         this.myPlayer = myPlayer;
+        this.playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
+        this.marketTUI = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
     }
 
     /**
@@ -96,11 +100,33 @@ public class PlacementTUI {
      */
     private int getPlacingIndex() {
         while (true) {
-            System.out.print("\n📍 Inserisci la casella in cui piazzare il Totem (1 a "
-                    + clientHandler.getOfferTileSize() + ") oppure 'q' per annullare: ");
-            String input = scanner.nextLine();
+            System.out.print("\n📍 Posiziona giocatore: (1-" + clientHandler.getOfferTileSize()
+                    + ") \n altre voci: i=giocatori  b=board  M=mercato  q=annulla: ");
+            String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("q")) return -1;
+
+            if (input.equalsIgnoreCase("i")) {
+                playerStatusTUI.printAllPlayersStatus();
+                utils.clearScreen();
+                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
+                continue;
+            }
+
+            if (input.equalsIgnoreCase("b")) {
+                // TODO: mettere board view
+                utils.pauseAndClear();
+                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
+                continue;
+            }
+
+            if (input.equals("M")) {
+                utils.clearScreen();
+                marketTUI.printMarket();
+                utils.pauseAndClear();
+                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
+                continue;
+            }
 
             try {
                 int index = Integer.parseInt(input) - 1;

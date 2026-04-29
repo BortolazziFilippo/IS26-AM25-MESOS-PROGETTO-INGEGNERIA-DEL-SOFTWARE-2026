@@ -5,6 +5,11 @@ import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
+/**
+ * Represents a Hunter tribe card. Hunters grant food and prestige points during hunt events.
+ * Cards with an icon grant an immediate food bonus equal to the player's current hunter count
+ * when added to the tribe.
+ */
 public class HuntersCard extends Card{
 
     private final boolean hasICON;

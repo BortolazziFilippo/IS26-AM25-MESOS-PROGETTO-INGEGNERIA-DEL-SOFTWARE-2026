@@ -17,7 +17,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Enumeration;
 
+/**
+ * Entry point for the Mesos client. Connects to the server via RMI or Socket
+ * (selected by command-line argument) and launches the TUI.
+ */
 public class ClientApp {
+    /** Creates a new client app instance. */
+    public ClientApp() {}
+
     private static final String LOG_PREFIX = "[CLIENT][APP]";
 
     /**

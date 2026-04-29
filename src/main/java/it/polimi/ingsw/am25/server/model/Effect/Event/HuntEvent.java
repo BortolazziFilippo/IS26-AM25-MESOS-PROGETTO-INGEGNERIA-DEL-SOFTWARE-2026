@@ -20,6 +20,11 @@ public class HuntEvent extends EventEffect {
      * every player receives {@code food} food and {@code PPtoMultiply * hunterCount} prestige points.
      * Building effects tagged {@link EVENT_TYPE#HUNT} are also triggered.
      */
+    /**
+     * Creates a hunt event effect.
+     * @param food the flat food bonus granted to every player.
+     * @param PPtoMultiply the prestige-point multiplier applied per Hunter card in the tribe.
+     */
     public HuntEvent(int food, int PPtoMultiply){
         this.food = food;
         this.PPtoMultiply = PPtoMultiply;

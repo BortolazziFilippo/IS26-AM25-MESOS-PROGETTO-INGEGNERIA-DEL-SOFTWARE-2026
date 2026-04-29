@@ -12,6 +12,11 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.EventDTO;
 
 import java.util.List;
 
+/**
+ * Represents an event card in the Mesos deck. Unlike tribe-member cards, event cards
+ * cannot be selected by players — they fire automatically when they come off the market
+ * and apply their {@link EventEffect} to all players.
+ */
 public class EventCard extends Card
 {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";

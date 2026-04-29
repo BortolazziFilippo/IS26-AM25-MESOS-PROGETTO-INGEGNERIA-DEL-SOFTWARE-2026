@@ -6,7 +6,16 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 
 import java.util.List;
 
+/**
+ * Observer notified of board-state changes: totem placements and player returns to default tiles.
+ */
 public interface BoardObserver {
+    /**
+     * Called when the board state changes (e.g. a totem is placed on an offer tile).
+     *
+     * @param offerTileList   snapshot of all offer tiles.
+     * @param defaultTileList snapshot of all default tiles.
+     */
     void onBoardChanged(
             List<OfferTile> offerTileList,
             List<DefaultTile> defaultTileList

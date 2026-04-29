@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Builds the set of offer tiles for a given player count by loading tile definitions from JSON resources.
+ */
 public class OfferTileFactory {
     private static final String LOG_PREFIX = "[SERVER][OFFER_TILE_FACTORY]";
 
