@@ -468,7 +468,7 @@ public class ClientSocketProxy implements ClientRemoteInterface {
                 out.reset();
             }
         }catch (java.io.IOException e){
-            UtilitiesFunction.logError(PREFIX, "Error comunicating event resolved");
+            UtilitiesFunction.logError(LOG_PREFIX, "Error comunicating event resolved");
             e.printStackTrace();
         }
     }
