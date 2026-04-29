@@ -53,6 +53,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private  List<OffertileDTO> offerTileList;
     /** Current list of default tiles on the board. */
     private  List<DefaultTileDTO> defaultTileList;
+    /** Maps offer tile position (0-based) to the nickname of the player currently on it. */
+    private final Map<Integer, String> offerTileOccupants = new ConcurrentHashMap<>();
 
     // --- LOCKS ---
     /** Lock used to block the TUI until the game transitions from lobby to the first placing phase. */
@@ -173,6 +175,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void gamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
         this.currentGamePhase=gamePhase;
+        if (gamePhase == GAME_PHASE.PLACING_PHASE || gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            offerTileOccupants.clear();
+        }
         if (gamePhase == GAME_PHASE.PLACING_PHASE) {
             this.isGameStarted = true;
             synchronized (gameStartLock) {
@@ -369,6 +374,25 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
+        offerTileOccupants.put(offertilePosition, PlayerNickname);
+    }
+
+    /**
+     * Returns the current list of offer tiles on the board.
+     * @return the offer tile list.
+     */
+    public List<OffertileDTO> getOfferTileList() {
+        synchronized (stateLock) {
+            return offerTileList;
+        }
+    }
+
+    /**
+     * Returns a map from offer tile position (0-based) to the nickname of the player on it.
+     * @return the occupants map.
+     */
+    public Map<Integer, String> getOfferTileOccupants() {
+        return new HashMap<>(offerTileOccupants);
     }
 
     /**

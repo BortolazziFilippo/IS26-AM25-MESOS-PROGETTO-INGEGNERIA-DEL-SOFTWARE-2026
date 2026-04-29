@@ -21,4 +21,12 @@ public class OffertileDTO implements Serializable {
     public OffertileDTO(OfferTile offerTile) {
         this.offerTileID = offerTile.getOfferTileID();
     }
+
+    /**
+     * Returns the single-character identifier of this offer tile (e.g. 'A', 'B', …).
+     * @return the tile ID character.
+     */
+    public char getOfferTileID() {
+        return offerTileID;
+    }
 }
