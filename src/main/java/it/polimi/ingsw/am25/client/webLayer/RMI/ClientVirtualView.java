@@ -388,6 +388,16 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     /**
+     * Returns the current list of default tiles on the board.
+     * @return the default tile list.
+     */
+    public List<DefaultTileDTO> getDefaultTileList() {
+        synchronized (stateLock) {
+            return defaultTileList;
+        }
+    }
+
+    /**
      * Returns a map from offer tile position (0-based) to the nickname of the player on it.
      * @return the occupants map.
      */

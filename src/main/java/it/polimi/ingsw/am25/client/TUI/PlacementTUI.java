@@ -145,23 +145,31 @@ public class PlacementTUI {
     }
 
     /**
-     * Prints the current board state: offer tiles with the player on each one (if any).
+     * Prints the current board state: offer tiles with the player on each one (if any),
+     * followed by default tiles with their food-per-slot-position value.
      */
     private void printBoard() {
         System.out.println("\n=============================================================");
         System.out.println("                        IL BOARD                             ");
         System.out.println("=============================================================");
 
-        var tiles = clientHandler.getOfferTileList();
+        var offerTiles = clientHandler.getOfferTileList();
         var occupants = clientHandler.getOfferTileOccupants();
 
         System.out.println("\n▶ CASELLE OFFERTA:");
         System.out.printf("   %-5s | %-4s | %s\n", "Pos", "ID", "Giocatore");
         System.out.println("   " + "-".repeat(40));
-
-        for (int i = 0; i < tiles.size(); i++) {
+        for (int i = 0; i < offerTiles.size(); i++) {
             String player = occupants.getOrDefault(i, "[libera]");
-            System.out.printf("   [%d]   | %-4s | %s\n", (i + 1), tiles.get(i).getOfferTileID(), player);
+            System.out.printf("   [%d]   | %-4s | %s\n", (i + 1), offerTiles.get(i).getOfferTileID(), player);
+        }
+
+        var defaultTiles = clientHandler.getDefaultTileList();
+        System.out.println("\n▶ CASELLE DEFAULT:");
+        System.out.printf("   %-5s | %s\n", "Pos", "Cibo per slot");
+        System.out.println("   " + "-".repeat(40));
+        for (int i = 0; i < defaultTiles.size(); i++) {
+            System.out.printf("   [%d]   | %d\n", (i + 1), defaultTiles.get(i).getFoodPerSlotPosition());
         }
 
         System.out.println("=============================================================\n");

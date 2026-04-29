@@ -21,4 +21,12 @@ public class DefaultTileDTO implements Serializable {
     public DefaultTileDTO(DefaultTile defaultTile) {
         this.foodPerSlotPosition = defaultTile.getFoodPerSlotPosition();
     }
+
+    /**
+     * Returns the food reward per slot position for this default tile.
+     * @return food per slot position.
+     */
+    public int getFoodPerSlotPosition() {
+        return foodPerSlotPosition;
+    }
 }
