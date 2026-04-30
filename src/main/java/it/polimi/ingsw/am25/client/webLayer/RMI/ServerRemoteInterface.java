@@ -92,4 +92,14 @@ public interface ServerRemoteInterface extends Remote {
      * @throws EmptyMarketException if the row has no selectable cards.
      */
     void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException;
+
+    /**
+     * Skips the extra draw granted by the draw-one-more building effect without picking any
+     * card. Releases the server thread waiting for the player's response so the round can
+     * continue normally.
+     *
+     * @param player the player declining the extra draw.
+     * @throws RemoteException if the RMI call fails.
+     */
+    void skipExtraDraw(PlayerDTO player) throws RemoteException;
 }

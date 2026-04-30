@@ -230,7 +230,22 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     @Override
     public synchronized void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException {
         try {
-            controller.selectExtraCard(new  Player( player), cardType, position);
+            controller.selectExtraCard(new Player(player), cardType, position);
+        } catch (Exception e) {
+            throw new RemoteException(e.getMessage());
+        }
+    }
+
+    /**
+     * Skips the extra draw for the given player without selecting any card,
+     * releasing the server thread that was blocking on the extra-draw lock.
+     *
+     * @param player the player declining the extra draw.
+     */
+    @Override
+    public synchronized void skipExtraDraw(PlayerDTO player) throws RemoteException {
+        try {
+            controller.skipExtraDraw(new Player(player));
         } catch (Exception e) {
             throw new RemoteException(e.getMessage());
         }

@@ -252,12 +252,13 @@ public class Game implements GameView {
             board.returnOnDefaultTiles();
             // 2. ricalculating order
             turnManager.updatePlacingOrder();
-            // 3. Activate end-of-round buildings (such as Draw One More Card)
+            // 3. Notify SOLVING_EVENTS before potentially blocking on extra-draw requests
+            this.gamePhase = GAME_PHASE.SOLVING_EVENTS;
+            notifyGamePhaseChanged();
+            // 4. Activate end-of-round buildings (such as Draw One More Card)
             players.values().forEach(Player::triggerEndRoundBuilding);
-            // 4. Update the market and set the new phase
+            // 5. Update the market and set the new phase
             try {
-                this.gamePhase=GAME_PHASE.SOLVING_EVENTS;
-                notifyGamePhaseChanged();
                 market.endOfRoundMarketActions();
                 this.gamePhase = GAME_PHASE.PLACING_PHASE;
             } catch (DeckFinishedException e) {
@@ -320,6 +321,39 @@ public class Game implements GameView {
             throw new NoMoreActionToDo();
         }
 
+    }
+
+    /**
+     * Returns {@code true} if the top market row contains at least one drawable card
+     * (i.e., a non-event tribe card or any building). Used to decide whether a player
+     * can skip the draw-one-more extra draw.
+     */
+    public boolean canDrawExtraCard() {
+        return market.getTopCardList().stream()
+                .anyMatch(card -> card.getCardType() != CARD_TYPE.EVENT);
+    }
+
+    /**
+     * Draws one extra card from the top market row for the given player without touching
+     * the offer-tile action counter. Used exclusively by the draw-one-more building effect.
+     *
+     * @param cardType type of card to draw
+     * @param position index in the top row
+     * @param player   the player who owns the building
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range
+     * @throws NotSelectableCardException if the card at that position is an event
+     * @throws NotEnoughFoodException     if the player cannot afford a building
+     * @throws EmptyMarketException       if the top row has no selectable cards
+     */
+    public void selectExtraCardFromTopList(CARD_TYPE cardType, int position, Player player)
+            throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
+        Player player1 = players.get(player.getNickname());
+        switch (cardType) {
+            case BUILDING -> market.buyBuildingTopList(position, player1);
+            case EVENT    -> throw new NotSelectableCardException("cannot select an event");
+            default       -> market.selectCardFromTopList(position, player1);
+        }
+        logServerEvent("Player '" + player1.getNickname() + "' drew extra card of type " + cardType + " at position " + position);
     }
 
     /**

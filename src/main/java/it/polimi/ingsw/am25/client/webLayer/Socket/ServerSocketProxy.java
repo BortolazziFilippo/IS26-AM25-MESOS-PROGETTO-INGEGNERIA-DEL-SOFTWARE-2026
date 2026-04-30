@@ -120,6 +120,23 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     }
 
     /**
+     * Sends a skip-extra-draw request: the player declines the bonus draw without
+     * selecting any card, releasing the server thread that is waiting for the response.
+     * @param player the player declining the extra draw.
+     */
+    @Override
+    public void skipExtraDraw(PlayerDTO player) throws RemoteException {
+        try {
+            ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending skipExtraDraw request for " + player.getNickName() + ".");
+            out.writeObject(new SkipExtraDrawMessage(player));
+            out.flush();
+        } catch (IOException e) {
+            ClientUtilitiesFunction.logError(LOG_PREFIX, "Network error in skipExtraDraw: " + e.getMessage());
+            throw new RemoteException("Network error: could not send skip extra draw request to server.", e);
+        }
+    }
+
+    /**
      * Sends a request to add the player to the current lobby.
      * The {@code clientRemoteInterface} is not serialized — the server already has the socket reference.
      * @param playerDTO the player joining the game.

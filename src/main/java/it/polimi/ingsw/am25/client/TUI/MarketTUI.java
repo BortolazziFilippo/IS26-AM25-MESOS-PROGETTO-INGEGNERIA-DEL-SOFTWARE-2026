@@ -459,8 +459,23 @@ public class MarketTUI {
             System.out.println("\nScegli da quale mazzo in CIMA vuoi pescare la carta extra:");
             System.out.println("1 - Carta Tribù");
             System.out.println("2 - Carta Edificio");
+            System.out.println("0 - Salta (non pescare)");
             System.out.print("Scelta: ");
             String scelta = scanner.nextLine();
+
+            if (scelta.equals("0")) {
+                try {
+                    serverStub.skipExtraDraw(myPlayer);
+                    clientHandler.needsExtraDraw = false;
+                    return;
+                } catch (Exception e) {
+                    System.err.println("\n❌ Non puoi saltare: " + utils.extractCleanError(e));
+                    utils.pauseAndClear();
+                    utils.clearScreen();
+                    System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                    continue;
+                }
+            }
 
             int maxLimit;
             if (scelta.equals("1")) {
@@ -470,7 +485,7 @@ public class MarketTUI {
                 printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getTopBuildings());
                 maxLimit = clientHandler.getTopBuildingSize();
             } else {
-                System.err.println("\n❌ Scelta mazzo non valida. Digita 1 o 2.");
+                System.err.println("\n❌ Scelta mazzo non valida. Digita 0, 1 o 2.");
                 utils.pauseAndClear();
                 utils.clearScreen();
                 System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");

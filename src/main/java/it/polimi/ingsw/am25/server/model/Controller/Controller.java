@@ -288,9 +288,26 @@ public class Controller {
      * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     public void selectExtraCard(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        // Actually perform the draw from top cards
-        game.selectGenericCardTopLists(cardType, position, player);
-        // WAKE THE SERVER: find the ServerVirtualView among the player observers
+        game.selectExtraCardFromTopList(cardType, position, player);
+        wakeExtraDrawLock(player);
+    }
+
+    /**
+     * Lets the player skip the extra draw granted by the draw-one-more building effect
+     * without picking any card. Only allowed when there is no drawable card in the top
+     * market row; if a card is available the player must draw it.
+     *
+     * @param player the player declining the extra draw.
+     * @throws ActionNotAvailable if the top row still contains at least one drawable card.
+     */
+    public void skipExtraDraw(Player player) throws ActionNotAvailable {
+        if (game.canDrawExtraCard()) {
+            throw new ActionNotAvailable("Ci sono ancora carte pescabili: devi pescare la carta extra");
+        }
+        wakeExtraDrawLock(player);
+    }
+
+    private void wakeExtraDrawLock(Player player) {
         for (PlayerObserver obs : game.getSpecificPlayer(player).getObservers()) {
             if (obs instanceof ServerVirtualView svv) {
                 synchronized (svv.extraDrawLock) {
