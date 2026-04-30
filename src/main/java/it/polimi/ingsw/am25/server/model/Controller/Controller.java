@@ -95,8 +95,10 @@ public class Controller {
             try {
                 game.addPlayer(player);
             } catch (GameReadyToStartException e) {
-                game.gameStart();
-                game.notifyChanges();
+                // Game start is handled by controllerGameStar() after observers and
+                // initial sync are set up — calling gameStart() here would fire food
+                // notifications before crossRegisterPlayerObservers and
+                // forceInitialPlayersSync run, so the updates would be lost.
             }
         }
     }

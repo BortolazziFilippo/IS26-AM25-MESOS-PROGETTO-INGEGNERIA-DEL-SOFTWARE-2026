@@ -14,6 +14,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
@@ -98,13 +99,26 @@ public class Game implements GameView {
             return;
         }
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
+        int counter=1;
         for (Player player : players.values().stream().toList()) {
             try{
-                board.placePlayerOnDefaultTile(player, random.get(0));
+                board.placePlayerOnDefaultTile(player, random.getFirst());
+                switch (counter){
+                    case 1:
+                        player.manageFoodAndPP(+2);
+                        break;
+                    case 2,3:
+                        player.manageFoodAndPP(+3);
+                        break;
+                    case 4,5:
+                        player.manageFoodAndPP(+4);
+                        break;
+                }
+                counter++;
             } catch (TileOccupiedException e) {
                 throw new RuntimeException(getClass()+" Errore gamestart placePlayer");
             }
-            random.remove(0);
+            random.removeFirst();
         }
         turnManager.updatePlacingOrder();
         try {
@@ -445,16 +459,13 @@ public class Game implements GameView {
      */
     private void notifyGameChanged() {
         List<Player> playersSnapshot = List.copyOf(this.players.values());
-
-        for (GameObserver observer : List.copyOf(observers)) {
-            observer.onGameChanged(
-                    this.currentEra,
-                    playersSnapshot,
-                    this.gamePhase,
-                    this.playerToPlace,
-                    this.playerToPlay
-            );
-        }
+        notify(observer -> observer.onGameChanged(
+                this.currentEra,
+                playersSnapshot,
+                this.gamePhase,
+                this.playerToPlace,
+                this.playerToPlay
+        ));
     }
 
     /**
@@ -462,11 +473,7 @@ public class Game implements GameView {
      * @param winners list of winners
      */
     private void notifyWinners(List<Player> winners){
-        for(GameObserver observer:List.copyOf(observers)){
-            observer.gameWinners(
-                    winners
-            );
-        }
+        notify(observer ->observer.gameWinners(winners) );
     }
 
     /**
@@ -474,45 +481,36 @@ public class Game implements GameView {
      * @param player player to add
      */
     private void notifyPlayerAdded(Player player){
-        for(GameObserver observer:observers){
-            observer.onPlayerAdded(player);
-        }
+        notify(observer -> observer.onPlayerAdded(player));
+
     }
 
     /**
      * Executes notify era changed.
      */
     private void notifyEraChanged(){
-        for(GameObserver observer:observers){
-            observer.onEraChanged(this.currentEra);
-        }
+        notify(observer ->  observer.onEraChanged(this.currentEra));
     }
 
     /**
      * Executes notify game phase changed.
      */
     private void notifyGamePhaseChanged(){
-        for(GameObserver observer:observers){
-            observer.onGamePhaseChanged(gamePhase);
-        }
+        notify(observer -> observer.onGamePhaseChanged(gamePhase));
     }
 
     /**
      * Executes notify player to place changed.
      */
     private void notifyPlayerToPlaceChanged(){
-        for(GameObserver observer:observers){
-            observer.onPlayerToPlaceChanged(playerToPlace);
-        }
+        notify(observer -> observer.onPlayerToPlaceChanged(playerToPlace));
     }
 
     /**
      * Executes notify player to play changed.
      */
     private void notifyPlayerToPlayChanged(){
-        for(GameObserver observer:observers){
-            observer.onPlayerToPlayChanged(playerToPlay);
-        }
+        notify(observer->observer.onPlayerToPlayChanged(playerToPlay));
     }
     /**
      * Returns the total number of players in this game.
@@ -580,6 +578,11 @@ public class Game implements GameView {
         board.addObserver(vv);
         market.addObserver(vv);
     }
+    private void notify(Consumer<GameObserver> action){
+        for(GameObserver gameObserver:List.copyOf(observers)){
+            action.accept(gameObserver);
+        }
+    }
 
     /**
      * Executes notify changes.
@@ -592,10 +595,8 @@ public class Game implements GameView {
     /**
      * Executes notify action changed.
      */
-    public void notifyActionChanged(){
-        for(GameObserver observer:observers){
-            observer.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(),this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom());
-        }
+    private void notifyActionChanged(){
+        notify(o->o.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(),this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()));
     }
 
     /**

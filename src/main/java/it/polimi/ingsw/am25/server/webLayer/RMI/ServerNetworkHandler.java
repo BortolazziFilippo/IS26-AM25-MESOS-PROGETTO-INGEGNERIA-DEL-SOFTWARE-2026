@@ -110,8 +110,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         this.controller = controller;
 
         // 1. Extract the Host data (they are always at position 0)
-        PlayerDTO hostDTO = playerDTOS.get(0);
-        ServerVirtualView hostView = waitingPlayers.get(0);
+        PlayerDTO hostDTO = playerDTOS.getFirst();
+        ServerVirtualView hostView = waitingPlayers.getFirst();
 
         // 2. Create the Host player and initialize the game in the Model
         Player playerHost = new Player(hostDTO.getNickName(), hostDTO.getColorTotem(), hostView);

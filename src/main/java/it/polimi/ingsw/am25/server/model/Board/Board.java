@@ -11,6 +11,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * The Mesos game board, containing the offer tiles (where players place their totems
@@ -137,17 +138,18 @@ public class Board implements BoardView {
     public void removeObserver(BoardObserver observerToRemove){
         observers.remove(observerToRemove);
     }
-
+    private void  notify(Consumer<BoardObserver> action){
+        for(BoardObserver boardObserver:observers){
+            action.accept(boardObserver);
+        }
+    }
     /**
      * Notifies subscribers with a snapshot of the current board.
      */
     public void notifyBoardChanged(){
         List<OfferTile> offertileSnapshot = List.copyOf(offerTiles);
         List<DefaultTile> defaultTileSnapshot = List.copyOf(defaultTiles);
-
-        for(BoardObserver boardObserver:observers){
-            boardObserver.onBoardChanged(offertileSnapshot,defaultTileSnapshot);
-        }
+        notify(boardObserver -> boardObserver.onBoardChanged(offertileSnapshot,defaultTileSnapshot));
     }
 
     /**
@@ -155,9 +157,7 @@ public class Board implements BoardView {
      */
     private void notifyPlayerToDefaultTile(){
         List<Player> players=getOrderedPlayerOnDefaultTile();
-        for(BoardObserver observer:observers){
-            observer.playerToDefaultTile(players);
-        }
+        notify(observer -> observer.playerToDefaultTile(players));
     }
 
     /**
@@ -167,9 +167,7 @@ public class Board implements BoardView {
      * @param tilePosition target tile index
      */
     private void notifyPlayerToOfferTile(Player player,int tilePosition){
-        for(BoardObserver observer:observers){
-            observer.playerPlacedOnOffertile(player,tilePosition);
-        }
+        notify(observer -> observer.playerPlacedOnOffertile(player,tilePosition));
     }
 
 

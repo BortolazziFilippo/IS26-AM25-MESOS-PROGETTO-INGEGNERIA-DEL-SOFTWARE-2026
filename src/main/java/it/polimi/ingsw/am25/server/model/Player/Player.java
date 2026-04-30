@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.server.model.Player;
 
 import it.polimi.ingsw.am25.server.model.Card.*;
 import it.polimi.ingsw.am25.server.model.Enums.*;
+import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
@@ -11,6 +12,7 @@ import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Represents a Mesos player. Holds the player's nickname, totem, food total,
@@ -363,36 +365,29 @@ public class Player {
     /**
      * Notifies all subscribed observers with a snapshot of the current player state.
      */
-    public void notifyPlayerChanged(){
+
+    private void notify(Consumer<PlayerObserver> action){
+        for(PlayerObserver observer:observers){
+            action.accept(observer);
+        }
+    }
+    private void notifyPlayerChanged(){
         List<Card> tribeSnapshot = List.copyOf(this.tribe);
         List<BuildingCard> buildingSnapshot = List.copyOf(this.buildingCards);
-        for (PlayerObserver observer : observers) {
-            observer.onPlayerChanged(
-                    this.nickname,
-                    this.totem,
-                    this.food,
-                    this.prestigePoint,
-                    tribeSnapshot,
-                    buildingSnapshot
-            );
-        }
+        notify(o->o.onPlayerChanged(this.nickname, this.totem, this.food, this.prestigePoint, tribeSnapshot,buildingSnapshot));
     }
     /**
      * Executes notify food changed.
      */
     private void notifyFoodChanged(){
-        for(PlayerObserver observer:observers){
-            observer.notifyFoodChanged(this.nickname,food);
-        }
+            notify(o->o.notifyFoodChanged(this.nickname,food));
     }
 
     /**
      * Executes notify ppchanged.
      */
     private void notifyPPChanged(){
-        for(PlayerObserver observer:observers){
-            observer.notifyPPChanged(this.nickname,prestigePoint);
-        }
+        notify(o->o.notifyPPChanged(this.nickname,prestigePoint));
     }
 
     /**
@@ -400,9 +395,7 @@ public class Player {
      * @param cardAdded parameter cardAdded.
      */
     private void notifyCardAdded(Card cardAdded){
-        for(PlayerObserver observer:observers){
-            observer.notifyCardAddedToTribe(this.nickname,cardAdded);
-        }
+        notify(o-> o.notifyCardAddedToTribe(this.nickname,cardAdded));
     }
 
     /**

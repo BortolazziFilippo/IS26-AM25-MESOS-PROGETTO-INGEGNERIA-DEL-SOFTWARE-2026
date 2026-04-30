@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -328,6 +329,11 @@ public class Market {
         observers.remove(observerToRemove);
     }
 
+    private void notify(Consumer<MarketObserver> action){
+        for(MarketObserver observer:observers){
+            action.accept(observer);
+        }
+    }
     /**
      * this method is used to update all the subscribed observer
      */
@@ -336,15 +342,12 @@ public class Market {
         List<Card> bottomCardsSnapshot = List.copyOf(bottomCardList);
         List<BuildingCard> topBuildingsSnapshot = List.copyOf(topBuildingList);
         List<BuildingCard> bottomBuildingsSnapshot = List.copyOf(bottomBuildingList);
-
-        for(MarketObserver observer: observers){
-            observer.onMarketChanged(
-                    topCardsSnapshot,
-                    bottomCardsSnapshot,
-                    topBuildingsSnapshot,
-                    bottomBuildingsSnapshot
-            );
-        }
+        notify(observer->observer.onMarketChanged(
+                topCardsSnapshot,
+                bottomCardsSnapshot,
+                topBuildingsSnapshot,
+                bottomBuildingsSnapshot
+        ));
     }
 
     /**
@@ -352,18 +355,14 @@ public class Market {
      */
     private void notifyTopCardRefreshed(){
         List<Card> topCardsSnapshot = List.copyOf(topCardList);
-        for(MarketObserver observer: observers){
-           observer.onTopCardRefreshed(topCardsSnapshot);
-        }
+        notify(observer->observer.onTopCardRefreshed(topCardsSnapshot));
     }
     /**
      * Executes notify top building refreshed.
      */
     private void notifyTopBuildingRefreshed(){
         List<BuildingCard> topBuildingSnapshot = List.copyOf(topBuildingList);
-        for(MarketObserver observer: observers){
-            observer.onTopBuildingRefreshed(topBuildingSnapshot);
-        }
+        notify(observer->observer.onTopBuildingRefreshed(topBuildingSnapshot));
     }
 
     /**
@@ -372,9 +371,7 @@ public class Market {
      * @param card parameter card.
      */
     private void notifyCardRemoveFromTop(int position, CARD_TYPE card){
-        for(MarketObserver observer: observers){
-            observer.onCardRemovedFromTop(position, card);
-        }
+        notify(observer->observer.onCardRemovedFromTop(position, card));
     }
 
     /**
@@ -383,45 +380,14 @@ public class Market {
      * @param card parameter card.
      */
     private void notifyCardRemovedFromBottom(int position, CARD_TYPE card){
-        for(MarketObserver observer: observers){
-            observer.onCardRemovedFromBottom(position, card);
-        }
+        notify(observer->observer.onCardRemovedFromBottom(position, card));
     }
 
-    /**
-     * this method check if there are event in the bottom list
-     * @return returns true if a event is found in bottom list
-     */
-    //this method may no longer be needed
-    /**
-     * Executes check events presence.
-     * @return the result of the operation.
-     */
-    @Deprecated
-    private boolean checkEventsPresence(){
-        //standard null-guard exception
-        if (bottomCardList == null) {
-            throw new IllegalStateException("bottomCardList is null");
-        }
-        //iterates through the bottom list looking for event cards
-        for (Card card : bottomCardList) {
-            if (card.getCardType() == CARD_TYPE.EVENT) {
-                return true;
-            }
-        }
-        //no events found, return false
-        return false;
-    }
 
-//    public void solveFinalEvents(){
-//        for (Card card : topCardList) {
-//            if (card.getCardType() == CARD_TYPE.EVENT) {
-//                bottomCardList.add(card);
-//                topCardList.remove(card);
-//            }
-//        }
-//        solveEvents();
-//    }
+
+
+
+
     /**
      * Resolves the final events of the game.
      * This method safely moves all Event cards from the top row to the bottom row
