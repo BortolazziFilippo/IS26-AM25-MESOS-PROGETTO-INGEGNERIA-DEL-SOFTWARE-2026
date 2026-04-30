@@ -59,9 +59,10 @@ public class ClientTUI {
         // 2. GAME LOOP
         // myPlayer is now known — build the game-phase helpers.
         // ==========================================================
-        PlacementTUI   placementTUI   = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
-        MarketTUI      marketTUI      = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        PlacementTUI    placementTUI    = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        MarketTUI       marketTUI       = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
         PlayerStatusTUI playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
+        BoardTUI        boardTUI        = new BoardTUI(clientHandler, utils);
 
         while (true) {
             // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
@@ -76,7 +77,7 @@ public class ClientTUI {
                 continue;
             }
 
-            waitForMyTurn(playerStatusTUI);
+            waitForMyTurn(playerStatusTUI, boardTUI);
 
             if (clientHandler.needsExtraDraw) {
                 marketTUI.handleExtraDraw();
@@ -92,6 +93,7 @@ public class ClientTUI {
                 case PLACING_PHASE, LAST_ROUND_PLACING_PHASE:
                     System.out.println("1 - Piazza Totem (Fase Piazzamento)");
                     System.out.println("i - Stato giocatori");
+                    System.out.println("b - Visualizza board");
                     break;
                 case RESOLVE_ACTION, LAST_ROUND_RESOLVE_ACTION:
                     System.out.println("Azioni disponibili:");
@@ -101,6 +103,7 @@ public class ClientTUI {
                     System.out.println("3 - Pesca carta da sotto (Fase Azioni)");
                     System.out.println("4 - Passa il turno");
                     System.out.println("i - Stato giocatori");
+                    System.out.println("b - Visualizza board");
                     marketTUI.printMarket();
                     break;
                 case SOLVING_EVENTS:
@@ -117,9 +120,15 @@ public class ClientTUI {
             System.out.print("\nScelta: ");
             String move = scanner.nextLine().trim();
 
-            // "i" is available in any game phase
             if (move.equalsIgnoreCase("i")) {
                 playerStatusTUI.printAllPlayersStatus();
+                continue;
+            }
+
+            if (move.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
                 continue;
             }
 
@@ -176,7 +185,7 @@ public class ClientTUI {
      * Blocks the current thread until it is this player's turn.
      * Wakes every 300 ms to check for "i"/"b" input while waiting.
      */
-    private void waitForMyTurn(PlayerStatusTUI playerStatusTUI) {
+    private void waitForMyTurn(PlayerStatusTUI playerStatusTUI, BoardTUI boardTUI) {
         if (isMyTurn()) return;
 
         printWaitingScreen();
@@ -203,7 +212,9 @@ public class ClientTUI {
                     if (input.equalsIgnoreCase("i")) {
                         playerStatusTUI.printAllPlayersStatus();
                     } else if (input.equalsIgnoreCase("b")) {
-                        // TODO: mettere board view
+                        utils.clearScreen();
+                        boardTUI.printBoard();
+                        utils.pauseAndClear();
                     }
                     if (!isMyTurn()) printWaitingScreen();
                 }

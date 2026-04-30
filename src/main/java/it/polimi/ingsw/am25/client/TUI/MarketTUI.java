@@ -22,6 +22,7 @@ public class MarketTUI {
     private final Scanner scanner;
     private final TUIUtils utils;
     private final PlayerDTO myPlayer;
+    private final BoardTUI boardTUI;
 
     /**
      * Creates a new MarketTUI instance.
@@ -38,6 +39,7 @@ public class MarketTUI {
         this.scanner = scanner;
         this.utils = utils;
         this.myPlayer = myPlayer;
+        this.boardTUI = new BoardTUI(clientHandler, utils);
     }
 
     // ==========================================================
@@ -67,6 +69,12 @@ public class MarketTUI {
                 System.out.println("\nAzione annullata.");
                 utils.pauseAndClear();
                 return;
+            } else if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOPRA) ---");
             } else if (input.equals("1")) {
                 isDrawn = drawTopTribeCard();
             } else if (input.equals("2")) {
@@ -98,13 +106,20 @@ public class MarketTUI {
             }
 
             System.out.print("\nInserisci la posizione della carta (1 a "
-                    + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro: ");
+                    + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOPRA) ---");
                 return false;
+            }
+
+            if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                continue;
             }
 
             int prevTop = clientHandler.getDrawTop();
@@ -156,13 +171,20 @@ public class MarketTUI {
             }
 
             System.out.print("\nInserisci la posizione della carta (1 a "
-                    + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro: ");
+                    + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOPRA) ---");
                 return false;
+            }
+
+            if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                continue;
             }
 
             int prevTop = clientHandler.getDrawTop();
@@ -223,6 +245,12 @@ public class MarketTUI {
                 System.out.println("\nAzione annullata.");
                 utils.pauseAndClear();
                 return;
+            } else if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                utils.clearScreen();
+                System.out.println("--- PESCA CARTA (SOTTO) ---");
             } else if (input.equals("1")) {
                 isDrawn = drawBottomTribeCard();
             } else if (input.equals("2")) {
@@ -253,12 +281,19 @@ public class MarketTUI {
             }
 
             System.out.print("\nInserisci la posizione della carta (1 a "
-                    + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro: ");
+                    + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
                 return false;
+            }
+
+            if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                continue;
             }
 
             int prevTop = clientHandler.getDrawTop();
@@ -310,13 +345,20 @@ public class MarketTUI {
             }
 
             System.out.print("\nInserisci la posizione della carta (1 a "
-                    + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro: ");
+                    + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
                 return false;
+            }
+
+            if (input.equalsIgnoreCase("b")) {
+                utils.clearScreen();
+                boardTUI.printBoard();
+                utils.pauseAndClear();
+                continue;
             }
 
             int prevTop = clientHandler.getDrawTop();

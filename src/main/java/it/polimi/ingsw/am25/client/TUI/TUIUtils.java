@@ -13,7 +13,7 @@ public class TUIUtils {
     private final Scanner scanner;
 
     /** ANSI reset sequence — restores the default terminal colour. */
-    public static final String RESET  = "[0m";
+    public static final String RESET  = "\033[0m";
     /** ANSI bold-red colour sequence. */
     public static final String RED    = "\033[31;49;1m";
     /** ANSI bold-green colour sequence. */
@@ -100,4 +100,15 @@ public class TUIUtils {
             }
         }
     }
+    public String getAnsiColor(COLOR color) {
+        if (color == null) return RESET;
+        return switch (color) {
+            case RED    -> RED;
+            case BLUE   -> BLUE;
+            case YELLOW -> YELLOW;
+            case GREEN  -> GREEN;
+            case PURPLE -> PURPLE;
+        };
+    }
+
 }

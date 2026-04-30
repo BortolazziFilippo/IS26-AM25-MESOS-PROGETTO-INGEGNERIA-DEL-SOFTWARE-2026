@@ -7,12 +7,14 @@ import java.io.Serializable;
 
 /**
  * Data-transfer object for an offer tile, carrying the tile's letter ID
- * (A–E depending on player count) so the client can identify which tile was occupied.
+ * and the number of top/bottom draws available on it.
  */
 public class OffertileDTO implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private final char offerTileID;
+    private final int drawTop;
+    private final int drawBot;
 
     /**
      * Creates a new offertile dto instance.
@@ -20,6 +22,8 @@ public class OffertileDTO implements Serializable {
      */
     public OffertileDTO(OfferTile offerTile) {
         this.offerTileID = offerTile.getOfferTileID();
+        this.drawTop = offerTile.getActionAvailable().getDrawTop();
+        this.drawBot = offerTile.getActionAvailable().getDrawFromBottom();
     }
 
     /**
@@ -28,5 +32,21 @@ public class OffertileDTO implements Serializable {
      */
     public char getOfferTileID() {
         return offerTileID;
+    }
+
+    /**
+     * Returns the number of top-row draws available on this tile.
+     * @return top draws.
+     */
+    public int getDrawTop() {
+        return drawTop;
+    }
+
+    /**
+     * Returns the number of bottom-row draws available on this tile.
+     * @return bottom draws.
+     */
+    public int getDrawBot() {
+        return drawBot;
     }
 }

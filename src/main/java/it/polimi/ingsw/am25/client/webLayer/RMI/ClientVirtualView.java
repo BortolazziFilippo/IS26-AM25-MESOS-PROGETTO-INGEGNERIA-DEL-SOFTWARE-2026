@@ -55,6 +55,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private  List<DefaultTileDTO> defaultTileList;
     /** Maps offer tile position (0-based) to the nickname of the player currently on it. */
     private final Map<Integer, String> offerTileOccupants = new ConcurrentHashMap<>();
+    /** Ordered list of players on the default tile (index = slot position). */
+    private volatile List<PlayerDTO> defaultTileOrder = new ArrayList<>();
 
     // --- LOCKS ---
     /** Lock used to block the TUI until the game transitions from lobby to the first placing phase. */
@@ -374,8 +376,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
+        defaultTileOrder.replaceAll(p -> p != null && Objects.equals(p.getNickName(), PlayerNickname) ? null : p);
         offerTileOccupants.put(offertilePosition, PlayerNickname);
     }
+
 
     /**
      * Returns the current list of offer tiles on the board.
@@ -411,6 +415,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile) throws RemoteException {
+        this.defaultTileOrder = new ArrayList<>(orderOnDefaultTile);
+    }
+
+    /**
+     * Returns the current ordered list of players on the default tile (index = slot position).
+     * @return ordered player list.
+     */
+    public List<PlayerDTO> getDefaultTileOrder() {
+        return new ArrayList<>(defaultTileOrder);
     }
 
     /**

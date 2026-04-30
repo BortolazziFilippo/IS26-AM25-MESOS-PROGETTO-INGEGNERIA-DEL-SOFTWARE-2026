@@ -5,7 +5,6 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -19,6 +18,7 @@ public class PlacementTUI {
     private final Scanner scanner;
     private final TUIUtils utils;
     private final PlayerDTO myPlayer;
+    private final BoardTUI boardTUI;
     private final PlayerStatusTUI playerStatusTUI;
     private final MarketTUI marketTUI;
 
@@ -37,6 +37,7 @@ public class PlacementTUI {
         this.scanner = scanner;
         this.utils = utils;
         this.myPlayer = myPlayer;
+        this.boardTUI = new BoardTUI(clientHandler, utils);
         this.playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
         this.marketTUI = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
     }
@@ -46,8 +47,6 @@ public class PlacementTUI {
      * request to the server. Retries on error until the move is accepted.
      */
     public void placePlayer() {
-        utils.clearScreen();
-        System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
         boolean isPlaced = false;
 
         while (!isPlaced) {
@@ -60,8 +59,6 @@ public class PlacementTUI {
             } catch (Exception e) {
                 System.err.println("\n❌ Errore RMI: " + utils.extractCleanError(e));
                 utils.pauseAndClear();
-                utils.clearScreen();
-                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
                 continue;
             }
 
@@ -85,8 +82,6 @@ public class PlacementTUI {
             if (clientHandler.connectionError) {
                 System.err.println("❌ Casella già occupata");
                 utils.pauseAndClear();
-                utils.clearScreen();
-                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
             } else {
                 System.out.println("\n✅ Totem posizionato con successo nella casella " + (position + 1) + "!");
                 utils.pauseAndClear();
@@ -101,24 +96,17 @@ public class PlacementTUI {
      */
     private int getPlacingIndex() {
         while (true) {
+            utils.clearScreen();
+            boardTUI.printBoard();
             System.out.print("\n📍 Posiziona giocatore: (1-" + clientHandler.getOfferTileSize()
-                    + ") \n altre voci: i=giocatori  b=board  M=mercato  q=annulla: ");
+                    + ") \n altre voci: i=giocatori  M=mercato  q=annulla: ");
             String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("q")) return -1;
 
             if (input.equalsIgnoreCase("i")) {
                 playerStatusTUI.printAllPlayersStatus();
-                utils.clearScreen();
-                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
-                continue;
-            }
-
-            if (input.equalsIgnoreCase("b")) {
-                utils.clearScreen();
-                printBoard();
                 utils.pauseAndClear();
-                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
                 continue;
             }
 
@@ -126,7 +114,6 @@ public class PlacementTUI {
                 utils.clearScreen();
                 marketTUI.printMarket();
                 utils.pauseAndClear();
-                System.out.println("--- POSIZIONAMENTO GIOCATORE ---");
                 continue;
             }
 
@@ -142,36 +129,5 @@ public class PlacementTUI {
                 utils.pauseAndClear();
             }
         }
-    }
-
-    /**
-     * Prints the current board state: offer tiles with the player on each one (if any),
-     * followed by default tiles with their food-per-slot-position value.
-     */
-    private void printBoard() {
-        System.out.println("\n=============================================================");
-        System.out.println("                        IL BOARD                             ");
-        System.out.println("=============================================================");
-
-        var offerTiles = clientHandler.getOfferTileList();
-        var occupants = clientHandler.getOfferTileOccupants();
-
-        System.out.println("\n▶ CASELLE OFFERTA:");
-        System.out.printf("   %-5s | %-4s | %s\n", "Pos", "ID", "Giocatore");
-        System.out.println("   " + "-".repeat(40));
-        for (int i = 0; i < offerTiles.size(); i++) {
-            String player = occupants.getOrDefault(i, "[libera]");
-            System.out.printf("   [%d]   | %-4s | %s\n", (i + 1), offerTiles.get(i).getOfferTileID(), player);
-        }
-
-        var defaultTiles = clientHandler.getDefaultTileList();
-        System.out.println("\n▶ CASELLE DEFAULT:");
-        System.out.printf("   %-5s | %s\n", "Pos", "Cibo per slot");
-        System.out.println("   " + "-".repeat(40));
-        for (int i = 0; i < defaultTiles.size(); i++) {
-            System.out.printf("   [%d]   | %d\n", (i + 1), defaultTiles.get(i).getFoodPerSlotPosition());
-        }
-
-        System.out.println("=============================================================\n");
     }
 }
