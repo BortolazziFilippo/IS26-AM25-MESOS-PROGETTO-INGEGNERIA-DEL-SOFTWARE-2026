@@ -183,10 +183,14 @@ public interface ClientRemoteInterface extends Remote {
     // --- Draw-one-more mechanic ---
 
     /**
-     * Asks the client to select one extra card from the market (draw-one-more building effect).
+     * Asks the client to select one extra card from the end-of-round market snapshot
+     * (draw-one-more building effect). The lists carry exactly the cards that were
+     * available at round close, before the market refresh.
+     * @param snapshotCards the top card row at end of round.
+     * @param snapshotBuildings the top building row at end of round.
      * @throws RemoteException if the RMI call fails.
      */
-    void askExtraDraw() throws RemoteException;
+    void askExtraDraw(List<CardDTO> snapshotCards, List<BuildingDTO> snapshotBuildings) throws RemoteException;
 
     /**
      * Sends an error message to the client (e.g. invalid action, not your turn).

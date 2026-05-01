@@ -255,9 +255,11 @@ public class Game implements GameView {
             // 3. Notify SOLVING_EVENTS before potentially blocking on extra-draw requests
             this.gamePhase = GAME_PHASE.SOLVING_EVENTS;
             notifyGamePhaseChanged();
-            // 4. Activate end-of-round buildings (such as Draw One More Card)
+            // 4. Snapshot top market state BEFORE refresh so draw-one-more sees round-closing cards
+            market.snapshotForExtraDraw();
+            // 5. Activate end-of-round buildings (such as Draw One More Card)
             players.values().forEach(Player::triggerEndRoundBuilding);
-            // 5. Update the market and set the new phase
+            // 6. Update the market and set the new phase
             try {
                 market.endOfRoundMarketActions();
                 this.gamePhase = GAME_PHASE.PLACING_PHASE;
@@ -324,16 +326,6 @@ public class Game implements GameView {
     }
 
     /**
-     * Returns {@code true} if the top market row contains at least one drawable card
-     * (i.e., a non-event tribe card or any building). Used to decide whether a player
-     * can skip the draw-one-more extra draw.
-     */
-    public boolean canDrawExtraCard() {
-        return market.getTopCardList().stream()
-                .anyMatch(card -> card.getCardType() != CARD_TYPE.EVENT);
-    }
-
-    /**
      * Draws one extra card from the top market row for the given player without touching
      * the offer-tile action counter. Used exclusively by the draw-one-more building effect.
      *
@@ -349,11 +341,11 @@ public class Game implements GameView {
             throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
         Player player1 = players.get(player.getNickname());
         switch (cardType) {
-            case BUILDING -> market.buyBuildingTopList(position, player1);
+            case BUILDING -> market.buyExtraBuildingFromSnapshot(position, player1);
             case EVENT    -> throw new NotSelectableCardException("cannot select an event");
-            default       -> market.selectCardFromTopList(position, player1);
+            default       -> market.selectExtraCardFromSnapshot(position, player1);
         }
-        logServerEvent("Player '" + player1.getNickname() + "' drew extra card of type " + cardType + " at position " + position);
+        logServerEvent("Player '" + player1.getNickname() + "' drew extra card from snapshot of type " + cardType + " at position " + position);
     }
 
     /**

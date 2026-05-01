@@ -275,9 +275,7 @@ public class Controller {
 
     /**
      * Resolves the bonus draw granted by the draw-one-more mechanic: picks the chosen card
-     * from the top market row and adds it to the player's tribe, then wakes the
-     * {@link ServerVirtualView} thread that was blocking on {@code extraDrawLock} waiting
-     * for the player's response.
+     * from the top market row and adds it to the player's tribe.
      *
      * @param player   the player claiming the extra card.
      * @param cardType the type of card being selected (tribe member or {@link CARD_TYPE#BUILDING}).
@@ -289,7 +287,6 @@ public class Controller {
      */
     public void selectExtraCard(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         game.selectExtraCardFromTopList(cardType, position, player);
-        wakeExtraDrawLock(player);
     }
 
     /**
@@ -298,24 +295,8 @@ public class Controller {
      * market row; if a card is available the player must draw it.
      *
      * @param player the player declining the extra draw.
-     * @throws ActionNotAvailable if the top row still contains at least one drawable card.
      */
-    public void skipExtraDraw(Player player) throws ActionNotAvailable {
-        if (game.canDrawExtraCard()) {
-            throw new ActionNotAvailable("Ci sono ancora carte pescabili: devi pescare la carta extra");
-        }
-        wakeExtraDrawLock(player);
-    }
-
-    private void wakeExtraDrawLock(Player player) {
-        for (PlayerObserver obs : game.getSpecificPlayer(player).getObservers()) {
-            if (obs instanceof ServerVirtualView svv) {
-                synchronized (svv.extraDrawLock) {
-                    svv.extraDrawLock.notifyAll();
-                }
-                break;
-            }
-        }
+    public void skipExtraDraw(Player player) {
     }
 
     /**

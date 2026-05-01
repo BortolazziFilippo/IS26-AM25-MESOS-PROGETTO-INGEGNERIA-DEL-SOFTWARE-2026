@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.client.webLayer.Socket;
 
 import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
+import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.client.webLayer.Socket.messages.*;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
@@ -22,13 +23,16 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[CLIENT][SOCKET_PROXY]";
 
     private final ObjectOutputStream out;
+    private final ClientVirtualView clientHandler;
 
     /**
      * Creates a new proxy that forwards calls to the server via the given output stream.
      * @param out the output stream connected to the server socket.
+     * @param clientHandler the local client view used to wait for server confirmations.
      */
-    public ServerSocketProxy(ObjectOutputStream out) {
+    public ServerSocketProxy(ObjectOutputStream out, ClientVirtualView clientHandler) {
         this.out = out;
+        this.clientHandler = clientHandler;
         ClientUtilitiesFunction.logInfo(LOG_PREFIX, "ServerSocketProxy initialized.");
     }
 
@@ -86,7 +90,13 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     }
 
     /**
-     * Sends a request to draw an extra card.
+     * Sends a request to draw an extra card and blocks until the server confirms
+     * success or sends back an error.
+     * On success the server removes a card from the top list (signalled via
+     * {@code topCardRemoved} / {@code topBuildRemoved}).  On failure the server
+     * calls {@code showErrorMessage}, which sets {@code connectionError = true}.
+     * In the error case a {@link RemoteException} is thrown so that callers
+     * (e.g. {@code handleExtraDraw}) can display the error and re-prompt.
      * @param player the acting player.
      * @param cardType the type of card to draw.
      * @param position the position in the list.
@@ -94,9 +104,34 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     @Override
     public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         try {
+            int prevCount = (cardType == CARD_TYPE.BUILDING)
+                    ? clientHandler.getTopBuildingSize()
+                    : clientHandler.getTopCardSize();
+
             ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending selectExtraCard request for " + player.getNickName() + ", type " + cardType + ", position " + position + ".");
             out.writeObject(new SelectExtraCardMessage(player, cardType, position));
             out.flush();
+
+            // Block until the server either removes a card (success) or sends an error.
+            synchronized (clientHandler.turnLock) {
+                while (!clientHandler.connectionError) {
+                    int currentCount = (cardType == CARD_TYPE.BUILDING)
+                            ? clientHandler.getTopBuildingSize()
+                            : clientHandler.getTopCardSize();
+                    if (currentCount < prevCount) break; // card removed = success
+                    try {
+                        clientHandler.turnLock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            }
+
+            if (clientHandler.connectionError) {
+                throw new RemoteException(clientHandler.lastErrorMessage);
+            }
+
         } catch (IOException e) {
             ClientUtilitiesFunction.logError(LOG_PREFIX, "Errore rete in selectExtraCard: " + e.getMessage());
             throw new RemoteException("Errore di rete: impossibile pescare la carta extra.", e);

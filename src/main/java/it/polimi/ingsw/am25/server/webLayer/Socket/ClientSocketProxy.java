@@ -38,13 +38,13 @@ public class ClientSocketProxy implements ClientRemoteInterface {
     }
 
     /**
-     * Sends an ask-extra-draw notification to the client.
+     * Sends an ask-extra-draw notification to the client, including the end-of-round market snapshot.
      */
     @Override
-    public void askExtraDraw() throws RemoteException {
+    public void askExtraDraw(List<CardDTO> snapshotCards, List<BuildingDTO> snapshotBuildings) throws RemoteException {
         try {
             synchronized (out) {
-                out.writeObject(new AskExtraDrawMessage());
+                out.writeObject(new AskExtraDrawMessage(snapshotCards, snapshotBuildings));
                 out.flush();
                 out.reset();
             }

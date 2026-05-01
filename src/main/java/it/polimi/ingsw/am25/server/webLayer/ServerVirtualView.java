@@ -50,15 +50,12 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private List<CardDTO> bottomCards;
     private List<BuildingDTO> topBuildings;
     private List<BuildingDTO> bottomBuildings;
+    private List<CardDTO> extraDrawSnapshotCards = new ArrayList<>();
+    private List<BuildingDTO> extraDrawSnapshotBuildings = new ArrayList<>();
     //_________________________________________________________________________________________
     //BOARD DTO
     private List<OffertileDTO> offerTileList;
     private List<DefaultTileDTO> defaultTileList;
-    //_________________________________________________________________________________________
-    //Lock for draw one more card
-    /** Lock used to block the server until the client responds to the draw-one-more request. */
-    public final Object extraDrawLock = new Object();
-
 
     /**
      * Creates a new server virtual view instance.
@@ -379,6 +376,16 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     }
 
     /**
+     * Stores the end-of-round market snapshot so it can be forwarded to the client
+     * together with the {@code askExtraDraw} notification.
+     */
+    @Override
+    public void onExtraDrawSnapshotReady(List<Card> snapshotCards, List<BuildingCard> snapshotBuildings) {
+        this.extraDrawSnapshotCards = new ArrayList<>(snapshotCards.stream().map(Card::toDTO).toList());
+        this.extraDrawSnapshotBuildings = new ArrayList<>(snapshotBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
+    }
+
+    /**
      * Executes on top building refreshed.
      * @param topBuildingCards parameter topBuildingCards.
      */
@@ -482,29 +489,24 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     /**
      * Executes request extra draw.
+     * Only notifies the client that owns this view (i.e. whose nickname matches).
+     * Does not block: the client will respond asynchronously via selectExtraCard or skipExtraDraw.
      * @param nickname parameter nickname.
      */
     @Override
     public void requestExtraDraw(String nickname) {
-        // Perform the network request in a separate thread
+        if (!this.nickname.equals(nickname)) {
+            return;
+        }
+        List<CardDTO> cards = new ArrayList<>(extraDrawSnapshotCards);
+        List<BuildingDTO> buildings = new ArrayList<>(extraDrawSnapshotBuildings);
         executor.submit(() -> {
             try {
-                clientStub.askExtraDraw();
+                clientStub.askExtraDraw(cards, buildings);
             } catch (RemoteException e) {
-                logServerError("Client disconnected during extra draw — releasing lock.");
-                // Emergency-unlock the server if the client crashes.
-                synchronized (extraDrawLock) {
-                    extraDrawLock.notifyAll();
-                }
+                logServerError("Client disconnected during extra draw request.");
             }
         });
-        synchronized (extraDrawLock) {
-            try {
-                extraDrawLock.wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
     }
 
     /**

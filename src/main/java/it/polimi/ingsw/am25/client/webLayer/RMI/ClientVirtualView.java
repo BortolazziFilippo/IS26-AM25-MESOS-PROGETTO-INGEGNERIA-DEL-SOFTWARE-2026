@@ -72,6 +72,10 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public final Object turnLock = new Object();
     /** {@code true} when the server has asked this client to pick an extra card (draw-one-more effect). */
     public boolean needsExtraDraw = false;
+    /** Top card row snapshot sent with the draw-one-more request; shows round-closing cards. */
+    private List<CardDTO> extraDrawCards = new ArrayList<>();
+    /** Top building row snapshot sent with the draw-one-more request; shows round-closing buildings. */
+    private List<BuildingDTO> extraDrawBuildings = new ArrayList<>();
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -135,7 +139,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.winners=playerDTOSWinner;
         }
-        synchronized (stateLock){
+        synchronized (turnLock){
             turnLock.notifyAll();
         }
 
@@ -168,6 +172,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void eraChanged(ERA newEra) throws RemoteException {
         this.currentEra=newEra;
+
     }
 
     /**
@@ -262,7 +267,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.topCards.remove(position);
         }
-
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
     }
 
     /**
@@ -274,7 +281,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.topBuildings.remove(position);
         }
-
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
     }
 
     /**
@@ -427,13 +436,43 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     /**
-     * Executes ask extra draw.
+     * Executes ask extra draw, storing the end-of-round market snapshot for the TUI.
      */
     @Override
-    public void askExtraDraw() throws RemoteException {
+    public void askExtraDraw(List<CardDTO> snapshotCards, List<BuildingDTO> snapshotBuildings) throws RemoteException {
         synchronized (turnLock) {
+            this.extraDrawCards = new ArrayList<>(snapshotCards);
+            this.extraDrawBuildings = new ArrayList<>(snapshotBuildings);
             this.needsExtraDraw = true;
             turnLock.notifyAll(); // Wake up the TUI!
+        }
+    }
+
+    /** Returns the top card row snapshot for the current extra draw request. */
+    public List<CardDTO> getExtraDrawCards() {
+        synchronized (stateLock) {
+            return extraDrawCards == null ? new ArrayList<>() : new ArrayList<>(extraDrawCards);
+        }
+    }
+
+    /** Returns the top building row snapshot for the current extra draw request. */
+    public List<BuildingDTO> getExtraDrawBuildings() {
+        synchronized (stateLock) {
+            return extraDrawBuildings == null ? new ArrayList<>() : new ArrayList<>(extraDrawBuildings);
+        }
+    }
+
+    /** Returns the size of the extra draw card snapshot. */
+    public int getExtraDrawCardSize() {
+        synchronized (stateLock) {
+            return extraDrawCards == null ? 0 : extraDrawCards.size();
+        }
+    }
+
+    /** Returns the size of the extra draw building snapshot. */
+    public int getExtraDrawBuildingSize() {
+        synchronized (stateLock) {
+            return extraDrawBuildings == null ? 0 : extraDrawBuildings.size();
         }
     }
 

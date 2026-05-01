@@ -110,7 +110,7 @@ public class ClientTUI {
                     new SolvingEventsTUI(clientHandler, utils).solveEvents();
                     continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurns
                 case END_GAME:
-                    new EndGameTUI(clientHandler, utils).finished(clientHandler.getWinners());
+                    new EndGameTUI(clientHandler, utils, scanner, myPlayer).finished(clientHandler.getWinners());
                     return;
                 default:
                     System.out.println("In attesa del caricamento...");

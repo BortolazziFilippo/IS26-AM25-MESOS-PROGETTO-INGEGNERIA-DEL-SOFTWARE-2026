@@ -35,6 +35,8 @@ public class Market {
     private final List<BuildingCard> buildingCards;
     private final GameView gameView;
     private final List<MarketObserver> observers = new ArrayList<>();
+    private List<Card> extraDrawCardSnapshot = new ArrayList<>();
+    private List<BuildingCard> extraDrawBuildingSnapshot = new ArrayList<>();
 
 
     /**
@@ -104,6 +106,94 @@ public class Market {
         }
         this.bottomCardList.clear();
     }
+
+    /**
+     * Captures the current top card row and top building row into snapshot lists that
+     * will be used by the draw-one-more mechanic. Must be called before
+     * {@link #endOfRoundMarketActions()} so the snapshot reflects the round that just ended,
+     * not the next one.
+     */
+    public void snapshotForExtraDraw() {
+        extraDrawCardSnapshot = List.copyOf(topCardList);
+        extraDrawBuildingSnapshot = List.copyOf(topBuildingList);
+        notifyExtraDrawSnapshotReady();
+    }
+
+    /**
+     * Draws a tribe card from the end-of-round snapshot (not the current top row) and adds it
+     * to the player's tribe.
+     */
+    public void selectExtraCardFromSnapshot(int position, Player player)
+            throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
+        if (extraDrawCardSnapshot == null || player == null) {
+            throw new IllegalArgumentException("extraDrawCardSnapshot is null or player is null");
+        }
+        if (extraDrawCardSnapshot.isEmpty()
+                || extraDrawCardSnapshot.stream().allMatch(c -> c.getCardType() == CARD_TYPE.EVENT)) {
+            throw new EmptyMarketException("No cards available in extra draw snapshot");
+        }
+        if (position < 0 || position >= extraDrawCardSnapshot.size()) {
+            throw new IndexOutOfBoundsException("Invalid position");
+        }
+        Card selected = extraDrawCardSnapshot.get(position);
+        try {
+            selected.addCardToPlayer(player);
+        } catch (NotSelectableCardException e) {
+            throw new NotSelectableCardException("Cannot select EventCard");
+        }
+        extraDrawCardSnapshot = new ArrayList<>(extraDrawCardSnapshot);
+        extraDrawCardSnapshot.remove(position);
+        // After endOfRoundMarketActions() the snapshot cards have shifted to bottomCardList.
+        // Find the card by reference and remove it from whichever live list it is in now.
+        int bottomPos = bottomCardList.indexOf(selected);
+        if (bottomPos >= 0) {
+            bottomCardList.remove(bottomPos);
+            notifyCardRemovedFromBottom(bottomPos, CARD_TYPE.ARTIST);
+        } else {
+            // endOfRoundMarketActions not yet executed (edge case): card still in top list
+            int topPos = topCardList.indexOf(selected);
+            if (topPos >= 0) {
+                topCardList.remove(topPos);
+                notifyCardRemoveFromTop(topPos, CARD_TYPE.ARTIST);
+            }
+        }
+    }
+
+    /**
+     * Buys a building from the end-of-round snapshot (not the current top row) and adds it
+     * to the player's buildings.
+     */
+    public void buyExtraBuildingFromSnapshot(int position, Player player)
+            throws NotEnoughFoodException, IndexOutOfBoundsException, EmptyMarketException {
+        if (extraDrawBuildingSnapshot.isEmpty()) {
+            throw new EmptyMarketException("No buildings available in extra draw snapshot");
+        }
+        if (position < 0 || position >= extraDrawBuildingSnapshot.size()) {
+            throw new IndexOutOfBoundsException("Invalid position");
+        }
+        BuildingCard selected = extraDrawBuildingSnapshot.get(position);
+        try {
+            player.tryBuyBuilding(selected);
+        } catch (NotEnoughFoodException e) {
+            throw new NotEnoughFoodException(player.getNickname() + " has not enough food");
+        }
+        extraDrawBuildingSnapshot = new ArrayList<>(extraDrawBuildingSnapshot);
+        extraDrawBuildingSnapshot.remove(position);
+        // Buildings stay in topBuildingList unless an era change happened during endOfRoundMarketActions,
+        // in which case they shifted to bottomBuildingList. Search by reference in both.
+        int topPos = topBuildingList.indexOf(selected);
+        if (topPos >= 0) {
+            topBuildingList.remove(topPos);
+            notifyCardRemoveFromTop(topPos, CARD_TYPE.BUILDING);
+        } else {
+            int bottomPos = bottomBuildingList.indexOf(selected);
+            if (bottomPos >= 0) {
+                bottomBuildingList.remove(bottomPos);
+                notifyCardRemovedFromBottom(bottomPos, CARD_TYPE.BUILDING);
+            }
+        }
+    }
+
 
     /**
      * this method does all the things that has to be done at the end of the round in the market area:
@@ -475,6 +565,12 @@ public class Market {
         for(MarketObserver observer: observers){
             observer.eventSolved(eventID, eventType);
         }
+    }
+
+    private void notifyExtraDrawSnapshotReady() {
+        List<Card> cardSnap = List.copyOf(extraDrawCardSnapshot);
+        List<BuildingCard> buildingSnap = List.copyOf(extraDrawBuildingSnapshot);
+        notify(observer -> observer.onExtraDrawSnapshotReady(cardSnap, buildingSnap));
     }
 
 

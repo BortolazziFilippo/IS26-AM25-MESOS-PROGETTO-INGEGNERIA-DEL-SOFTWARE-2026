@@ -50,4 +50,13 @@ public interface MarketObserver {
      * @param cardType the type of card that was removed.
      */
     void onCardRemovedFromBottom(int position, CARD_TYPE cardType);
+
+    /**
+     * Called just before the end-of-round market refresh, carrying the exact cards
+     * that were available at the close of the round. Used by the draw-one-more mechanic
+     * so the server and client both operate on the pre-refresh market state.
+     * @param snapshotCards the top card row at end of round.
+     * @param snapshotBuildings the top building row at end of round.
+     */
+    void onExtraDrawSnapshotReady(List<Card> snapshotCards, List<BuildingCard> snapshotBuildings);
 }

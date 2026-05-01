@@ -62,7 +62,7 @@ public class ClientApp {
                 Socket socket= new Socket(serverIp,6969);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                serverStub=new ServerSocketProxy(out);
+                serverStub=new ServerSocketProxy(out, clientHandler);
                 ServerListener listener=new ServerListener(in,clientHandler);
                 listener.start();
             }

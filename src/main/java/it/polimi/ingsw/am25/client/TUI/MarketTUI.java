@@ -479,11 +479,11 @@ public class MarketTUI {
 
             int maxLimit;
             if (scelta.equals("1")) {
-                printCardList("CARTE TRIBÙ DISPONIBILI", clientHandler.getTopCards());
-                maxLimit = clientHandler.getTopCardSize();
+                printCardList("CARTE TRIBÙ DISPONIBILI", clientHandler.getExtraDrawCards());
+                maxLimit = clientHandler.getExtraDrawCardSize();
             } else if (scelta.equals("2")) {
-                printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getTopBuildings());
-                maxLimit = clientHandler.getTopBuildingSize();
+                printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getExtraDrawBuildings());
+                maxLimit = clientHandler.getExtraDrawBuildingSize();
             } else {
                 System.err.println("\n❌ Scelta mazzo non valida. Digita 0, 1 o 2.");
                 utils.pauseAndClear();
@@ -512,6 +512,7 @@ public class MarketTUI {
                     continue;
                 }
 
+                clientHandler.connectionError = false;
                 if (scelta.equals("1")) {
                     serverStub.selectExtraCard(myPlayer, CARD_TYPE.ARTIST, position);
                 } else {
@@ -619,4 +620,5 @@ public class MarketTUI {
         }
         return false;
     }
+
 }
