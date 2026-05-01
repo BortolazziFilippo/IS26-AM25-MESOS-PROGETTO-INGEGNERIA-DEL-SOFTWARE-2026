@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -270,7 +271,8 @@ public class ClientTUI {
             return true;
         }
         else if (phase == GAME_PHASE.END_GAME) {
-            return true;
+            List<PlayerDTO> w = clientHandler.getWinners();
+            return w != null && !w.isEmpty();
         }
         return false;
     }
