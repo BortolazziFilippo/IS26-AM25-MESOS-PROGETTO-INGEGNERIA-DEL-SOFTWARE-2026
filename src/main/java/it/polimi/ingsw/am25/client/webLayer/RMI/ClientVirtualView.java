@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.webLayer.RMI;
 
+import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
@@ -12,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 
 /**
  * Client-side implementation of {@link ClientRemoteInterface}. Receives game-state
@@ -78,6 +80,31 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private List<CardDTO> extraDrawCards = new ArrayList<>();
     /** Top building row snapshot sent with the draw-one-more request; shows round-closing buildings. */
     private List<BuildingDTO> extraDrawBuildings = new ArrayList<>();
+    // ----------------------------------------------------------------------
+//  GUI integration. La TUI usa i lock; la GUI registra un osservatore qui.
+//  Le callback dal server, oltre al solito notifyAll sui lock per la TUI,
+//  chiameranno il metodo corrispondente sull'osservatore se presente.
+//  L'osservatore GUI è responsabile di passare al thread JavaFX
+//  (Platform.runLater) prima di toccare i nodi grafici.
+// ----------------------------------------------------------------------
+    private volatile GUIObserver guiObserver;
+    /**
+     * Registra un singolo osservatore GUI. Passa null per togliere la registrazione.
+     */
+    public void setGUIObserver(GUIObserver guiObserver) {
+        this.guiObserver = guiObserver;
+    }
+
+    private void updateObservers(java.util.function.Consumer<GUIObserver> action){
+        GUIObserver observer = this.guiObserver;
+        if(observer != null){
+            try{
+                action.accept(observer);
+            }catch(Throwable t){
+                System.out.println("[GUI observer error]" + t.getMessage());
+            }
+        }
+    }
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -144,7 +171,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock){
             turnLock.notifyAll();
         }
-
+        updateObservers(obs -> obs.onWinners(playerDTOSWinner));
     }
 
     /**
@@ -198,6 +225,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onGamePhaseChanged(gamePhase));
     }
 
     /**
@@ -211,6 +239,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onPlayerToPlaceChanged(playerChanged.getNickName()));
     }
 
     /**
@@ -225,6 +254,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onPlayerToPlayChanged(playerChanged.getNickName()));
     }
 
     /**
@@ -241,7 +271,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.bottomCards = new ArrayList<>(bottomCards);
             this.topBuildings = new ArrayList<>(topBuildings);
         }
-
+        updateObservers(obs -> obs.onMarketInitialized(topCards, bottomCards, topBuildings));
     }
 
     /**
@@ -272,6 +302,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onTopCardRemoved(position));
     }
 
     /**
@@ -286,6 +317,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onTopBuildRemoved(position));
     }
 
     /**
@@ -297,7 +329,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.bottomCards.remove(position);
         }
-
+        updateObservers(obs -> obs.onBottomCardRemoved(position));
     }
 
     /**
@@ -324,7 +356,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             }
             this.topBuildings = new ArrayList<>(topBuildingCards);
         }
-
+        updateObservers(obs -> obs.onTopBuildingRefreshed(topBuildingCards));
     }
 
     /**
@@ -339,7 +371,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             }
             this.topCards = new ArrayList<>(topCards);
         }
-
+        updateObservers(obs -> obs.onTopCardRefreshed(topCards));
     }
 
     /**
@@ -352,6 +384,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         PlayerDTO temp = playersMap.get(nickname);
         temp.setFood(food);
         playersMap.put(temp.getNickName(),temp);
+        updateObservers(obs -> obs.onPlayerFoodChanged(nickname, food));
     }
 
     /**
@@ -364,6 +397,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         PlayerDTO temp = playersMap.get(nickname);
         temp.setPrestigePoint(PP);
         playersMap.put(temp.getNickName(),temp);
+        updateObservers(obs -> obs.onPlayerPPChanged(nickname, PP));
     }
 
     /**
@@ -377,7 +411,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.offerTileList=offerTileList;
             this.defaultTileList=defaultTileList;
         }
-
+        updateObservers(obs -> obs.onBoardInitialized(offerTileList, defaultTileList));
     }
 
     /**
@@ -389,6 +423,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
         defaultTileOrder.replaceAll(p -> p != null && Objects.equals(p.getNickName(), PlayerNickname) ? null : p);
         offerTileOccupants.put(offertilePosition, PlayerNickname);
+        updateObservers(obs -> obs.onPlayerPlacedOnOfferTile(PlayerNickname, offertilePosition));
     }
 
 
@@ -489,7 +524,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.drawTop=action.getDrawTop();
             turnLock.notifyAll();
         }
-
+        updateObservers(obs -> obs.onActionAvailableChanged(action.getDrawTop(), action.getDrawBot()));
 
     }
 
@@ -657,6 +692,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock){
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onEventResolved(eventdescription));
     }
 
     @Override
@@ -693,5 +729,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             resolvedEvents.clear();
         }
     }
+
+
 
 }
