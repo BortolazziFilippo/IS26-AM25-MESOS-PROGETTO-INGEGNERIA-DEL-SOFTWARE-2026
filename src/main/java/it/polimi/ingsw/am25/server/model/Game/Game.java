@@ -160,6 +160,20 @@ public class Game implements GameView {
     }
 
     /**
+     * Advances the placing turn without an actual totem placement, used when the current
+     * placing player has disconnected. Mirrors the tail of {@link #placePlayer} after a
+     * successful placement.
+     */
+    public void forceAdvancePlacing() {
+        try {
+            this.playerToPlace = turnManager.getNextPlacingPlayer();
+            notifyPlayerToPlaceChanged();
+        } catch (EndOfPlacingPhaseException e) {
+            advancePlayingPhase();
+        }
+    }
+
+    /**
      * Transitions the game from the placing phase to the playing (resolve-action) phase.
      * Updates the playing order, sets the first player to play, and — if that player is
      * on offer tile 'A' (no actions, only food) — automatically advances to the next player.

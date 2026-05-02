@@ -313,6 +313,62 @@ public class Controller {
     }
 
     /**
+     * Called by the server watchdog when a player's heartbeat times out.
+     * Marks the player DISCONNECTED, advances the turn if it was their turn,
+     * and forces the game to end if ≤1 player remains connected.
+     *
+     * @param nickname the nickname of the disconnected player.
+     */
+    public synchronized void notifyPlayerDisconnected(String nickname) {
+        if (game == null) return;
+
+        // 1. Mark DISCONNECTED in the model.
+        for (Player p : game.getPlayerList()) {
+            if (p.getNickname().equals(nickname)) {
+                p.setConnection(CONNECTION_STATUS.DISCONNECTED);
+                break;
+            }
+        }
+
+        GAME_PHASE phase = game.getGamePhase();
+
+        // 2. If it was their turn to place, force-advance.
+        if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            Player toPlace = game.getPlayerToPlace();
+            if (toPlace != null && toPlace.getNickname().equals(nickname)) {
+                game.forceAdvancePlacing();
+            }
+        }
+
+        // 3. If it was their turn to play, advance the turn.
+        if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
+            Player toPlay = game.getPlayerToPlay();
+            if (toPlay != null && toPlay.getNickname().equals(nickname)) {
+                advanceTurnOrRound();
+            }
+        }
+
+        // 4. End the game if only ≤1 player remains connected.
+        long connected = game.getPlayerList().stream()
+                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
+                .count();
+        if (connected <= 1 && phase != GAME_PHASE.END_GAME) {
+            forceEndGame();
+        }
+    }
+
+    /**
+     * Immediately ends the game regardless of the current phase — used when only
+     * one player remains connected. Triggers end-game effects and notifies winners.
+     */
+    public void forceEndGame() {
+        if (game.getGamePhase() != GAME_PHASE.END_GAME) {
+            game.endGameIter();
+            game.checkWinner();
+        }
+    }
+
+    /**
      * Returns {@code true} if it is the given player's turn to place their totem.
      *
      * @param player the player to check
