@@ -70,7 +70,7 @@ public class ClientApp {
             ClientTUI tui = new ClientTUI(serverStub, clientHandler);
             ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Avvio dell'interfaccia TUI client.");
             tui.start();
-
+            System.exit(0);
 
         } catch (Exception e) {
             ClientUtilitiesFunction.logError(LOG_PREFIX, "Errore critico di connessione. Il Server " + serverIp + " è acceso? Dettaglio: " + e.getMessage());

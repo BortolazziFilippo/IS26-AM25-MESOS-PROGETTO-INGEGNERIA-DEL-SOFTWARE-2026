@@ -193,8 +193,10 @@ public class LobbyTUI {
         utils.clearScreen();
         System.out.println(LOGO);
         System.out.println("--- CLASSIFICA ---");
-        System.out.print("Numero giocatori (2-5) oppure 'all': ");
+        System.out.print("Numero giocatori (2-5 o \"all\"), Q per uscire: ");
         String input = scanner.nextLine().trim().toLowerCase();
+
+        if (input.equalsIgnoreCase("q")) return;
 
         String serverParam;
         boolean showAll;

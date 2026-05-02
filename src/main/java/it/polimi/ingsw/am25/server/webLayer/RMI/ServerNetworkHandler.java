@@ -15,6 +15,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RMI server-side entry point for all Mesos client actions. Manages the game lobby,
@@ -28,6 +29,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
+    private final AtomicInteger rankRequestCount=new AtomicInteger(0);
     /**
      * Initializes the RMI network handler and exports it as a remote object,
      * making it reachable by Mesos clients via the RMI registry.
@@ -261,6 +263,15 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 leaderboards.put(i, DBManager.getLeaderboard(i));
             }
             clientRemoteInterface.sendRank(leaderboards);
+            if (requiredPlayers > 0 && rankRequestCount.incrementAndGet() >= requiredPlayers) {
+                Thread shutdown = new Thread(() -> {
+                    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                    UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
+                    System.exit(0);
+                });
+                shutdown.setDaemon(true);
+                shutdown.start();
+            }
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }

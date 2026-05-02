@@ -1,5 +1,7 @@
 package it.polimi.ingsw.am25.client.webLayer.Socket;
 
+import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
+import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
@@ -21,6 +23,7 @@ public class ServerListener extends Thread{
     public ServerListener(ObjectInputStream in, ClientRemoteInterface clientRemoteInterface) {
         this.in = in;
         this.clientRemoteInterface = clientRemoteInterface;
+        setDaemon(true);
     }
     /**
      * Continuously reads server-to-client messages from the socket stream and
@@ -35,11 +38,13 @@ public class ServerListener extends Thread{
                 message.execute(clientRemoteInterface);
             }
         } catch (Exception e) {
+            if (clientRemoteInterface instanceof ClientVirtualView cv && cv.getGamePhase() == GAME_PHASE.END_GAME) {
+                return;
+            }
+            //TODO GESTIRE DISCONNESSIONe
             System.err.println("Connessione persa col Server!");
-            e.printStackTrace();
-            System.exit(0); //TODO: gestire disconnesione
+            System.exit(0);
         }
     }
-
 }
 

@@ -111,13 +111,15 @@ public class Controller {
      * Must be called after all players have joined and all observers have been linked.
      */
     public void controllerGameStar(){
-        try {
-            DBManager.getConnection();
-        } catch (IOException e) {
-            UtilitiesFunction.logError(LOG_PREFIX+"IOexception DB");
-        } catch (SQLException e) {
-            UtilitiesFunction.logError(LOG_PREFIX+"Errore comunicazione server");
-        }
+        new Thread(()->{
+            try {
+                DBManager.getConnection();
+            } catch (IOException e) {
+                UtilitiesFunction.logError(LOG_PREFIX+"IOexception DB");
+            } catch (SQLException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione server");
+            }
+        }).start();
         game.gameStart();
         game.notifyChanges();
     }
