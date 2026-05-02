@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 import java.util.SimpleTimeZone;
 
 /**
@@ -200,4 +201,6 @@ public interface ClientRemoteInterface extends Remote {
     void showErrorMessage(String errorMessage) throws RemoteException;
 
     void eventResolved(String description) throws RemoteException;
+
+    void sendRank(Map<Integer,List<String>> Leaderboard) throws RemoteException;
 }

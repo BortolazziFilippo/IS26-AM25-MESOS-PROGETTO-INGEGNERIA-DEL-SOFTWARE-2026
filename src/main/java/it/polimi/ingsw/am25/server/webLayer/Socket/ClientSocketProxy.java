@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+import it.polimi.ingsw.am25.server.webLayer.Socket.messages.SendRankMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.boardMessaes.BoardInitializeMessages;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.boardMessaes.OrderOnDefaultTileMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.boardMessaes.PlayerPlacedOnOffertileMessage;
@@ -19,6 +20,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.Player
 import java.io.ObjectOutputStream;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Proxy for {@link ClientRemoteInterface} over a Socket connection,
@@ -469,6 +471,20 @@ public class ClientSocketProxy implements ClientRemoteInterface {
             }
         }catch (java.io.IOException e){
             UtilitiesFunction.logError(LOG_PREFIX, "Error comunicating event resolved");
+            e.printStackTrace();
+        }
+    }
+
+    public void sendRank(Map<Integer, List<String>> leaderboards) throws
+            RemoteException {
+        try {
+            synchronized (out) {
+                out.writeObject(new SendRankMessage(leaderboards));
+                out.flush();
+                out.reset();
+            }
+        } catch (java.io.IOException e) {
+            UtilitiesFunction.logError(LOG_PREFIX, "Error sending rank to client");
             e.printStackTrace();
         }
     }

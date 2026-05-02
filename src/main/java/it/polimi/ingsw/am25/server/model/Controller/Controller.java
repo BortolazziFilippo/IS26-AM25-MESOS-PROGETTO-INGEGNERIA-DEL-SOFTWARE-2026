@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.server.model.Controller;
 
+import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
@@ -9,6 +10,8 @@ import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -108,6 +111,13 @@ public class Controller {
      * Must be called after all players have joined and all observers have been linked.
      */
     public void controllerGameStar(){
+        try {
+            DBManager.getConnection();
+        } catch (IOException e) {
+            UtilitiesFunction.logError(LOG_PREFIX+"IOexception DB");
+        } catch (SQLException e) {
+            UtilitiesFunction.logError(LOG_PREFIX+"Errore comunicazione server");
+        }
         game.gameStart();
         game.notifyChanges();
     }

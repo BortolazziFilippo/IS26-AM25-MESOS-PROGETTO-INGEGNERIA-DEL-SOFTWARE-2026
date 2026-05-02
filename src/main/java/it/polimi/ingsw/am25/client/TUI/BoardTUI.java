@@ -41,8 +41,8 @@ public class BoardTUI {
         Map<Integer, String> occupants = clientHandler.getOfferTileOccupants();
 
         System.out.println("\n▶ CASELLE OFFERTA:");
-        System.out.printf("   %-5s | %-4s | %-25s | %s\n", "Pos", "ID", "Giocatore", "Azioni");
-        System.out.println("   " + "-".repeat(60));
+        System.out.printf("   %-5s | %-25s | %s\n", "Pos", "Giocatore", "Azioni");
+        System.out.println("   " + "-".repeat(55));
         for (int i = 0; i < offerTiles.size(); i++) {
             OffertileDTO tile = offerTiles.get(i);
             String nick = occupants.getOrDefault(i, null);
@@ -53,11 +53,11 @@ public class BoardTUI {
                     nick = nick.substring(0, 22) + "...";
                 }
                 nick = String.format("%-25s", nick);
-                System.out.printf("   [%d]   | %-4s | %-25s | pesca: %d top, %d bot\n",
-                        (i + 1), tile.getOfferTileID(), ansi + nick + TUIUtils.RESET, tile.getDrawTop(), tile.getDrawBot());
+                System.out.printf("   [%d]   | %-25s | pesca: %d top, %d bot\n",
+                        (i + 1), ansi + nick + TUIUtils.RESET, tile.getDrawTop(), tile.getDrawBot());
             } else {
-                System.out.printf("   [%d]   | %-4s | %-25s | pesca: %d top, %d bot\n",
-                        (i + 1), tile.getOfferTileID(), "[libera]", tile.getDrawTop(), tile.getDrawBot());
+                System.out.printf("   [%d]   | %-25s | pesca: %d top, %d bot\n",
+                        (i + 1), "[libera]", tile.getDrawTop(), tile.getDrawBot());
             }
         }
 

@@ -92,26 +92,26 @@ public class ClientTUI {
 
             switch (clientHandler.getGamePhase()) {
                 case PLACING_PHASE, LAST_ROUND_PLACING_PHASE:
-                    System.out.println("1 - Piazza Totem (Fase Piazzamento)");
-                    System.out.println("i - Stato giocatori");
-                    System.out.println("b - Visualizza board");
+                    System.out.println("[1] - Piazza Totem (Fase Piazzamento)");
+                    System.out.println("[I] - Stato giocatori");
+                    System.out.println("[B] - Visualizza board");
                     break;
                 case RESOLVE_ACTION, LAST_ROUND_RESOLVE_ACTION:
                     System.out.println("Azioni disponibili:");
                     System.out.println("Pesca da sopra: " + clientHandler.getDrawTop());
                     System.out.println("Pesca da sotto: " + clientHandler.getDrawBot());
-                    System.out.println("2 - Pesca carta da sopra (Fase Azioni)");
-                    System.out.println("3 - Pesca carta da sotto (Fase Azioni)");
-                    System.out.println("4 - Passa il turno");
-                    System.out.println("i - Stato giocatori");
-                    System.out.println("b - Visualizza board");
+                    System.out.println("[2] - Pesca carta da sopra (Fase Azioni)");
+                    System.out.println("[3] - Pesca carta da sotto (Fase Azioni)");
+                    System.out.println("[4] - Passa il turno");
+                    System.out.println("[I] - Stato giocatori");
+                    System.out.println("[B] - Visualizza board");
                     marketTUI.printMarket();
                     break;
                 case SOLVING_EVENTS:
                     new SolvingEventsTUI(clientHandler, utils).solveEvents();
                     continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurns
                 case END_GAME:
-                    new EndGameTUI(clientHandler, utils, scanner, myPlayer).finished(clientHandler.getWinners());
+                    new EndGameTUI(clientHandler, utils, scanner, myPlayer, serverStub).finished(clientHandler.getWinners());
                     return;
                 default:
                     System.out.println("In attesa del caricamento...");
@@ -249,8 +249,8 @@ public class ClientTUI {
             System.out.println();
         }
 
-        System.out.println("  [i] Informazioni giocatori");
-        System.out.println("  [b] Informazioni board");
+        System.out.println("  [I] Informazioni giocatori");
+        System.out.println("  [B] Informazioni board");
         System.out.print("\nScelta: ");
     }
 

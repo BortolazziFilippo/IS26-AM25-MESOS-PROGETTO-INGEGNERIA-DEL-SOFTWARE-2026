@@ -98,8 +98,9 @@ public class PlacementTUI {
         while (true) {
             utils.clearScreen();
             boardTUI.printBoard();
-            System.out.print("\n📍 Posiziona giocatore: (1-" + clientHandler.getOfferTileSize()
-                    + ") \n altre voci: i=giocatori  M=mercato  q=annulla: ");
+            System.out.println("\n📍 Posiziona giocatore: [1]-[" + clientHandler.getOfferTileSize() + "]");
+            System.out.println("[I] - Stato giocatori   [M] - Mercato   [Q] - Annulla");
+            System.out.print("Scelta: ");
             String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("q")) return -1;
@@ -110,7 +111,7 @@ public class PlacementTUI {
                 continue;
             }
 
-            if (input.equals("M")) {
+            if (input.equalsIgnoreCase("m")) {
                 utils.clearScreen();
                 marketTUI.printMarket();
                 utils.pauseAndClear();

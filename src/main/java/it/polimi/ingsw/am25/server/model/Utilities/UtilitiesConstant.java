@@ -1,5 +1,9 @@
 package it.polimi.ingsw.am25.server.model.Utilities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Compile-time constants shared across the Mesos server model.
  * All values relate to market sizing and food rewards for different player counts.
@@ -24,6 +28,10 @@ public final class UtilitiesConstant {
     /** Food granted to a player who places their totem on offer tile A (no card draws). */
     public static final int FOOD_OFFERTILE_A = 3;
 
+    public static final List<Integer> SCORE_TWO_PLAYERS   = new ArrayList<>(Arrays.asList(10, 5));
+    public static final List<Integer> SCORE_THREE_PLAYERS = new ArrayList<>(Arrays.asList(15, 8, 3));
+    public static final List<Integer> SCORE_FOUR_PLAYERS  = new ArrayList<>(Arrays.asList(20, 12, 6, 2));
+    public static final List<Integer> SCORE_FIVE_PLAYERS  = new ArrayList<>(Arrays.asList(25, 16, 9, 4, 1));
     /** Utility class — not instantiable. */
     private UtilitiesConstant() {}
 }

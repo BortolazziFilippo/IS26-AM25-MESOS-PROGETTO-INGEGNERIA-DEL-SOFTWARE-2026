@@ -207,4 +207,16 @@ public class ServerSocketProxy implements ServerRemoteInterface {
             throw new RemoteException("Network error: could not send create-game request to server.", e);
         }
     }
+
+    @Override
+    public void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+        try{
+            ClientUtilitiesFunction.logInfo(LOG_PREFIX,"Sending rank to player");
+            out.writeObject(new askForRankMessage(playerNumber));
+            out.flush();
+        } catch (IOException e) {
+            ClientUtilitiesFunction.logError(LOG_PREFIX,"Network error in ask for rank");
+            throw new RemoteException("Network error");
+        }
+    }
 }

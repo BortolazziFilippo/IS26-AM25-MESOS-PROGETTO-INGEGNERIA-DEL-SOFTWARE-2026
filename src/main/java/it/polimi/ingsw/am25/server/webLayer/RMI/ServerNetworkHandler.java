@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.server.webLayer.RMI;
 
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Controller.Controller;
+import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
@@ -9,11 +10,11 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * RMI server-side entry point for all Mesos client actions. Manages the game lobby,
@@ -248,6 +249,20 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             controller.skipExtraDraw(new Player(player));
         } catch (Exception e) {
             throw new RemoteException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+        try {
+            int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
+            Map<Integer, List<String>> leaderboards = new HashMap<>();
+            for (int i = 2; i <= number; i++) {
+                leaderboards.put(i, DBManager.getLeaderboard(i));
+            }
+            clientRemoteInterface.sendRank(leaderboards);
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

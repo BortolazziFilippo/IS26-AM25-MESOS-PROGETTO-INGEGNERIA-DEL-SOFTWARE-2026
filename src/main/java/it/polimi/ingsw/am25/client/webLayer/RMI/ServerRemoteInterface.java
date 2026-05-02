@@ -102,4 +102,11 @@ public interface ServerRemoteInterface extends Remote {
      * @throws RemoteException if the RMI call fails.
      */
     void skipExtraDraw(PlayerDTO player) throws RemoteException;
+
+    /**
+     * asks the server for the ranks
+     * @param playerNumber number of player
+     * @throws RemoteException if the RMI call fails.
+     */
+    void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException;
 }

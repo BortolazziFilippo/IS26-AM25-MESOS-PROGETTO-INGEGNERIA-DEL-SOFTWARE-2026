@@ -7,6 +7,8 @@ import it.polimi.ingsw.am25.server.model.Utilities.Exception.GameFullException;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
 import java.rmi.RemoteException;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -62,9 +64,25 @@ public class LobbyTUI {
         while (true) {
             utils.clearScreen();
             System.out.println(LOGO);
+            System.out.println("[J] - Crea/Unisciti a una partita");
+            System.out.println("[C] - Visualizza classifica");
+            System.out.print("Scelta: ");
+            String choice = scanner.nextLine().trim().toUpperCase();
+
+            if (choice.equals("C")) {
+                showLeaderboard();
+                continue;
+            } else if (!choice.equals("J")) {
+                continue;
+            }
+
+            utils.clearScreen();
+            System.out.println(LOGO);
             System.out.println("--- CONNESSIONE AL GIOCO ---");
+            System.out.println("(Q per tornare al menu)");
             System.out.print("Inserisci nome giocatore: ");
             String nickname = scanner.nextLine().trim();
+            if (nickname.equalsIgnoreCase("q")) continue;
             if (nickname.isEmpty()) {
                 System.err.println("\n❌ Il nickname non può essere vuoto.");
                 utils.pauseAndClear();
@@ -169,5 +187,90 @@ public class LobbyTUI {
             utils.pauseAndClear();
             return player;
         }
+    }
+
+    private void showLeaderboard() {
+        utils.clearScreen();
+        System.out.println(LOGO);
+        System.out.println("--- CLASSIFICA ---");
+        System.out.print("Numero giocatori (2-5) oppure 'all': ");
+        String input = scanner.nextLine().trim().toLowerCase();
+
+        String serverParam;
+        boolean showAll;
+        if (input.equals("all")) {
+            serverParam = "5";
+            showAll = true;
+        } else {
+            try {
+                int n = Integer.parseInt(input);
+                if (n < 2 || n > 5) {
+                    System.err.println("\n❌ Inserisci un numero tra 2 e 5.");
+                    utils.pauseAndClear();
+                    return;
+                }
+                serverParam = input;
+                showAll = false;
+            } catch (NumberFormatException e) {
+                System.err.println("\n❌ Input non valido.");
+                utils.pauseAndClear();
+                return;
+            }
+        }
+
+        clientHandler.clearLeaderboards();
+        clientHandler.connectionError = false;
+        clientHandler.lastErrorMessage = null;
+        try {
+            serverStub.askForRank(serverParam, clientHandler);
+        } catch (RemoteException e) {
+            System.err.println("\n❌ Errore di comunicazione col server.");
+            utils.pauseAndClear();
+            return;
+        }
+
+        synchronized (clientHandler.turnLock) {
+            while (clientHandler.getLeaderboards() == null && !clientHandler.connectionError) {
+                try {
+                    clientHandler.turnLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
+                    ? clientHandler.lastErrorMessage : "Errore nel recupero della classifica."));
+            utils.pauseAndClear();
+            return;
+        }
+
+        Map<Integer, List<String>> leaderboards = clientHandler.getLeaderboards();
+        utils.clearScreen();
+        System.out.println(LOGO);
+        System.out.println("--- CLASSIFICA ---\n");
+
+        if (showAll) {
+            for (int i = 2; i <= 5; i++) {
+                printLeaderboardSection(leaderboards, i);
+            }
+        } else {
+            printLeaderboardSection(leaderboards, Integer.parseInt(serverParam));
+        }
+
+        utils.pauseAndClear();
+    }
+
+    private void printLeaderboardSection(Map<Integer, List<String>> leaderboards, int playerCount) {
+        System.out.println("  Partite da " + playerCount + " giocatori:");
+        List<String> entries = leaderboards.get(playerCount);
+        if (entries == null || entries.isEmpty()) {
+            System.out.println("    Nessun dato disponibile.");
+        } else {
+            entries.forEach(e -> System.out.println("    " + e));
+        }
+        System.out.println();
     }
 }

@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.model.Game;
 import it.polimi.ingsw.am25.server.model.Board.Board;
 import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
+import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
@@ -13,6 +14,8 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,14 +33,14 @@ public class Game implements GameView {
     private final BoardView boardView;
     private final Market market;
     private final TurnManager turnManager;
-    private final Map<String,Player> players;
+    private final Map<String, Player> players;
     private final Player playerHost;
     private final int playerNumber;
     private GAME_PHASE gamePhase;
     private Player playerToPlace;
     private Player playerToPlay;
     private OfferTile offertilePlayerIsOn;
-    private final List<GameObserver> observers=new ArrayList<>();
+    private final List<GameObserver> observers = new ArrayList<>();
 
     /**
      * default constructor of game, this method when called creates the deck and the buildings by launching the factories.
@@ -57,13 +60,14 @@ public class Game implements GameView {
         this.turnManager = new TurnManager(board);
         this.playerHost = playerHost;
         this.players = new HashMap<>();
-        players.put(playerHost.getNickname(),playerHost);
+        players.put(playerHost.getNickname(), playerHost);
         //standard null-guard for the constructor argument
         if (playerHost == null) {
             throw new IllegalArgumentException("playerHost is null");
         }
         notifyGameChanged();
     }
+
     /**
      * Returns the current game phase.
      *
@@ -82,13 +86,14 @@ public class Game implements GameView {
      */
     public void addPlayer(Player player) throws GameReadyToStartException {
         if (players.size() < playerNumber) {
-            players.put(player.getNickname(),player);
+            players.put(player.getNickname(), player);
             notifyPlayerAdded(player);
             if (players.size() == playerNumber) {
                 throw new GameReadyToStartException("The lobby is full, game can start");
             }
         }
     }
+
     /**
      * this method sets up the game after it is full:
      * - it randomly place players on a default tile
@@ -99,24 +104,24 @@ public class Game implements GameView {
             return;
         }
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
-        int counter=1;
+        int counter = 1;
         for (Player player : players.values().stream().toList()) {
-            try{
+            try {
                 board.placePlayerOnDefaultTile(player, random.getFirst());
-                switch (counter){
+                switch (counter) {
                     case 1:
                         player.manageFoodAndPP(+2);
                         break;
-                    case 2,3:
+                    case 2, 3:
                         player.manageFoodAndPP(+3);
                         break;
-                    case 4,5:
+                    case 4, 5:
                         player.manageFoodAndPP(+4);
                         break;
                 }
                 counter++;
             } catch (TileOccupiedException e) {
-                throw new RuntimeException(getClass()+" Errore gamestart placePlayer");
+                throw new RuntimeException(getClass() + " Errore gamestart placePlayer");
             }
             random.removeFirst();
         }
@@ -124,7 +129,7 @@ public class Game implements GameView {
         try {
             this.playerToPlace = turnManager.getNextPlacingPlayer();
         } catch (EndOfPlacingPhaseException e) {
-            throw new RuntimeException(getClass()+" Errore placing player in gamestart");
+            throw new RuntimeException(getClass() + " Errore placing player in gamestart");
         }
 
         this.gamePhase = GAME_PHASE.PLACING_PHASE;
@@ -136,13 +141,13 @@ public class Game implements GameView {
      * Places a player on an offer tile during the placing phase.
      * If all players have already placed, it signals the end of placing phase.
      *
-     * @param player player to place
+     * @param player   player to place
      * @param position target offer-tile index
      * @throws IndexOutOfBoundsException if the position is not valid
-     * @throws TileOccupiedException if the target tile is already occupied
+     * @throws TileOccupiedException     if the target tile is already occupied
      */
-    public void placePlayer(Player player, int position) throws IndexOutOfBoundsException, TileOccupiedException,EndOfPlacingPhaseException {
-        Player player1=players.get(player.getNickname());
+    public void placePlayer(Player player, int position) throws IndexOutOfBoundsException, TileOccupiedException, EndOfPlacingPhaseException {
+        Player player1 = players.get(player.getNickname());
         board.placePlayerOnOffertile(player1, position);
         logServerEvent("Player '" + player1.getNickname() + "' placed on offer tile position " + position);
         // Try to set the next placing player; if there is none, placing phase is over.
@@ -159,20 +164,20 @@ public class Game implements GameView {
      * Updates the playing order, sets the first player to play, and — if that player is
      * on offer tile 'A' (no actions, only food) — automatically advances to the next player.
      */
-    public void advancePlayingPhase(){
+    public void advancePlayingPhase() {
         turnManager.updatePlayingOrder();
         try {
             this.playerToPlay = turnManager.getNextPlayingPlayer();
-        }catch (EndOfPlayingPhaseException ex) {
-            throw new RuntimeException(getClass()+" errore transizione placing->playing");
+        } catch (EndOfPlayingPhaseException ex) {
+            throw new RuntimeException(getClass() + " errore transizione placing->playing");
         }
         this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         // If the player is on tile A, they have no actions and only gain food.
         // This check is needed only for the first playing player.
         checkPlayerOfferTile(playerToPlay);
-        if(this.gamePhase==GAME_PHASE.LAST_ROUND_PLACING_PHASE){
-            gamePhase=GAME_PHASE.LAST_ROUND_RESOLVE_ACTION;
-        }else{
+        if (this.gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            gamePhase = GAME_PHASE.LAST_ROUND_RESOLVE_ACTION;
+        } else {
             this.gamePhase = GAME_PHASE.RESOLVE_ACTION;
         }
         notifyActionChanged();
@@ -192,8 +197,8 @@ public class Game implements GameView {
             logServerEvent("Player '" + player.getNickname() + "' received " + UtilitiesConstant.FOOD_OFFERTILE_A + " food from offer tile A");
             try {
                 this.playerToPlay = turnManager.getNextPlayingPlayer();
-            }catch (EndOfPlayingPhaseException e) {
-                throw new RuntimeException(getClass()+" errore controllo checkPlayerOffertile");
+            } catch (EndOfPlayingPhaseException e) {
+                throw new RuntimeException(getClass() + " errore controllo checkPlayerOffertile");
             }
             this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
         }
@@ -204,6 +209,7 @@ public class Game implements GameView {
      * Returns a single player when there is a clear prestige-point leader, a single player
      * when prestige points are tied but one has more food, or multiple players when both
      * prestige points and food are equal.
+     *
      * @return the list of winning players (one or more).
      */
     public List<Player> checkWinner() {
@@ -213,28 +219,38 @@ public class Game implements GameView {
         }
 
         List<Player> winners = players.values().stream()
-                .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player :: getFood).reversed())
+                .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player::getFood).reversed())
                 .collect(Collectors.toCollection(ArrayList::new));
 
         Player topWinner = winners.get(0);
 
-        List<Player> winningPlayers = new ArrayList<>();
-        if(winners.get(0).getPrestigePoint() == winners.get(1).getPrestigePoint()){
-            if(winners.get(0).getFood() == winners.get(1).getFood()){
+        List<Player> winningPlayers;
+        if (winners.get(0).getPrestigePoint() == winners.get(1).getPrestigePoint()) {
+            if (winners.get(0).getFood() == winners.get(1).getFood()) {
                 winningPlayers = winners.stream()
                         .filter(player -> player.getPrestigePoint() == topWinner.getPrestigePoint()
-                        && player.getFood() == topWinner.getFood())
+                                && player.getFood() == topWinner.getFood())
                         .collect(Collectors.toCollection(ArrayList::new));
-            }
-            else{
+            } else {
+                winningPlayers = new ArrayList<>();
                 winningPlayers.add(topWinner);
             }
-        }
-        else{
+        } else {
+            winningPlayers = new ArrayList<>();
             winningPlayers.add(topWinner);
+        }
+        //thread for writing winners on DB
+        try {
+            DBManager.logMatch(winners);
+        } catch (IOException e) {
+            UtilitiesFunction.logError(LOG_PREFIX + "Errore lettura file credenziali database");
+        } catch (SQLException e) {
+            UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione con database");
         }
         this.notifyWinners(winningPlayers);
         return winningPlayers;
+
+
     }
 
     /**
@@ -243,10 +259,11 @@ public class Game implements GameView {
      * and advances the market (shifting card lists and refilling them).
      * If the deck is exhausted the game phase transitions to {@link GAME_PHASE#END_GAME}.
      * If the game is already in END_GAME, delegates to {@link #endGameIter()}.
+     *
      * @throws EndGameException when the game is finished
      */
     public void nextRoundIter() throws EndGameException {
-        if(this.gamePhase != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION){
+        if (this.gamePhase != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
 
             // 1. all player goes back to default tile
             board.returnOnDefaultTiles();
@@ -290,27 +307,28 @@ public class Game implements GameView {
      */
 
     public void endGameIter() {
-        gamePhase=GAME_PHASE.END_GAME;
+        gamePhase = GAME_PHASE.END_GAME;
         notifyGamePhaseChanged();
         players.values().forEach(Player::triggerEndGameBuilding);
         market.solveFinalEvents();
-        for(Player p : players.values()){
+        for (Player p : players.values()) {
             p.managePP(p.checkpoints());
         }
     }
 
     /**
      * this method adds a card from the top list
+     *
      * @param toBuyCardType cardType to buy
-     * @param position position of the card
-     * @param player player buying the card
-     * @throws IndexOutOfBoundsException in case the position is not valid
-     * @throws NotEnoughFoodException in case the player does not have enough food
+     * @param position      position of the card
+     * @param player        player buying the card
+     * @throws IndexOutOfBoundsException  in case the position is not valid
+     * @throws NotEnoughFoodException     in case the player does not have enough food
      * @throws NotSelectableCardException if the player tries to select an event card
-     * @throws NoMoreActionToDo if the player has no remaining actions after this selection
+     * @throws NoMoreActionToDo           if the player has no remaining actions after this selection
      */
-    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException,NoMoreActionToDo {
-        Player player1=players.get(player.getNickname());
+    public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
+        Player player1 = players.get(player.getNickname());
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingTopList(position, player1);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -319,7 +337,7 @@ public class Game implements GameView {
         logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from top list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneTopAction();
         notifyActionChanged();
-        if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
+        if (offertilePlayerIsOn.getActionAvailable().getDrawFromBottom() == 0 && offertilePlayerIsOn.getActionAvailable().getDrawTop() == 0) {
             throw new NoMoreActionToDo();
         }
 
@@ -342,16 +360,17 @@ public class Game implements GameView {
         Player player1 = players.get(player.getNickname());
         switch (cardType) {
             case BUILDING -> market.buyExtraBuildingFromSnapshot(position, player1);
-            case EVENT    -> throw new NotSelectableCardException("cannot select an event");
-            default       -> market.selectExtraCardFromSnapshot(position, player1);
+            case EVENT -> throw new NotSelectableCardException("cannot select an event");
+            default -> market.selectExtraCardFromSnapshot(position, player1);
         }
         logServerEvent("Player '" + player1.getNickname() + "' drew extra card from snapshot of type " + cardType + " at position " + position);
     }
 
     /**
      * Checks whether the current playing player has at least one legal market action.
+     *
      * @return {@code true} if the player can draw from at least one non-blocked market row;
-     *         {@code false} if both rows are empty or contain only events, or the player has no remaining draws.
+     * {@code false} if both rows are empty or contain only events, or the player has no remaining draws.
      */
     public boolean canCurrentPlayingPlayerDoSomething() {
 
@@ -379,15 +398,16 @@ public class Game implements GameView {
      * Selects a card from the bottom list and adds it to the player, then decrements the
      * player's remaining bottom-draw actions. When all actions are exhausted the turn
      * automatically advances to the next player.
+     *
      * @param toBuyCardType cardType to buy
-     * @param position position of the card in the bottom list
-     * @param player player buying the card
-     * @throws IndexOutOfBoundsException in case the position is not valid
-     * @throws NotEnoughFoodException in case the player does not have enough food
+     * @param position      position of the card in the bottom list
+     * @param player        player buying the card
+     * @throws IndexOutOfBoundsException  in case the position is not valid
+     * @throws NotEnoughFoodException     in case the player does not have enough food
      * @throws NotSelectableCardException if the player tries to select an event card
      */
     public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
-        Player player1=players.get(player.getNickname());
+        Player player1 = players.get(player.getNickname());
         switch (toBuyCardType) {
             case BUILDING -> market.buyBuildingBottomList(position, player1);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
@@ -396,7 +416,7 @@ public class Game implements GameView {
         logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from bottom list at position " + position);
         offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
         notifyActionChanged();
-        if(offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()==0 && offertilePlayerIsOn.getActionAvailable().getDrawTop()==0){
+        if (offertilePlayerIsOn.getActionAvailable().getDrawFromBottom() == 0 && offertilePlayerIsOn.getActionAvailable().getDrawTop() == 0) {
             throw new NoMoreActionToDo();
         }
     }
@@ -465,8 +485,8 @@ public class Game implements GameView {
      *
      * @param observerToAdd observer to subscribe; ignored if null or already subscribed
      */
-    public void addObserver(GameObserver observerToAdd){
-        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+    public void addObserver(GameObserver observerToAdd) {
+        if (observerToAdd != null && !observers.contains(observerToAdd)) {
             observers.add(observerToAdd);
         }
     }
@@ -476,7 +496,7 @@ public class Game implements GameView {
      *
      * @param observerToRemove observer to unsubscribe
      */
-    public void removeObserver(GameObserver observerToRemove){
+    public void removeObserver(GameObserver observerToRemove) {
         observers.remove(observerToRemove);
     }
 
@@ -496,17 +516,19 @@ public class Game implements GameView {
 
     /**
      * this method notifies the winners
+     *
      * @param winners list of winners
      */
-    private void notifyWinners(List<Player> winners){
-        notify(observer ->observer.gameWinners(winners) );
+    private void notifyWinners(List<Player> winners) {
+        notify(observer -> observer.gameWinners(winners));
     }
 
     /**
      * method to notify that  {@code player} has been added
+     *
      * @param player player to add
      */
-    private void notifyPlayerAdded(Player player){
+    private void notifyPlayerAdded(Player player) {
         notify(observer -> observer.onPlayerAdded(player));
 
     }
@@ -514,30 +536,31 @@ public class Game implements GameView {
     /**
      * Executes notify era changed.
      */
-    private void notifyEraChanged(){
-        notify(observer ->  observer.onEraChanged(this.currentEra));
+    private void notifyEraChanged() {
+        notify(observer -> observer.onEraChanged(this.currentEra));
     }
 
     /**
      * Executes notify game phase changed.
      */
-    private void notifyGamePhaseChanged(){
+    private void notifyGamePhaseChanged() {
         notify(observer -> observer.onGamePhaseChanged(gamePhase));
     }
 
     /**
      * Executes notify player to place changed.
      */
-    private void notifyPlayerToPlaceChanged(){
+    private void notifyPlayerToPlaceChanged() {
         notify(observer -> observer.onPlayerToPlaceChanged(playerToPlace));
     }
 
     /**
      * Executes notify player to play changed.
      */
-    private void notifyPlayerToPlayChanged(){
-        notify(observer->observer.onPlayerToPlayChanged(playerToPlay));
+    private void notifyPlayerToPlayChanged() {
+        notify(observer -> observer.onPlayerToPlayChanged(playerToPlay));
     }
+
     /**
      * Returns the total number of players in this game.
      *
@@ -570,10 +593,11 @@ public class Game implements GameView {
 
     /**
      * Returns the model {@link Player} instance that matches the given player's nickname.
+     *
      * @param player the player whose nickname is used for the lookup.
      * @return the matching {@link Player}, or {@code null} if not found.
      */
-    public Player getSpecificPlayer(Player player){
+    public Player getSpecificPlayer(Player player) {
         return players.get(player.getNickname());
     }
 
@@ -591,21 +615,23 @@ public class Game implements GameView {
         if (nextPosition < allEras.length) {
             this.currentEra = allEras[nextPosition];
         }
-        logServerEvent("Era changed: "+currentEra);
+        logServerEvent("Era changed: " + currentEra);
         notifyEraChanged();
     }
 
     /**
      * Executes link observer.
+     *
      * @param vv parameter vv.
      */
-    public void linkObserver(ServerVirtualView vv){
+    public void linkObserver(ServerVirtualView vv) {
         this.addObserver(vv);
         board.addObserver(vv);
         market.addObserver(vv);
     }
-    private void notify(Consumer<GameObserver> action){
-        for(GameObserver gameObserver:List.copyOf(observers)){
+
+    private void notify(Consumer<GameObserver> action) {
+        for (GameObserver gameObserver : List.copyOf(observers)) {
             action.accept(gameObserver);
         }
     }
@@ -613,7 +639,7 @@ public class Game implements GameView {
     /**
      * Executes notify changes.
      */
-    public void notifyChanges(){
+    public void notifyChanges() {
         this.market.notifyMarketChanged();
         this.board.notifyBoardChanged();
     }
@@ -621,12 +647,13 @@ public class Game implements GameView {
     /**
      * Executes notify action changed.
      */
-    private void notifyActionChanged(){
-        notify(o->o.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(),this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()));
+    private void notifyActionChanged() {
+        notify(o -> o.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(), this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()));
     }
 
     /**
      * Executes log server event.
+     *
      * @param message parameter message.
      */
     private void logServerEvent(String message) {

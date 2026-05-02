@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant.*;
+
 /**
  * Logging utilities for the Mesos server. All methods write timestamped entries
  * to {@value #LOG_FILE}; output is silently dropped if the log has not been initialised.
@@ -167,5 +169,30 @@ public interface UtilitiesFunction {
 
         Collections.shuffle(numbers);
         return numbers;
+    }
+     static int getScore(int playerCount, int position) {
+        List<Integer> table = switch (playerCount) {
+            case 2 -> SCORE_TWO_PLAYERS;
+            case 3 -> SCORE_THREE_PLAYERS;
+            case 4 -> SCORE_FOUR_PLAYERS;
+            case 5 -> SCORE_FIVE_PLAYERS;
+            default -> throw new IllegalArgumentException("Numero giocatori non valido: " + playerCount);
+        };
+        return table.get(position - 1);
+    }
+
+    static int stringToIntegerBinder(String number) throws IllegalStateException{
+         switch (number){
+             case "2":
+                 return 2;
+             case "3":
+                 return 3;
+             case "4":
+                 return 4;
+             case "5":
+                 return 5;
+             default:
+                 throw new IllegalStateException("Errore input");
+         }
     }
 }

@@ -57,9 +57,9 @@ public class MarketTUI {
         boolean isDrawn = false;
         while (!isDrawn) {
             System.out.println("\nCosa vuoi pescare?");
-            System.out.println("1 - Carta Tribù");
-            System.out.println("2 - Carta Edificio");
-            System.out.println("q - Annulla e torna al menu principale");
+            System.out.println("[1] - Carta Tribù");
+            System.out.println("[2] - Carta Edificio");
+            System.out.println("[Q] - Annulla e torna al menu principale");
             printCardList("CARTE TRIBÙ DISPONIBILI (SOPRA)", clientHandler.getTopCards());
             printCardList("CARTE EDIFICIO DISPONIBILI (SOPRA)", clientHandler.getTopBuildings());
             System.out.print("\nScelta: ");
@@ -233,9 +233,9 @@ public class MarketTUI {
         boolean isDrawn = false;
         while (!isDrawn) {
             System.out.println("\nCosa vuoi pescare?");
-            System.out.println("1 - Carta Tribù");
-            System.out.println("2 - Carta Edificio");
-            System.out.println("q - Annulla e torna al menu principale");
+            System.out.println("[1] - Carta Tribù");
+            System.out.println("[2] - Carta Edificio");
+            System.out.println("[Q] - Annulla e torna al menu principale");
             printCardList("CARTE TRIBÙ DISPONIBILI (SOTTO)", clientHandler.getBottomCards());
             printCardList("CARTE EDIFICIO DISPONIBILI (SOTTO)", clientHandler.getBottomBuildings());
             System.out.print("\nScelta: ");
@@ -457,9 +457,9 @@ public class MarketTUI {
         boolean isDrawn = false;
         while (!isDrawn) {
             System.out.println("\nScegli da quale mazzo in CIMA vuoi pescare la carta extra:");
-            System.out.println("1 - Carta Tribù");
-            System.out.println("2 - Carta Edificio");
-            System.out.println("0 - Salta (non pescare)");
+            System.out.println("[1] - Carta Tribù");
+            System.out.println("[2] - Carta Edificio");
+            System.out.println("[0] - Salta (non pescare)");
             System.out.print("Scelta: ");
             String scelta = scanner.nextLine();
 

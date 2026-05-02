@@ -34,6 +34,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private volatile int drawTop;
     /** Remaining bottom-row draw count for the current player's offer tile. */
     private volatile int drawBot;
+
+    private Map<Integer, List<String>> leaderboards;
     /** Map of all players in the game, keyed by nickname. */
     private final Map<String,PlayerDTO> playersMap= new ConcurrentHashMap<>();
     private final List<String> resolvedEvents =  new ArrayList<>();
@@ -654,6 +656,29 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         }
         synchronized (turnLock){
             turnLock.notifyAll();
+        }
+    }
+
+    @Override
+    public void sendRank(Map<Integer, List<String>> leaderboards) throws
+            RemoteException {
+        synchronized (stateLock) {
+            this.leaderboards = leaderboards;
+        }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
+
+    public Map<Integer, List<String>> getLeaderboards() {
+        synchronized (stateLock) {
+            return leaderboards;
+        }
+    }
+
+    public void clearLeaderboards() {
+        synchronized (stateLock) {
+            this.leaderboards = null;
         }
     }
 
