@@ -99,6 +99,16 @@ public class ClientTUI {
                 return;
             }
 
+            // Show a notification for every player that disconnected since last iteration
+            List<String> disconnected = clientHandler.drainRecentDisconnections();
+            if (!disconnected.isEmpty()) {
+                utils.clearScreen();
+                for (String dc : disconnected) {
+                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso dalla partita.");
+                }
+                utils.pauseAndClear();
+            }
+
             // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
             // dal suo wait loop su gamePhaseChanged(SOLVING_EVENTS) e, prima che
             // il thread TUI arrivi a waitForMyTurn(), l'executor ha già consegnato
@@ -241,6 +251,16 @@ public class ClientTUI {
             }
 
             if (isMyTurn()) break;
+
+            // Show disconnection notices while waiting
+            List<String> dcWhileWaiting = clientHandler.drainRecentDisconnections();
+            if (!dcWhileWaiting.isEmpty()) {
+                System.out.println();
+                for (String dc : dcWhileWaiting) {
+                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso.");
+                }
+                if (!isMyTurn()) printWaitingScreen();
+            }
 
             // Check for pending keyboard input without blocking.
             try {

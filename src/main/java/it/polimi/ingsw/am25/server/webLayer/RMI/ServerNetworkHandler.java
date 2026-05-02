@@ -350,6 +350,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     private void startWatchdog() {
         Thread watchdog = new Thread(() -> {
+            // Grace period: give all clients time to start their ping threads
+            // before we begin counting missed pings.
+            try {
+                Thread.sleep(12000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Thread.sleep(3000);

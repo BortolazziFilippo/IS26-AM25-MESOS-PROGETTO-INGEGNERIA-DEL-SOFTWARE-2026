@@ -359,7 +359,7 @@ public class Controller {
 
         // 3. Count remaining connected players
         long connectedCount = game.getPlayerList().stream()
-                .filter(p -> p.getConnectionStatus() != CONNECTION_STATUS.DISCONNECTED)
+                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
                 .count();
         if (connectedCount <= 1) {
             forceEndGame();

@@ -42,9 +42,14 @@ public class Board implements BoardView {
      */
     public void returnOnDefaultTiles(){
         int counter=-1;
+        // Only players who placed on an offer tile this round need to be moved back.
+        // When players are disconnected and skipped in the placing phase, there may be
+        // fewer offer-tile occupants than default-tile slots — we must stop when the
+        // player list is exhausted to avoid IndexOutOfBoundsException.
         List<Player> pl= new ArrayList<>(this.offerTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
         for(DefaultTile defaultTile:defaultTiles){
             counter++;
+            if (pl.isEmpty()) break;   // all offer-tile players have been moved back
             defaultTile.placePlayer(pl.get(0));
             defaultTile.getPlayerOn().manageFoodAndPP(defaultTile.getFoodPerSlotPosition());
             logServerEvent(

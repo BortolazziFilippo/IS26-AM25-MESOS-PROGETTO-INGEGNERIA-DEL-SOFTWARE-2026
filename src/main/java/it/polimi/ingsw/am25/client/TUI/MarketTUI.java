@@ -591,11 +591,22 @@ public class MarketTUI {
     /**
      * Blocks until the server acknowledges the action (action points change,
      * phase changes, or connection error).
+     *
+     * <p>Phase 1: wait for the draw counter to change from its pre-action value
+     * (normal case: server decremented it after accepting the card selection).
+     *
+     * <p>Phase 2: if both draw counters are now 0 and it is still this player's turn,
+     * the server has already called {@code advanceTurnOrRound()} and is about to
+     * deliver a {@code playerToPlayChanged} notification. We wait for that notification
+     * before returning so the main game loop never re-enters the action menu in the
+     * brief transient window before the turn-change notification arrives.
+     *
      * @param prevTop the previous draw-top count before the action.
      * @param prevBot the previous draw-bot count before the action.
      * @return {@code true} if a connection error occurred.
      */
     private boolean waitForActionChange(int prevTop, int prevBot) {
+        // --- Phase 1: wait for draw-counter change or any other exit condition ---
         synchronized (clientHandler.turnLock) {
             while (!clientHandler.connectionError &&
                     clientHandler.getDrawTop() == prevTop &&
@@ -618,6 +629,30 @@ public class MarketTUI {
             utils.pauseAndClear();
             return true;
         }
+
+        // --- Phase 2: if both counters are now 0 and the turn hasn't formally changed
+        //     yet, wait for the playerToPlayChanged notification so the main loop
+        //     doesn't re-enter the draw menu in a stale state. ---
+        if (clientHandler.getDrawTop() == 0 && clientHandler.getDrawBot() == 0) {
+            synchronized (clientHandler.turnLock) {
+                while (!clientHandler.connectionError &&
+                        clientHandler.getPlayerToPlay() != null &&
+                        clientHandler.getPlayerToPlay().equals(myPlayer.getNickName()) &&
+                        (clientHandler.getGamePhase() == GAME_PHASE.RESOLVE_ACTION ||
+                                clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION)) {
+                    try {
+                        clientHandler.turnLock.wait(300);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return true;
+                    }
+                }
+            }
+            // If Phase 2 exited because the turn was officially handed over,
+            // signal the caller to return without showing further menu.
+            return false;
+        }
+
         return false;
     }
 

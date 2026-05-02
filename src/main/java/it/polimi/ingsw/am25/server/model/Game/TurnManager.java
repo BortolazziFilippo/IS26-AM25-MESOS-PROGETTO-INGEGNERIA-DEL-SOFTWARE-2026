@@ -43,7 +43,7 @@ public class TurnManager {
     public Player getNextPlayingPlayer() throws EndOfPlayingPhaseException {
         while (!playingOrder.isEmpty()) {
             Player playerToRet = playingOrder.remove(0);
-            if (playerToRet.getConnectionStatus() != CONNECTION_STATUS.DISCONNECTED) {
+            if (playerToRet.getConnection() != CONNECTION_STATUS.DISCONNECTED) {
                 return playerToRet;
             }
         }
@@ -62,7 +62,7 @@ public class TurnManager {
     public Player getNextPlacingPlayer() throws EndOfPlacingPhaseException {
         while (!placingOrder.isEmpty()) {
             Player playerToRet = placingOrder.remove(0);
-            if (playerToRet.getConnectionStatus() != CONNECTION_STATUS.DISCONNECTED) {
+            if (playerToRet.getConnection() != CONNECTION_STATUS.DISCONNECTED) {
                 return playerToRet;
             }
         }

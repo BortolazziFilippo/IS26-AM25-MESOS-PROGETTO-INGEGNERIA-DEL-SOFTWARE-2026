@@ -123,7 +123,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     public void notifyPlayerDisconnected(String disconnectedNickname) {
         if (!connected) return;
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.playerDisconnected(disconnectedNickname);
             } catch (RemoteException e) {
@@ -142,7 +142,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         PlayerDTO pl = playersMap.get(nickname);
         pl.setPrestigePoint(newPP);
         playersMap.put(nickname, pl);
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.playerUpdatePP(nickname, newPP);
             } catch (java.rmi.RemoteException e) {
@@ -163,7 +163,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         PlayerDTO pl = playersMap.get(nickname);
         pl.setFood(newFood);
         playersMap.put(nickname, pl);
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.playerUpdateFood(nickname, newFood);
             } catch (java.rmi.RemoteException e) {
@@ -220,7 +220,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.bottomCards = new ArrayList<>(bottomCards.stream().map(Card::toDTO).toList());
         this.topBuildings = new ArrayList<>(topBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
 
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings);
             } catch (RemoteException e) {
@@ -241,7 +241,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             this.bottomCards = new ArrayList<>(this.topCards);
         }
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.topCardRefreshed(new ArrayList<>(this.topCards));
             } catch (RemoteException e) {
@@ -259,7 +259,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
         this.offerTileList = offerTileList.stream().map(OffertileDTO::new).toList();
         this.defaultTileList = defaultTileList.stream().map(DefaultTileDTO::new).toList();
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.boardInitialize(this.offerTileList, this.defaultTileList);
             } catch (java.rmi.RemoteException e) {
@@ -275,7 +275,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
         List<PlayerDTO> order = playerOrder.stream().map(PlayerDTO::new).toList();
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.orderOnDefaultTile(order);
             } catch (java.rmi.RemoteException e) {
@@ -292,7 +292,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.playerPlacedOnOffertile(player.getNickname(), tilePosition);
             } catch (java.rmi.RemoteException e) {
@@ -311,7 +311,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void gameWinners(List<Player> winners) {
         this.winners = winners.stream().map(PlayerDTO::new).toList();
 
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.gameWinners(this.winners);
             } catch (java.rmi.RemoteException e) {
@@ -336,7 +336,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.currentGamePhase = gamePhase;
         this.playerToPlace = null;
         this.playerToPlay = null;
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.initializeGame(this.currentEra, this.currentGamePhase, null, null);
             } catch (java.rmi.RemoteException e) {
@@ -354,7 +354,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onPlayerAdded(Player playerAdded) {
         PlayerDTO player = new PlayerDTO(playerAdded);
         playersMap.put(playerAdded.getNickname(), player);
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.playerAdded(player);
             } catch (java.rmi.RemoteException e) {
@@ -372,7 +372,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     @Override
     public void onEraChanged(ERA currentEra) {
         this.currentEra = currentEra;
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.eraChanged(this.currentEra);
             } catch (java.rmi.RemoteException e) {
@@ -394,7 +394,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         // FIFO con tutte le altre notifiche (eventResolved, playerToPlayChanged,
         // playerToPlaceChanged, ecc.) ed evita race condition dovute a chiamate
         // RMI emesse da thread diversi del server.
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.gamePhaseChanged(currentGamePhase);
             } catch (java.rmi.RemoteException e) {
@@ -411,7 +411,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
         this.playerToPlay = null;
         this.playerToPlace = newPlayerToPlace.getNickname();
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace));
             } catch (java.rmi.RemoteException e) {
@@ -429,7 +429,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
         this.playerToPlace = null;
         this.playerToPlay = newPlayerToPlay.getNickname();
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay));
             } catch (java.rmi.RemoteException e) {
@@ -462,7 +462,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
         // FIX: Cast esplicito a BuildingDTO aggiunto!
         this.topBuildings = new ArrayList<>(topBuildingCards.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.topBuildingRefreshed(this.topBuildings);
             } catch (RemoteException e) {
@@ -481,7 +481,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
             this.topBuildings.remove(position);
-            executor.submit(()->{
+            submitTask(()->{
                 try {
                     clientStub.topBuildRemoved(position);
                 } catch (java.rmi.RemoteException e) {
@@ -492,7 +492,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
         } else {
             this.topCards.remove(position);
-            executor.submit(()->{
+            submitTask(()->{
                 try {
                     clientStub.topCardRemoved(position);
                 } catch (java.rmi.RemoteException e) {
@@ -513,7 +513,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
             this.bottomBuildings.remove(position);
-            executor.submit(()->{
+            submitTask(()->{
                 try {
                     clientStub.bottomBuildRemoved(position);
                 } catch (java.rmi.RemoteException e) {
@@ -523,7 +523,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
         } else {
             this.bottomCards.remove(position);
-            executor.submit(()->{
+            submitTask(()->{
                 try {
                     clientStub.bottomCardRemoved(position);
                 } catch (java.rmi.RemoteException e) {
@@ -540,7 +540,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     @Override
     public void notifyCardAddedToTribe(String playername, Card cardAdded) {
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.addedCardToTribe(playername, cardAdded.toDTO());
             } catch (RemoteException e) {
@@ -565,7 +565,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
         List<CardDTO> cards = new ArrayList<>(extraDrawSnapshotCards);
         List<BuildingDTO> buildings = new ArrayList<>(extraDrawSnapshotBuildings);
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.askExtraDraw(cards, buildings);
             } catch (RemoteException e) {
@@ -581,7 +581,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     @Override
     public void actionOfferTileChanged(int drawTop, int drawBottom) {
-        executor.submit(()->{
+        submitTask(()->{
             try {
                 clientStub.actionAvailableChanged(new ActionDTO(drawTop, drawBottom));
             } catch (RemoteException e) {
@@ -591,6 +591,25 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         });
 
 
+    }
+
+    /**
+     * Submits a notification task to the single-thread executor.
+     * If the executor has already been shut down (player disconnected) the task is
+     * silently discarded — the client is gone and no notification is needed.
+     * This prevents {@link java.util.concurrent.RejectedExecutionException} from
+     * propagating up to the model when a disconnected player's view still receives
+     * model events (e.g. playerToPlaceChanged fired right after markDisconnected()).
+     *
+     * @param task the notification runnable to enqueue.
+     */
+    private void submitTask(Runnable task) {
+        if (!connected) return;
+        try {
+            executor.submit(task);
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // Executor was already shut down (player disconnected) — nothing to do.
+        }
     }
 
     private void logServerEvent(String message) {
@@ -608,7 +627,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         // rispetto a notifyPP/Food, gamePhaseChanged, playerToPlay/PlaceChanged.
         // In precedenza era sincrono e bypassava la coda, generando una race
         // condition con i task asincroni già in coda.
-        executor.submit(() -> {
+        submitTask(() -> {
             try {
                 clientStub.eventResolved(description);
             } catch (RemoteException e) {
