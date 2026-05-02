@@ -109,4 +109,12 @@ public interface ServerRemoteInterface extends Remote {
      * @throws RemoteException if the RMI call fails.
      */
     void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException;
+
+    /**
+     * Heartbeat signal sent by the client to the server to prove it is still connected.
+     * The server resets the missed-ping counter for this player on every call.
+     * @param player the calling player's data (used to identify the sender).
+     * @throws RemoteException if the RMI call fails.
+     */
+    void ping(PlayerDTO player) throws RemoteException;
 }

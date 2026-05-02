@@ -57,7 +57,33 @@ public class ClientTUI {
         }
 
         // ==========================================================
-        // 2. GAME LOOP
+        // 2. PING THREAD
+        // myPlayer is now known — start sending heartbeats every 3 s.
+        // ==========================================================
+        final PlayerDTO pingPlayer = myPlayer;
+        Thread pingThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
+                try {
+                    serverStub.ping(pingPlayer);
+                } catch (Exception e) {
+                    // If the server is unreachable the ServerListener will handle it;
+                    // just stop the ping thread.
+                    return;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+        pingThread.setDaemon(true);
+        pingThread.setName("heartbeat-ping");
+        pingThread.start();
+
+        // ==========================================================
+        // 3. GAME LOOP
         // myPlayer is now known — build the game-phase helpers.
         // ==========================================================
         PlacementTUI    placementTUI    = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
@@ -66,6 +92,13 @@ public class ClientTUI {
         BoardTUI        boardTUI        = new BoardTUI(clientHandler, utils);
 
         while (true) {
+            // Exit immediately if the server went away
+            if (clientHandler.isServerDead()) {
+                utils.clearScreen();
+                System.err.println("Connessione al server persa. Il gioco si chiude.");
+                return;
+            }
+
             // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
             // dal suo wait loop su gamePhaseChanged(SOLVING_EVENTS) e, prima che
             // il thread TUI arrivi a waitForMyTurn(), l'executor ha già consegnato
@@ -192,6 +225,9 @@ public class ClientTUI {
         printWaitingScreen();
 
         while (!isMyTurn()) {
+            // Exit if the server went away while we were waiting
+            if (clientHandler.isServerDead()) return;
+
             // Release the lock for up to 300 ms so the server can notify us.
             synchronized (clientHandler.turnLock) {
                 if (!isMyTurn()) {

@@ -153,6 +153,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
         logServerEvent("All clients synced. The game is ready!");
         controller.controllerGameStar();
+        startWatchdog();
     }
 
     /**
@@ -255,7 +256,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+    public synchronized void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         try {
             int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
             Map<Integer, List<String>> leaderboards = new HashMap<>();
@@ -275,6 +276,103 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Receives a heartbeat ping from a client and resets that player's missed-ping counter.
+     * @param player the player sending the ping (identified by nickname).
+     */
+    @Override
+    public synchronized void ping(PlayerDTO player) throws RemoteException {
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.getNickname().equals(player.getNickName())) {
+                view.receivePing();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Called by {@link it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler}
+     * when a socket client's stream drops. Finds the virtual view matching the given proxy
+     * and triggers disconnection handling.
+     * @param proxy the {@link ClientRemoteInterface} proxy whose socket closed.
+     */
+    public void handleSocketClientDisconnection(ClientRemoteInterface proxy) {
+        String nickname = null;
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.getClientStub() == proxy) {
+                nickname = view.getNickname();
+                break;
+            }
+        }
+        if (nickname != null) {
+            notifyPlayerDisconnected(nickname);
+        }
+    }
+
+    /**
+     * Central disconnection handler. Marks the view as disconnected, broadcasts
+     * a {@code playerDisconnected} notification to all clients, then tells the
+     * controller to update the game model and advance the turn if needed.
+     * @param nickname the disconnected player's nickname.
+     */
+    public synchronized void notifyPlayerDisconnected(String nickname) {
+        if (!isGameStarted || controller == null) return;
+
+        // Find the view; guard against double-disconnection
+        ServerVirtualView disconnectedView = null;
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.getNickname().equals(nickname)) {
+                disconnectedView = view;
+                break;
+            }
+        }
+        if (disconnectedView == null || !disconnectedView.isConnected()) return;
+
+        // Stop sending notifications to the dead client
+        disconnectedView.markDisconnected();
+        logServerEvent("Player '" + nickname + "' has disconnected.");
+
+        // 1. Tell all surviving clients about the disconnection (via their executors, in order)
+        for (ServerVirtualView view : waitingPlayers) {
+            view.notifyPlayerDisconnected(nickname);
+        }
+
+        // 2. Update game model and advance turn / end game if necessary
+        controller.notifyPlayerDisconnected(nickname);
+    }
+
+    /**
+     * Starts the counter-based heartbeat watchdog. Every 3 seconds each view's
+     * missed-ping counter is incremented. When a view reaches 3 consecutive missed pings
+     * (~9 seconds total) the player is declared disconnected.
+     */
+    private void startWatchdog() {
+        Thread watchdog = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                // Iterate over a snapshot to avoid ConcurrentModificationException
+                for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
+                    if (!view.isConnected()) continue;
+                    int missed = view.incrementMissedPings();
+                    if (missed >= 3) {
+                        logServerEvent("Player '" + view.getNickname()
+                                + "' missed " + missed + " consecutive pings — declaring disconnected.");
+                        notifyPlayerDisconnected(view.getNickname());
+                    }
+                }
+            }
+        });
+        watchdog.setDaemon(true);
+        watchdog.setName("heartbeat-watchdog");
+        watchdog.start();
+        logServerEvent("Heartbeat watchdog started (tick=3s, threshold=3 missed pings).");
     }
 
     private void logServerEvent(String message) {

@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.server.model.Game;
 
 import it.polimi.ingsw.am25.server.model.Board.BoardView;
+import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.EndOfPlacingPhaseException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.EndOfPlayingPhaseException;
@@ -31,38 +32,51 @@ public class TurnManager {
     }
 
     /**
-     * Returns the next playing player and removes them from the playing-order queue.
-     * When the queue is empty all players have resolved their actions for this round.
+     * Returns the next playing player and removes them from the playing-order queue,
+     * automatically skipping any DISCONNECTED players until a connected one is found.
+     * When the queue is empty (or contains only disconnected players) all players have
+     * resolved their actions for this round.
      *
-     * @return the next player to resolve their actions
-     * @throws EndOfPlayingPhaseException if there are no more players in the playing-order queue
+     * @return the next connected player to resolve their actions
+     * @throws EndOfPlayingPhaseException if there are no more connected players in the queue
      */
     public Player getNextPlayingPlayer() throws EndOfPlayingPhaseException {
-        if(!playingOrder.isEmpty()){
-            Player playerToRet=playingOrder.get(0);
-            playingOrder.remove(0);
-            return playerToRet;
-        }else{
-            throw new EndOfPlayingPhaseException("Tutti i giocatori hanno risolto le loro azioni");
+        while (!playingOrder.isEmpty()) {
+            Player playerToRet = playingOrder.remove(0);
+            if (playerToRet.getConnectionStatus() != CONNECTION_STATUS.DISCONNECTED) {
+                return playerToRet;
+            }
         }
+        throw new EndOfPlayingPhaseException("Tutti i giocatori hanno risolto le loro azioni");
     }
 
     /**
-     * Returns the next placing player and removes them from the placing-order queue.
-     * When the queue is empty all players have placed their totems for this round.
+     * Returns the next placing player and removes them from the placing-order queue,
+     * automatically skipping any DISCONNECTED players until a connected one is found.
+     * When the queue is empty (or contains only disconnected players) all players have
+     * placed their totems for this round.
      *
-     * @return the next player to place their totem
-     * @throws EndOfPlacingPhaseException if there are no more players in the placing-order queue
+     * @return the next connected player to place their totem
+     * @throws EndOfPlacingPhaseException if there are no more connected players in the queue
      */
-    public Player getNextPlacingPlayer() throws EndOfPlacingPhaseException{
-        if(!placingOrder.isEmpty()){
-            Player playerToRet=placingOrder.get(0);
-            placingOrder.remove(0);
-            return playerToRet;
-        }else{
-            throw new EndOfPlacingPhaseException("Tutti i giocatori sono stati posizionati");
+    public Player getNextPlacingPlayer() throws EndOfPlacingPhaseException {
+        while (!placingOrder.isEmpty()) {
+            Player playerToRet = placingOrder.remove(0);
+            if (playerToRet.getConnectionStatus() != CONNECTION_STATUS.DISCONNECTED) {
+                return playerToRet;
+            }
         }
+        throw new EndOfPlacingPhaseException("Tutti i giocatori sono stati posizionati");
+    }
 
+    /**
+     * Removes a disconnected player from both the placing and playing queues immediately.
+     * This prevents the game from waiting for a player who will never act.
+     * @param player the player to remove.
+     */
+    public void removePlayer(Player player) {
+        placingOrder.removeIf(p -> p.getNickname().equals(player.getNickname()));
+        playingOrder.removeIf(p -> p.getNickname().equals(player.getNickname()));
     }
     
 

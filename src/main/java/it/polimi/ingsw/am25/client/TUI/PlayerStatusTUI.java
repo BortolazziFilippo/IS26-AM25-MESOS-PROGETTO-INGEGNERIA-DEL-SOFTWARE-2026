@@ -90,14 +90,17 @@ public class PlayerStatusTUI {
     // ==========================================================
 
     private void printPlayerCard(PlayerDTO player) {
-        boolean isMe      = myPlayer != null && myPlayer.getNickName().equals(player.getNickName());
-        String colorCode  = colorToAnsi(player.getColorTotem());
-        String tag        = isMe ? "  << TU >>" : "";
+        boolean isMe           = myPlayer != null && myPlayer.getNickName().equals(player.getNickName());
+        boolean isDisconnected = clientHandler.isPlayerDisconnected(player.getNickName());
+        String colorCode       = colorToAnsi(player.getColorTotem());
+        String tag             = isMe ? "  << TU >>" : "";
+        String statusTag       = isDisconnected ? "  [DISCONNESSO]" : "  [ONLINE]";
 
         System.out.println(SEPARATOR);
         System.out.println(colorCode
                 + "  Giocatore: " + player.getNickName()
                 + "  [" + colorName(player.getColorTotem()) + "]"
+                + statusTag
                 + tag
                 + TUIUtils.RESET);
         System.out.println(SEPARATOR);

@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * Client-side implementation of {@link ClientRemoteInterface}. Receives game-state
@@ -78,6 +79,12 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private List<CardDTO> extraDrawCards = new ArrayList<>();
     /** Top building row snapshot sent with the draw-one-more request; shows round-closing buildings. */
     private List<BuildingDTO> extraDrawBuildings = new ArrayList<>();
+
+    // --- DISCONNECTION TRACKING ---
+    /** Set of nicknames of players that have disconnected during the game. */
+    private final Set<String> disconnectedPlayers = ConcurrentHashMap.newKeySet();
+    /** {@code true} when the server has been detected as unreachable. */
+    public volatile boolean serverDead = false;
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -692,6 +699,54 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             resolvedEvents.clear();
         }
+    }
+
+    // --- DISCONNECTION ---
+
+    /**
+     * Called by the server (via RMI stub or Socket proxy) when a player has disconnected.
+     * Adds the player to the disconnected set and wakes up the TUI turn lock.
+     * @param nickname the disconnected player's nickname.
+     * @throws RemoteException if the RMI call fails.
+     */
+    @Override
+    public void playerDisconnected(String nickname) throws RemoteException {
+        disconnectedPlayers.add(nickname);
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
+
+    /**
+     * Returns {@code true} if the given player is known to have disconnected.
+     * @param nickname the player's nickname.
+     * @return whether the player is disconnected.
+     */
+    public boolean isPlayerDisconnected(String nickname) {
+        return disconnectedPlayers.contains(nickname);
+    }
+
+    /**
+     * Called when the server becomes unreachable (socket drop, RMI timeout, etc.).
+     * Sets the {@code serverDead} flag and wakes up any waiting TUI threads so they
+     * can exit cleanly.
+     */
+    public void handleServerDeath() {
+        this.serverDead = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
+        }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
+
+    /**
+     * Returns {@code true} if the server has been detected as unreachable.
+     * @return server-dead flag.
+     */
+    public boolean isServerDead() {
+        return serverDead;
     }
 
 }

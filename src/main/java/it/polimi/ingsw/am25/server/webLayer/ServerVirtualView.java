@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Server-side per-client view. Listens to all model observers and forwards each event
@@ -36,6 +37,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private final String nickname;
     private final ClientRemoteInterface clientStub;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    // --- HEARTBEAT ---
+    /** Counter of consecutive pings missed by this client. Reset to 0 on each ping received. */
+    private final AtomicInteger missedPings = new AtomicInteger(0);
+    /** {@code false} once the player has been declared disconnected; stops further notifications. */
+    private volatile boolean connected = true;
     //_________________________________________________________________________________________
     private List<PlayerDTO> winners;
     private ERA currentEra;
@@ -65,6 +71,65 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     public ServerVirtualView(ClientRemoteInterface clientStub, String nickname) {
         this.clientStub = clientStub;
         this.nickname = nickname;
+    }
+
+    // --- HEARTBEAT API ---
+
+    /** Returns the nickname of the player this view represents. */
+    public String getNickname() {
+        return nickname;
+    }
+
+    /** Returns the client stub (RMI or Socket proxy) this view writes to. */
+    public ClientRemoteInterface getClientStub() {
+        return clientStub;
+    }
+
+    /** Returns {@code true} while this player is considered connected. */
+    public boolean isConnected() {
+        return connected;
+    }
+
+    /**
+     * Called when a ping is received from this player.
+     * Resets the missed-ping counter to zero.
+     */
+    public void receivePing() {
+        missedPings.set(0);
+    }
+
+    /**
+     * Called by the watchdog every tick to count one more missed heartbeat.
+     * @return the new missed-ping count after incrementing.
+     */
+    public int incrementMissedPings() {
+        return missedPings.incrementAndGet();
+    }
+
+    /**
+     * Marks this view as disconnected and shuts down the executor so no further
+     * notifications are sent to a dead client.
+     */
+    public void markDisconnected() {
+        connected = false;
+        executor.shutdownNow();
+    }
+
+    /**
+     * Sends a {@code playerDisconnected} notification to the client represented by
+     * this view, informing it that the given player has left the game.
+     * Uses the executor so the message is FIFO-ordered with other notifications.
+     * @param disconnectedNickname the nickname of the player who disconnected.
+     */
+    public void notifyPlayerDisconnected(String disconnectedNickname) {
+        if (!connected) return;
+        executor.submit(() -> {
+            try {
+                clientStub.playerDisconnected(disconnectedNickname);
+            } catch (RemoteException e) {
+                logServerError("Failed to notify playerDisconnected('" + disconnectedNickname + "') to '" + nickname + "'");
+            }
+        });
     }
 
     /**

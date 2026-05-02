@@ -660,4 +660,25 @@ public class Game implements GameView {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
+    // --- DISCONNECTION SUPPORT ---
+
+    /**
+     * Removes the given player from both the placing and playing turn queues immediately.
+     * Called when a player disconnects so the game never waits for them.
+     * @param player the disconnected player.
+     */
+    public void removeFromTurnQueues(Player player) {
+        turnManager.removePlayer(player);
+    }
+
+    /**
+     * Advances the placing phase to the next connected player without placing a totem.
+     * Used when the current placing player has disconnected mid-phase.
+     * @throws EndOfPlacingPhaseException if no more connected players need to place.
+     */
+    public void skipDisconnectedPlacingPlayer() throws EndOfPlacingPhaseException {
+        this.playerToPlace = turnManager.getNextPlacingPlayer();
+        notifyPlayerToPlaceChanged();
+    }
+
 }
