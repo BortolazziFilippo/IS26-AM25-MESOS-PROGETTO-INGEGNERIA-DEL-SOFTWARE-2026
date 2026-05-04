@@ -36,6 +36,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private final String nickname;
     private final ClientRemoteInterface clientStub;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     //_________________________________________________________________________________________
     private List<PlayerDTO> winners;
     private ERA currentEra;
