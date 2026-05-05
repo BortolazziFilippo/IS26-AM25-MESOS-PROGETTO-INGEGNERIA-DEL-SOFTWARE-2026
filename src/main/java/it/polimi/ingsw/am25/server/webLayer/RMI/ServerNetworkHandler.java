@@ -15,6 +15,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,11 +27,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
-    private final List<PlayerDTO> playerDTOS=new ArrayList<>();
+    /** Fast nickname → view lookup used by ping() without holding the global lock. */
+    private final ConcurrentHashMap<String, ServerVirtualView> viewsByNickname = new ConcurrentHashMap<>();
+    private final List<PlayerDTO> playerDTOS = new ArrayList<>();
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
-    private final AtomicInteger rankRequestCount=new AtomicInteger(0);
+    private final AtomicInteger rankRequestCount = new AtomicInteger(0);
+    private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
+    private volatile Thread watchdogThread;
     /**
      * Initializes the RMI network handler and exports it as a remote object,
      * making it reachable by Mesos clients via the RMI registry.
@@ -56,8 +62,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
         this.requiredPlayers = playerNumber;
         // Create the VirtualView for the host and bind their remote interface.
-        ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, playerHost.getNickName());
+        String hostNick = playerHost.getNickName();
+        ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, hostNick,
+                () -> notifyPlayerDisconnected(hostNick));
         waitingPlayers.add(hostView);
+        viewsByNickname.put(hostNick, hostView);
         playerDTOS.add(playerHost);
 
         logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
@@ -86,8 +95,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
 
         // Create the VirtualView for the new player and bind their remote interface.
-        ServerVirtualView playerView = new ServerVirtualView(clientRemoteInterface, playerDTO.getNickName());
+        String joinNick = playerDTO.getNickName();
+        ServerVirtualView playerView = new ServerVirtualView(clientRemoteInterface, joinNick,
+                () -> notifyPlayerDisconnected(joinNick));
         waitingPlayers.add(playerView);
+        viewsByNickname.put(joinNick, playerView);
         playerDTOS.add(playerDTO);
         logServerEvent("Player '" + playerDTO.getNickName() + "' joined (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
 
@@ -264,15 +276,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 leaderboards.put(i, DBManager.getLeaderboard(i));
             }
             clientRemoteInterface.sendRank(leaderboards);
-            if (requiredPlayers > 0 && rankRequestCount.incrementAndGet() >= requiredPlayers) {
-                Thread shutdown = new Thread(() -> {
-                    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-                    UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
-                    System.exit(0);
-                });
-                shutdown.setDaemon(true);
-                shutdown.start();
-            }
+            rankRequestCount.incrementAndGet();
+            checkAndShutdownIfDone();
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -280,16 +285,13 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
     /**
      * Receives a heartbeat ping from a client and resets that player's missed-ping counter.
+     * Uses a ConcurrentHashMap lookup so it does not need the global lock.
      * @param player the player sending the ping (identified by nickname).
      */
     @Override
-    public synchronized void ping(PlayerDTO player) throws RemoteException {
-        for (ServerVirtualView view : waitingPlayers) {
-            if (view.getNickname().equals(player.getNickName())) {
-                view.receivePing();
-                break;
-            }
-        }
+    public void ping(PlayerDTO player) throws RemoteException {
+        ServerVirtualView view = viewsByNickname.get(player.getNickName());
+        if (view != null) view.receivePing();
     }
 
     /**
@@ -298,7 +300,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * and triggers disconnection handling.
      * @param proxy the {@link ClientRemoteInterface} proxy whose socket closed.
      */
-    public void handleSocketClientDisconnection(ClientRemoteInterface proxy) {
+    public synchronized void handleSocketClientDisconnection(ClientRemoteInterface proxy) {
         String nickname = null;
         for (ServerVirtualView view : waitingPlayers) {
             if (view.getClientStub() == proxy) {
@@ -334,13 +336,20 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         disconnectedView.markDisconnected();
         logServerEvent("Player '" + nickname + "' has disconnected.");
 
-        // 1. Tell all surviving clients about the disconnection (via their executors, in order)
+        // 1. Tell all surviving connected clients about the disconnection
         for (ServerVirtualView view : waitingPlayers) {
-            view.notifyPlayerDisconnected(nickname);
+            if (view.isConnected()) {
+                view.notifyPlayerDisconnected(nickname);
+            }
         }
 
         // 2. Update game model and advance turn / end game if necessary
         controller.notifyPlayerDisconnected(nickname);
+
+        // 3. This player will never call askForRank — count them as done so the
+        //    server can shut down once all remaining connected players have received their rank.
+        rankRequestCount.incrementAndGet();
+        checkAndShutdownIfDone();
     }
 
     /**
@@ -349,7 +358,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * (~9 seconds total) the player is declared disconnected.
      */
     private void startWatchdog() {
-        Thread watchdog = new Thread(() -> {
+        watchdogThread = new Thread(() -> {
             // Grace period: give all clients time to start their ping threads
             // before we begin counting missed pings.
             try {
@@ -377,10 +386,30 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 }
             }
         });
-        watchdog.setDaemon(true);
-        watchdog.setName("heartbeat-watchdog");
-        watchdog.start();
+        watchdogThread.setDaemon(true);
+        watchdogThread.setName("heartbeat-watchdog");
+        watchdogThread.start();
         logServerEvent("Heartbeat watchdog started (tick=3s, threshold=3 missed pings).");
+    }
+
+    /**
+     * Shuts down the server once every player (connected or disconnected) has been accounted
+     * for in {@code rankRequestCount}. Guards against multiple shutdown threads with an
+     * {@code AtomicBoolean} so only the first caller actually starts the exit sequence.
+     */
+    private void checkAndShutdownIfDone() {
+        if (requiredPlayers > 0
+                && rankRequestCount.get() >= requiredPlayers
+                && shutdownInitiated.compareAndSet(false, true)) {
+            if (watchdogThread != null) watchdogThread.interrupt();
+            Thread shutdown = new Thread(() -> {
+                try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
+                System.exit(0);
+            });
+            shutdown.setDaemon(true);
+            shutdown.start();
+        }
     }
 
     private void logServerEvent(String message) {

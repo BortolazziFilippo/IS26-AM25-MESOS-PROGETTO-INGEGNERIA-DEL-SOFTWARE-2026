@@ -66,8 +66,8 @@ public class ClientTUI {
                 try {
                     serverStub.ping(pingPlayer);
                 } catch (Exception e) {
-                    // If the server is unreachable the ServerListener will handle it;
-                    // just stop the ping thread.
+                    // Server unreachable — wake up the TUI so it can exit cleanly.
+                    clientHandler.handleServerDeath();
                     return;
                 }
                 try {
