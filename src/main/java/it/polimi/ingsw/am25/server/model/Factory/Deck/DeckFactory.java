@@ -65,7 +65,7 @@ public class DeckFactory {
                     cardToReturn.add(new ArtistCard(temp.getEra(),temp.getCardType()));
                     break;
                 case BUILDER:
-                    cardToReturn.add(new BuilderCard(temp.getEra(),temp.getCardType(),temp.getFoodDiscount(),temp.getFinalPrestigePoint()));
+                    cardToReturn.add(new BuilderCard(temp.getEra(),temp.getCardType(),temp.getFoodDiscount(),temp.getFinalPrestigePoint(),temp.getBuilderID()));
                     break;
                 case GATHERER:
                     cardToReturn.add(new GathererCard(temp.getEra(),temp.getCardType()));

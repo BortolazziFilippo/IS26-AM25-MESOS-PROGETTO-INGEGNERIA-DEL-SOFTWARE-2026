@@ -16,7 +16,7 @@ import java.util.*;
  * formatted as {@code KEY=VALUE} pairs ({@code DB_USER} and {@code DB_PASSWORD}).
  */
 public class DBManager {
-    private static final String URL="jdbc:mysql://am25-leaderboard.c6b8uwgkopvm.us-east-1.rds.amazonaws.com:3306/leaderboardDB";
+    private static final String URL="jdbc:mysql://am25-leaderboard.c6b8uwgkopvm.us-east-1.rds.amazonaws.com:3306/leaderboardDB?connectTimeout=5000&socketTimeout=10000";
     private static final String LOG_PREFIX = "[SERVER][DB]";
     private static Connection connection;
 

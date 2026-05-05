@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.polimi.ingsw.am25.client.GUI.Controllers.TileContorller">
+   <children>
+      <BorderPane layoutX="-1.0" layoutY="100.0" prefHeight="200.0" prefWidth="600.0">
+         <center>
+            <HBox id="tileRail" prefHeight="100.0" prefWidth="200.0" spacing="10.0" BorderPane.alignment="CENTER" />
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>

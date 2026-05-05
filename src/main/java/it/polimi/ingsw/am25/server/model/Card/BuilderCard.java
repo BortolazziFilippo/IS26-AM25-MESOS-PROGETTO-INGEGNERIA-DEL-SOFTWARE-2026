@@ -12,6 +12,7 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 public class BuilderCard extends Card{
     private final int foodDiscount;
     private int finalPrestigePoint;
+    private final int builderID;
 
     /**
      * Default constructor for BuilderCard.
@@ -20,12 +21,14 @@ public class BuilderCard extends Card{
      * @param cardType           Card type
      * @param foodDiscount       food discount applied when buying a building
      * @param finalPrestigePoint prestige points awarded at end of game
+     * @param builderID          unique identifier shared by cards with the same effect
      */
-    public BuilderCard(ERA era, CARD_TYPE cardType, int foodDiscount, int finalPrestigePoint){
+    public BuilderCard(ERA era, CARD_TYPE cardType, int foodDiscount, int finalPrestigePoint, int builderID){
         this.era = era;
         this.cardType=cardType;
         this.foodDiscount = foodDiscount;
         this.finalPrestigePoint = finalPrestigePoint;
+        this.builderID = builderID;
     }
 
     /**
@@ -34,6 +37,10 @@ public class BuilderCard extends Card{
      */
     public int getFoodDiscount() {
         return foodDiscount;
+    }
+
+    public int getBuilderID() {
+        return builderID;
     }
 
     /**

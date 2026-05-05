@@ -23,6 +23,7 @@ public class CardDTO implements Serializable {
     private int foodDiscount;
     private int finalPrestigePoint;
     private boolean hasIcon;
+    private int builderID;
 
     /**
      * Constructs a CardDTO from an {@link ArtistCard}.
@@ -100,6 +101,7 @@ public class CardDTO implements Serializable {
         this.cardType = card.getCardType();
         this.foodDiscount = card.getFoodDiscount();
         this.finalPrestigePoint = card.getFinalPrestigePoint();
+        this.builderID = card.getBuilderID();
     }
 
 
@@ -149,6 +151,10 @@ public class CardDTO implements Serializable {
      */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
+    }
+
+    public int getBuilderID() {
+        return builderID;
     }
 
     /**
