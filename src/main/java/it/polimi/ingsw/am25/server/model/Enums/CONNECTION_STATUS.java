@@ -5,7 +5,14 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum CONNECTION_STATUS {
     /** The player is reachable. */
-    CONNECTED,
+    CONNECTED("Connesso"),
     /** The player's connection has been lost. */
-    DISCONNECTED
+    DISCONNECTED("Disconnesso");
+
+    private final String displayName;
+
+    CONNECTION_STATUS(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }

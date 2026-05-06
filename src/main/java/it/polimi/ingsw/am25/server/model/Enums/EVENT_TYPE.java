@@ -6,15 +6,22 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum EVENT_TYPE {
     /** Hunt event — rewards players with Hunter cards and grants food. */
-    HUNT,
+    HUNT("Caccia"),
     /** Paintings event — rewards players with Artist cards; penalises others. */
-    PAINTINGS,
+    PAINTINGS("Pitture"),
     /** Shamanic ritual — awards prestige points to the player with the most Shaman cards. */
-    SHAMANIC_RIT,
+    SHAMANIC_RIT("Rituale sciamanico"),
     /** Sustenance event — players must pay food or lose prestige points. */
-    SUSTENANCE,
+    SUSTENANCE("Sostentamento"),
     /** End-of-round event — resolved automatically at the close of each round. */
-    END_ROUND,
+    END_ROUND("Fine round"),
     /** End-of-game event — resolved when the final round concludes. */
-    END_GAME
+    END_GAME("Fine partita");
+
+    private final String displayName;
+
+    EVENT_TYPE(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }

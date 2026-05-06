@@ -6,23 +6,30 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum INV_ICON {
     /** Bread icon. */
-    BREAD,
+    BREAD("Pane"),
     /** Stone icon. */
-    STONE,
+    STONE("Pietra"),
     /** Necklace icon. */
-    NECKLACE,
+    NECKLACE("Collana"),
     /** Bait icon. */
-    BAIT,
+    BAIT("Esca"),
     /** Ghost icon. */
-    GHOST,
+    GHOST("Fantasma"),
     /** Arrow icon. */
-    ARROW,
+    ARROW("Freccia"),
     /** Leather icon. */
-    LEATHER,
+    LEATHER("Cuoio"),
     /** Rope icon. */
-    ROPE,
+    ROPE("Corda"),
     /** Flute icon. */
-    FLUTE,
+    FLUTE("Flauto"),
     /** Bowl icon. */
-    BOWL
+    BOWL("Ciotola");
+
+    private final String displayName;
+
+    INV_ICON(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }

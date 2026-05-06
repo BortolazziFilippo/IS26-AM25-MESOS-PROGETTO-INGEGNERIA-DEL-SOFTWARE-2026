@@ -5,19 +5,26 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum CARD_TYPE {
     /** A building card that can be purchased with food and triggers special effects. */
-    BUILDING,
+    BUILDING("Edificio"),
     /** An event card that resolves at the end of a round, affecting all players. */
-    EVENT,
+    EVENT("Evento"),
     /** An Inventor tribe member, contributing to invention set bonuses. */
-    INVENTOR,
+    INVENTOR("Inventore"),
     /** An Artist tribe member, contributing to the painting event. */
-    ARTIST,
+    ARTIST("Artista"),
     /** A Gatherer tribe member, providing food income. */
-    GATHERER,
+    GATHERER("Raccoglitore"),
     /** A Shaman tribe member, scoring prestige points via the shaman majority. */
-    SHAMAN,
+    SHAMAN("Sciamano"),
     /** A Builder tribe member, reducing building costs and scoring end-game PP. */
-    BUILDER,
+    BUILDER("Costruttore"),
     /** A Hunter tribe member, triggering hunt-event bonuses. */
-    HUNTER
+    HUNTER("Cacciatore");
+
+    private final String displayName;
+
+    CARD_TYPE(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }

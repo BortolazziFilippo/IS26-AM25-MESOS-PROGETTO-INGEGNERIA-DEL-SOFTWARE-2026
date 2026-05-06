@@ -5,13 +5,20 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum COLOR {
     /** Red totem. */
-    RED,
+    RED("Rosso"),
     /** Blue totem. */
-    BLUE,
+    BLUE("Blu"),
     /** Yellow totem. */
-    YELLOW,
+    YELLOW("Giallo"),
     /** Green totem. */
-    GREEN,
+    GREEN("Verde"),
     /** Purple totem. */
-    PURPLE
+    PURPLE("Viola");
+
+    private final String displayName;
+
+    COLOR(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }

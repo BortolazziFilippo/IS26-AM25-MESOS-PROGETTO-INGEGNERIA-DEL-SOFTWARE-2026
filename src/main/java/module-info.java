@@ -8,6 +8,7 @@ module it.polimi.ingsw.am25 {
     requires com.google.gson;
     requires java.rmi;
     requires java.sql;
+    requires java.smartcardio;
     //requires it.polimi.ingsw.am25; mi da errore --> ciclica dipendenza
     exports it.polimi.ingsw.am25.client.webLayer.RMI to java.rmi;
     exports it.polimi.ingsw.am25.server.webLayer.RMI to java.rmi;
@@ -19,6 +20,7 @@ module it.polimi.ingsw.am25 {
     opens it.polimi.ingsw.am25.server.model.Card to com.google.gson;
     opens it.polimi.ingsw.am25 to javafx.fxml;
     opens it.polimi.ingsw.am25.client.GUI to javafx.graphics, javafx.fxml;
+    opens it.polimi.ingsw.am25.client.GUI.Controllers to javafx.fxml;
     exports it.polimi.ingsw.am25.client.TUI;
     exports it.polimi.ingsw.am25.client to java.rmi;
     exports it.polimi.ingsw.am25.server.model.Controller;

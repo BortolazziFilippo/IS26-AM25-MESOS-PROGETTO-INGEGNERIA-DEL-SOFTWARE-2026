@@ -87,21 +87,22 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 //  L'osservatore GUI è responsabile di passare al thread JavaFX
 //  (Platform.runLater) prima di toccare i nodi grafici.
 // ----------------------------------------------------------------------
-    private volatile GUIObserver guiObserver;
-    /**
-     * Registra un singolo osservatore GUI. Passa null per togliere la registrazione.
-     */
-    public void setGUIObserver(GUIObserver guiObserver) {
-        this.guiObserver = guiObserver;
+    private final java.util.concurrent.CopyOnWriteArrayList<GUIObserver> guiObservers = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    public void addGUIObserver(GUIObserver observer) {
+        guiObservers.add(observer);
     }
 
-    private void updateObservers(java.util.function.Consumer<GUIObserver> action){
-        GUIObserver observer = this.guiObserver;
-        if(observer != null){
-            try{
+    public void removeGUIObserver(GUIObserver observer) {
+        guiObservers.remove(observer);
+    }
+
+    private void updateObservers(java.util.function.Consumer<GUIObserver> action) {
+        for (GUIObserver observer : guiObservers) {
+            try {
                 action.accept(observer);
-            }catch(Throwable t){
-                System.out.println("[GUI observer error]" + t.getMessage());
+            } catch (Throwable t) {
+                System.out.println("[GUI observer error] " + t.getMessage());
             }
         }
     }

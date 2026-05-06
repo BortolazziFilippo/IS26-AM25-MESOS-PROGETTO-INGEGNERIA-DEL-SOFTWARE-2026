@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.GUI;
 
+import it.polimi.ingsw.am25.client.GUI.Controllers.TileContorller;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
@@ -30,12 +31,14 @@ public class LobbyController implements GUIObserver {
     private ListView<String> playerList;
 
     private PlayerDTO playerDTO;
+    private TileContorller tileController;
+    private boolean gameScreenShown = false;
 
     public LobbyController(ServerRemoteInterface serverStub, ClientVirtualView clientHandler, Stage stage) {
         this.serverStub = serverStub;
         this.clientHandler = clientHandler;
         this.stage = stage;
-        clientHandler.setGUIObserver(this);
+        clientHandler.addGUIObserver(this);
     }
 
     public void showing() {
@@ -103,6 +106,7 @@ public class LobbyController implements GUIObserver {
         try {
             serverStub.createGame(player, spinner.getValue(), clientHandler);
             playerDTO = player;
+            tileController = new TileContorller(clientHandler, serverStub, playerDTO);
             label.setText("Partita creata. In attesa di altri giocatori...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -119,6 +123,7 @@ public class LobbyController implements GUIObserver {
         try {
             serverStub.addPlayer(player, clientHandler);
             playerDTO = player;
+            tileController = new TileContorller(clientHandler, serverStub, playerDTO);
             label.setText("Unito alla lobby. In attesa che inizi...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -142,10 +147,21 @@ public class LobbyController implements GUIObserver {
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
-        if (gamePhase == GAME_PHASE.PLACING_PHASE) {
+        if (gamePhase == GAME_PHASE.PLACING_PHASE && !gameScreenShown) {
+            gameScreenShown = true;
             Platform.runLater(() -> {
-                clientHandler.setGUIObserver(null); // si scollega
-                new GameController(stage, serverStub, clientHandler, playerDTO).showing();
+                try {
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                            getClass().getResource("/FXML/Market.fxml"));
+                    loader.setController(tileController);
+                    javafx.scene.Parent root = loader.load();
+                    stage.setScene(new javafx.scene.Scene(root));
+                    stage.setTitle("IS26-AM25 — Game");
+                    stage.setMaximized(true);
+                    stage.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
         }
     }

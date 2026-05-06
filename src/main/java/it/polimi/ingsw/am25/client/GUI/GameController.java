@@ -29,7 +29,7 @@ public class GameController implements GUIObserver{
         this.serverStub = serverStub;
         this.clientHandler = clientHandler;
         this.playerDTO = playerDTO;
-        clientHandler.setGUIObserver(this);
+        clientHandler.addGUIObserver(this);
     }
 
     public void showing() {

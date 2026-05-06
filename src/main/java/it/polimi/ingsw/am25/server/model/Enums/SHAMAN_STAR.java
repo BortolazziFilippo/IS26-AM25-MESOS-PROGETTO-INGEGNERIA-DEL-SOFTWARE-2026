@@ -6,9 +6,16 @@ package it.polimi.ingsw.am25.server.model.Enums;
  */
 public enum SHAMAN_STAR {
     /** Single star — contributes 1 to the shaman total. */
-    ONE,
+    ONE("Una stella"),
     /** Double star — contributes 2 to the shaman total. */
-    TWO,
+    TWO("Due stelle"),
     /** Triple star — contributes 3 to the shaman total. */
-    THREE
+    THREE("Tre stelle");
+
+    private final String displayName;
+
+    SHAMAN_STAR(String displayName) { this.displayName = displayName; }
+
+    @Override
+    public String toString() { return displayName; }
 }
