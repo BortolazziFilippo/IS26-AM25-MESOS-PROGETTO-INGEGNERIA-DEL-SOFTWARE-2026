@@ -305,7 +305,7 @@ public class PlayerStatusTUI {
             case RED:    return TUIUtils.RED;
             case BLUE:   return TUIUtils.BLUE;
             case YELLOW: return TUIUtils.YELLOW;
-            case GREEN:  return TUIUtils.GREEN;
+            case WHITE:  return TUIUtils.RESET;
             case PURPLE: return TUIUtils.PURPLE;
             default:     return TUIUtils.RESET;
         }
@@ -318,7 +318,7 @@ public class PlayerStatusTUI {
             case RED:    return "ROSSO";
             case BLUE:   return "BLU";
             case YELLOW: return "GIALLO";
-            case GREEN:  return "VERDE";
+            case WHITE:  return "BIANCO";
             case PURPLE: return "VIOLA";
             default:     return color.name();
         }

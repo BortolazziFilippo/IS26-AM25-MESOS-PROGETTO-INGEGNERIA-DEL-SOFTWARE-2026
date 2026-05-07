@@ -71,8 +71,8 @@ public class GameController implements GUIObserver{
         appendLog("→ Tocca a " + n + " (playing)");
     }
     @Override
-    public void onEventResolved (String d){
-        appendLog("Evento: " + d);
+    public void onEventResolved(int eventID, it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE eventType){
+        appendLog("Evento #" + eventID + " (" + eventType + ") risolto");
     }
     @Override
     public void onPlayerPPChanged (String n,int p){

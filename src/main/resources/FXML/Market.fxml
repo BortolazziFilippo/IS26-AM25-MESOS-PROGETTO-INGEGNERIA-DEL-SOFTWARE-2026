@@ -41,12 +41,12 @@
                     <children>
                         <Button fx:id="selectCardButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSelectCard" prefHeight="80.0" text="Seleziona carta" />
                         <Button fx:id="placeTotemButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem" />
+                        <Button fx:id="skipTurnButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno" />
                     </children>
                 </VBox>
             </items>
         </SplitPane>
-      <HBox spacing="60" style="-fx-padding: 12 14 12 14; -fx-alignment: CENTER_LEFT;"
-            AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+      <HBox spacing="60" style="-fx-padding: 12 14 12 14; -fx-alignment: CENTER_LEFT;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <VBox spacing="6">
                <children>
@@ -75,7 +75,38 @@
                   </HBox>
                </children>
             </VBox>
+            <VBox prefHeight="50.0" prefWidth="196.0">
+               <children>
+                  <Label fx:id="foodLabel" text="Cibo:">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="prestigePointLabel" layoutX="10.0" layoutY="10.0" prefHeight="22.0" prefWidth="165.0" text="Punti Prestigio:">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <VBox spacing="6">
+               <children>
+                  <Label fx:id="shamanStarLabel" text="Stelle sciamano:">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="builderDiscountLabel" text="Sconto Costruttori:">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <Button fx:id="tribeVisualizerButton" mnemonicParsing="false" onAction="#showThisPlayerTribe" prefHeight="51.0" prefWidth="123.0" text="Visualizza tribù" />
+            <Button fx:id="playerStatusButton" layoutX="1103.0" layoutY="22.0" mnemonicParsing="false" onAction="#showPlayerStatus" prefHeight="51.0" prefWidth="123.0" text="Stato giocatori" />
          </children>
       </HBox>
+      <HBox layoutY="963.0" prefHeight="100.0" prefWidth="1700.0" />
     </children>
 </AnchorPane>

@@ -545,7 +545,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         // condition con i task asincroni già in coda.
         executor.submit(() -> {
             try {
-                clientStub.eventResolved(description);
+                clientStub.eventResolved(eventID, eventType);
             } catch (RemoteException e) {
                 logServerError("Failed to notify event resolved: " + description);
             }

@@ -8,7 +8,10 @@ import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
@@ -16,11 +19,19 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
+import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
+
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class TileContorller implements GUIObserver {
 
@@ -37,29 +48,71 @@ public class TileContorller implements GUIObserver {
 
     private double cardFitHeight = 220;
 
-    // --- stato di gioco ---
-    private GAME_PHASE currentPhase = null;
-    private String playerToPlace = null;
-    private String playerToPlay = null;
+    // --- posizioni totem (frazione larghezza/altezza tile) ---
+    private static final double OFFER_TOTEM_X = 0.50;
+    private static final double OFFER_TOTEM_Y = 0.27;
+    private static final Map<Integer, double[]> DEFAULT_SLOT_Y = Map.of(
+            2, new double[]{0.30, 0.48},
+            3, new double[]{0.27, 0.43, 0.61},
+            4, new double[]{0.21, 0.39, 0.57, 0.76},
+            5, new double[]{0.15, 0.31, 0.49, 0.68, 0.86}
+    );
+
+    // --- flag render unico delle tile ---
+    private boolean tilesRendered = false;
 
     // --- selezione tile ---
     private int selectedTilePosition = -1;
-    private ImageView selectedTileView = null;
+    private javafx.scene.layout.StackPane selectedTilePane = null;
+
+    // --- overlay totem ---
+    private javafx.scene.layout.Pane defaultTileOverlay = null;
+    private double defaultTileWidth = 0;
+    private final Map<Integer, javafx.scene.layout.Pane> offerTileOverlays = new HashMap<>();
+    private final Map<Integer, Double> offerTileWidths = new HashMap<>();
+
+    // --- popup eventi ---
+    private Stage eventPopupStage = null;
+    private VBox eventListBox = null;
 
     // --- selezione carta ---
     private ImageView selectedCardView = null;
     private int topTribeCount = 0;    // carte tribù in topCardHbox; building vengono dopo
     private int bottomTribeCount = 0; // carte tribù in bottomCardHbox; building vengono dopo
 
-    @FXML private HBox topCardHbox;
-    @FXML private HBox tileHbox;
-    @FXML private HBox bottomCardHbox;
-    @FXML private Button selectCardButton;
-    @FXML private Button placeTotemButton;
-    @FXML private Label phaseLabel;
-    @FXML private Label currentPlayerLabel;
-    @FXML private Label drawTopLabel;
-    @FXML private Label drawBotLabel;
+    @FXML
+    private HBox topCardHbox;
+    @FXML
+    private HBox tileHbox;
+    @FXML
+    private HBox bottomCardHbox;
+    @FXML
+    private Button selectCardButton;
+    @FXML
+    private Button placeTotemButton;
+    @FXML
+    private Button skipTurnButton;
+    @FXML
+    private Button tribeVisualizerButton;
+    @FXML
+    private Button playerStatusButton;
+    @FXML
+    private Label phaseLabel;
+    @FXML
+    private Label currentPlayerLabel;
+    @FXML
+    private Label drawTopLabel;
+    @FXML
+    private Label drawBotLabel;
+    @FXML
+    private Label prestigePointLabel;
+    @FXML
+    private Label foodLabel;
+    @FXML
+    private Label shamanStarLabel;
+    @FXML
+    private Label builderDiscountLabel;
+
 
     public TileContorller(ClientVirtualView clienHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clienHandler = clienHandler;
@@ -78,14 +131,21 @@ public class TileContorller implements GUIObserver {
         cardFitHeight = availableH / 3 - 100;
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
+        if (skipTurnButton != null) skipTurnButton.setDisable(true);
         if (pendingOffertiles != null) {
             renderTiles(pendingOffertiles, pendingDefs);
-            pendingOffertiles = null; pendingDefs = null;
+            pendingOffertiles = null;
+            pendingDefs = null;
         }
         if (pendingTopTribeCard != null) {
             renderCards(pendingTopTribeCard, pendingBottomTribeCard, pendingTopBuildingCard);
-            pendingTopTribeCard = null; pendingBottomTribeCard = null; pendingTopBuildingCard = null;
+            pendingTopTribeCard = null;
+            pendingBottomTribeCard = null;
+            pendingTopBuildingCard = null;
         }
+        updatePlayerStatsLabels();
+        if (foodLabel != null) foodLabel.setText("Cibo: " + playerDTO.getFood());
+        if (prestigePointLabel != null) prestigePointLabel.setText("Punti Prestigio: " + 0);
         updateInteractionState();
     }
 
@@ -100,12 +160,13 @@ public class TileContorller implements GUIObserver {
                 int pos = idx < topTribeCount ? idx : idx - topTribeCount;
                 serverRemoteInterface.selectCardFromTopList(playerDTO, type, pos);
             } else {
-                int pos = bottomCardHbox.getChildren().indexOf(selectedCardView);
+                int idx = bottomCardHbox.getChildren().indexOf(selectedCardView);
+                int pos = idx < bottomTribeCount ? idx : idx - bottomTribeCount;
                 serverRemoteInterface.selectCardFromBottomList(playerDTO, type, pos);
             }
             clearCardSelection();
         } catch (Exception e) {
-            System.err.println("Errore selezione carta: " + e.getMessage());
+            showError(e.getMessage());
         }
     }
 
@@ -116,9 +177,28 @@ public class TileContorller implements GUIObserver {
             serverRemoteInterface.placingPlayer(playerDTO, selectedTilePosition);
             clearTileSelection();
             placeTotemButton.setDisable(true);
-        } catch (RemoteException e) {
-            System.err.println("Errore posizionamento totem: " + e.getMessage());
+        } catch (Exception e) {
+            showError(e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleSkipTurn() {
+        try {
+            serverRemoteInterface.playerDoNothing(playerDTO);
+        } catch (Exception e) {
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void showThisPlayerTribe() {
+        //TODO
+    }
+
+    @FXML
+    private void showPlayerStatus() {
+        //TODO
     }
 
     // =========================================================
@@ -127,16 +207,17 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE phase) {
-        this.currentPhase = phase;
         Platform.runLater(() -> {
             if (phaseLabel != null) phaseLabel.setText("Fase corrente: " + phase);
+            if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+                offerTileOverlays.values().forEach(p -> p.getChildren().clear());
+            }
             updateInteractionState();
         });
     }
 
     @Override
     public void onPlayerToPlaceChanged(String nickname) {
-        this.playerToPlace = nickname;
         Platform.runLater(() -> {
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
             updateInteractionState();
@@ -145,7 +226,6 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onPlayerToPlayChanged(String nickname) {
-        this.playerToPlay = nickname;
         Platform.runLater(() -> {
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
             updateInteractionState();
@@ -228,7 +308,7 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onTopBuildingRefreshed(List<BuildingDTO> topBld) {
-        List<BuildingDTO> topSnapshot    = new java.util.ArrayList<>(topBld);
+        List<BuildingDTO> topSnapshot = new java.util.ArrayList<>(topBld);
         List<BuildingDTO> bottomSnapshot = new java.util.ArrayList<>(clienHandler.getBottomBuildings());
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
@@ -250,6 +330,7 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onBoardInitialized(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {
+        if (tilesRendered) return;
         if (tileHbox == null) {
             this.pendingDefs = defs;
             this.pendingOffertiles = tiles;
@@ -260,7 +341,31 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onPlayerPlacedOnOfferTile(String nickname, int tilePosition) {
-        GUIObserver.super.onPlayerPlacedOnOfferTile(nickname, tilePosition);
+        Platform.runLater(() -> {
+            javafx.scene.layout.Pane overlay = offerTileOverlays.get(tilePosition);
+            if (overlay == null) return;
+            double w = offerTileWidths.getOrDefault(tilePosition, cardFitHeight);
+            overlay.getChildren().clear();
+            placeTotemOnOverlay(overlay, nickname, OFFER_TOTEM_X, OFFER_TOTEM_Y, w);
+        });
+    }
+
+    @Override
+    public void onDefaultTileOrderChanged(List<PlayerDTO> order) {
+        Platform.runLater(() -> refreshDefaultTileOverlay(order));
+    }
+
+    private void refreshDefaultTileOverlay(List<PlayerDTO> order) {
+        if (defaultTileOverlay == null) return;
+        defaultTileOverlay.getChildren().clear();
+        int totalPlayers = clienHandler.getPlayers().size();
+        double[] ySlots = DEFAULT_SLOT_Y.getOrDefault(totalPlayers, new double[]{0.5});
+        for (int i = 0; i < order.size(); i++) {
+            PlayerDTO p = order.get(i);
+            if (p == null) continue;
+            double yFrac = i < ySlots.length ? ySlots[i] : ySlots[ySlots.length - 1];
+            placeTotemOnOverlay(defaultTileOverlay, p.getNickName(), 0.50, yFrac, defaultTileWidth);
+        }
     }
 
     @Override
@@ -272,18 +377,76 @@ public class TileContorller implements GUIObserver {
         });
     }
 
-    @Override public void onPlayerAdded(PlayerDTO player)     { GUIObserver.super.onPlayerAdded(player); }
-    @Override public void onError(String message)             { GUIObserver.super.onError(message); }
-    @Override public void onPlayerPPChanged(String n, int p)  { GUIObserver.super.onPlayerPPChanged(n, p); }
+    @Override
+    public void onPlayerAdded(PlayerDTO player) {
+        GUIObserver.super.onPlayerAdded(player);
+    }
+
+    @Override
+    public void onError(String message) {
+        Platform.runLater(() -> showError(message));
+    }
+
+    @Override
+    public void onPlayerPPChanged(String n, int p) {
+        if (playerDTO.getNickName().equals(n))
+            Platform.runLater(() -> { if (prestigePointLabel != null) prestigePointLabel.setText("Punti Prestigio: " + p); });
+    }
+
     @Override
     public void onPlayerFoodChanged(String n, int f) {
         if (playerDTO.getNickName().equals(n)) {
             playerDTO.setFood(f);
-            Platform.runLater(this::updateInteractionState);
+            Platform.runLater(() -> {
+                if (foodLabel != null) foodLabel.setText("Cibo: " + f);
+                updateInteractionState();
+            });
         }
     }
-    @Override public void onEventResolved(String d)           { GUIObserver.super.onEventResolved(d); }
-    @Override public void onWinners(List<PlayerDTO> w)        { GUIObserver.super.onWinners(w); }
+
+    @Override
+    public void onCardAddedToTribe(String nickname, CardDTO card) {
+        if (playerDTO.getNickName().equals(nickname))
+            Platform.runLater(this::updatePlayerStatsLabels);
+    }
+
+    @Override
+    public void onEventResolved(int eventID, EVENT_TYPE eventType) {
+        Platform.runLater(() -> addEventToPopup(eventID, eventType));
+    }
+
+    private void addEventToPopup(int eventID, EVENT_TYPE eventType) {
+        if (eventPopupStage == null || !eventPopupStage.isShowing()) {
+            eventListBox = new VBox(12);
+            eventListBox.setPadding(new Insets(16));
+
+            eventPopupStage = new Stage();
+            eventPopupStage.setTitle("Eventi risolti");
+            eventPopupStage.setScene(new Scene(eventListBox));
+            eventPopupStage.setOnHidden(e -> { eventPopupStage = null; eventListBox = null; });
+            eventPopupStage.show();
+        }
+
+        String path = "/images/Card/events/" + eventID + eventTypePath(eventType) + "Event.png";
+        HBox row = new HBox(12);
+        row.setStyle("-fx-alignment: CENTER_LEFT; -fx-padding: 0 0 4 0;");
+        try {
+            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
+            iv.setFitHeight(cardFitHeight * 1.2);
+            iv.setPreserveRatio(true);
+            row.getChildren().add(iv);
+        } catch (Exception ignored) {}
+        Label lbl = new Label(eventType.toString());
+        lbl.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        row.getChildren().add(lbl);
+        eventListBox.getChildren().add(row);
+        eventPopupStage.sizeToScene();
+    }
+
+    @Override
+    public void onWinners(List<PlayerDTO> w) {
+        GUIObserver.super.onWinners(w);
+    }
 
     // =========================================================
     // RENDER
@@ -295,32 +458,57 @@ public class TileContorller implements GUIObserver {
         selectedCardView = null;
 
         topTribeCount = top.size();
-        for (CardDTO card : top)       topCardHbox.getChildren().add(cardImageView(card));
+        for (CardDTO card : top) topCardHbox.getChildren().add(cardImageView(card));
         for (BuildingDTO bld : topBld) topCardHbox.getChildren().add(buildingImageView(bld));
 
         bottomTribeCount = bot.size();
-        for (CardDTO card : bot)       bottomCardHbox.getChildren().add(cardImageView(card));
+        for (CardDTO card : bot) bottomCardHbox.getChildren().add(cardImageView(card));
 
         updateInteractionState();
     }
 
     private void renderTiles(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {
+        if (tilesRendered) return;
+        tilesRendered = true;
         tileHbox.getChildren().clear();
         clearTileSelection();
+        offerTileOverlays.clear();
+        offerTileWidths.clear();
 
-        ImageView defIv = new ImageView(new Image(getClass().getResourceAsStream(
-                "/images/Tiles/defaultTile/" + defs.size() + "plDefTile.png")));
+        // --- default tile ---
+        Image defImg = new Image(getClass().getResourceAsStream(
+                "/images/Tiles/defaultTile/" + defs.size() + "plDefTile.png"));
+        ImageView defIv = new ImageView(defImg);
         defIv.setFitHeight(cardFitHeight);
         defIv.setPreserveRatio(true);
-        tileHbox.getChildren().add(defIv);
+        double defW = cardFitHeight * defImg.getWidth() / defImg.getHeight();
+        defaultTileOverlay = new javafx.scene.layout.Pane();
+        defaultTileOverlay.setPrefSize(defW, cardFitHeight);
+        defaultTileOverlay.setMouseTransparent(true);
+        defaultTileWidth = defW;
+        javafx.scene.layout.StackPane defStack = new javafx.scene.layout.StackPane(defIv, defaultTileOverlay);
+        defStack.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+        tileHbox.getChildren().add(defStack);
 
-        for (OffertileDTO tile : tiles) {
-            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(
-                    "/images/Tiles/offertiles/" + tile.getOfferTileID() + "offertile.png")));
+        // --- offer tiles ---
+        for (int i = 0; i < tiles.size(); i++) {
+            Image img = new Image(getClass().getResourceAsStream(
+                    "/images/Tiles/offertiles/" + tiles.get(i).getOfferTileID() + "offertile.png"));
+            ImageView iv = new ImageView(img);
             iv.setFitHeight(cardFitHeight);
             iv.setPreserveRatio(true);
-            tileHbox.getChildren().add(iv);
+            double w = cardFitHeight * img.getWidth() / img.getHeight();
+            javafx.scene.layout.Pane overlay = new javafx.scene.layout.Pane();
+            overlay.setPrefSize(w, cardFitHeight);
+            overlay.setMouseTransparent(true);
+            offerTileOverlays.put(i, overlay);
+            offerTileWidths.put(i, w);
+            javafx.scene.layout.StackPane stack = new javafx.scene.layout.StackPane(iv, overlay);
+            stack.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+            tileHbox.getChildren().add(stack);
         }
+        List<PlayerDTO> initialOrder = clienHandler.getDefaultTileOrder();
+        if (!initialOrder.isEmpty()) refreshDefaultTileOverlay(initialOrder);
         updateInteractionState();
     }
 
@@ -329,15 +517,16 @@ public class TileContorller implements GUIObserver {
     // =========================================================
 
     private boolean isPlacingPhase() {
-        return currentPhase == GAME_PHASE.PLACING_PHASE || currentPhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE;
+        GAME_PHASE phase = clienHandler.getGamePhase();
+        return phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE;
     }
 
     private boolean isMyPlacingTurn() {
-        return isPlacingPhase() && playerDTO.getNickName().equals(playerToPlace);
+        return isPlacingPhase() && playerDTO.getNickName().equals(clienHandler.getPlayerToPlace());
     }
 
     private boolean isMyPlayingTurn() {
-        return !isPlacingPhase() && playerDTO.getNickName().equals(playerToPlay);
+        return !isPlacingPhase() && playerDTO.getNickName().equals(clienHandler.getPlayerToPlay());
     }
 
     private void updateInteractionState() {
@@ -351,20 +540,21 @@ public class TileContorller implements GUIObserver {
         gray.setBrightness(-0.2);
 
         // --- tile (indice 0 = default tile, mai cliccabile) ---
+        Map<Integer, String> occupants = clienHandler.getOfferTileOccupants();
         for (int i = 0; i < tileHbox.getChildren().size(); i++) {
-            ImageView iv = (ImageView) tileHbox.getChildren().get(i);
-            boolean clickable = myPlacing && i > 0;
+            javafx.scene.layout.StackPane sp = (javafx.scene.layout.StackPane) tileHbox.getChildren().get(i);
+            boolean clickable = myPlacing && i > 0 && !occupants.containsKey(i - 1);
             if (clickable) {
-                iv.setEffect(iv == selectedTileView ? goldGlow() : null);
-                iv.setOpacity(1.0);
+                sp.setEffect(sp == selectedTilePane ? goldGlow() : null);
+                sp.setOpacity(1.0);
                 final int pos = i - 1;
-                iv.setOnMouseClicked(e -> selectTile(iv, pos));
-                iv.setStyle("-fx-cursor: hand;");
+                sp.setOnMouseClicked(e -> selectTile(sp, pos));
+                sp.setStyle("-fx-cursor: hand;");
             } else {
-                if (iv != selectedTileView) iv.setEffect(myPlacing ? null : gray);
-                iv.setOpacity(myPlacing && i == 0 ? 1.0 : (myPlacing ? 1.0 : 0.45));
-                iv.setOnMouseClicked(null);
-                iv.setStyle("");
+                if (sp != selectedTilePane) sp.setEffect(myPlacing ? null : gray);
+                sp.setOpacity(myPlacing ? 1.0 : 0.45);
+                sp.setOnMouseClicked(null);
+                sp.setStyle("");
             }
         }
         if (!myPlacing) clearTileSelection();
@@ -377,6 +567,48 @@ public class TileContorller implements GUIObserver {
         // --- pulsanti ---
         placeTotemButton.setDisable(!myPlacing || selectedTilePosition == -1);
         selectCardButton.setDisable(!myPlaying || selectedCardView == null);
+        boolean hasActions = clienHandler.getDrawTop() > 0 || clienHandler.getDrawBot() > 0;
+        skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard());
+    }
+
+    private boolean hasSelectableTribeCard() {
+        boolean topAvailable = clienHandler.getDrawTop() > 0;
+        boolean botAvailable = clienHandler.getDrawBot() > 0;
+        if (topAvailable && tribeCardExistsInRow(topCardHbox, topTribeCount)) return true;
+        if (botAvailable && tribeCardExistsInRow(bottomCardHbox, bottomTribeCount)) return true;
+        return false;
+    }
+
+    private boolean tribeCardExistsInRow(HBox row, int tribeCount) {
+        for (int i = 0; i < tribeCount && i < row.getChildren().size(); i++) {
+            Node node = row.getChildren().get(i);
+            if (node.getUserData() instanceof CardDTO dto
+                    && dto.getCardType() != CARD_TYPE.EVENT) return true;
+        }
+        return false;
+    }
+
+    private void updatePlayerStatsLabels() {
+        int discount = totalBuilderDiscount();
+        int stars = totalShamanStars();
+        if (builderDiscountLabel != null) builderDiscountLabel.setText("Sconto Costruttori: " + discount);
+        if (shamanStarLabel != null)      shamanStarLabel.setText("Stelle sciamano: " + stars);
+        updateInteractionState();
+    }
+
+    private int totalShamanStars() {
+        return clienHandler.getPlayers().stream()
+                .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
+                .findFirst()
+                .map(p -> p.getCardDtoList().stream()
+                        .filter(c -> c.getCardType() == CARD_TYPE.SHAMAN)
+                        .mapToInt(c -> switch (c.getStarNumber()) {
+                            case ONE   -> 1;
+                            case TWO   -> 2;
+                            case THREE -> 3;
+                        })
+                        .sum())
+                .orElse(0);
     }
 
     private int totalBuilderDiscount() {
@@ -402,8 +634,7 @@ public class TileContorller implements GUIObserver {
         gray.setBrightness(-0.2);
 
         for (Node node : row.getChildren()) {
-            if (!(node.getUserData() instanceof CardDTO)) continue;
-            CardDTO dto = (CardDTO) node.getUserData();
+            if (!(node.getUserData() instanceof CardDTO dto)) continue;
             boolean selectable = rowActive
                     && dto.getCardType() != CARD_TYPE.EVENT
                     && canAfford(dto);
@@ -431,14 +662,14 @@ public class TileContorller implements GUIObserver {
         }
     }
 
-    private void selectTile(ImageView iv, int position) {
-        if (selectedTileView != null) selectedTileView.setEffect(null);
-        if (selectedTileView == iv) {
-            selectedTileView = null;
+    private void selectTile(javafx.scene.layout.StackPane sp, int position) {
+        if (selectedTilePane != null) selectedTilePane.setEffect(null);
+        if (selectedTilePane == sp) {
+            selectedTilePane = null;
             selectedTilePosition = -1;
         } else {
-            iv.setEffect(goldGlow());
-            selectedTileView = iv;
+            sp.setEffect(goldGlow());
+            selectedTilePane = sp;
             selectedTilePosition = position;
         }
         placeTotemButton.setDisable(selectedTilePosition == -1);
@@ -456,14 +687,65 @@ public class TileContorller implements GUIObserver {
     }
 
     private void clearTileSelection() {
-        if (selectedTileView != null) { selectedTileView.setEffect(null); selectedTileView = null; }
+        if (selectedTilePane != null) {
+            selectedTilePane.setEffect(null);
+            selectedTilePane = null;
+        }
         selectedTilePosition = -1;
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
     }
 
     private void clearCardSelection() {
-        if (selectedCardView != null) { selectedCardView.setEffect(null); selectedCardView = null; }
+        if (selectedCardView != null) {
+            selectedCardView.setEffect(null);
+            selectedCardView = null;
+        }
         if (selectCardButton != null) selectCardButton.setDisable(true);
+    }
+
+    private void placeTotemOnOverlay(javafx.scene.layout.Pane overlay, String nickname,
+                                     double xFrac, double yFrac, double tileW) {
+        COLOR color = colorOf(nickname);
+        Image totemImg = new Image(getClass().getResourceAsStream(totemPath(color)));
+        double totemH = cardFitHeight * 0.20;
+        double totemW = totemH * totemImg.getWidth() / totemImg.getHeight();
+        ImageView iv = new ImageView(totemImg);
+        iv.setFitHeight(totemH);
+        iv.setPreserveRatio(true);
+        iv.setRotate(90);
+        // dopo rotate(90) il centro visivo rimane invariato rispetto al layoutX/Y
+        iv.setLayoutX(tileW * xFrac - totemW / 2.0);
+        iv.setLayoutY(cardFitHeight * yFrac - totemH / 2.0);
+        overlay.getChildren().add(iv);
+    }
+
+    private COLOR colorOf(String nickname) {
+        return clienHandler.getPlayers().stream()
+                .filter(p -> p.getNickName().equals(nickname))
+                .findFirst()
+                .map(PlayerDTO::getColorTotem)
+                .orElse(COLOR.RED);
+    }
+
+    private String totemPath(COLOR color) {
+        return switch (color) {
+            case RED    -> "/images/totems/pedine_specs_redTotem.png";
+            case BLUE   -> "/images/totems/pedine_specs_blueTotem.png";
+            case YELLOW -> "/images/totems/pedine_specs_yellowTotem.png";
+            case PURPLE -> "/images/totems/pedine_specs_purpleTotem.png";
+            case WHITE  -> "/images/totems/pedine_specs_whiteTotem.png";
+        };
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Errore");
+        alert.setHeaderText(null);
+        Label content = new Label(message != null ? message : "Errore sconosciuto");
+        content.setWrapText(true);
+        content.setStyle("-fx-text-fill: red; -fx-font-size: 16 px;-fx-font-weight: bald");
+        alert.getDialogPane().setContent(content);
+        alert.showAndWait();
     }
 
     private DropShadow goldGlow() {
@@ -480,14 +762,15 @@ public class TileContorller implements GUIObserver {
 
     private ImageView cardImageView(CardDTO card) {
         String path = switch (card.getCardType()) {
-            case ARTIST   -> "/images/Card/artist/Artist.png";
             case GATHERER -> "/images/Card/gatherer/Gatherer.png";
-            case HUNTER   -> card.isHasIcon() ? "/images/Card/hunters/hunterWIcon.png" : "/images/Card/hunters/hunterNormal.png";
-            case SHAMAN   -> "/images/Card/shaman/" + shamanPath(card.getStarNumber()) + "Shaman.png";
+            case HUNTER ->
+                    card.isHasIcon() ? "/images/Card/hunters/hunterWIcon.png" : "/images/Card/hunters/hunterNormal.png";
+            case SHAMAN -> "/images/Card/shaman/" + shamanPath(card.getStarNumber()) + "Shaman.png";
             case INVENTOR -> "/images/Card/inventors/" + invPath(card.getInvIcon()) + "Inventor.png";
-            case BUILDER  -> "/images/Card/builders/" + card.getBuilderID() + "IDBuilder.png";
-            case EVENT    -> "/images/Card/events/" + ((EventDTO) card).getEventID() + eventTypePath(((EventDTO) card).getEventType()) + "Event.png";
-            default       -> "/images/Card/artist/Artist.png";
+            case BUILDER -> "/images/Card/builders/" + card.getBuilderID() + "IDBuilder.png";
+            case EVENT ->
+                    "/images/Card/events/" + ((EventDTO) card).getEventID() + eventTypePath(((EventDTO) card).getEventType()) + "Event.png";
+            default -> "/images/Card/artist/Artist.png";
         };
         ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
         iv.setFitHeight(cardFitHeight);
@@ -509,34 +792,34 @@ public class TileContorller implements GUIObserver {
 
     private String eventTypePath(EVENT_TYPE type) {
         return switch (type) {
-            case HUNT         -> "hunt";
-            case PAINTINGS    -> "painting";
+            case HUNT -> "hunt";
+            case PAINTINGS -> "painting";
             case SHAMANIC_RIT -> "Shaman";
-            case SUSTENANCE   -> "sustenance";
-            default           -> "hunt";
+            case SUSTENANCE -> "sustenance";
+            default -> "hunt";
         };
     }
 
     private String shamanPath(it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR star) {
         return switch (star) {
-            case ONE   -> "oneStar";
-            case TWO   -> "twoStar";
+            case ONE -> "oneStar";
+            case TWO -> "twoStar";
             case THREE -> "threeStar";
         };
     }
 
     private String invPath(it.polimi.ingsw.am25.server.model.Enums.INV_ICON icon) {
         return switch (icon) {
-            case STONE    -> "stone";
-            case BAIT     -> "bait";
-            case ARROW    -> "arrow";
-            case BOWL     -> "bowl";
-            case BREAD    -> "bread";
+            case STONE -> "stone";
+            case BAIT -> "bait";
+            case ARROW -> "arrow";
+            case BOWL -> "bowl";
+            case BREAD -> "bread";
             case NECKLACE -> "necklace";
-            case GHOST    -> "ghost";
-            case LEATHER  -> "leather";
-            case ROPE     -> "rope";
-            case FLUTE    -> "flute";
+            case GHOST -> "ghost";
+            case LEATHER -> "leather";
+            case ROPE -> "rope";
+            case FLUTE -> "flute";
         };
     }
 }

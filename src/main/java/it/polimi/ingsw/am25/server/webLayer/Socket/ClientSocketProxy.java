@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.server.webLayer.Socket;
 
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
@@ -462,10 +463,10 @@ public class ClientSocketProxy implements ClientRemoteInterface {
     }
 
     @Override
-    public void eventResolved(String message){
+    public void eventResolved(int eventID, EVENT_TYPE eventType){
         try {
             synchronized (out) {
-                out.writeObject(new ResolvedEventMessage(message));
+                out.writeObject(new ResolvedEventMessage(eventID, eventType));
                 out.flush();
                 out.reset();
             }

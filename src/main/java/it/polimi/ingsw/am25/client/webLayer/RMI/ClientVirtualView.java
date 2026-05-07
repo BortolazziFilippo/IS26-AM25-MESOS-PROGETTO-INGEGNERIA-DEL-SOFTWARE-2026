@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.client.webLayer.RMI;
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
@@ -289,6 +290,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
         temp.addCardToTribe(cardDTO);
         playersMap.put(nickname, temp);
+        updateObservers(obs -> obs.onCardAddedToTribe(nickname, cardDTO));
     }
 
     /**
@@ -424,6 +426,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
         defaultTileOrder.replaceAll(p -> p != null && Objects.equals(p.getNickName(), PlayerNickname) ? null : p);
         offerTileOccupants.put(offertilePosition, PlayerNickname);
+        List<PlayerDTO> updatedOrder = new ArrayList<>(defaultTileOrder);
+        updateObservers(obs -> obs.onDefaultTileOrderChanged(updatedOrder));
         updateObservers(obs -> obs.onPlayerPlacedOnOfferTile(PlayerNickname, offertilePosition));
     }
 
@@ -463,6 +467,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile) throws RemoteException {
         this.defaultTileOrder = new ArrayList<>(orderOnDefaultTile);
+        List<PlayerDTO> snapshot = new ArrayList<>(orderOnDefaultTile);
+        updateObservers(obs -> obs.onDefaultTileOrderChanged(snapshot));
     }
 
     /**
@@ -686,14 +692,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     @Override
-    public void eventResolved(String eventdescription) throws RemoteException {
+    public void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException {
+        String description = "Evento #" + eventID + " (" + eventType + ") risolto";
         synchronized (stateLock){
-            resolvedEvents.add(eventdescription);
+            resolvedEvents.add(description);
         }
         synchronized (turnLock){
             turnLock.notifyAll();
         }
-        updateObservers(obs -> obs.onEventResolved(eventdescription));
+        updateObservers(obs -> obs.onEventResolved(eventID, eventType));
     }
 
     @Override

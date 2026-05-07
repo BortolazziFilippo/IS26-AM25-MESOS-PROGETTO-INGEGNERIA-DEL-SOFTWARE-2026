@@ -10,8 +10,8 @@ public enum COLOR {
     BLUE("Blu"),
     /** Yellow totem. */
     YELLOW("Giallo"),
-    /** Green totem. */
-    GREEN("Verde"),
+    /** White totem. */
+    WHITE("Bianco"),
     /** Purple totem. */
     PURPLE("Viola");
 

@@ -88,13 +88,13 @@ public class TUIUtils {
         while (true) {
             System.out.println("\nScegli colore totem:");
             System.out.println(RED + "1-ROSSO" + BLUE + "\n2-BLU" + YELLOW + "\n3-GIALLO"
-                    + GREEN + "\n4-GREEN" + PURPLE + "\n5-PURPLE" + RESET);
+                    + RESET + "\n4-BIANCO" + PURPLE + "\n5-VIOLA" + RESET);
             System.out.print("Scelta: ");
             switch (scanner.nextLine()) {
                 case "1": return COLOR.RED;
                 case "2": return COLOR.BLUE;
                 case "3": return COLOR.YELLOW;
-                case "4": return COLOR.GREEN;
+                case "4": return COLOR.WHITE;
                 case "5": return COLOR.PURPLE;
                 default: System.err.println("\n❌ Input non valido");
             }
@@ -106,7 +106,7 @@ public class TUIUtils {
             case RED    -> RED;
             case BLUE   -> BLUE;
             case YELLOW -> YELLOW;
-            case GREEN  -> GREEN;
+            case WHITE  -> RESET;
             case PURPLE -> PURPLE;
         };
     }

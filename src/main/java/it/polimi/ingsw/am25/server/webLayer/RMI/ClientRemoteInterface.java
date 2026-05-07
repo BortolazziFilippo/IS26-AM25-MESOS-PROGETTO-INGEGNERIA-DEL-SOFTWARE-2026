@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.server.webLayer.RMI;
 
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
@@ -200,7 +201,7 @@ public interface ClientRemoteInterface extends Remote {
      */
     void showErrorMessage(String errorMessage) throws RemoteException;
 
-    void eventResolved(String description) throws RemoteException;
+    void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException;
 
     void sendRank(Map<Integer,List<String>> Leaderboard) throws RemoteException;
 }

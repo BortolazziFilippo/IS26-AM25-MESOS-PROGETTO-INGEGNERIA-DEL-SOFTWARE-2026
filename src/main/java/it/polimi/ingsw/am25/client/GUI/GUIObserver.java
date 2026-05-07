@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.GUI;
 
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
@@ -21,8 +22,10 @@ public interface GUIObserver {
     default void onTopBuildingRefreshed(List<BuildingDTO> topBld) {}
     default void onBoardInitialized(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {}
     default void onPlayerPlacedOnOfferTile(String nickname, int tilePosition) {}
+    default void onDefaultTileOrderChanged(List<PlayerDTO> order) {}
     default void onActionAvailableChanged(int drawTop, int drawBot) {}
-    default void onEventResolved(String description) {}
+    default void onCardAddedToTribe(String nickname, CardDTO card) {}
+    default void onEventResolved(int eventID, EVENT_TYPE eventType) {}
     default void onWinners(List<PlayerDTO> winners) {}
 
 }
