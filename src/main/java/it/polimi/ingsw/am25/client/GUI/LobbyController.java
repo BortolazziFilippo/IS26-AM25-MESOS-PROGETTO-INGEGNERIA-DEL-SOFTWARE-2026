@@ -1,6 +1,6 @@
 package it.polimi.ingsw.am25.client.GUI;
 
-import it.polimi.ingsw.am25.client.GUI.Controllers.TileContorller;
+import it.polimi.ingsw.am25.client.GUI.Controllers.TileController;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
@@ -31,7 +31,7 @@ public class LobbyController implements GUIObserver {
     private ListView<String> playerList;
 
     private PlayerDTO playerDTO;
-    private TileContorller tileController;
+    private TileController tileController;
     private boolean gameScreenShown = false;
 
     public LobbyController(ServerRemoteInterface serverStub, ClientVirtualView clientHandler, Stage stage) {
@@ -106,7 +106,7 @@ public class LobbyController implements GUIObserver {
         try {
             serverStub.createGame(player, spinner.getValue(), clientHandler);
             playerDTO = player;
-            tileController = new TileContorller(clientHandler, serverStub, playerDTO);
+            tileController = new TileController(clientHandler, serverStub, playerDTO);
             label.setText("Partita creata. In attesa di altri giocatori...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -123,7 +123,7 @@ public class LobbyController implements GUIObserver {
         try {
             serverStub.addPlayer(player, clientHandler);
             playerDTO = player;
-            tileController = new TileContorller(clientHandler, serverStub, playerDTO);
+            tileController = new TileController(clientHandler, serverStub, playerDTO);
             label.setText("Unito alla lobby. In attesa che inizi...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
