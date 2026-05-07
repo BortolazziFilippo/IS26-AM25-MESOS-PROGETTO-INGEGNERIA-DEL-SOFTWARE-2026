@@ -39,6 +39,7 @@ public class GUIapp extends Application {
         primaryStage.setTitle("IS26-AM25");
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(e -> System.exit(0));
 
         //tento la connessione
         try{

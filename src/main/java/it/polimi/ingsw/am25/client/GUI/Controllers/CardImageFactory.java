@@ -9,6 +9,22 @@ public class CardImageFactory {
 
     private CardImageFactory() {}
 
+    public static ImageView defaultTileImageView(int playerCount, double fitHeight) {
+        ImageView iv = new ImageView(new Image(CardImageFactory.class.getResourceAsStream(
+                "/images/Tiles/defaultTile/" + playerCount + "plDefTile.png")));
+        iv.setFitHeight(fitHeight);
+        iv.setPreserveRatio(true);
+        return iv;
+    }
+
+    public static ImageView offerTileImageView(char tileID, double fitHeight) {
+        ImageView iv = new ImageView(new Image(CardImageFactory.class.getResourceAsStream(
+                "/images/Tiles/offertiles/" + tileID + "offertile.png")));
+        iv.setFitHeight(fitHeight);
+        iv.setPreserveRatio(true);
+        return iv;
+    }
+
     public static ImageView cardImageView(CardDTO card, double fitHeight) {
         String path = switch (card.getCardType()) {
             case GATHERER -> "/images/Card/gatherer/Gatherer.png";

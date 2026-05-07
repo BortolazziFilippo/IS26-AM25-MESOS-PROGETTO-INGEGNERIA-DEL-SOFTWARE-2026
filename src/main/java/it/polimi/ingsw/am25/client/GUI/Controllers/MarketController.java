@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class MarketController implements GUIObserver {
 
-    // --- pending data (arriva prima che la UI sia pronta) ---
+    // --- data buffered when observer callbacks arrive before the FXML is ready ---
     private volatile List<CardDTO> pendingTopTribeCard;
     private volatile List<BuildingDTO> pendingTopBuildingCard;
     private volatile List<CardDTO> pendingBottomTribeCard;
@@ -44,9 +44,10 @@ public class MarketController implements GUIObserver {
 
     private double cardFitHeight = 220;
 
-    // --- posizioni totem (frazione larghezza/altezza tile) ---
+    // --- totem positions expressed as fractions of tile width / height ---
     private static final double OFFER_TOTEM_X = 0.50;
     private static final double OFFER_TOTEM_Y = 0.27;
+    /** Y-fraction slots on the default tile for each possible player count. */
     private static final Map<Integer, double[]> DEFAULT_SLOT_Y = Map.of(
             2, new double[]{0.30, 0.48},
             3, new double[]{0.27, 0.43, 0.61},
@@ -54,24 +55,28 @@ public class MarketController implements GUIObserver {
             5, new double[]{0.15, 0.31, 0.49, 0.68, 0.86}
     );
 
-    // --- flag render unico delle tile ---
+    // --- guard flag: tiles are rendered only once per session ---
     private boolean tilesRendered = false;
 
-    // --- selezione tile ---
+    // --- tile selection state ---
     private int selectedTilePosition = -1;
     private javafx.scene.layout.StackPane selectedTilePane = null;
+    /** Position of the tile currently showing the local player's totem preview (-1 = none). */
     private int previewTilePosition = -1;
+    /** True while a totem preview animation is in flight; prevents re-entrant tile selection. */
     private boolean previewAnimating = false;
 
-    // --- overlay totem ---
+    // --- transparent overlay panes that host totem images on top of tile images ---
     private Pane defaultTileOverlay = null;
     private double defaultTileWidth = 0;
     private final Map<Integer, Pane> offerTileOverlays = new HashMap<>();
     private final Map<Integer, Double> offerTileWidths = new HashMap<>();
 
-    // --- selezione carta ---
+    // --- card selection state ---
     private ImageView selectedCardView = null;
+    /** Number of tribe cards (non-building) currently in the top row. */
     private int topTribeCount = 0;
+    /** Number of tribe cards (non-building) currently in the bottom row. */
     private int bottomTribeCount = 0;
 
     @FXML private HBox topCardHbox;
@@ -102,6 +107,7 @@ public class MarketController implements GUIObserver {
     // FXML
     // =========================================================
 
+    /** Called by FXMLLoader after all @FXML fields are injected. Flushes any pending data. */
     @FXML
     public void initialize() {
         double availableH = javafx.stage.Screen.getPrimary().getVisualBounds().getHeight();
@@ -126,6 +132,7 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
+    /** Sends the selected card to the server (top or bottom row, tribe or building). */
     @FXML
     private void handleSelectCard() {
         if (selectedCardView == null) return;
@@ -147,6 +154,7 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /** Sends the totem placement request to the server for the currently selected tile. */
     @FXML
     private void handlePlaceTotem() {
         if (selectedTilePosition == -1) return;
@@ -161,6 +169,7 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /** Notifies the server that the local player passes their turn. */
     @FXML
     private void handleSkipTurn() {
         try {
@@ -172,12 +181,12 @@ public class MarketController implements GUIObserver {
 
     @FXML
     private void showThisPlayerTribe() {
-        //TODO mostrare tribu del giocatore (ROBERT), posso aiutare
+        //TODO show the local player's tribe (ROBERT)
     }
 
     @FXML
     private void showPlayerStatus() {
-        //TODO mostrare lo stato di tutti i giocatori (ROBERT)
+        //TODO show all players' status (ROBERT)
     }
 
     // =========================================================
@@ -188,6 +197,7 @@ public class MarketController implements GUIObserver {
     public void onGamePhaseChanged(GAME_PHASE phase) {
         Platform.runLater(() -> {
             if (phaseLabel != null) phaseLabel.setText("Fase corrente: " + phase);
+            // Clear offer tile overlays at the start of each placing phase
             if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
                 offerTileOverlays.values().forEach(p -> p.getChildren().clear());
             }
@@ -214,6 +224,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
         if (topCardHbox == null) {
+            // FXML not ready yet — buffer the data for initialize()
             this.pendingTopTribeCard = top;
             this.pendingBottomTribeCard = bot;
             this.pendingTopBuildingCard = topBld;
@@ -229,11 +240,9 @@ public class MarketController implements GUIObserver {
             Node node = topCardHbox.getChildren().get(position);
             if (node == selectedCardView) clearCardSelection();
             topTribeCount--;
+            // Mark as non-interactive immediately; the node is removed after the animation
             node.setMouseTransparent(true);
-            fadeOutInPlace(node, () -> {
-                topCardHbox.getChildren().remove(node);
-                updateInteractionState();
-            });
+            animateRemove(node, topCardHbox, this::updateInteractionState);
         });
     }
 
@@ -245,10 +254,7 @@ public class MarketController implements GUIObserver {
             if (node == selectedCardView) clearCardSelection();
             bottomTribeCount--;
             node.setMouseTransparent(true);
-            fadeOutInPlace(node, () -> {
-                bottomCardHbox.getChildren().remove(node);
-                updateInteractionState();
-            });
+            animateRemove(node, bottomCardHbox, this::updateInteractionState);
         });
     }
 
@@ -261,7 +267,7 @@ public class MarketController implements GUIObserver {
             Node node = topCardHbox.getChildren().get(idx);
             if (node == selectedCardView) clearCardSelection();
             node.setMouseTransparent(true);
-            fadeOutInPlace(node, () -> topCardHbox.getChildren().remove(node));
+            animateRemove(node, topCardHbox, null);
         });
     }
 
@@ -274,82 +280,58 @@ public class MarketController implements GUIObserver {
             Node node = bottomCardHbox.getChildren().get(idx);
             if (node == selectedCardView) clearCardSelection();
             node.setMouseTransparent(true);
-            fadeOutInPlace(node, () -> bottomCardHbox.getChildren().remove(node));
+            animateRemove(node, bottomCardHbox, null);
         });
     }
 
     @Override
     public void onTopCardRefreshed(List<CardDTO> top) {
-        List<CardDTO> bottomSnapshot = new java.util.ArrayList<>(clientHandler.getBottomCards());
+        // Snapshot the bottom list now, before any scene-graph changes
+        List<CardDTO> bottomSnap = new ArrayList<>(clientHandler.getBottomCards());
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
-
             javafx.scene.Scene scene = topCardHbox.getScene();
-            if (scene == null) {
-                doTopCardRefresh(top, bottomSnapshot);
-                return;
-            }
+            if (scene == null) { doTopCardRefresh(top, bottomSnap); return; }
             Pane root = (Pane) scene.getRoot();
-            Point2D botRoot = root.sceneToLocal(bottomCardHbox.localToScene(0, 0));
 
-            List<ImageView> floaters = new ArrayList<>();
-            for (int i = 0; i < topTribeCount && i < topCardHbox.getChildren().size(); i++) {
-                Node node = topCardHbox.getChildren().get(i);
-                if (!(node.getUserData() instanceof CardDTO card)) continue;
-                Point2D nodeRoot = root.sceneToLocal(node.localToScene(0, 0));
-                ImageView floater = CardImageFactory.cardImageView(card, cardFitHeight);
-                floater.setMouseTransparent(true);
-                floater.setLayoutX(nodeRoot.getX());
-                floater.setLayoutY(nodeRoot.getY());
-                root.getChildren().add(floater);
-                floaters.add(floater);
-            }
+            // Collect all visible tribe cards (no buildings, no already-fading nodes)
+            List<Node> topTribeNodes = topCardHbox.getChildren().stream()
+                    .filter(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO))
+                    .toList();
+            List<ImageView> floaters = snapshotFloaters(root, topTribeNodes);
 
+            // Replace top tribe cards with the new list
             topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             topTribeCount = 0;
-            List<Node> newTopNodes = new ArrayList<>();
             for (int i = 0; i < top.size(); i++) {
-                ImageView iv = CardImageFactory.cardImageView(top.get(i), cardFitHeight);
-                topCardHbox.getChildren().add(i, iv);
-                newTopNodes.add(iv);
+                topCardHbox.getChildren().add(i, CardImageFactory.cardImageView(top.get(i), cardFitHeight));
                 topTribeCount++;
             }
+            // Clear old bottom tribe cards; the new ones are added after the fly animation
             bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             bottomTribeCount = 0;
             updateInteractionState();
-            newTopNodes.forEach(this::fadeInNode);
+            for (int i = 0; i < topTribeCount; i++) fadeInNode(topCardHbox.getChildren().get(i));
 
-            if (floaters.isEmpty()) {
-                for (int i = 0; i < bottomSnapshot.size(); i++)
-                    bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnapshot.get(i), cardFitHeight));
-                bottomTribeCount = bottomSnapshot.size();
+            flyToBottomThenFadeIn(root, floaters, () -> {
+                List<ImageView> nodes = new ArrayList<>();
+                for (int i = 0; i < bottomSnap.size(); i++) {
+                    ImageView iv = CardImageFactory.cardImageView(bottomSnap.get(i), cardFitHeight);
+                    bottomCardHbox.getChildren().add(i, iv);
+                    nodes.add(iv);
+                }
+                bottomTribeCount = bottomSnap.size();
                 updateInteractionState();
-                return;
-            }
-
-            int[] remaining = {floaters.size()};
-            for (ImageView floater : floaters) {
-                double deltaY = botRoot.getY() - floater.getLayoutY();
-                TranslateTransition tt = new TranslateTransition(Duration.millis(450), floater);
-                tt.setByY(deltaY);
-                tt.setInterpolator(Interpolator.EASE_BOTH);
-                tt.setOnFinished(e -> {
-                    root.getChildren().remove(floater);
-                    remaining[0]--;
-                    if (remaining[0] == 0) {
-                        for (int i = 0; i < bottomSnapshot.size(); i++)
-                            bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnapshot.get(i), cardFitHeight));
-                        bottomTribeCount = bottomSnapshot.size();
-                        updateInteractionState();
-                    }
-                });
-                tt.play();
-            }
+                nodes.forEach(this::fadeInNode);
+            });
         });
     }
 
-    private void doTopCardRefresh(List<CardDTO> top, List<CardDTO> bottomSnapshot) {
+    /**
+     * Fallback for when the scene is not yet attached: replaces both rows without animations.
+     */
+    private void doTopCardRefresh(List<CardDTO> top, List<CardDTO> bottomSnap) {
         topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         topTribeCount = 0;
         for (int i = 0; i < top.size(); i++) {
@@ -358,8 +340,8 @@ public class MarketController implements GUIObserver {
         }
         bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         bottomTribeCount = 0;
-        for (int i = 0; i < bottomSnapshot.size(); i++) {
-            bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnapshot.get(i), cardFitHeight));
+        for (int i = 0; i < bottomSnap.size(); i++) {
+            bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnap.get(i), cardFitHeight));
             bottomTribeCount++;
         }
         updateInteractionState();
@@ -367,73 +349,46 @@ public class MarketController implements GUIObserver {
 
     @Override
     public void onTopBuildingRefreshed(List<BuildingDTO> topBld) {
-        List<BuildingDTO> topSnapshot = new java.util.ArrayList<>(topBld);
-        List<BuildingDTO> bottomSnapshot = new java.util.ArrayList<>(clientHandler.getBottomBuildings());
+        List<BuildingDTO> topSnap = new ArrayList<>(topBld);
+        List<BuildingDTO> botSnap = new ArrayList<>(clientHandler.getBottomBuildings());
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
-
             javafx.scene.Scene scene = topCardHbox.getScene();
-            if (scene == null) {
-                doTopBuildingRefresh(topSnapshot, bottomSnapshot);
-                return;
-            }
+            if (scene == null) { doTopBuildingRefresh(topSnap, botSnap); return; }
             Pane root = (Pane) scene.getRoot();
-            Point2D botRoot = root.sceneToLocal(bottomCardHbox.localToScene(0, 0));
 
-            List<ImageView> floaters = new ArrayList<>();
-            for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++) {
-                Node node = topCardHbox.getChildren().get(i);
-                if (!(node.getUserData() instanceof BuildingDTO bld)) continue;
-                Point2D nodeRoot = root.sceneToLocal(node.localToScene(0, 0));
-                ImageView floater = CardImageFactory.buildingImageView(bld, cardFitHeight);
-                floater.setMouseTransparent(true);
-                floater.setLayoutX(nodeRoot.getX());
-                floater.setLayoutY(nodeRoot.getY());
-                root.getChildren().add(floater);
-                floaters.add(floater);
-            }
+            // Collect all visible building nodes from the top row
+            List<Node> topBldNodes = topCardHbox.getChildren().stream()
+                    .filter(n -> n.getUserData() instanceof BuildingDTO)
+                    .toList();
+            List<ImageView> floaters = snapshotFloaters(root, topBldNodes);
 
+            // Replace top buildings
             if (topCardHbox.getChildren().size() > topTribeCount)
                 topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
-            List<Node> newTopBldNodes = new ArrayList<>();
-            for (BuildingDTO bld : topSnapshot) {
-                ImageView iv = CardImageFactory.buildingImageView(bld, cardFitHeight);
-                topCardHbox.getChildren().add(iv);
-                newTopBldNodes.add(iv);
-            }
+            for (BuildingDTO bld : topSnap) topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+
+            // Clear old bottom buildings; the new ones are added after the fly animation
             if (bottomCardHbox.getChildren().size() > bottomTribeCount)
                 bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
             updateInteractionState();
-            newTopBldNodes.forEach(this::fadeInNode);
+            for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++) fadeInNode(topCardHbox.getChildren().get(i));
 
-            if (floaters.isEmpty()) {
-                for (BuildingDTO bld : bottomSnapshot)
-                    bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+            flyToBottomThenFadeIn(root, floaters, () -> {
+                List<ImageView> nodes = new ArrayList<>();
+                for (BuildingDTO bld : botSnap) {
+                    ImageView iv = CardImageFactory.buildingImageView(bld, cardFitHeight);
+                    bottomCardHbox.getChildren().add(iv);
+                    nodes.add(iv);
+                }
                 updateInteractionState();
-                return;
-            }
-
-            int[] remaining = {floaters.size()};
-            for (ImageView floater : floaters) {
-                double deltaY = botRoot.getY() - floater.getLayoutY();
-                TranslateTransition tt = new TranslateTransition(Duration.millis(450), floater);
-                tt.setByY(deltaY);
-                tt.setInterpolator(Interpolator.EASE_BOTH);
-                tt.setOnFinished(e -> {
-                    root.getChildren().remove(floater);
-                    remaining[0]--;
-                    if (remaining[0] == 0) {
-                        for (BuildingDTO bld : bottomSnapshot)
-                            bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
-                        updateInteractionState();
-                    }
-                });
-                tt.play();
-            }
+                nodes.forEach(this::fadeInNode);
+            });
         });
     }
 
+    /** Fallback for when the scene is not yet attached: replaces both rows without animations. */
     private void doTopBuildingRefresh(List<BuildingDTO> topSnapshot, List<BuildingDTO> bottomSnapshot) {
         if (topCardHbox.getChildren().size() > topTribeCount)
             topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
@@ -464,11 +419,13 @@ public class MarketController implements GUIObserver {
             if (offerOverlay == null) return;
             boolean isMe = nickname.equals(playerDTO.getNickName());
             if (isMe && previewTilePosition == tilePosition) {
+                // The server confirmed our own preview placement — just clear the preview flag
                 previewTilePosition = -1;
                 return;
             }
             if (isMe) previewTilePosition = -1;
             if (fromSlot < 0 || defaultTileOverlay == null) {
+                // No animation source available: place totem directly
                 double w = offerTileWidths.getOrDefault(tilePosition, cardFitHeight);
                 offerOverlay.getChildren().clear();
                 placeTotemOnOverlay(offerOverlay, nickname, OFFER_TOTEM_X, OFFER_TOTEM_Y, w);
@@ -488,6 +445,7 @@ public class MarketController implements GUIObserver {
         Platform.runLater(() -> refreshDefaultTileOverlay(order));
     }
 
+    /** Redraws totem icons on the default tile according to the given turn order. */
     private void refreshDefaultTileOverlay(List<PlayerDTO> order) {
         if (defaultTileOverlay == null) return;
         defaultTileOverlay.getChildren().clear();
@@ -496,6 +454,7 @@ public class MarketController implements GUIObserver {
         for (int i = 0; i < order.size(); i++) {
             PlayerDTO p = order.get(i);
             if (p == null) continue;
+            // Skip the local player while a preview is shown on an offer tile
             if (previewTilePosition >= 0 && p.getNickName().equals(playerDTO.getNickName())) continue;
             double yFrac = i < ySlots.length ? ySlots[i] : ySlots[ySlots.length - 1];
             placeTotemOnOverlay(defaultTileOverlay, p.getNickName(), 0.50, yFrac, defaultTileWidth);
@@ -505,8 +464,13 @@ public class MarketController implements GUIObserver {
     @Override
     public void onActionAvailableChanged(int drawTop, int drawBot) {
         Platform.runLater(() -> {
-            if (drawTopLabel != null) drawTopLabel.setText("Pesca da sopra: " + drawTop);
-            if (drawBotLabel != null) drawBotLabel.setText("Pesca da sotto: " + drawBot);
+            if (isMyPlayingTurn()) {
+                if (drawTopLabel != null) drawTopLabel.setText("Pesca da sopra: " + drawTop);
+                if (drawBotLabel != null) drawBotLabel.setText("Pesca da sotto: " + drawBot);
+            } else {
+                drawTopLabel.setText("Pesca da sopra: -");
+                drawBotLabel.setText("Pesca da sotto: -");
+            }
             updateInteractionState();
         });
     }
@@ -552,14 +516,15 @@ public class MarketController implements GUIObserver {
     @Override
     public void onWinners(List<PlayerDTO> w) {
         GUIObserver.super.onWinners(w);
-        //TODO: aggiungere schermata visualizzazione vincitori e classifica dal database: DANIELE
-        //NB la classifica dal database dovra essere visibile anche dalla lobby
+        //TODO: add winner screen and leaderboard from database (DANIELE)
+        //      The leaderboard should also be accessible from the lobby
     }
 
     // =========================================================
     // RENDER
     // =========================================================
 
+    /** Populates both card rows from scratch (called on market initialization). */
     private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
         topCardHbox.getChildren().clear();
         bottomCardHbox.getChildren().clear();
@@ -575,6 +540,10 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
+    /**
+     * Builds the tile row once: one default tile followed by the offer tiles.
+     * Creates transparent overlay panes for totem rendering on top of each tile image.
+     */
     private void renderTiles(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {
         if (tilesRendered) return;
         tilesRendered = true;
@@ -583,12 +552,8 @@ public class MarketController implements GUIObserver {
         offerTileOverlays.clear();
         offerTileWidths.clear();
 
-        Image defImg = new Image(getClass().getResourceAsStream(
-                "/images/Tiles/defaultTile/" + defs.size() + "plDefTile.png"));
-        ImageView defIv = new ImageView(defImg);
-        defIv.setFitHeight(cardFitHeight);
-        defIv.setPreserveRatio(true);
-        double defW = cardFitHeight * defImg.getWidth() / defImg.getHeight();
+        ImageView defIv = CardImageFactory.defaultTileImageView(defs.size(), cardFitHeight);
+        double defW = cardFitHeight * defIv.getImage().getWidth() / defIv.getImage().getHeight();
         defaultTileOverlay = new Pane();
         defaultTileOverlay.setPrefSize(defW, cardFitHeight);
         defaultTileOverlay.setMouseTransparent(true);
@@ -598,12 +563,8 @@ public class MarketController implements GUIObserver {
         tileHbox.getChildren().add(defStack);
 
         for (int i = 0; i < tiles.size(); i++) {
-            Image img = new Image(getClass().getResourceAsStream(
-                    "/images/Tiles/offertiles/" + tiles.get(i).getOfferTileID() + "offertile.png"));
-            ImageView iv = new ImageView(img);
-            iv.setFitHeight(cardFitHeight);
-            iv.setPreserveRatio(true);
-            double w = cardFitHeight * img.getWidth() / img.getHeight();
+            ImageView iv = CardImageFactory.offerTileImageView(tiles.get(i).getOfferTileID(), cardFitHeight);
+            double w = cardFitHeight * iv.getImage().getWidth() / iv.getImage().getHeight();
             Pane overlay = new Pane();
             overlay.setPrefSize(w, cardFitHeight);
             overlay.setMouseTransparent(true);
@@ -622,19 +583,26 @@ public class MarketController implements GUIObserver {
     // INTERACTION STATE
     // =========================================================
 
+    /** Returns true when the current phase is a placing phase (either normal or last round). */
     private boolean isPlacingPhase() {
         GAME_PHASE phase = clientHandler.getGamePhase();
         return phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE;
     }
 
+    /** Returns true when it is this player's turn to place their totem. */
     private boolean isMyPlacingTurn() {
         return isPlacingPhase() && playerDTO.getNickName().equals(clientHandler.getPlayerToPlace());
     }
 
+    /** Returns true when it is this player's turn to pick a card. */
     private boolean isMyPlayingTurn() {
         return !isPlacingPhase() && playerDTO.getNickName().equals(clientHandler.getPlayerToPlay());
     }
 
+    /**
+     * Central method that recalculates the enabled/disabled and visual state of every
+     * interactive element (tiles, cards, buttons) based on the current game phase and turn.
+     */
     private void updateInteractionState() {
         if (placeTotemButton == null || tileHbox == null) return;
 
@@ -644,6 +612,7 @@ public class MarketController implements GUIObserver {
         Map<Integer, String> occupants = clientHandler.getOfferTileOccupants();
         for (int i = 0; i < tileHbox.getChildren().size(); i++) {
             javafx.scene.layout.StackPane sp = (javafx.scene.layout.StackPane) tileHbox.getChildren().get(i);
+            // Index 0 is the default tile (not selectable); offer tiles start at index 1
             boolean clickable = myPlacing && i > 0 && !occupants.containsKey(i - 1);
             if (clickable) {
                 sp.setEffect(sp == selectedTilePane ? GUIEffects.goldGlow() : null);
@@ -670,12 +639,17 @@ public class MarketController implements GUIObserver {
         skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard());
     }
 
+    /**
+     * Returns true if there is at least one non-event tribe card available to pick
+     * in a row that has remaining draw actions.
+     */
     private boolean hasSelectableTribeCard() {
         if (clientHandler.getDrawTop() > 0 && tribeCardExistsInRow(topCardHbox, topTribeCount)) return true;
         if (clientHandler.getDrawBot() > 0 && tribeCardExistsInRow(bottomCardHbox, bottomTribeCount)) return true;
         return false;
     }
 
+    /** Checks whether a non-event tribe card exists among the first {@code tribeCount} children of the row. */
     private boolean tribeCardExistsInRow(HBox row, int tribeCount) {
         for (int i = 0; i < tribeCount && i < row.getChildren().size(); i++) {
             Node node = row.getChildren().get(i);
@@ -684,6 +658,7 @@ public class MarketController implements GUIObserver {
         return false;
     }
 
+    /** Refreshes the shaman-star and builder-discount labels from the live player data. */
     private void updatePlayerStatsLabels() {
         int discount = totalBuilderDiscount();
         int stars = totalShamanStars();
@@ -692,6 +667,7 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
+    /** Sums the star values of all shaman cards in the local player's tribe. */
     private int totalShamanStars() {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
@@ -707,6 +683,7 @@ public class MarketController implements GUIObserver {
                 .orElse(0);
     }
 
+    /** Sums the food-discount values of all builder cards in the local player's tribe. */
     private int totalBuilderDiscount() {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
@@ -718,19 +695,27 @@ public class MarketController implements GUIObserver {
                 .orElse(0);
     }
 
+    /**
+     * Returns true if the local player can afford to pick the given card.
+     * Non-building cards are always affordable; buildings require enough food after applying the discount.
+     */
     private boolean canAfford(CardDTO card) {
         if (!(card instanceof BuildingDTO bld)) return true;
         int cost = bld.getFoodCost() - totalBuilderDiscount();
         return playerDTO.getFood() >= Math.max(0, cost);
     }
 
+    /**
+     * Applies visual state (opacity, click handler, glow) to every card node in a row.
+     * {@code rowActive} is true when the player can draw from this row on the current turn.
+     */
     private void applyCardRowState(HBox row, boolean rowActive) {
         for (Node node : row.getChildren()) {
             if (!(node.getUserData() instanceof CardDTO dto)) continue;
             boolean selectable = rowActive && dto.getCardType() != CARD_TYPE.EVENT && canAfford(dto);
 
             if (node == selectedCardView) {
-                // mantieni il glow anche se non selezionabile
+                // Keep the gold glow on the selected card regardless of selectability
             } else if (!selectable) {
                 node.setEffect(GUIEffects.GRAY);
                 node.setOpacity(0.70);
@@ -755,12 +740,17 @@ public class MarketController implements GUIObserver {
     // TILE / CARD SELECTION
     // =========================================================
 
+    /**
+     * Handles a click on an offer tile. Toggles selection and animates the local player's
+     * totem between the default tile and the selected offer tile as a preview.
+     */
     private void selectTile(javafx.scene.layout.StackPane sp, int position) {
         if (previewAnimating) return;
         COLOR myColor = colorOf(playerDTO.getNickName());
         if (selectedTilePane != null) selectedTilePane.setEffect(null);
 
         if (selectedTilePane == sp) {
+            // Deselect: animate totem back to the default tile
             selectedTilePane = null;
             selectedTilePosition = -1;
             int old = previewTilePosition;
@@ -778,6 +768,7 @@ public class MarketController implements GUIObserver {
                 }
             }
         } else {
+            // Select new tile: animate totem from previous position (default or another offer tile)
             int old = previewTilePosition;
             sp.setEffect(GUIEffects.goldGlow());
             selectedTilePane = sp;
@@ -785,6 +776,7 @@ public class MarketController implements GUIObserver {
             previewTilePosition = position;
             Pane newOverlay = offerTileOverlays.get(position);
             if (old >= 0) {
+                // Moving preview from one offer tile to another
                 Pane oldOverlay = offerTileOverlays.get(old);
                 if (oldOverlay != null) oldOverlay.getChildren().clear();
                 if (newOverlay != null) {
@@ -797,6 +789,7 @@ public class MarketController implements GUIObserver {
                     });
                 }
             } else {
+                // Moving preview from the default tile to an offer tile
                 int mySlot = myDefaultSlot();
                 if (mySlot >= 0 && defaultTileOverlay != null && newOverlay != null) {
                     Point2D src = defaultSlotScene(mySlot);
@@ -814,6 +807,7 @@ public class MarketController implements GUIObserver {
         placeTotemButton.setDisable(selectedTilePosition == -1);
     }
 
+    /** Toggles card selection; applies or removes the gold glow effect. */
     private void selectCard(ImageView iv) {
         if (selectedCardView != null) selectedCardView.setEffect(null);
         if (selectedCardView == iv) {
@@ -825,6 +819,10 @@ public class MarketController implements GUIObserver {
         selectCardButton.setDisable(selectedCardView == null);
     }
 
+    /**
+     * Clears tile selection state and removes any in-progress totem preview,
+     * restoring the default tile overlay to the current turn order.
+     */
     private void clearTileSelection() {
         previewAnimating = false;
         if (previewTilePosition >= 0) {
@@ -842,6 +840,7 @@ public class MarketController implements GUIObserver {
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
     }
 
+    /** Removes the gold glow from the currently selected card and resets selection state. */
     private void clearCardSelection() {
         if (selectedCardView != null) {
             selectedCardView.setEffect(null);
@@ -854,6 +853,10 @@ public class MarketController implements GUIObserver {
     // TOTEM
     // =========================================================
 
+    /**
+     * Places a totem image on the given overlay pane at the position specified
+     * by fractional coordinates relative to the tile dimensions.
+     */
     private void placeTotemOnOverlay(Pane overlay, String nickname, double xFrac, double yFrac, double tileW) {
         COLOR color = colorOf(nickname);
         Image totemImg = new Image(getClass().getResourceAsStream(CardImageFactory.totemPath(color)));
@@ -868,6 +871,7 @@ public class MarketController implements GUIObserver {
         overlay.getChildren().add(iv);
     }
 
+    /** Looks up the totem color for the given player nickname. Defaults to RED if not found. */
     private COLOR colorOf(String nickname) {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(nickname))
@@ -876,6 +880,10 @@ public class MarketController implements GUIObserver {
                 .orElse(COLOR.RED);
     }
 
+    /**
+     * Returns the scene coordinates of the local player's slot on the default tile
+     * (center of the slot circle at the given turn-order index).
+     */
     private Point2D defaultSlotScene(int slot) {
         int totalPlayers = clientHandler.getPlayers().size();
         double[] ySlots = DEFAULT_SLOT_Y.getOrDefault(totalPlayers, new double[]{0.5});
@@ -883,6 +891,10 @@ public class MarketController implements GUIObserver {
         return defaultTileOverlay.localToScene(defaultTileWidth * 0.50, cardFitHeight * yFrac);
     }
 
+    /**
+     * Returns the scene coordinates of the totem slot on the given offer tile
+     * (the fixed OFFER_TOTEM_X / OFFER_TOTEM_Y position).
+     */
     private Point2D offerSlotScene(int tilePos) {
         Pane overlay = offerTileOverlays.get(tilePos);
         if (overlay == null) return new Point2D(0, 0);
@@ -890,6 +902,10 @@ public class MarketController implements GUIObserver {
         return overlay.localToScene(w * OFFER_TOTEM_X, cardFitHeight * OFFER_TOTEM_Y);
     }
 
+    /**
+     * Returns the index of the local player in the current default-tile turn order,
+     * or -1 if the player is not found.
+     */
     private int myDefaultSlot() {
         List<PlayerDTO> order = clientHandler.getDefaultTileOrder();
         for (int i = 0; i < order.size(); i++) {
@@ -903,23 +919,97 @@ public class MarketController implements GUIObserver {
     // ANIMATIONS
     // =========================================================
 
+    /**
+     * Fades a node in from transparent to its current opacity (as set by
+     * {@link #updateInteractionState} or the default 1.0).
+     */
     private void fadeInNode(Node node) {
         double target = node.getOpacity();
         node.setOpacity(0.0);
-        FadeTransition ft = new FadeTransition(Duration.millis(400), node);
+        FadeTransition ft = new FadeTransition(Duration.millis(300), node);
         ft.setFromValue(0.0);
         ft.setToValue(target);
+        ft.setOnFinished(e -> node.setOpacity(target));
         ft.play();
     }
 
-    private void fadeOutInPlace(Node node, Runnable onFinished) {
-        FadeTransition ft = new FadeTransition(Duration.millis(300), node);
-        ft.setFromValue(1.0);
+    /**
+     * Animates a card or building being removed from a row: shrinks and fades out in parallel,
+     * then removes the node from the parent HBox and runs {@code onDone} if provided.
+     */
+    private void animateRemove(Node node, HBox parent, Runnable onDone) {
+        javafx.animation.ScaleTransition st = new javafx.animation.ScaleTransition(Duration.millis(250), node);
+        st.setToX(0.85);
+        st.setToY(0.85);
+        FadeTransition ft = new FadeTransition(Duration.millis(250), node);
+        ft.setFromValue(node.getOpacity());
         ft.setToValue(0.0);
-        ft.setOnFinished(e -> { if (onFinished != null) onFinished.run(); });
+        ft.setOnFinished(e -> {
+            parent.getChildren().remove(node);
+            if (onDone != null) onDone.run();
+        });
+        st.play();
         ft.play();
     }
 
+    /**
+     * Creates visual ghost copies (floaters) of the given nodes, placed at their current
+     * absolute positions in the root AnchorPane. Nodes already exiting (mouseTransparent)
+     * are skipped, as they have been picked by a player and should not fly to the bottom row.
+     */
+    private List<ImageView> snapshotFloaters(Pane root, java.util.List<Node> nodes) {
+        List<ImageView> floaters = new ArrayList<>();
+        for (Node node : nodes) {
+            if (node.isMouseTransparent()) continue;
+            ImageView floater;
+            if (node.getUserData() instanceof BuildingDTO bld)
+                floater = CardImageFactory.buildingImageView(bld, cardFitHeight);
+            else if (node.getUserData() instanceof CardDTO card)
+                floater = CardImageFactory.cardImageView(card, cardFitHeight);
+            else continue;
+            Point2D pos = root.sceneToLocal(node.localToScene(0, 0));
+            floater.setMouseTransparent(true);
+            floater.setLayoutX(pos.getX());
+            floater.setLayoutY(pos.getY());
+            root.getChildren().add(floater);
+            floaters.add(floater);
+        }
+        return floaters;
+    }
+
+    /**
+     * Animates each floater downward to the top edge of {@code bottomCardHbox},
+     * fading out during the flight. When the last floater lands, {@code onAllLanded} is called
+     * so the caller can add the new bottom-row cards with a fade-in.
+     * If the floater list is empty, {@code onAllLanded} is invoked immediately.
+     */
+    private void flyToBottomThenFadeIn(Pane root, List<ImageView> floaters, Runnable onAllLanded) {
+        if (floaters.isEmpty()) {
+            if (onAllLanded != null) onAllLanded.run();
+            return;
+        }
+        double dstY = root.sceneToLocal(bottomCardHbox.localToScene(0, 0)).getY();
+        int[] remaining = {floaters.size()};
+        for (ImageView floater : floaters) {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(380), floater);
+            tt.setByY(dstY - floater.getLayoutY());
+            tt.setInterpolator(Interpolator.EASE_IN);
+            FadeTransition ft = new FadeTransition(Duration.millis(380), floater);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            tt.setOnFinished(e -> {
+                root.getChildren().remove(floater);
+                if (--remaining[0] == 0 && onAllLanded != null) onAllLanded.run();
+            });
+            tt.play();
+            ft.play();
+        }
+    }
+
+    /**
+     * Animates a totem image sliding from {@code srcScene} to {@code dstScene} across
+     * the root pane, then removes the animated image and calls {@code onFinish}.
+     */
     private void animateTotem(Point2D srcScene, Point2D dstScene, COLOR color, Runnable onFinish) {
         if (tileHbox.getScene() == null) { if (onFinish != null) onFinish.run(); return; }
         Pane root = (Pane) tileHbox.getScene().getRoot();
