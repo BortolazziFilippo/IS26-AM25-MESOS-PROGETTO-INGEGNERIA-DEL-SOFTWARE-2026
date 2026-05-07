@@ -83,7 +83,7 @@ public class GameController implements GUIObserver{
         appendLog(n + " food=" + f);
     }
     @Override
-    public void onPlayerPlacedOnOfferTile (String n,int t){
+    public void onPlayerPlacedOnOfferTile(String n, int t, int fromSlot) {
         appendLog(n + " su tile " + t);
     }
     @Override

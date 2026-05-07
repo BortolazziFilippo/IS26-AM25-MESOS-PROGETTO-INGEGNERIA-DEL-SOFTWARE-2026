@@ -10,7 +10,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@Market.css">
     <children>
         <SplitPane dividerPositions="0.8" prefHeight="863" prefWidth="1500" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
             <items>
@@ -103,8 +104,8 @@
                   </Label>
                </children>
             </VBox>
-            <Button fx:id="tribeVisualizerButton" mnemonicParsing="false" onAction="#showThisPlayerTribe" prefHeight="51.0" prefWidth="123.0" text="Visualizza tribù" />
-            <Button fx:id="playerStatusButton" layoutX="1103.0" layoutY="22.0" mnemonicParsing="false" onAction="#showPlayerStatus" prefHeight="51.0" prefWidth="123.0" text="Stato giocatori" />
+            <Button fx:id="tribeVisualizerButton" mnemonicParsing="false" onAction="#showThisPlayerTribe" prefHeight="51.0" text="Visualizza tribù" />
+            <Button fx:id="playerStatusButton" mnemonicParsing="false" onAction="#showPlayerStatus" prefHeight="51.0" text="Stato giocatori" />
          </children>
       </HBox>
       <HBox layoutY="963.0" prefHeight="100.0" prefWidth="1700.0" />

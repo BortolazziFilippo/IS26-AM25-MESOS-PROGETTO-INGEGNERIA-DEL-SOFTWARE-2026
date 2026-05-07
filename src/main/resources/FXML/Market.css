@@ -1,0 +1,62 @@
+/* ── palette ── */
+/* sfondo principale: grigio caldo chiaro */
+
+.root {
+    -fx-background-color: #e8e4df;
+}
+
+/* SplitPane e il suo divisore */
+.split-pane {
+    -fx-background-color: #e8e4df;
+    -fx-padding: 0;
+}
+.split-pane > .split-pane-divider {
+    -fx-background-color: #c0bbb5;
+    -fx-padding: 0 2 0 2;
+}
+
+/* ScrollPane: viewport e sfondo interno */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: #e8e4df;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: #e8e4df;
+}
+
+/* Pannelli generici */
+.border-pane,
+.anchor-pane,
+.vbox,
+.hbox {
+    -fx-background-color: transparent;
+}
+
+.button {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a1a;
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
+
+    /* due layer: ombra nera sotto + colore sopra */
+    -fx-background-color: #000000, #e8e8e8;
+    -fx-background-insets: 4 0 0 0, 0 0 4 0;
+
+    -fx-padding: 10 20 10 20;
+    -fx-translate-y: 0;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+.button:hover {
+    /* si alza */
+    -fx-background-insets: 5 0 0 0, 0 0 5 0;
+    -fx-translate-y: -1;
+}
+
+.button:pressed {
+    /* si abbassa (ombra scompare) */
+    -fx-background-insets: 0, 0;
+    -fx-translate-y: 4;
+}

@@ -18,10 +18,11 @@ public interface GUIObserver {
     default void onTopCardRemoved(int position) {}
     default void onBottomCardRemoved(int position) {}
     default void onTopBuildRemoved(int position) {}
+    default void onBottomBuildRemoved(int position) {}
     default void onTopCardRefreshed(List<CardDTO> top) {}
     default void onTopBuildingRefreshed(List<BuildingDTO> topBld) {}
     default void onBoardInitialized(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {}
-    default void onPlayerPlacedOnOfferTile(String nickname, int tilePosition) {}
+    default void onPlayerPlacedOnOfferTile(String nickname, int tilePosition, int fromSlot) {}
     default void onDefaultTileOrderChanged(List<PlayerDTO> order) {}
     default void onActionAvailableChanged(int drawTop, int drawBot) {}
     default void onCardAddedToTribe(String nickname, CardDTO card) {}

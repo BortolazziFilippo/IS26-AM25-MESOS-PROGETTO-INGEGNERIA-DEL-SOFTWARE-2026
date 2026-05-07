@@ -6,9 +6,13 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -19,9 +23,11 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
@@ -64,6 +70,8 @@ public class TileContorller implements GUIObserver {
     // --- selezione tile ---
     private int selectedTilePosition = -1;
     private javafx.scene.layout.StackPane selectedTilePane = null;
+    private int previewTilePosition = -1; // tile su cui è visibile il preview del mio totem
+    private boolean previewAnimating = false; // true mentre è in corso un'animazione di preview
 
     // --- overlay totem ---
     private javafx.scene.layout.Pane defaultTileOverlay = null;
@@ -175,8 +183,12 @@ public class TileContorller implements GUIObserver {
         if (selectedTilePosition == -1) return;
         try {
             serverRemoteInterface.placingPlayer(playerDTO, selectedTilePosition);
-            clearTileSelection();
+            // non chiamare clearTileSelection: il preview è già sull'offer tile
+            // la conferma arriva con onPlayerPlacedOnOfferTile
+            if (selectedTilePane != null) { selectedTilePane.setEffect(null); selectedTilePane = null; }
+            selectedTilePosition = -1;
             placeTotemButton.setDisable(true);
+            updateInteractionState();
         } catch (Exception e) {
             showError(e.getMessage());
         }
@@ -247,10 +259,13 @@ public class TileContorller implements GUIObserver {
     public void onTopCardRemoved(int position) {
         Platform.runLater(() -> {
             if (topCardHbox == null || position >= topTribeCount) return;
-            Node removed = topCardHbox.getChildren().remove(position);
+            Node node = topCardHbox.getChildren().get(position);
+            if (node == selectedCardView) clearCardSelection();
+            Point2D scenePos = node.localToScene(0, 0);
+            topCardHbox.getChildren().remove(position);
             topTribeCount--;
-            if (removed == selectedCardView) clearCardSelection();
             updateInteractionState();
+            fadeOutFloating(node, scenePos);
         });
     }
 
@@ -258,10 +273,13 @@ public class TileContorller implements GUIObserver {
     public void onBottomCardRemoved(int position) {
         Platform.runLater(() -> {
             if (bottomCardHbox == null || position >= bottomCardHbox.getChildren().size()) return;
-            Node removed = bottomCardHbox.getChildren().remove(position);
+            Node node = bottomCardHbox.getChildren().get(position);
+            if (node == selectedCardView) clearCardSelection();
+            Point2D scenePos = node.localToScene(0, 0);
+            bottomCardHbox.getChildren().remove(position);
             bottomTribeCount--;
-            if (removed == selectedCardView) clearCardSelection();
             updateInteractionState();
+            fadeOutFloating(node, scenePos);
         });
     }
 
@@ -271,8 +289,25 @@ public class TileContorller implements GUIObserver {
             if (topCardHbox == null) return;
             int idx = topTribeCount + position;
             if (idx >= topCardHbox.getChildren().size()) return;
-            Node removed = topCardHbox.getChildren().remove(idx);
-            if (removed == selectedCardView) clearCardSelection();
+            Node node = topCardHbox.getChildren().get(idx);
+            if (node == selectedCardView) clearCardSelection();
+            Point2D scenePos = node.localToScene(0, 0);
+            topCardHbox.getChildren().remove(idx);
+            fadeOutFloating(node, scenePos);
+        });
+    }
+
+    @Override
+    public void onBottomBuildRemoved(int position) {
+        Platform.runLater(() -> {
+            if (bottomCardHbox == null) return;
+            int idx = bottomTribeCount + position;
+            if (idx >= bottomCardHbox.getChildren().size()) return;
+            Node node = bottomCardHbox.getChildren().get(idx);
+            if (node == selectedCardView) clearCardSelection();
+            Point2D scenePos = node.localToScene(0, 0);
+            bottomCardHbox.getChildren().remove(idx);
+            fadeOutFloating(node, scenePos);
         });
     }
 
@@ -284,26 +319,88 @@ public class TileContorller implements GUIObserver {
             if (topCardHbox == null) return;
             clearCardSelection();
 
-            // rimuovi solo le carte tribù (le prime topTribeCount); lascia gli edifici al loro posto
-            if (topTribeCount > 0)
-                topCardHbox.getChildren().remove(0, topTribeCount);
+            javafx.scene.Scene scene = topCardHbox.getScene();
+            if (scene == null) {
+                doTopCardRefresh(top, bottomSnapshot);
+                return;
+            }
+            Pane root = (Pane) scene.getRoot();
+            Point2D botRoot = root.sceneToLocal(bottomCardHbox.localToScene(0, 0));
+
+            // crea copie flottanti delle carte tribù attuali nel top prima di sostituire
+            List<ImageView> floaters = new ArrayList<>();
+            for (int i = 0; i < topTribeCount && i < topCardHbox.getChildren().size(); i++) {
+                Node node = topCardHbox.getChildren().get(i);
+                if (!(node.getUserData() instanceof CardDTO card)) continue;
+                Point2D nodeRoot = root.sceneToLocal(node.localToScene(0, 0));
+                ImageView floater = cardImageView(card);
+                floater.setMouseTransparent(true);
+                floater.setLayoutX(nodeRoot.getX());
+                floater.setLayoutY(nodeRoot.getY());
+                root.getChildren().add(floater);
+                floaters.add(floater);
+            }
+
+            // aggiorna top row e svuota bottom tribe cards (appariranno dopo la transizione)
+            if (topTribeCount > 0) topCardHbox.getChildren().remove(0, topTribeCount);
             topTribeCount = 0;
+            List<Node> newTopNodes = new ArrayList<>();
             for (int i = 0; i < top.size(); i++) {
-                topCardHbox.getChildren().add(i, cardImageView(top.get(i)));
+                ImageView iv = cardImageView(top.get(i));
+                topCardHbox.getChildren().add(i, iv);
+                newTopNodes.add(iv);
                 topTribeCount++;
             }
-
-            // rifai le tribù di bottom (gli edifici verranno aggiornati da onTopBuildingRefreshed)
-            if (bottomTribeCount > 0)
-                bottomCardHbox.getChildren().remove(0, bottomTribeCount);
+            if (bottomTribeCount > 0) bottomCardHbox.getChildren().remove(0, bottomTribeCount);
             bottomTribeCount = 0;
-            for (int i = 0; i < bottomSnapshot.size(); i++) {
-                bottomCardHbox.getChildren().add(i, cardImageView(bottomSnapshot.get(i)));
-                bottomTribeCount++;
+            updateInteractionState();
+            newTopNodes.forEach(this::fadeInNode);
+
+            if (floaters.isEmpty()) {
+                for (int i = 0; i < bottomSnapshot.size(); i++) {
+                    bottomCardHbox.getChildren().add(i, cardImageView(bottomSnapshot.get(i)));
+                }
+                bottomTribeCount = bottomSnapshot.size();
+                updateInteractionState();
+                return;
             }
 
-            updateInteractionState();
+            // anima i floater verso il bottom; solo l'ultimo aggiunge le nuove carte
+            int[] remaining = {floaters.size()};
+            for (ImageView floater : floaters) {
+                double deltaY = botRoot.getY() - floater.getLayoutY();
+                TranslateTransition tt = new TranslateTransition(Duration.millis(450), floater);
+                tt.setByY(deltaY);
+                tt.setInterpolator(Interpolator.EASE_BOTH);
+                tt.setOnFinished(e -> {
+                    root.getChildren().remove(floater);
+                    remaining[0]--;
+                    if (remaining[0] == 0) {
+                        for (int i = 0; i < bottomSnapshot.size(); i++)
+                            bottomCardHbox.getChildren().add(i, cardImageView(bottomSnapshot.get(i)));
+                        bottomTribeCount = bottomSnapshot.size();
+                        updateInteractionState();
+                    }
+                });
+                tt.play();
+            }
         });
+    }
+
+    private void doTopCardRefresh(List<CardDTO> top, List<CardDTO> bottomSnapshot) {
+        if (topTribeCount > 0) topCardHbox.getChildren().remove(0, topTribeCount);
+        topTribeCount = 0;
+        for (int i = 0; i < top.size(); i++) {
+            topCardHbox.getChildren().add(i, cardImageView(top.get(i)));
+            topTribeCount++;
+        }
+        if (bottomTribeCount > 0) bottomCardHbox.getChildren().remove(0, bottomTribeCount);
+        bottomTribeCount = 0;
+        for (int i = 0; i < bottomSnapshot.size(); i++) {
+            bottomCardHbox.getChildren().add(i, cardImageView(bottomSnapshot.get(i)));
+            bottomTribeCount++;
+        }
+        updateInteractionState();
     }
 
     @Override
@@ -314,18 +411,79 @@ public class TileContorller implements GUIObserver {
             if (topCardHbox == null) return;
             clearCardSelection();
 
+            javafx.scene.Scene scene = topCardHbox.getScene();
+            if (scene == null) {
+                doTopBuildingRefresh(topSnapshot, bottomSnapshot);
+                return;
+            }
+            Pane root = (Pane) scene.getRoot();
+            Point2D botRoot = root.sceneToLocal(bottomCardHbox.localToScene(0, 0));
+
+            // crea copie flottanti degli edifici attuali nel top prima di sostituire
+            List<ImageView> floaters = new ArrayList<>();
+            for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++) {
+                Node node = topCardHbox.getChildren().get(i);
+                if (!(node.getUserData() instanceof BuildingDTO bld)) continue;
+                Point2D nodeRoot = root.sceneToLocal(node.localToScene(0, 0));
+                ImageView floater = buildingImageView(bld);
+                floater.setMouseTransparent(true);
+                floater.setLayoutX(nodeRoot.getX());
+                floater.setLayoutY(nodeRoot.getY());
+                root.getChildren().add(floater);
+                floaters.add(floater);
+            }
+
+            // aggiorna top buildings e svuota bottom buildings (appariranno dopo la transizione)
             if (topCardHbox.getChildren().size() > topTribeCount)
                 topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
-            for (BuildingDTO bld : topSnapshot)
-                topCardHbox.getChildren().add(buildingImageView(bld));
-
+            List<Node> newTopBldNodes = new ArrayList<>();
+            for (BuildingDTO bld : topSnapshot) {
+                ImageView iv = buildingImageView(bld);
+                topCardHbox.getChildren().add(iv);
+                newTopBldNodes.add(iv);
+            }
             if (bottomCardHbox.getChildren().size() > bottomTribeCount)
                 bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
-            for (BuildingDTO bld : bottomSnapshot)
-                bottomCardHbox.getChildren().add(buildingImageView(bld));
-
             updateInteractionState();
+            newTopBldNodes.forEach(this::fadeInNode);
+
+            if (floaters.isEmpty()) {
+                for (BuildingDTO bld : bottomSnapshot)
+                    bottomCardHbox.getChildren().add(buildingImageView(bld));
+                updateInteractionState();
+                return;
+            }
+
+            int[] remaining = {floaters.size()};
+            for (ImageView floater : floaters) {
+                double deltaY = botRoot.getY() - floater.getLayoutY();
+                TranslateTransition tt = new TranslateTransition(Duration.millis(450), floater);
+                tt.setByY(deltaY);
+                tt.setInterpolator(Interpolator.EASE_BOTH);
+                tt.setOnFinished(e -> {
+                    root.getChildren().remove(floater);
+                    remaining[0]--;
+                    if (remaining[0] == 0) {
+                        for (BuildingDTO bld : bottomSnapshot)
+                            bottomCardHbox.getChildren().add(buildingImageView(bld));
+                        updateInteractionState();
+                    }
+                });
+                tt.play();
+            }
         });
+    }
+
+    private void doTopBuildingRefresh(List<BuildingDTO> topSnapshot, List<BuildingDTO> bottomSnapshot) {
+        if (topCardHbox.getChildren().size() > topTribeCount)
+            topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
+        for (BuildingDTO bld : topSnapshot)
+            topCardHbox.getChildren().add(buildingImageView(bld));
+        if (bottomCardHbox.getChildren().size() > bottomTribeCount)
+            bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
+        for (BuildingDTO bld : bottomSnapshot)
+            bottomCardHbox.getChildren().add(buildingImageView(bld));
+        updateInteractionState();
     }
 
     @Override
@@ -340,13 +498,29 @@ public class TileContorller implements GUIObserver {
     }
 
     @Override
-    public void onPlayerPlacedOnOfferTile(String nickname, int tilePosition) {
+    public void onPlayerPlacedOnOfferTile(String nickname, int tilePosition, int fromSlot) {
         Platform.runLater(() -> {
-            javafx.scene.layout.Pane overlay = offerTileOverlays.get(tilePosition);
-            if (overlay == null) return;
-            double w = offerTileWidths.getOrDefault(tilePosition, cardFitHeight);
-            overlay.getChildren().clear();
-            placeTotemOnOverlay(overlay, nickname, OFFER_TOTEM_X, OFFER_TOTEM_Y, w);
+            Pane offerOverlay = offerTileOverlays.get(tilePosition);
+            if (offerOverlay == null) return;
+            boolean isMe = nickname.equals(playerDTO.getNickName());
+            if (isMe && previewTilePosition == tilePosition) {
+                // il mio totem è già in posto grazie al preview → confermo senza animare
+                previewTilePosition = -1;
+                return;
+            }
+            if (isMe) previewTilePosition = -1; // pulizia anomala
+            if (fromSlot < 0 || defaultTileOverlay == null) {
+                double w = offerTileWidths.getOrDefault(tilePosition, cardFitHeight);
+                offerOverlay.getChildren().clear();
+                placeTotemOnOverlay(offerOverlay, nickname, OFFER_TOTEM_X, OFFER_TOTEM_Y, w);
+                return;
+            }
+            animateTotem(defaultSlotScene(fromSlot), offerSlotScene(tilePosition),
+                    colorOf(nickname), () -> {
+                        double w = offerTileWidths.getOrDefault(tilePosition, cardFitHeight);
+                        offerOverlay.getChildren().clear();
+                        placeTotemOnOverlay(offerOverlay, nickname, OFFER_TOTEM_X, OFFER_TOTEM_Y, w);
+                    });
         });
     }
 
@@ -363,9 +537,98 @@ public class TileContorller implements GUIObserver {
         for (int i = 0; i < order.size(); i++) {
             PlayerDTO p = order.get(i);
             if (p == null) continue;
+            // se il mio preview è attivo non ridisegno il mio totem sulla default tile
+            if (previewTilePosition >= 0 && p.getNickName().equals(playerDTO.getNickName())) continue;
             double yFrac = i < ySlots.length ? ySlots[i] : ySlots[ySlots.length - 1];
             placeTotemOnOverlay(defaultTileOverlay, p.getNickName(), 0.50, yFrac, defaultTileWidth);
         }
+    }
+
+    // =========================================================
+    // ANIMATION HELPERS
+    // =========================================================
+
+    private void fadeInNode(Node node) {
+        double target = node.getOpacity();
+        node.setOpacity(0.0);
+        FadeTransition ft = new FadeTransition(Duration.millis(400), node);
+        ft.setFromValue(0.0);
+        ft.setToValue(target);
+        ft.play();
+    }
+
+    private void fadeOutFloating(Node original, Point2D nodeScenePos) {
+        if (tileHbox.getScene() == null) return;
+        Pane root = (Pane) tileHbox.getScene().getRoot();
+        Point2D rootPos = root.sceneToLocal(nodeScenePos);
+
+        Object data = original.getUserData();
+        ImageView floater;
+        if (data instanceof BuildingDTO bld) {
+            floater = buildingImageView(bld);
+        } else if (data instanceof CardDTO card) {
+            floater = cardImageView(card);
+        } else return;
+
+        floater.setLayoutX(rootPos.getX());
+        floater.setLayoutY(rootPos.getY());
+        floater.setMouseTransparent(true);
+        root.getChildren().add(floater);
+
+        FadeTransition ft = new FadeTransition(Duration.millis(300), floater);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> root.getChildren().remove(floater));
+        ft.play();
+    }
+
+    private void animateTotem(Point2D srcScene, Point2D dstScene, COLOR color, Runnable onFinish) {
+        if (tileHbox.getScene() == null) { if (onFinish != null) onFinish.run(); return; }
+        Pane root = (Pane) tileHbox.getScene().getRoot();
+        Point2D srcRoot = root.sceneToLocal(srcScene);
+        Point2D dstRoot = root.sceneToLocal(dstScene);
+
+        Image totemImg = new Image(getClass().getResourceAsStream(totemPath(color)));
+        double totemH = cardFitHeight * 0.20;
+        double totemW = totemH * totemImg.getWidth() / totemImg.getHeight();
+        ImageView iv = new ImageView(totemImg);
+        iv.setFitHeight(totemH);
+        iv.setPreserveRatio(true);
+        iv.setRotate(90);
+        iv.setMouseTransparent(true);
+        iv.setLayoutX(srcRoot.getX() - totemW / 2.0);
+        iv.setLayoutY(srcRoot.getY() - totemH / 2.0);
+        root.getChildren().add(iv);
+
+        TranslateTransition tt = new TranslateTransition(Duration.millis(500), iv);
+        tt.setByX(dstRoot.getX() - srcRoot.getX());
+        tt.setByY(dstRoot.getY() - srcRoot.getY());
+        tt.setInterpolator(Interpolator.EASE_BOTH);
+        tt.setOnFinished(e -> { root.getChildren().remove(iv); if (onFinish != null) onFinish.run(); });
+        tt.play();
+    }
+
+    private Point2D defaultSlotScene(int slot) {
+        int totalPlayers = clienHandler.getPlayers().size();
+        double[] ySlots = DEFAULT_SLOT_Y.getOrDefault(totalPlayers, new double[]{0.5});
+        double yFrac = slot < ySlots.length ? ySlots[slot] : ySlots[ySlots.length - 1];
+        return defaultTileOverlay.localToScene(defaultTileWidth * 0.50, cardFitHeight * yFrac);
+    }
+
+    private Point2D offerSlotScene(int tilePos) {
+        Pane overlay = offerTileOverlays.get(tilePos);
+        if (overlay == null) return new Point2D(0, 0);
+        double w = offerTileWidths.getOrDefault(tilePos, cardFitHeight);
+        return overlay.localToScene(w * OFFER_TOTEM_X, cardFitHeight * OFFER_TOTEM_Y);
+    }
+
+    private int myDefaultSlot() {
+        List<PlayerDTO> order = clienHandler.getDefaultTileOrder();
+        for (int i = 0; i < order.size(); i++) {
+            PlayerDTO p = order.get(i);
+            if (p != null && p.getNickName().equals(playerDTO.getNickName())) return i;
+        }
+        return -1;
     }
 
     @Override
@@ -445,7 +708,9 @@ public class TileContorller implements GUIObserver {
 
     @Override
     public void onWinners(List<PlayerDTO> w) {
+
         GUIObserver.super.onWinners(w);
+        //TODO: aggiungere schermata visualizzazione vincitori e classifica dal database: DANIELE
     }
 
     // =========================================================
@@ -536,8 +801,8 @@ public class TileContorller implements GUIObserver {
         boolean myPlaying = isMyPlayingTurn();
 
         ColorAdjust gray = new ColorAdjust();
-        gray.setSaturation(-0.8);
-        gray.setBrightness(-0.2);
+        gray.setSaturation(-0.45);
+        gray.setBrightness(-0.1);
 
         // --- tile (indice 0 = default tile, mai cliccabile) ---
         Map<Integer, String> occupants = clienHandler.getOfferTileOccupants();
@@ -552,7 +817,7 @@ public class TileContorller implements GUIObserver {
                 sp.setStyle("-fx-cursor: hand;");
             } else {
                 if (sp != selectedTilePane) sp.setEffect(myPlacing ? null : gray);
-                sp.setOpacity(myPlacing ? 1.0 : 0.45);
+                sp.setOpacity(myPlacing ? 1.0 : 0.70);
                 sp.setOnMouseClicked(null);
                 sp.setStyle("");
             }
@@ -630,8 +895,8 @@ public class TileContorller implements GUIObserver {
 
     private void applyCardRowState(HBox row, boolean rowActive) {
         ColorAdjust gray = new ColorAdjust();
-        gray.setSaturation(-0.8);
-        gray.setBrightness(-0.2);
+        gray.setSaturation(-0.45);
+        gray.setBrightness(-0.1);
 
         for (Node node : row.getChildren()) {
             if (!(node.getUserData() instanceof CardDTO dto)) continue;
@@ -644,7 +909,7 @@ public class TileContorller implements GUIObserver {
                 // mantieni il glow anche se non selezionabile (verrà pulito da clearCardSelection se serve)
             } else if (!rowActive || !selectable) {
                 node.setEffect(gray);
-                node.setOpacity(0.45);
+                node.setOpacity(0.70);
             } else {
                 node.setEffect(null);
                 node.setOpacity(1.0);
@@ -663,14 +928,65 @@ public class TileContorller implements GUIObserver {
     }
 
     private void selectTile(javafx.scene.layout.StackPane sp, int position) {
+        if (previewAnimating) return;
+        COLOR myColor = colorOf(playerDTO.getNickName());
         if (selectedTilePane != null) selectedTilePane.setEffect(null);
+
         if (selectedTilePane == sp) {
+            // deselect: animo il totem dal offer tile back alla default tile
             selectedTilePane = null;
             selectedTilePosition = -1;
+            int old = previewTilePosition;
+            previewTilePosition = -1;
+            if (old >= 0 && defaultTileOverlay != null) {
+                Pane oldOverlay = offerTileOverlays.get(old);
+                if (oldOverlay != null) oldOverlay.getChildren().clear();
+                int mySlot = myDefaultSlot();
+                if (mySlot >= 0) {
+                    previewAnimating = true;
+                    animateTotem(offerSlotScene(old), defaultSlotScene(mySlot), myColor, () -> {
+                        previewAnimating = false;
+                        refreshDefaultTileOverlay(clienHandler.getDefaultTileOrder());
+                    });
+                }
+            }
         } else {
+            int old = previewTilePosition;
             sp.setEffect(goldGlow());
             selectedTilePane = sp;
             selectedTilePosition = position;
+            previewTilePosition = position;
+            Pane newOverlay = offerTileOverlays.get(position);
+            if (old >= 0) {
+                // cambio selezione: offer tile → offer tile
+                Pane oldOverlay = offerTileOverlays.get(old);
+                if (oldOverlay != null) oldOverlay.getChildren().clear();
+                if (newOverlay != null) {
+                    previewAnimating = true;
+                    animateTotem(offerSlotScene(old), offerSlotScene(position), myColor, () -> {
+                        previewAnimating = false;
+                        newOverlay.getChildren().clear();
+                        placeTotemOnOverlay(newOverlay, playerDTO.getNickName(),
+                                OFFER_TOTEM_X, OFFER_TOTEM_Y,
+                                offerTileWidths.getOrDefault(position, cardFitHeight));
+                    });
+                }
+            } else {
+                // default tile → offer tile
+                int mySlot = myDefaultSlot();
+                if (mySlot >= 0 && defaultTileOverlay != null && newOverlay != null) {
+                    Point2D src = defaultSlotScene(mySlot);
+                    refreshDefaultTileOverlay(clienHandler.getDefaultTileOrder());
+                    previewAnimating = true;
+                    animateTotem(src, offerSlotScene(position), myColor, () -> {
+                        previewAnimating = false;
+                        newOverlay.getChildren().clear();
+                        placeTotemOnOverlay(newOverlay, playerDTO.getNickName(),
+                                OFFER_TOTEM_X, OFFER_TOTEM_Y,
+                                offerTileWidths.getOrDefault(position, cardFitHeight));
+                    });
+                }
+            }
         }
         placeTotemButton.setDisable(selectedTilePosition == -1);
     }
@@ -687,6 +1003,14 @@ public class TileContorller implements GUIObserver {
     }
 
     private void clearTileSelection() {
+        previewAnimating = false;
+        if (previewTilePosition >= 0) {
+            Pane prev = offerTileOverlays.get(previewTilePosition);
+            if (prev != null) prev.getChildren().clear();
+            previewTilePosition = -1;
+            if (defaultTileOverlay != null)
+                refreshDefaultTileOverlay(clienHandler.getDefaultTileOrder());
+        }
         if (selectedTilePane != null) {
             selectedTilePane.setEffect(null);
             selectedTilePane = null;

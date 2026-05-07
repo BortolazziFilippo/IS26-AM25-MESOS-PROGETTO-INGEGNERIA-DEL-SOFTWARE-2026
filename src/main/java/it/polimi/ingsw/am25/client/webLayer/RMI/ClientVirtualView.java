@@ -344,7 +344,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.bottomBuildings.remove(position);
         }
-
+        updateObservers(obs -> obs.onBottomBuildRemoved(position));
     }
 
     /**
@@ -424,11 +424,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
+        int fromSlot = -1;
+        for (int i = 0; i < defaultTileOrder.size(); i++) {
+            PlayerDTO p = defaultTileOrder.get(i);
+            if (p != null && Objects.equals(p.getNickName(), PlayerNickname)) { fromSlot = i; break; }
+        }
         defaultTileOrder.replaceAll(p -> p != null && Objects.equals(p.getNickName(), PlayerNickname) ? null : p);
         offerTileOccupants.put(offertilePosition, PlayerNickname);
         List<PlayerDTO> updatedOrder = new ArrayList<>(defaultTileOrder);
+        final int slot = fromSlot;
         updateObservers(obs -> obs.onDefaultTileOrderChanged(updatedOrder));
-        updateObservers(obs -> obs.onPlayerPlacedOnOfferTile(PlayerNickname, offertilePosition));
+        updateObservers(obs -> obs.onPlayerPlacedOnOfferTile(PlayerNickname, offertilePosition, slot));
     }
 
 
