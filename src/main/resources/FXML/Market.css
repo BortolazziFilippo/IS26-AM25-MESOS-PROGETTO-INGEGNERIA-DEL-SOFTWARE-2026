@@ -2,26 +2,26 @@
 /* sfondo principale: grigio caldo chiaro */
 
 .root {
-    -fx-background-color: #e8e4df;
+    -fx-background-color: #9a9a9a ;
 }
 
 /* SplitPane e il suo divisore */
 .split-pane {
-    -fx-background-color: #e8e4df;
+    -fx-background-color: #9a9a9a;
     -fx-padding: 0;
 }
 .split-pane > .split-pane-divider {
-    -fx-background-color: #c0bbb5;
+    -fx-background-color: #9a9a9a;
     -fx-padding: 0 2 0 2;
 }
 
 /* ScrollPane: viewport e sfondo interno */
 .scroll-pane {
     -fx-background-color: transparent;
-    -fx-background: #e8e4df;
+    -fx-background: #9a9a9a;
 }
 .scroll-pane > .viewport {
-    -fx-background-color: #e8e4df;
+    -fx-background-color: #9a9a9a;
 }
 
 /* Pannelli generici */

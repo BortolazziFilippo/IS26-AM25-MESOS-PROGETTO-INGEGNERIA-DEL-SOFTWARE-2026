@@ -27,7 +27,9 @@ public class EventPopup {
 
             stage = new Stage();
             stage.setTitle("Eventi risolti");
-            stage.setScene(new Scene(new HBox(leftCol, rightCol)));
+            Scene scene = new Scene(new HBox(leftCol, rightCol));
+            scene.getStylesheets().add(getClass().getResource("/FXML/Market.css").toExternalForm());
+            stage.setScene(scene);
             stage.setOnHidden(e -> { stage = null; leftCol = null; rightCol = null; count = 0; });
             stage.show();
         }

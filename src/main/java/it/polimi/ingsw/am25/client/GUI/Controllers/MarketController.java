@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TileController implements GUIObserver {
+public class MarketController implements GUIObserver {
 
     // --- pending data (arriva prima che la UI sia pronta) ---
     private volatile List<CardDTO> pendingTopTribeCard;
@@ -91,7 +91,7 @@ public class TileController implements GUIObserver {
     @FXML private Label shamanStarLabel;
     @FXML private Label builderDiscountLabel;
 
-    public TileController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
+    public MarketController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clientHandler = clientHandler;
         this.serverRemoteInterface = serverRemoteInterface;
         this.playerDTO = playerDTO;
@@ -172,12 +172,12 @@ public class TileController implements GUIObserver {
 
     @FXML
     private void showThisPlayerTribe() {
-        //TODO
+        //TODO mostrare tribu del giocatore (ROBERT), posso aiutare
     }
 
     @FXML
     private void showPlayerStatus() {
-        //TODO
+        //TODO mostrare lo stato di tutti i giocatori (ROBERT)
     }
 
     // =========================================================
@@ -228,11 +228,12 @@ public class TileController implements GUIObserver {
             if (topCardHbox == null || position >= topTribeCount) return;
             Node node = topCardHbox.getChildren().get(position);
             if (node == selectedCardView) clearCardSelection();
-            Point2D scenePos = node.localToScene(0, 0);
-            topCardHbox.getChildren().remove(position);
             topTribeCount--;
-            updateInteractionState();
-            fadeOutFloating(node, scenePos);
+            node.setMouseTransparent(true);
+            fadeOutInPlace(node, () -> {
+                topCardHbox.getChildren().remove(node);
+                updateInteractionState();
+            });
         });
     }
 
@@ -242,11 +243,12 @@ public class TileController implements GUIObserver {
             if (bottomCardHbox == null || position >= bottomTribeCount) return;
             Node node = bottomCardHbox.getChildren().get(position);
             if (node == selectedCardView) clearCardSelection();
-            Point2D scenePos = node.localToScene(0, 0);
-            bottomCardHbox.getChildren().remove(position);
             bottomTribeCount--;
-            updateInteractionState();
-            fadeOutFloating(node, scenePos);
+            node.setMouseTransparent(true);
+            fadeOutInPlace(node, () -> {
+                bottomCardHbox.getChildren().remove(node);
+                updateInteractionState();
+            });
         });
     }
 
@@ -258,9 +260,8 @@ public class TileController implements GUIObserver {
             if (idx >= topCardHbox.getChildren().size()) return;
             Node node = topCardHbox.getChildren().get(idx);
             if (node == selectedCardView) clearCardSelection();
-            Point2D scenePos = node.localToScene(0, 0);
-            topCardHbox.getChildren().remove(idx);
-            fadeOutFloating(node, scenePos);
+            node.setMouseTransparent(true);
+            fadeOutInPlace(node, () -> topCardHbox.getChildren().remove(node));
         });
     }
 
@@ -272,9 +273,8 @@ public class TileController implements GUIObserver {
             if (idx >= bottomCardHbox.getChildren().size()) return;
             Node node = bottomCardHbox.getChildren().get(idx);
             if (node == selectedCardView) clearCardSelection();
-            Point2D scenePos = node.localToScene(0, 0);
-            bottomCardHbox.getChildren().remove(idx);
-            fadeOutFloating(node, scenePos);
+            node.setMouseTransparent(true);
+            fadeOutInPlace(node, () -> bottomCardHbox.getChildren().remove(node));
         });
     }
 
@@ -306,7 +306,7 @@ public class TileController implements GUIObserver {
                 floaters.add(floater);
             }
 
-            if (topTribeCount > 0) topCardHbox.getChildren().remove(0, topTribeCount);
+            topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             topTribeCount = 0;
             List<Node> newTopNodes = new ArrayList<>();
             for (int i = 0; i < top.size(); i++) {
@@ -315,7 +315,7 @@ public class TileController implements GUIObserver {
                 newTopNodes.add(iv);
                 topTribeCount++;
             }
-            if (bottomTribeCount > 0) bottomCardHbox.getChildren().remove(0, bottomTribeCount);
+            bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             bottomTribeCount = 0;
             updateInteractionState();
             newTopNodes.forEach(this::fadeInNode);
@@ -350,13 +350,13 @@ public class TileController implements GUIObserver {
     }
 
     private void doTopCardRefresh(List<CardDTO> top, List<CardDTO> bottomSnapshot) {
-        if (topTribeCount > 0) topCardHbox.getChildren().remove(0, topTribeCount);
+        topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         topTribeCount = 0;
         for (int i = 0; i < top.size(); i++) {
             topCardHbox.getChildren().add(i, CardImageFactory.cardImageView(top.get(i), cardFitHeight));
             topTribeCount++;
         }
-        if (bottomTribeCount > 0) bottomCardHbox.getChildren().remove(0, bottomTribeCount);
+        bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         bottomTribeCount = 0;
         for (int i = 0; i < bottomSnapshot.size(); i++) {
             bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnapshot.get(i), cardFitHeight));
@@ -553,6 +553,7 @@ public class TileController implements GUIObserver {
     public void onWinners(List<PlayerDTO> w) {
         GUIObserver.super.onWinners(w);
         //TODO: aggiungere schermata visualizzazione vincitori e classifica dal database: DANIELE
+        //NB la classifica dal database dovra essere visibile anche dalla lobby
     }
 
     // =========================================================
@@ -911,27 +912,11 @@ public class TileController implements GUIObserver {
         ft.play();
     }
 
-    private void fadeOutFloating(Node original, Point2D nodeScenePos) {
-        if (tileHbox.getScene() == null) return;
-        Pane root = (Pane) tileHbox.getScene().getRoot();
-        Point2D rootPos = root.sceneToLocal(nodeScenePos);
-
-        ImageView floater;
-        if (original.getUserData() instanceof BuildingDTO bld) {
-            floater = CardImageFactory.buildingImageView(bld, cardFitHeight);
-        } else if (original.getUserData() instanceof CardDTO card) {
-            floater = CardImageFactory.cardImageView(card, cardFitHeight);
-        } else return;
-
-        floater.setLayoutX(rootPos.getX());
-        floater.setLayoutY(rootPos.getY());
-        floater.setMouseTransparent(true);
-        root.getChildren().add(floater);
-
-        FadeTransition ft = new FadeTransition(Duration.millis(300), floater);
+    private void fadeOutInPlace(Node node, Runnable onFinished) {
+        FadeTransition ft = new FadeTransition(Duration.millis(300), node);
         ft.setFromValue(1.0);
         ft.setToValue(0.0);
-        ft.setOnFinished(e -> root.getChildren().remove(floater));
+        ft.setOnFinished(e -> { if (onFinished != null) onFinished.run(); });
         ft.play();
     }
 
