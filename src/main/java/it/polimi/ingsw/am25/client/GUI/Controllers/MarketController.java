@@ -17,6 +17,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class MarketController implements GUIObserver {
 
@@ -74,10 +76,24 @@ public class MarketController implements GUIObserver {
 
     // --- card selection state ---
     private ImageView selectedCardView = null;
+    /** Tracks active tooltips on building nodes so they can be cleanly uninstalled. */
+    private final WeakHashMap<Node, Tooltip> activeTooltips = new WeakHashMap<>();
     /** Number of tribe cards (non-building) currently in the top row. */
     private int topTribeCount = 0;
     /** Number of tribe cards (non-building) currently in the bottom row. */
     private int bottomTribeCount = 0;
+    /** True while the player must pick an extra card from the end-of-round snapshot. */
+    private boolean extraDrawActive = false;
+    /** Number of tribe cards in the extra draw snapshot currently shown in the top row. */
+    private int extraDrawTribeCount = 0;
+    /** Non-blocking banner shown while extra draw is active. */
+    private javafx.stage.Popup extraDrawPopup;
+    /** UI actions deferred until the player resolves the extra draw (event popups). */
+    private final List<Runnable> deferredUiActions = new ArrayList<>();
+    /** Snapshot of the bottom tribe cards captured at round-end, applied after extra draw is resolved. */
+    private List<CardDTO> pendingBottomCards = null;
+    /** Snapshot of the bottom buildings captured at round-end, applied after extra draw is resolved. */
+    private List<BuildingDTO> pendingBottomBuildings = null;
 
     @FXML private HBox topCardHbox;
     @FXML private HBox tileHbox;
@@ -139,16 +155,23 @@ public class MarketController implements GUIObserver {
         try {
             CardDTO dto = (CardDTO) selectedCardView.getUserData();
             CARD_TYPE type = dto.getCardType();
-            if (topCardHbox.getChildren().contains(selectedCardView)) {
+            if (extraDrawActive) {
+                int idx = topCardHbox.getChildren().indexOf(selectedCardView);
+                int pos = idx < extraDrawTribeCount ? idx : idx - extraDrawTribeCount;
+                serverRemoteInterface.selectExtraCard(playerDTO, type, pos);
+                clearCardSelection();
+                clearExtraDraw();
+            } else if (topCardHbox.getChildren().contains(selectedCardView)) {
                 int idx = topCardHbox.getChildren().indexOf(selectedCardView);
                 int pos = idx < topTribeCount ? idx : idx - topTribeCount;
                 serverRemoteInterface.selectCardFromTopList(playerDTO, type, pos);
+                clearCardSelection();
             } else {
                 int idx = bottomCardHbox.getChildren().indexOf(selectedCardView);
                 int pos = idx < bottomTribeCount ? idx : idx - bottomTribeCount;
                 serverRemoteInterface.selectCardFromBottomList(playerDTO, type, pos);
+                clearCardSelection();
             }
-            clearCardSelection();
         } catch (Exception e) {
             GUIEffects.showError(e.getMessage());
         }
@@ -169,11 +192,16 @@ public class MarketController implements GUIObserver {
         }
     }
 
-    /** Notifies the server that the local player passes their turn. */
+    /** Notifies the server that the local player passes (or skips the extra draw). */
     @FXML
     private void handleSkipTurn() {
         try {
-            serverRemoteInterface.playerDoNothing(playerDTO);
+            if (extraDrawActive) {
+                serverRemoteInterface.skipExtraDraw(playerDTO);
+                clearExtraDraw();
+            } else {
+                serverRemoteInterface.playerDoNothing(playerDTO);
+            }
         } catch (Exception e) {
             GUIEffects.showError(e.getMessage());
         }
@@ -197,7 +225,6 @@ public class MarketController implements GUIObserver {
     public void onGamePhaseChanged(GAME_PHASE phase) {
         Platform.runLater(() -> {
             if (phaseLabel != null) phaseLabel.setText("Fase corrente: " + phase);
-            // Clear offer tile overlays at the start of each placing phase
             if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
                 offerTileOverlays.values().forEach(p -> p.getChildren().clear());
             }
@@ -291,6 +318,11 @@ public class MarketController implements GUIObserver {
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
+            if (extraDrawActive) {
+                topTribeCount = top.size();
+                pendingBottomCards = bottomSnap; // captured before any concurrent modification
+                return;
+            }
             javafx.scene.Scene scene = topCardHbox.getScene();
             if (scene == null) { doTopCardRefresh(top, bottomSnap); return; }
             Pane root = (Pane) scene.getRoot();
@@ -354,6 +386,10 @@ public class MarketController implements GUIObserver {
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
+            if (extraDrawActive) {
+                pendingBottomBuildings = botSnap; // captured before any concurrent modification
+                return;
+            }
             javafx.scene.Scene scene = topCardHbox.getScene();
             if (scene == null) { doTopBuildingRefresh(topSnap, botSnap); return; }
             Pane root = (Pane) scene.getRoot();
@@ -510,7 +546,32 @@ public class MarketController implements GUIObserver {
 
     @Override
     public void onEventResolved(int eventID, EVENT_TYPE eventType) {
-        Platform.runLater(() -> eventPopup.addEvent(eventID, eventType, cardFitHeight));
+        Platform.runLater(() -> {
+            if (extraDrawActive) {
+                deferredUiActions.add(() -> eventPopup.addEvent(eventID, eventType, cardFitHeight));
+            } else {
+                eventPopup.addEvent(eventID, eventType, cardFitHeight);
+            }
+        });
+    }
+
+    @Override
+    public void onAskExtraDraw(List<CardDTO> cards, List<BuildingDTO> buildings) {
+        Platform.runLater(() -> {
+            clearCardSelection();
+            extraDrawActive = true;
+            topCardHbox.getChildren().clear();
+            extraDrawTribeCount = 0;
+            for (CardDTO card : cards) {
+                topCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
+                extraDrawTribeCount++;
+            }
+            for (BuildingDTO bld : buildings) {
+                topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+            }
+            updateInteractionState();
+            showExtraDrawPopup();
+        });
     }
 
     @Override
@@ -629,14 +690,18 @@ public class MarketController implements GUIObserver {
         }
         if (!myPlacing) clearTileSelection();
 
-        applyCardRowState(topCardHbox, myPlaying && clientHandler.getDrawTop() > 0);
-        applyCardRowState(bottomCardHbox, myPlaying && clientHandler.getDrawBot() > 0);
-        if (!myPlaying) clearCardSelection();
+        applyCardRowState(topCardHbox, extraDrawActive || (myPlaying && clientHandler.getDrawTop() > 0));
+        applyCardRowState(bottomCardHbox, !extraDrawActive && myPlaying && clientHandler.getDrawBot() > 0);
+        if (!myPlaying && !extraDrawActive) clearCardSelection();
 
         placeTotemButton.setDisable(!myPlacing || selectedTilePosition == -1);
-        selectCardButton.setDisable(!myPlaying || selectedCardView == null);
-        boolean hasActions = clientHandler.getDrawTop() > 0 || clientHandler.getDrawBot() > 0;
-        skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard());
+        selectCardButton.setDisable((!myPlaying && !extraDrawActive) || selectedCardView == null);
+        if (extraDrawActive) {
+            skipTurnButton.setDisable(false);
+        } else {
+            boolean hasActions = clientHandler.getDrawTop() > 0 || clientHandler.getDrawBot() > 0;
+            skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard());
+        }
     }
 
     /**
@@ -722,6 +787,18 @@ public class MarketController implements GUIObserver {
             } else {
                 node.setEffect(null);
                 node.setOpacity(1.0);
+            }
+
+            if (dto instanceof BuildingDTO && !canAfford(dto)) {
+                activeTooltips.computeIfAbsent(node, n -> {
+                    Tooltip tt = new Tooltip("Non hai abbastanza cibo");
+                    tt.setShowDelay(new Duration( 300));
+                    Tooltip.install(n, tt);
+                    return tt;
+                });
+            } else {
+                Tooltip tt = activeTooltips.remove(node);
+                if (tt != null) Tooltip.uninstall(node, tt);
             }
 
             if (selectable) {
@@ -847,6 +924,75 @@ public class MarketController implements GUIObserver {
             selectedCardView = null;
         }
         if (selectCardButton != null) selectCardButton.setDisable(true);
+    }
+
+    /** Builds and shows the extra-draw banner centered at the top of the current window. */
+    private void showExtraDrawPopup() {
+        if (extraDrawPopup == null) {
+            javafx.scene.control.Label label = new javafx.scene.control.Label("Seleziona carta extra:");
+            label.setStyle(
+                "-fx-background-color: #2a1a0a;" +
+                "-fx-text-fill: gold;" +
+                "-fx-font-size: 22px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-padding: 14 28 14 28;" +
+                "-fx-border-color: gold;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;"
+            );
+            extraDrawPopup = new javafx.stage.Popup();
+            extraDrawPopup.getContent().add(label);
+            extraDrawPopup.setAutoFix(true);
+        }
+        javafx.stage.Window window = topCardHbox.getScene().getWindow();
+        double centerX = window.getX() + window.getWidth() / 2.0;
+        extraDrawPopup.show(window, centerX - 160, window.getY() + 60);
+    }
+
+    /** Hides the extra-draw banner if it is currently visible. */
+    private void hideExtraDrawPopup() {
+        if (extraDrawPopup != null && extraDrawPopup.isShowing()) extraDrawPopup.hide();
+    }
+
+    /**
+     * Ends the extra-draw mode: restores the top row from the current market state
+     * (as stored in clientHandler, which reflects any refreshes that arrived while the
+     * snapshot was on screen) and re-evaluates interaction state.
+     */
+    private void clearExtraDraw() {
+        extraDrawActive = false;
+        extraDrawTribeCount = 0;
+        hideExtraDrawPopup();
+        clearCardSelection();
+        topCardHbox.getChildren().clear();
+        topTribeCount = 0;
+        for (CardDTO card : clientHandler.getTopCards()) {
+            topCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
+            topTribeCount++;
+        }
+        for (BuildingDTO bld : clientHandler.getTopBuildings()) {
+            topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+        }
+        // Rebuild bottom row from the snapshots captured at round-end (before any race conditions)
+        if (pendingBottomCards != null) {
+            bottomCardHbox.getChildren().clear();
+            bottomTribeCount = 0;
+            for (CardDTO card : pendingBottomCards) {
+                bottomCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
+                bottomTribeCount++;
+            }
+            List<BuildingDTO> blds = pendingBottomBuildings != null ? pendingBottomBuildings : new ArrayList<>();
+            for (BuildingDTO bld : blds) {
+                bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+            }
+            pendingBottomCards = null;
+            pendingBottomBuildings = null;
+        }
+        // Flush deferred event popups
+        deferredUiActions.forEach(Runnable::run);
+        deferredUiActions.clear();
+        updateInteractionState();
     }
 
     // =========================================================

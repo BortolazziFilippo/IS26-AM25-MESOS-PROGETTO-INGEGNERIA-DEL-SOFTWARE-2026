@@ -496,6 +496,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.needsExtraDraw = true;
             turnLock.notifyAll(); // Wake up the TUI!
         }
+        List<CardDTO> cardsCopy = new ArrayList<>(snapshotCards);
+        List<BuildingDTO> buildingsCopy = new ArrayList<>(snapshotBuildings);
+        updateObservers(obs -> obs.onAskExtraDraw(cardsCopy, buildingsCopy));
     }
 
     /** Returns the top card row snapshot for the current extra draw request. */

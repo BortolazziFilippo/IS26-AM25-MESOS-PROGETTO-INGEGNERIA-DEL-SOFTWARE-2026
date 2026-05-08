@@ -104,7 +104,7 @@ public class EndGameTUI {
             } else {
                 String myColor = tuiUtils.getAnsiColor(myPlayer != null ? myPlayer.getColorTotem() : null);
                 for (String entry : entries) {
-                    if (myPlayer != null && entry.contains(myPlayer.getNickName())) {
+                    if (myPlayer != null && entry.contains(". " + myPlayer.getNickName() + " - ")) {
                         System.out.println("  " + myColor + entry + TUIUtils.RESET);
                     } else {
                         System.out.println("  " + entry);
