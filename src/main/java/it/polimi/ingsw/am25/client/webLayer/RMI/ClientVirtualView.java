@@ -116,6 +116,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * The TUI drains this queue each iteration and prints a notification.
      */
     private final Queue<String> recentDisconnections = new ConcurrentLinkedQueue<>();
+    /**
+     * Queue of nicknames whose reconnection has not yet been displayed to the user.
+     * The TUI drains this queue each iteration and prints a notification.
+     */
+    private final Queue<String> recentReconnections = new ConcurrentLinkedQueue<>();
     /** {@code true} when the server has been detected as unreachable. */
     public volatile boolean serverDead = false;
 
@@ -227,11 +232,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         if (gamePhase == GAME_PHASE.PLACING_PHASE || gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             offerTileOccupants.clear();
         }
-        if (gamePhase == GAME_PHASE.PLACING_PHASE) {
-            this.isGameStarted = true;
-            synchronized (gameStartLock) {
-                gameStartLock.notifyAll();
-            }
+        // Always unblock the lobby-wait: in normal flow PLACING_PHASE arrives first;
+        // for a reconnecting client any phase means the game is already running.
+        this.isGameStarted = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
         }
 
         // Phase changes often mean a new turn mechanic is starting, wake up the UI to check
@@ -776,6 +781,14 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onPlayerDisconnected(nickname));
     }
 
+    @Override
+    public void playerReconnected(String nickname) throws RemoteException {
+        disconnectedPlayers.remove(nickname);
+        recentReconnections.add(nickname);
+        updateObservers(obs -> obs.onPlayerReconnected(nickname));
+    }
+
+
     /**
      * Returns {@code true} if the given player is known to have disconnected.
      * @param nickname the player's nickname.
@@ -800,6 +813,20 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     /**
+     * Drains and returns all player nicknames whose reconnection has not yet been
+     * displayed to the user. Each nickname appears at most once.
+     * @return list of recently-reconnected player nicknames (may be empty).
+     */
+    public List<String> drainRecentReconnections() {
+        List<String> result = new ArrayList<>();
+        String n;
+        while ((n = recentReconnections.poll()) != null) {
+            result.add(n);
+        }
+        return result;
+    }
+
+    /**
      * Called when the server becomes unreachable (socket drop, RMI timeout, etc.).
      * Sets the {@code serverDead} flag and wakes up any waiting TUI threads so they
      * can exit cleanly.
@@ -812,6 +839,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onServerDead());
     }
 
     /**

@@ -147,7 +147,7 @@ public class LobbyController implements GUIObserver {
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
-        if (gamePhase == GAME_PHASE.PLACING_PHASE && !gameScreenShown) {
+        if (gamePhase != GAME_PHASE.SETUP && !gameScreenShown) {
             gameScreenShown = true;
             Platform.runLater(() -> {
                 try {

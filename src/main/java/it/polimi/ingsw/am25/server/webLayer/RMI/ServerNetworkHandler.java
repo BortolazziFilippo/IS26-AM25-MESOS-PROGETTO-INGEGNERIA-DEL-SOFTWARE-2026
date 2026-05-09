@@ -88,6 +88,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             throw new GameFullException("Nessuna partita creata!");
         }
         if (isGameStarted) {
+            // Allow a disconnected player to rejoin with the same nickname
+            ServerVirtualView disconnectedView = null;
+            for (ServerVirtualView view : waitingPlayers) {
+                if (view.getNickname().equals(playerDTO.getNickName()) && !view.isConnected()) {
+                    disconnectedView = view;
+                    break;
+                }
+            }
+            if (disconnectedView != null) {
+                handleReconnection(playerDTO.getNickName(), clientRemoteInterface);
+                return;
+            }
             throw new GameStartedException("Partita già in corso!");
         }
         if (playerDTOS.stream().anyMatch(player -> Objects.equals(player.getNickName(), playerDTO.getNickName()) || player.getColorTotem() == playerDTO.getColorTotem())) {
@@ -390,6 +402,38 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         watchdogThread.setName("heartbeat-watchdog");
         watchdogThread.start();
         logServerEvent("Heartbeat watchdog started (tick=3s, threshold=3 missed pings).");
+    }
+
+    /**
+     * Handles a player reconnecting to an in-progress game. Swaps the client stub,
+     * decrements the rank counter that was incremented at disconnect time, notifies
+     * all other clients, updates the game model, and re-syncs the full game state.
+     * @param nickname the reconnecting player's nickname.
+     * @param newStub  the new RMI stub or Socket proxy for the reconnected client.
+     */
+    private void handleReconnection(String nickname, ClientRemoteInterface newStub) {
+        ServerVirtualView view = viewsByNickname.get(nickname);
+        if (view == null || view.isConnected()) return;
+
+        view.reconnect(newStub, () -> notifyPlayerDisconnected(nickname));
+
+        // Undo the shutdown-counter increment that was applied when this player disconnected.
+        rankRequestCount.decrementAndGet();
+
+        // Notify all other connected clients that this player is back.
+        for (ServerVirtualView v : waitingPlayers) {
+            if (!v.getNickname().equals(nickname) && v.isConnected()) {
+                v.notifyPlayerReconnected(nickname);
+            }
+        }
+
+        // Update the game model so the player is back in the turn queues.
+        controller.notifyPlayerReconnected(nickname);
+
+        // Push all accumulated game state to the reconnecting client.
+        view.resyncClient();
+
+        logServerEvent("Player '" + nickname + "' has reconnected.");
     }
 
     /**
