@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<!-- Single player status card — loaded once per player by PlayerStatusController -->
+<VBox fx:id="cardRoot" spacing="0"
+      style="-fx-border-color: #888888; -fx-border-width: 3; -fx-border-radius: 8;
+             -fx-background-color: #f8f8f8; -fx-background-radius: 8;"
+      xmlns="http://javafx.com/javafx/26"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.polimi.ingsw.am25.client.GUI.Controllers.PlayerCardController">
+
+    <!-- ── Header ─────────────────────────────────────────────── -->
+    <HBox fx:id="headerBox" spacing="10"
+          style="-fx-padding: 8 12 8 12; -fx-alignment: CENTER_LEFT;
+                 -fx-background-color: #888888; -fx-background-radius: 5 5 0 0;">
+        <children>
+            <Label fx:id="nameLabel" text="NickName">
+                <font><Font name="System Bold" size="16.0" /></font>
+            </Label>
+            <Label fx:id="colorLabel" text="[COLORE]"
+                   style="-fx-text-fill: white; -fx-font-size: 14px;" />
+            <Label fx:id="statusLabel" text="[ONLINE]"
+                   style="-fx-text-fill: #ccffcc; -fx-font-size: 14px;" />
+            <Label fx:id="meLabel" text="  &lt;&lt; TU &gt;&gt;"
+                   style="-fx-text-fill: #ffee88; -fx-font-size: 14px; -fx-font-weight: bold;"
+                   visible="false" managed="false" />
+        </children>
+    </HBox>
+
+    <!-- ── Stats row ──────────────────────────────────────────── -->
+    <HBox spacing="30" style="-fx-padding: 8 12 4 12;">
+        <children>
+            <VBox spacing="2">
+                <children>
+                    <Label text="Cibo" style="-fx-font-size: 11px; -fx-text-fill: #555555;" />
+                    <Label fx:id="foodLabel" text="0">
+                        <font><Font name="System Bold" size="14.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <VBox spacing="2">
+                <children>
+                    <Label text="Punti Prestigio" style="-fx-font-size: 11px; -fx-text-fill: #555555;" />
+                    <Label fx:id="ppLabel" text="0">
+                        <font><Font name="System Bold" size="14.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <VBox spacing="2">
+                <children>
+                    <Label text="Sconto Edifici" style="-fx-font-size: 11px; -fx-text-fill: #555555;" />
+                    <Label fx:id="discountLabel" text="0 cibo">
+                        <font><Font name="System Bold" size="14.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <VBox spacing="2">
+                <children>
+                    <Label text="Stelle Sciamano" style="-fx-font-size: 11px; -fx-text-fill: #555555;" />
+                    <Label fx:id="shamanLabel" text="0">
+                        <font><Font name="System Bold" size="14.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+        </children>
+    </HBox>
+
+    <!-- ── Tribe section ──────────────────────────────────────── -->
+    <VBox fx:id="tribeSection" spacing="4"
+          style="-fx-padding: 4 12 10 12;">
+        <children>
+            <Label fx:id="tribeTitleLabel" text="TRIBU' (0 carte):">
+                <font><Font name="System Bold" size="13.0" /></font>
+            </Label>
+            <!-- Tribe rows are added here dynamically by PlayerCardController -->
+        </children>
+    </VBox>
+
+</VBox>
