@@ -69,6 +69,9 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         viewsByNickname.put(hostNick, hostView);
         playerDTOS.add(playerHost);
 
+        // L'host vede subito se stesso nella lobby
+        hostView.pushPlayerAdded(playerHost);
+
         logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
     }
 
@@ -102,6 +105,19 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         viewsByNickname.put(joinNick, playerView);
         playerDTOS.add(playerDTO);
         logServerEvent("Player '" + playerDTO.getNickName() + "' joined (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
+
+        // -----------------------------------------------------------------
+        // BROADCAST DELLA LOBBY:
+        //  1) Al nuovo arrivato mandiamo TUTTI i giocatori già presenti (incluso lui),
+        //     così la sua lista parte allineata.
+        //  2) A chi era già dentro mandiamo SOLO il nuovo, come incremento.
+        // -----------------------------------------------------------------
+        for (PlayerDTO existing : playerDTOS) {
+            playerView.pushPlayerAdded(existing);
+        }
+        for (int i = 0; i < waitingPlayers.size() - 1; i++) { // -1: salta il nuovo arrivato
+            waitingPlayers.get(i).pushPlayerAdded(playerDTO);
+        }
 
         // All players are in — start the game!
         if (waitingPlayers.size() == requiredPlayers) {

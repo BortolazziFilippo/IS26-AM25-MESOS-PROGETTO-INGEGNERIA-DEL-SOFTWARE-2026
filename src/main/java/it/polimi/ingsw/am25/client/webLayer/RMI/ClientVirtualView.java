@@ -205,6 +205,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void playerAdded(PlayerDTO playerAdded) throws RemoteException {
         this.playersMap.put(playerAdded.getNickName(),playerAdded);
+        updateObservers(obs -> obs.onPlayerAdded(playerAdded));
     }
 
     /**

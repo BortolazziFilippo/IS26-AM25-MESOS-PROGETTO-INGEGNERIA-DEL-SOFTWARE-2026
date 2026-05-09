@@ -187,6 +187,17 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerAdded(player));
     }
 
+    /**
+     * Variante di {@link #onPlayerAdded(Player)} che accetta direttamente un
+     * {@link PlayerDTO}. Usata dal {@code ServerNetworkHandler} per
+     * notificare i client durante la fase di lobby (quando ancora non
+     * esistono oggetti {@link Player} del modello).
+     */
+    public void pushPlayerAdded(PlayerDTO player) {
+        playersMap.put(player.getNickName(), player);
+        submitTask(() -> clientStub.playerAdded(player));
+    }
+
     @Override
     public void onEraChanged(ERA currentEra) {
         this.currentEra = currentEra;

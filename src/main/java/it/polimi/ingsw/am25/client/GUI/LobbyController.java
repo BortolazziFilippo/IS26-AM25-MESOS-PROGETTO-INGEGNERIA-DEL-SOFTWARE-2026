@@ -7,14 +7,19 @@ import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class LobbyController implements GUIObserver {
 
@@ -22,14 +27,17 @@ public class LobbyController implements GUIObserver {
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
 
-    private TextField nicknameField;
-    private ComboBox<COLOR> colorBox;
-    private Spinner<Integer> spinner;
-    private Button createButton;
-    private Button joinButton;
-    private Label label;
-    private ListView<String> playerList;
+    // ---- Nodi iniettati dall'FXML (i nomi DEVONO corrispondere agli fx:id) ----
+    @FXML private TextField nicknameField;
+    @FXML private ComboBox<COLOR> colorBox;
+    @FXML private Spinner<Integer> spinner;
+    @FXML private Button createButton;
+    @FXML private Button joinButton;
+    @FXML private Button loadButton;
+    @FXML private Label label;
+    @FXML private ListView<String> playerList;
 
+    // ---- Stato di sessione ----
     private PlayerDTO playerDTO;
     private MarketController marketController;
     private boolean gameScreenShown = false;
@@ -41,52 +49,29 @@ public class LobbyController implements GUIObserver {
         clientHandler.addGUIObserver(this);
     }
 
+    /** Carica l'FXML e mostra la lobby. */
     public void showing() {
-        Label title = new Label("IS26-AM25 — Lobby");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/Lobby.fxml"));
+            loader.setController(this);
+            Parent root = loader.load();
+            stage.setScene(new Scene(root));
+            stage.setTitle("IS26-AM25 — Lobby");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        nicknameField = new TextField();
-        nicknameField.setPromptText("nickname");
-
-        colorBox = new ComboBox<>();
+    /**
+     * Chiamato automaticamente da JavaFX dopo l'iniezione dei nodi.
+     * Qui finalizziamo la configurazione che richiede i nodi già pronti.
+     */
+    @FXML
+    private void initialize() {
         colorBox.getItems().setAll(COLOR.values());
         colorBox.setValue(COLOR.RED);
-
-        spinner = new Spinner<>(2, 5, 2);
-        spinner.setEditable(false);
-
-        createButton = new Button("Crea partita");
-        joinButton = new Button("Unisciti");
-        createButton.setOnAction(e -> createGame());
-        joinButton.setOnAction(e -> joinGame());
-
-        label = new Label("");
-        label.setWrapText(true);
-
-        playerList = new ListView<>();
-        playerList.setPrefHeight(150);
-
-        HBox formRow = new HBox(10,
-                new Label("Nickname:"), nicknameField,
-                new Label("Colore:"), colorBox,
-                new Label("# giocatori:"), spinner);
-        formRow.setAlignment(Pos.CENTER_LEFT);
-
-        HBox btnRow = new HBox(10, createButton, joinButton);
-
-        VBox root = new VBox(12,
-                title,
-                formRow,
-                btnRow,
-                new Label("Giocatori in lobby:"),
-                playerList,
-                label);
-        root.setPadding(new Insets(20));
-
-        Scene scene = new Scene(root, 600, 450);
-        stage.setScene(scene);
-        stage.setTitle("IS26-AM25 — Lobby");
-        stage.show();
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 5, 2));
     }
 
     private PlayerDTO buildPlayer() {
@@ -98,15 +83,31 @@ public class LobbyController implements GUIObserver {
         return new PlayerDTO(nickname, 0, 0, colorBox.getValue());
     }
 
-    private void createGame() {
+    @FXML
+    private void onCreateGame() {
         PlayerDTO player = buildPlayer();
-        if (player == null) {
-            return;
-        }
+        if (player == null) return;
+        // IMPORTANTE: prepara playerDTO e marketController PRIMA della chiamata RMI.
+        // Quando l'ultimo giocatore si unisce, il server (dentro la stessa chiamata)
+        // fa partire la partita e spara gamePhaseChanged(PLACING_PHASE) al volo:
+        // se marketController è ancora null, onGamePhaseChanged crasha.
+        playerDTO = player;
+        marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.createGame(player, spinner.getValue(), clientHandler);
-            playerDTO = player;
-            marketController = new MarketController(clientHandler, serverStub, playerDTO);
+            Thread pingThread = new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        Thread.sleep(3000);
+                        serverStub.ping(playerDTO);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (Exception ignored) {}
+                }
+            });
+            pingThread.setDaemon(true);
+            pingThread.setName("heartbeat-ping");
+            pingThread.start();
             label.setText("Partita creata. In attesa di altri giocatori...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -115,15 +116,37 @@ public class LobbyController implements GUIObserver {
         }
     }
 
-    private void joinGame() {
+    @FXML
+    private void onLoadGame() {
+        // TODO: implementare il caricamento di una partita salvata
+        label.setText("La funzione 'Carica partita' arriverà presto.");
+    }
+
+    @FXML
+    private void onJoinGame() {
         PlayerDTO player = buildPlayer();
-        if (player == null) {
-            return;
-        }
+        if (player == null) return;
+        // IMPORTANTE: prepara playerDTO e marketController PRIMA della chiamata RMI.
+        // Per il giocatore che fa partire la partita (cioè quello che riempie la
+        // lobby), il server fa scattare gamePhaseChanged dentro la stessa chiamata,
+        // e onGamePhaseChanged ha bisogno che marketController esista già.
+        playerDTO = player;
+        marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.addPlayer(player, clientHandler);
-            playerDTO = player;
-            marketController = new MarketController(clientHandler, serverStub, playerDTO);
+            Thread pingThread = new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        Thread.sleep(3000);
+                        serverStub.ping(playerDTO);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (Exception ignored) {}
+                }
+            });
+            pingThread.setDaemon(true);
+            pingThread.setName("heartbeat-ping");
+            pingThread.start();
             label.setText("Unito alla lobby. In attesa che inizi...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -149,20 +172,72 @@ public class LobbyController implements GUIObserver {
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         if (gamePhase == GAME_PHASE.PLACING_PHASE && !gameScreenShown) {
             gameScreenShown = true;
-            Platform.runLater(() -> {
-                try {
-                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                            getClass().getResource("/FXML/Market.fxml"));
-                    loader.setController(marketController);
-                    javafx.scene.Parent root = loader.load();
-                    stage.setScene(new javafx.scene.Scene(root));
-                    stage.setTitle("IS26-AM25 — Game");
-                    stage.setMaximized(true);
-                    stage.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+            Platform.runLater(() -> showStartingScreenThenGame());
+        }
+    }
+
+    /**
+     * Mostra una breve schermata di transizione "La partita sta iniziando..."
+     * con effetto pulse, poi fade out e carica la schermata di gioco.
+     */
+    private void showStartingScreenThenGame() {
+        // Costruzione della schermata di transizione
+        Label title = new Label("MESOS");
+        title.setStyle(
+            "-fx-font-family: 'Georgia'; -fx-font-size: 64px; -fx-font-weight: bold; "
+          + "-fx-text-fill: #f5dfa0; "
+          + "-fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.7), 18, 0.5, 0, 3);"
+        );
+
+        Label subtitle = new Label("La partita sta iniziando...");
+        subtitle.setStyle(
+            "-fx-font-family: 'Georgia'; -fx-font-size: 24px; -fx-font-style: italic; "
+          + "-fx-text-fill: #c9a66b;"
+        );
+
+        VBox box = new VBox(28, title, subtitle);
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);");
+
+        // Mantiene le dimensioni correnti dello stage
+        double w = stage.getWidth()  > 0 ? stage.getWidth()  : 720;
+        double h = stage.getHeight() > 0 ? stage.getHeight() : 600;
+        stage.setScene(new Scene(box, w, h));
+        stage.setTitle("MESOS — La partita inizia");
+
+        // Effetto pulse sul sottotitolo
+        FadeTransition pulse = new FadeTransition(Duration.millis(700), subtitle);
+        pulse.setFromValue(0.3);
+        pulse.setToValue(1.0);
+        pulse.setAutoReverse(true);
+        pulse.setCycleCount(Animation.INDEFINITE);
+        pulse.play();
+
+        // Dopo 2.5 secondi, fade out e poi carica la game scene
+        PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
+        pause.setOnFinished(e -> {
+            pulse.stop();
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(500), box);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(ev -> loadGameScene());
+            fadeOut.play();
+        });
+        pause.play();
+    }
+
+    /** Carica Market.fxml e lo mostra sullo stage. */
+    private void loadGameScene() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/Market.fxml"));
+            loader.setController(marketController);
+            Parent root = loader.load();
+            stage.setScene(new Scene(root));
+            stage.setTitle("IS26-AM25 — Game");
+            stage.setMaximized(true);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
