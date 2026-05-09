@@ -5,31 +5,55 @@ package it.polimi.ingsw.am25.server.model.Enums;
  * Having one of each distinct icon in a player's tribe grants a prestige-point bonus at end of game.
  */
 public enum INV_ICON {
-    /** Bread icon. */
+    /**
+     * Bread icon.
+     */
     BREAD("Pane"),
-    /** Stone icon. */
+    /**
+     * Stone icon.
+     */
     STONE("Pietra"),
-    /** Necklace icon. */
+    /**
+     * Necklace icon.
+     */
     NECKLACE("Collana"),
-    /** Bait icon. */
+    /**
+     * Bait icon.
+     */
     BAIT("Esca"),
-    /** Ghost icon. */
+    /**
+     * Ghost icon.
+     */
     GHOST("Fantasma"),
-    /** Arrow icon. */
+    /**
+     * Arrow icon.
+     */
     ARROW("Freccia"),
-    /** Leather icon. */
+    /**
+     * Leather icon.
+     */
     LEATHER("Cuoio"),
-    /** Rope icon. */
+    /**
+     * Rope icon.
+     */
     ROPE("Corda"),
-    /** Flute icon. */
+    /**
+     * Flute icon.
+     */
     FLUTE("Flauto"),
-    /** Bowl icon. */
+    /**
+     * Bowl icon.
+     */
     BOWL("Ciotola");
 
     private final String displayName;
 
-    INV_ICON(String displayName) { this.displayName = displayName; }
+    INV_ICON(String displayName) {
+        this.displayName = displayName;
+    }
 
     @Override
-    public String toString() { return displayName; }
+    public String toString() {
+        return displayName;
+    }
 }

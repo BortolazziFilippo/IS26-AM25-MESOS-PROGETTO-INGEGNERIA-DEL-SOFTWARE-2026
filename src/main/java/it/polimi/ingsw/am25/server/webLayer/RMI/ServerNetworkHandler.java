@@ -27,7 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
-    /** Fast nickname → view lookup used by ping() without holding the global lock. */
+    /**
+     * Fast nickname → view lookup used by ping() without holding the global lock.
+     */
     private final ConcurrentHashMap<String, ServerVirtualView> viewsByNickname = new ConcurrentHashMap<>();
     private final List<PlayerDTO> playerDTOS = new ArrayList<>();
     private Controller controller;
@@ -36,12 +38,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private final AtomicInteger rankRequestCount = new AtomicInteger(0);
     private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
     private volatile Thread watchdogThread;
+
     /**
      * Initializes the RMI network handler and exports it as a remote object,
      * making it reachable by Mesos clients via the RMI registry.
+     *
      * @throws RemoteException if the RMI export fails.
      */
-    public ServerNetworkHandler() throws RemoteException{
+    public ServerNetworkHandler() throws RemoteException {
         super();
     }
 
@@ -56,7 +60,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * @throws IllegalStateException if a lobby is already open on this server.
      */
     @Override
-    public synchronized void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
+    public synchronized void createGame(PlayerDTO playerHost, int playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
         if (requiredPlayers > 0) {
             throw new IllegalStateException("Game already started");
         }
@@ -78,12 +82,12 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      *
      * @param playerDTO             the joining player's data (nickname and totem color).
      * @param clientRemoteInterface the player's RMI stub, saved to notify them of game events.
-     * @throws GameFullException               if no lobby exists yet (no host has called {@link #createGame}).
-     * @throws GameStartedException            if the game is already running.
+     * @throws GameFullException                if no lobby exists yet (no host has called {@link #createGame}).
+     * @throws GameStartedException             if the game is already running.
      * @throws NameOrColorAlreadyTakenException if the chosen nickname or totem color is already taken by another player.
      */
     @Override
-    public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
+    public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException, GameReadyToStartException, NameOrColorAlreadyTakenException {
         if (requiredPlayers == 0) {
             throw new GameFullException("Nessuna partita creata!");
         }
@@ -121,6 +125,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             setupAndStartGame();
         }
     }
+
     /**
      * Bootstraps the Mesos game once all players have joined.
      * Instantiates the {@link Controller}, builds {@link Player} objects for every participant,
@@ -192,8 +197,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
-        Player playerTemp=new Player(playerToPlace.getNickName(),playerToPlace.getColorTotem());
-        controller.placingPlayer(playerTemp,position);
+        Player playerTemp = new Player(playerToPlace.getNickName(), playerToPlace.getColorTotem());
+        controller.placingPlayer(playerTemp, position);
     }
 
     /**
@@ -211,8 +216,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        Player playerTemp=new Player(player);
-        controller.selectCardFromTopList(playerTemp,cardType,position);
+        Player playerTemp = new Player(player);
+        controller.selectCardFromTopList(playerTemp, cardType, position);
     }
 
     /**
@@ -229,8 +234,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
-        Player playerTemp=new Player(player);
-        controller.selectCardFromBottomList(playerTemp,cardType,position);
+        Player playerTemp = new Player(player);
+        controller.selectCardFromBottomList(playerTemp, cardType, position);
     }
 
     /**
@@ -241,7 +246,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void playerDoNothing(PlayerDTO playerDTO) throws Exception {
-        Player playerTemp=new Player(playerDTO);
+        Player playerTemp = new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
     }
 
@@ -280,7 +285,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public synchronized void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+    public synchronized void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         try {
             int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
             Map<Integer, List<String>> leaderboards = new HashMap<>();
@@ -298,6 +303,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     /**
      * Receives a heartbeat ping from a client and resets that player's missed-ping counter.
      * Uses a ConcurrentHashMap lookup so it does not need the global lock.
+     *
      * @param player the player sending the ping (identified by nickname).
      */
     @Override
@@ -310,6 +316,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * Called by {@link it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler}
      * when a socket client's stream drops. Finds the virtual view matching the given proxy
      * and triggers disconnection handling.
+     *
      * @param proxy the {@link ClientRemoteInterface} proxy whose socket closed.
      */
     public synchronized void handleSocketClientDisconnection(ClientRemoteInterface proxy) {
@@ -329,6 +336,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * Central disconnection handler. Marks the view as disconnected, broadcasts
      * a {@code playerDisconnected} notification to all clients, then tells the
      * controller to update the game model and advance the turn if needed.
+     *
      * @param nickname the disconnected player's nickname.
      */
     public synchronized void notifyPlayerDisconnected(String nickname) {
@@ -408,6 +416,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * Handles a player reconnecting to an in-progress game. Swaps the client stub,
      * decrements the rank counter that was incremented at disconnect time, notifies
      * all other clients, updates the game model, and re-syncs the full game state.
+     *
      * @param nickname the reconnecting player's nickname.
      * @param newStub  the new RMI stub or Socket proxy for the reconnected client.
      */
@@ -447,7 +456,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 && shutdownInitiated.compareAndSet(false, true)) {
             if (watchdogThread != null) watchdogThread.interrupt();
             Thread shutdown = new Thread(() -> {
-                try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ignored) {
+                }
                 UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
                 System.exit(0);
             });

@@ -41,9 +41,9 @@ public class CardDTO implements Serializable {
      * @param era      the era this card belongs to.
      * @param cardType the type of this card.
      */
-    public CardDTO(ERA era,CARD_TYPE cardType){
-        this.era=era;
-        this.cardType=cardType;
+    public CardDTO(ERA era, CARD_TYPE cardType) {
+        this.era = era;
+        this.cardType = cardType;
     }
 
     /**
@@ -106,32 +106,44 @@ public class CardDTO implements Serializable {
         this.builderID = card.getBuilderID();
     }
 
-    /** @return the type of this card (tribe role, building, or event). */
+    /**
+     * @return the type of this card (tribe role, building, or event).
+     */
     public CARD_TYPE getCardType() {
         return cardType;
     }
 
-    /** @return the era this card belongs to. */
+    /**
+     * @return the era this card belongs to.
+     */
     public ERA getEra() {
         return era;
     }
 
-    /** @return the invention icon on this card, or {@code null} if not an inventor card. */
+    /**
+     * @return the invention icon on this card, or {@code null} if not an inventor card.
+     */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
 
-    /** @return the shaman star value, or {@code null} if not a shaman card. */
+    /**
+     * @return the shaman star value, or {@code null} if not a shaman card.
+     */
     public SHAMAN_STAR getStarNumber() {
         return starNumber;
     }
 
-    /** @return the food discount this builder provides when buying a building. */
+    /**
+     * @return the food discount this builder provides when buying a building.
+     */
     public int getFoodDiscount() {
         return foodDiscount;
     }
 
-    /** @return the prestige points this builder awards at end of game. */
+    /**
+     * @return the prestige points this builder awards at end of game.
+     */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
     }
@@ -140,7 +152,9 @@ public class CardDTO implements Serializable {
         return builderID;
     }
 
-    /** @return whether this hunter card carries an icon (granting an immediate food bonus). */
+    /**
+     * @return whether this hunter card carries an icon (granting an immediate food bonus).
+     */
     public boolean isHasIcon() {
         return hasIcon;
     }
@@ -150,24 +164,24 @@ public class CardDTO implements Serializable {
      */
     @Override
     public String toString() {
-        switch (cardType){
+        switch (cardType) {
             case SHAMAN:
                 return this.starNumber.toString();
             case HUNTER:
-                if(hasIcon){
+                if (hasIcon) {
                     return "Con icona";
 
-                }else{
+                } else {
                     return "Senza icona";
 
                 }
             case BUILDER:
-                return "PP: "+this.finalPrestigePoint + "Sconto: "+this.foodDiscount;
+                return "PP: " + this.finalPrestigePoint + "Sconto: " + this.foodDiscount;
 
             case INVENTOR:
-                return "Icona: "+this.invIcon;
+                return "Icona: " + this.invIcon;
             default:
-                return this.cardType +" ";
+                return this.cardType + " ";
         }
     }
 }

@@ -19,13 +19,21 @@ import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant.*;
  * to {@value #LOG_FILE}; output is silently dropped if the log has not been initialised.
  */
 public interface UtilitiesFunction {
-    /** Log tag prepended to all messages written by this utility. */
+    /**
+     * Log tag prepended to all messages written by this utility.
+     */
     String LOG_PREFIX = "[SERVER][UTILS]";
-    /** Path of the server log file. */
+    /**
+     * Path of the server log file.
+     */
     String LOG_FILE = "server.log";
-    /** Timestamp format used in every log entry. */
+    /**
+     * Timestamp format used in every log entry.
+     */
     DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    /** Shared reference to the active log writer; {@code null} until {@link #initLog()} is called. */
+    /**
+     * Shared reference to the active log writer; {@code null} until {@link #initLog()} is called.
+     */
     AtomicReference<PrintWriter> LOG_WRITER = new AtomicReference<>(null);
 
     /**
@@ -45,7 +53,8 @@ public interface UtilitiesFunction {
 
     /**
      * Logs an informational message to console and log file.
-     * @param prefix parameter prefix.
+     *
+     * @param prefix  parameter prefix.
      * @param message parameter message.
      */
     static void logInfo(String prefix, String message) {
@@ -60,7 +69,8 @@ public interface UtilitiesFunction {
 
     /**
      * Logs an error message to console and log file.
-     * @param prefix parameter prefix.
+     *
+     * @param prefix  parameter prefix.
      * @param message parameter message.
      */
     static void logError(String prefix, String message) {
@@ -75,6 +85,7 @@ public interface UtilitiesFunction {
 
     /**
      * Logs an error message using the default utility prefix.
+     *
      * @param message parameter message.
      */
     static void logError(String message) {
@@ -83,6 +94,7 @@ public interface UtilitiesFunction {
 
     /**
      * Returns the number of top-list cards based on player count.
+     *
      * @param playerNumber parameter playerNumber.
      * @return the result of the operation.
      */
@@ -101,6 +113,7 @@ public interface UtilitiesFunction {
 
     /**
      * Returns the number of bottom-list cards based on player count.
+     *
      * @param playerNumber parameter playerNumber.
      * @return the result of the operation.
      */
@@ -119,8 +132,9 @@ public interface UtilitiesFunction {
 
     /**
      * Counts card occurrences by type into the destination counters list.
+     *
      * @param listToParse parameter listToParse.
-     * @param setCards parameter setCards.
+     * @param setCards    parameter setCards.
      */
     static void countOccurrence(List<Card> listToParse, List<Integer> setCards) {
         int quantity = 6;
@@ -153,11 +167,12 @@ public interface UtilitiesFunction {
 
     /**
      * this method generates a shuffled array of integer from y to x-1
+     *
      * @param y lower bound
      * @param x upper bound
      * @return list of integers
      */
-     static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
+    static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
         if (y > x) {
             throw new IllegalArgumentException("y must be <= x");
         }
@@ -170,7 +185,8 @@ public interface UtilitiesFunction {
         Collections.shuffle(numbers);
         return numbers;
     }
-     static int getScore(int playerCount, int position) {
+
+    static int getScore(int playerCount, int position) {
         List<Integer> table = switch (playerCount) {
             case 2 -> SCORE_TWO_PLAYERS;
             case 3 -> SCORE_THREE_PLAYERS;
@@ -181,18 +197,18 @@ public interface UtilitiesFunction {
         return table.get(position - 1);
     }
 
-    static int stringToIntegerBinder(String number) throws IllegalStateException{
-         switch (number){
-             case "2":
-                 return 2;
-             case "3":
-                 return 3;
-             case "4":
-                 return 4;
-             case "5":
-                 return 5;
-             default:
-                 throw new IllegalStateException("Errore input");
-         }
+    static int stringToIntegerBinder(String number) throws IllegalStateException {
+        switch (number) {
+            case "2":
+                return 2;
+            case "3":
+                return 3;
+            case "4":
+                return 4;
+            case "5":
+                return 5;
+            default:
+                throw new IllegalStateException("Errore input");
+        }
     }
 }

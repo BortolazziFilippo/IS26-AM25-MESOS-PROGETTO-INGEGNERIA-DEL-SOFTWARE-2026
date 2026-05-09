@@ -11,13 +11,16 @@ public class PlayerDisconnectedMessage implements ServerToClientMessage {
 
     /**
      * Creates a disconnection notification for the given player.
+     *
      * @param nickname the nickname of the disconnected player.
      */
     public PlayerDisconnectedMessage(String nickname) {
         this.nickname = nickname;
     }
 
-    /** Dispatches this message by calling {@link ClientRemoteInterface#playerDisconnected}. */
+    /**
+     * Dispatches this message by calling {@link ClientRemoteInterface#playerDisconnected}.
+     */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.playerDisconnected(nickname);

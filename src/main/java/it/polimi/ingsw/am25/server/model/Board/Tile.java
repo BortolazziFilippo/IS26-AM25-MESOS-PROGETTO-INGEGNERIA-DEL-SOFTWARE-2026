@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.server.model.Board;
 
 import it.polimi.ingsw.am25.server.model.Player.Player;
+
 /**
  * Abstract base class representing a board tile that can hold a single player.
  */
@@ -30,7 +31,7 @@ public abstract class Tile {
      *
      * @return {@code true} if a player is on the tile
      */
-    public  boolean isOccupied(){
+    public boolean isOccupied() {
         return playerOn != null;
     }
 
@@ -39,15 +40,15 @@ public abstract class Tile {
      *
      * @param player the player to place
      */
-    public void placePlayer(Player player){
-        this.playerOn=player;
+    public void placePlayer(Player player) {
+        this.playerOn = player;
     }
 
     /**
      * Removes the current occupant from this tile.
      */
-    public void removePlayer(){
-        this.playerOn=null;
+    public void removePlayer() {
+        this.playerOn = null;
     }
 
 }

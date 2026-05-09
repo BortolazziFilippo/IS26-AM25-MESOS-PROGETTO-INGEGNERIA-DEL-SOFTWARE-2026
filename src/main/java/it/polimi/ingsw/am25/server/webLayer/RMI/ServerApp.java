@@ -16,14 +16,18 @@ import java.util.Enumeration;
 public class ServerApp {
     private static final String LOG_PREFIX = "[SERVER][APP]";
 
-    /** Creates a new server app instance. */
-    public ServerApp() {}
+    /**
+     * Creates a new server app instance.
+     */
+    public ServerApp() {
+    }
 
     /**
      * Executes main.
+     *
      * @param args parameter args.
      */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         UtilitiesFunction.initLog();
         try {
             String myIp = getLocalIPv4();
@@ -55,6 +59,7 @@ public class ServerApp {
 
     /**
      * Returns local ipv4.
+     *
      * @return the result of the operation.
      */
     public static String getLocalIPv4() {

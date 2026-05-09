@@ -22,33 +22,35 @@ public class OfferTileFactory {
      */
     public OfferTileFactory() {
     }
+
     /**
      * Executes offertile builder.
+     *
      * @param playerNumber parameter playerNumber.
      * @return the result of the operation.
      */
-    public List<OfferTile> offertileBuilder(int playerNumber){
-        InputStream inputStream=null;
-        switch (playerNumber){
+    public List<OfferTile> offertileBuilder(int playerNumber) {
+        InputStream inputStream = null;
+        switch (playerNumber) {
             case 2:
-                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/TwoPlayerOfferTile.json");
+                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/TwoPlayerOfferTile.json");
                 break;
             case 3:
-                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/ThreePlayerOfferTile.json");
+                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/ThreePlayerOfferTile.json");
                 break;
             case 4:
-                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FourPlayerOfferTile.json");
+                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FourPlayerOfferTile.json");
                 break;
             case 5:
-                inputStream= OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerOfferTile.json");
+                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerOfferTile.json");
                 break;
             default:
                 logServerError("Invalid player number: " + playerNumber);
         }
-        if(inputStream==null){
-            throw new RuntimeException(getClass()+" errore apertura file");
+        if (inputStream == null) {
+            throw new RuntimeException(getClass() + " errore apertura file");
         }
-        Reader reader= new InputStreamReader(inputStream);
+        Reader reader = new InputStreamReader(inputStream);
         Gson gson = new Gson();
         OfferTile[] offerTiles = gson.fromJson(reader, OfferTile[].class);
 
@@ -57,6 +59,7 @@ public class OfferTileFactory {
 
     /**
      * Executes log server error.
+     *
      * @param message parameter message.
      */
     private void logServerError(String message) {

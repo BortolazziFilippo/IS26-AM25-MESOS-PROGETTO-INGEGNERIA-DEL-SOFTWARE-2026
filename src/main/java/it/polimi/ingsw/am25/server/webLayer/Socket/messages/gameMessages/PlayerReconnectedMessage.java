@@ -11,13 +11,16 @@ public class PlayerReconnectedMessage implements ServerToClientMessage {
 
     /**
      * Creates a reconnection notification for the given player.
+     *
      * @param nickname the nickname of the reconnected player.
      */
     public PlayerReconnectedMessage(String nickname) {
         this.nickname = nickname;
     }
 
-    /** Dispatches this message by calling {@link ClientRemoteInterface#playerReconnected}. */
+    /**
+     * Dispatches this message by calling {@link ClientRemoteInterface#playerReconnected}.
+     */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.playerReconnected(nickname);

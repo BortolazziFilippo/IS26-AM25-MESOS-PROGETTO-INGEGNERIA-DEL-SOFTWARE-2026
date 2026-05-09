@@ -14,13 +14,16 @@ public class SkipExtraDrawMessage implements ClientToServerMessage {
 
     /**
      * Creates a message indicating the player declines the extra draw.
+     *
      * @param playerDTO the player skipping the extra draw.
      */
     public SkipExtraDrawMessage(PlayerDTO playerDTO) {
         this.playerDTO = playerDTO;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#skipExtraDraw}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#skipExtraDraw}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
         serverRemoteInterface.skipExtraDraw(playerDTO);

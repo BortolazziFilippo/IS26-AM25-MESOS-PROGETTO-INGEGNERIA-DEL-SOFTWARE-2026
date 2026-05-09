@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
+
 /**
  * Event effect for a shamanic ritual event:
  * the player(s) with the most Shaman stars earn {@code PPToMost} PP;
@@ -13,20 +14,22 @@ import java.util.List;
  * Building effects tagged {@link EVENT_TYPE#SHAMANIC_RIT} are triggered both before
  * and after the PP distribution (enabling effects that snapshot or modify PP around the event).
  */
-public class ShamanEvent extends EventEffect{
+public class ShamanEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int PPToMost;
     private final int PPToLeast;
+
     /**
      * Creates a ShamanEvent.
      *
-     * @param PPToMost   PP gained by the player(s) with the most Shaman stars
-     * @param PPToLeast  PP lost by the player(s) with the fewest Shaman stars
+     * @param PPToMost  PP gained by the player(s) with the most Shaman stars
+     * @param PPToLeast PP lost by the player(s) with the fewest Shaman stars
      */
-    public ShamanEvent(int PPToMost, int PPToLeast){
+    public ShamanEvent(int PPToMost, int PPToLeast) {
         this.PPToMost = PPToMost;
         this.PPToLeast = PPToLeast;
     }
+
     /**
      * Applies the shamanic ritual event:
      * <ol>
@@ -44,9 +47,9 @@ public class ShamanEvent extends EventEffect{
                 LOG_PREFIX,
                 "SHAMANIC_RIT event started: top stars gain " + PPToMost + " PP, bottom stars lose " + PPToLeast + " PP"
         );
-        for(Player player : playersList){
+        for (Player player : playersList) {
             List<BuildingCard> triggeredBuildings = player.getBuildingCards().stream()
-                    .filter(b->b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
+                    .filter(b -> b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
                     .toList();
             triggeredBuildings.forEach(b -> b.applyBuildingEffect(player));
             UtilitiesFunction.logInfo(
@@ -63,16 +66,16 @@ public class ShamanEvent extends EventEffect{
                 "SHAMANIC_RIT stars range resolved: max=" + max + ", min=" + min
         );
 
-        for(Player player : playersList){
+        for (Player player : playersList) {
             int stars = player.getShamanStarTotal();
-            if(stars == max) {
+            if (stars == max) {
                 UtilitiesFunction.logInfo(
                         LOG_PREFIX,
                         "Player '" + player.getNickname() + "' has max stars (" + stars + "), PP delta=" + PPToMost
                 );
                 player.managePP(PPToMost);
             }
-            if(stars == min) {
+            if (stars == min) {
                 UtilitiesFunction.logInfo(
                         LOG_PREFIX,
                         "Player '" + player.getNickname() + "' has min stars (" + stars + "), PP delta=-" + PPToLeast
@@ -81,9 +84,9 @@ public class ShamanEvent extends EventEffect{
             }
         }
 
-        for(Player player : playersList){
+        for (Player player : playersList) {
             List<BuildingCard> triggeredBuildings = player.getBuildingCards().stream()
-                    .filter(b->b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
+                    .filter(b -> b.getApplyOn() == EVENT_TYPE.SHAMANIC_RIT)
                     .toList();
             triggeredBuildings.forEach(b -> b.applyBuildingEffect(player));
             UtilitiesFunction.logInfo(

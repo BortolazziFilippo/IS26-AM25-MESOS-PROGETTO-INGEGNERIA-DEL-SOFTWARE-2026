@@ -14,13 +14,16 @@ public class PlayerDoNothingMessage implements ClientToServerMessage {
 
     /**
      * Creates a message indicating the player skips their turn.
+     *
      * @param playerDTO the player who does nothing.
      */
     public PlayerDoNothingMessage(PlayerDTO playerDTO) {
         this.playerDTO = playerDTO;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#playerDoNothing}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#playerDoNothing}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
         serverRemoteInterface.playerDoNothing(playerDTO);

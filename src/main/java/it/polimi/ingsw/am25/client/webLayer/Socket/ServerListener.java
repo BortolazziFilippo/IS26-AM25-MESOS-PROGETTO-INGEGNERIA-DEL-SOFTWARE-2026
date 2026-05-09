@@ -26,6 +26,7 @@ public class ServerListener extends Thread {
 
     /**
      * Creates a server listener that reads from the given stream and dispatches to the given view.
+     *
      * @param in            the input stream connected to the server socket.
      * @param clientHandler the local client view that receives the dispatched messages.
      */

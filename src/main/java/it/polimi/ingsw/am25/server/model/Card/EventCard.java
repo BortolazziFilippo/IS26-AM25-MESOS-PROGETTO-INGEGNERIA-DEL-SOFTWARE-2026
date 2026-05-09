@@ -17,8 +17,7 @@ import java.util.List;
  * cannot be selected by players — they fire automatically when they come off the market
  * and apply their {@link EventEffect} to all players.
  */
-public class EventCard extends Card
-{
+public class EventCard extends Card {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int eventID;
     private final EVENT_TYPE eventType;
@@ -32,7 +31,7 @@ public class EventCard extends Card
      * @param eventEffect the effect to execute when this event fires.
      */
     public EventCard(ERA era, CARD_TYPE cardType, int eventID, EVENT_TYPE eventType, EventEffect eventEffect) {
-        this.cardType=cardType;
+        this.cardType = cardType;
         this.era = era;
         this.eventID = eventID;
         this.eventType = eventType;
@@ -47,8 +46,8 @@ public class EventCard extends Card
      * @param eventID   the unique event identifier.
      * @param eventType the category of event (hunt, sustenance, etc.).
      */
-    public EventCard(ERA era, CARD_TYPE cardType,int eventID, EVENT_TYPE eventType) {
-        this.cardType=cardType;
+    public EventCard(ERA era, CARD_TYPE cardType, int eventID, EVENT_TYPE eventType) {
+        this.cardType = cardType;
         this.era = era;
         this.eventID = eventID;
         this.eventType = eventType;
@@ -63,12 +62,16 @@ public class EventCard extends Card
         this.eventEffect = eventEffect;
     }
 
-    /** @return the unique event identifier. */
+    /**
+     * @return the unique event identifier.
+     */
     public int getEventID() {
         return eventID;
     }
 
-    /** @return the category of event (hunt, sustenance, shamanic ritual, paintings). */
+    /**
+     * @return the category of event (hunt, sustenance, shamanic ritual, paintings).
+     */
     public EVENT_TYPE getEventType() {
         return eventType;
     }
@@ -78,8 +81,7 @@ public class EventCard extends Card
      *
      * @param PlayersList the list of players participating in the event.
      */
-    public void applyEventEffect(List<Player> PlayersList)
-    {
+    public void applyEventEffect(List<Player> PlayersList) {
         UtilitiesFunction.logInfo(
                 LOG_PREFIX,
                 "Executing event #" + eventID + " (" + eventType + ") for " + PlayersList.size() + " players"
@@ -105,14 +107,16 @@ public class EventCard extends Card
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof EventCard toCompare){
+        if (obj instanceof EventCard toCompare) {
             return toCompare.eventID == this.eventID;
-        }else {
+        } else {
             return false;
         }
     }
 
-    /** @return an EventDTO snapshot of this card for network transfer. */
+    /**
+     * @return an EventDTO snapshot of this card for network transfer.
+     */
     @Override
     public CardDTO toDTO() {
         return new EventDTO(this);

@@ -7,14 +7,15 @@ package it.polimi.ingsw.am25.server.model.Board;
  */
 public class DefaultTile extends Tile {
     private final int foodPerSlotPosition;
+
     /**
      * Creates a default tile with the specified food reward/penalty.
      *
      * @param foodPerSlotPosition food added (positive) or subtracted (negative) when a player occupies this tile
      */
-    public DefaultTile( int foodPerSlotPosition ) {
+    public DefaultTile(int foodPerSlotPosition) {
         super(null);
-        this.foodPerSlotPosition=foodPerSlotPosition;
+        this.foodPerSlotPosition = foodPerSlotPosition;
     }
 
     /**

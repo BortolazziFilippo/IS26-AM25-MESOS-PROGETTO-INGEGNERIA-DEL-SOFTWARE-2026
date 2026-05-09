@@ -10,7 +10,7 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Represents a Shaman tribe card. Shamans contribute star points that determine the winner
  * of shamanic-ritual events, granting prestige points to the player with the highest total.
  */
-public class ShamanCard extends Card{
+public class ShamanCard extends Card {
     private final SHAMAN_STAR starNumber;
 
     /**
@@ -18,18 +18,22 @@ public class ShamanCard extends Card{
      * @param cardType   the card type (should be {@code CARD_TYPE.SHAMAN}).
      * @param starNumber the star rating of this shaman.
      */
-    public ShamanCard(ERA era, CARD_TYPE cardType, SHAMAN_STAR starNumber){
+    public ShamanCard(ERA era, CARD_TYPE cardType, SHAMAN_STAR starNumber) {
         this.era = era;
-        this.cardType=cardType;
+        this.cardType = cardType;
         this.starNumber = starNumber;
     }
 
-    /** @return the {@link SHAMAN_STAR} enum value of this card. */
+    /**
+     * @return the {@link SHAMAN_STAR} enum value of this card.
+     */
     public SHAMAN_STAR getShamanStar() {
         return starNumber;
     }
 
-    /** @return the numeric star count of this card (1, 2, or 3). */
+    /**
+     * @return the numeric star count of this card (1, 2, or 3).
+     */
     public int getStarNumber() {
         return switch (starNumber) {
             case ONE -> 1;
@@ -38,7 +42,9 @@ public class ShamanCard extends Card{
         };
     }
 
-    /** Adds this card to the player's tribe. */
+    /**
+     * Adds this card to the player's tribe.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
@@ -51,10 +57,12 @@ public class ShamanCard extends Card{
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ShamanCard that)) return false;
-        return starNumber == that.starNumber && this.cardType==that.cardType && this.era==that.era;
+        return starNumber == that.starNumber && this.cardType == that.cardType && this.era == that.era;
     }
 
-    /** @return a CardDTO snapshot of this card for network transfer. */
+    /**
+     * @return a CardDTO snapshot of this card for network transfer.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

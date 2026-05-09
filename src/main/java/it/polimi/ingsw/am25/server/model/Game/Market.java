@@ -31,7 +31,7 @@ public class Market {
     private final List<BuildingCard> topBuildingList;
     private final List<Card> bottomCardList;
     private final List<BuildingCard> bottomBuildingList;
-    private final List<Card> deck ;
+    private final List<Card> deck;
     private final List<BuildingCard> buildingCards;
     private final GameView gameView;
     private final List<MarketObserver> observers = new ArrayList<>();
@@ -42,16 +42,17 @@ public class Market {
     /**
      * Initializes the market by building the deck and buildings for the given player count,
      * then populates both the bottom and top card/building rows.
-     * @param gameView read-only view of the game, used to determine the player count.
+     *
+     * @param gameView  read-only view of the game, used to determine the player count.
      * @param boardView read-only view of the board, passed to the building factory.
      */
     public Market(GameView gameView, BoardView boardView) {
-        this.topCardList= new ArrayList<>();
-        this.bottomBuildingList= new ArrayList<>();
+        this.topCardList = new ArrayList<>();
+        this.bottomBuildingList = new ArrayList<>();
         this.bottomCardList = new ArrayList<>();
-        this.topBuildingList=new ArrayList<>();
-        this.gameView=gameView;
-        this.buildingCards=new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber(),boardView);
+        this.topBuildingList = new ArrayList<>();
+        this.gameView = gameView;
+        this.buildingCards = new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber(), boardView);
         this.deck = new DeckFactory().createDeck(gameView.getPlayerNumber());
         this.organizeDeck();
         this.initializeBottomList();
@@ -95,8 +96,10 @@ public class Market {
         return topCardList;
     }
 
-    /** Clears all cards from the bottom card row. */
-    public void clearBottomCardList(){
+    /**
+     * Clears all cards from the bottom card row.
+     */
+    public void clearBottomCardList() {
         if (bottomCardList == null) {
             throw new IllegalStateException("bottomCardList has not been initialized yet");
         }
@@ -198,14 +201,15 @@ public class Market {
      * 3)shift the remaining card from the top list to the bottom list
      * 4) refill the top list
      * 5)Try refilling the topCardList
-     *  5.a) if an ERA change is detected it:
-     *      5.1) clears the bottomBuildingList
-     *      5.2)shift the building from the top to bottom building list
-     *      5.3) refill the topBuildingList
-     *  5.b) if the deck is finished throws DeckFineshed7
+     * 5.a) if an ERA change is detected it:
+     * 5.1) clears the bottomBuildingList
+     * 5.2)shift the building from the top to bottom building list
+     * 5.3) refill the topBuildingList
+     * 5.b) if the deck is finished throws DeckFineshed7
+     *
      * @throws DeckFinishedException int the case the deck is finished it notifies the caller
      */
-    public void endOfRoundMarketActions() throws DeckFinishedException{
+    public void endOfRoundMarketActions() throws DeckFinishedException {
         this.solveEvents();
         this.clearBottomCardList();
         this.shiftCardTopToBottomList();
@@ -228,25 +232,25 @@ public class Market {
     /**
      * Refills the top card row from the deck, one card at a time.
      *
-     * @throws ChangedEraException  if the last drawn card belongs to a new era.
+     * @throws ChangedEraException   if the last drawn card belongs to a new era.
      * @throws DeckFinishedException if the deck is exhausted before the row is full.
      */
-    private void refillTopCardList() throws ChangedEraException, DeckFinishedException{
+    private void refillTopCardList() throws ChangedEraException, DeckFinishedException {
         Card cardToAdd = null;
         //refill the top list by the right amount of cards needed
         for (int i = 0; i < UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber()); i++) {
-            if(deck.isEmpty()) {
+            if (deck.isEmpty()) {
                 //if the deck is empty we are at the end of the game, so we must do specific procedures
                 throw new DeckFinishedException();
             }
             //Extract the first card from the deck end add it to the top card list and then remove it from the deck
-            cardToAdd=deck.get(0);
+            cardToAdd = deck.get(0);
             topCardList.add(cardToAdd);
             deck.remove(0);
         }
-        if (cardToAdd!=null){
+        if (cardToAdd != null) {
             //check if the last drawn card is from a different ERA, if so it launches a ChangedEraException notifying the caller
-            if(cardToAdd.getEra()!=gameView.getCurrentEra()) {
+            if (cardToAdd.getEra() != gameView.getCurrentEra()) {
                 gameView.nextEra();
                 throw new ChangedEraException();
             }
@@ -257,24 +261,30 @@ public class Market {
      * Moves all building cards of the current era from the building pool into the top building list,
      * and removes any buildings of the current era that were left in the bottom building list.
      */
-    private void refillTopBuildingList(){
-        this.topBuildingList.addAll(this.buildingCards.stream().filter(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra()).toList());
-        this.bottomBuildingList.removeIf(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra());
+    private void refillTopBuildingList() {
+        this.topBuildingList.addAll(this.buildingCards.stream().filter(buildingCard -> buildingCard.getEra() == gameView.getCurrentEra()).toList());
+        this.bottomBuildingList.removeIf(buildingCard -> buildingCard.getEra() == gameView.getCurrentEra());
     }
 
-    /** Clears all buildings from the bottom building row. */
-    private void clearBottomBuildingList(){
+    /**
+     * Clears all buildings from the bottom building row.
+     */
+    private void clearBottomBuildingList() {
         this.bottomBuildingList.clear();
     }
 
-    /** Moves all cards from the top row to the bottom row and clears the top row. */
-    private void shiftCardTopToBottomList(){
+    /**
+     * Moves all cards from the top row to the bottom row and clears the top row.
+     */
+    private void shiftCardTopToBottomList() {
         bottomCardList.addAll(topCardList);
         topCardList.clear();
     }
 
-    /** Moves all buildings from the top row to the bottom row and clears the top row. */
-    private void shiftBuildingTopToBottom(){
+    /**
+     * Moves all buildings from the top row to the bottom row and clears the top row.
+     */
+    private void shiftBuildingTopToBottom() {
         this.bottomBuildingList.addAll(this.topBuildingList);
         this.topBuildingList.clear();
     }
@@ -293,7 +303,7 @@ public class Market {
             throw new IllegalArgumentException("topCardList is null or player is null");
         }
 
-        if(topCardList.isEmpty() || topCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
+        if (topCardList.isEmpty() || topCardList.stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT)) {
             throw new EmptyMarketException("No cards available top list");
         }
         if (position < 0 || position >= topCardList.size()) {
@@ -302,11 +312,11 @@ public class Market {
         Card selectedCard = this.topCardList.get(position);
         try {
             selectedCard.addCardToPlayer(player);
-        }catch (NotSelectableCardException e) {
-             throw new NotSelectableCardException("Cannot Select EventCard");
+        } catch (NotSelectableCardException e) {
+            throw new NotSelectableCardException("Cannot Select EventCard");
         }
         this.topCardList.remove(position);
-        notifyCardRemoveFromTop(position,CARD_TYPE.ARTIST);
+        notifyCardRemoveFromTop(position, CARD_TYPE.ARTIST);
     }
 
     /**
@@ -318,21 +328,21 @@ public class Market {
      * @throws EmptyMarketException      if the top building row is empty.
      * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
-    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException,EmptyMarketException{
-        if(topBuildingList.isEmpty()){
+    public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException, EmptyMarketException {
+        if (topBuildingList.isEmpty()) {
             throw new EmptyMarketException("No buildings available top list");
         }
-        if( position< 0 || position>=topBuildingList.size()){
+        if (position < 0 || position >= topBuildingList.size()) {
             throw new IndexOutOfBoundsException();
         }
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
-        try{
+        try {
             player.tryBuyBuilding(selectedBuildingCard);
-        }catch (NotEnoughFoodException exception){
-            throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
+        } catch (NotEnoughFoodException exception) {
+            throw new NotEnoughFoodException(player.getNickname() + " has not enough food");
         }
         this.topBuildingList.remove(position);
-        notifyCardRemoveFromTop(position,CARD_TYPE.BUILDING);
+        notifyCardRemoveFromTop(position, CARD_TYPE.BUILDING);
     }
 
     /**
@@ -344,11 +354,11 @@ public class Market {
      * @throws EmptyMarketException       if the bottom row contains no selectable cards.
      * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
-    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException,EmptyMarketException{
+    public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList is null or player is null");
         }
-        if(bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType()==CARD_TYPE.EVENT) ){
+        if (bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT)) {
             throw new EmptyMarketException("No Card Available bottom list");
         }
 
@@ -357,14 +367,14 @@ public class Market {
         }
 
         Card selectedCard = this.bottomCardList.get(position);
-        try{
+        try {
             selectedCard.addCardToPlayer(player);
-        }catch (NotSelectableCardException e) {
+        } catch (NotSelectableCardException e) {
             throw new NotSelectableCardException("Cannot select EventCard");
         }
         this.bottomCardList.remove(position);
 
-        notifyCardRemovedFromBottom(position,CARD_TYPE.ARTIST);
+        notifyCardRemovedFromBottom(position, CARD_TYPE.ARTIST);
     }
 
     /**
@@ -376,22 +386,22 @@ public class Market {
      * @throws EmptyMarketException      if the bottom building row is empty.
      * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
-    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException,EmptyMarketException{
-        if(bottomBuildingList.isEmpty()){
+    public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException, EmptyMarketException {
+        if (bottomBuildingList.isEmpty()) {
             throw new EmptyMarketException("No buildings available bottom list");
         }
-        if( position< 0 || position>=bottomBuildingList.size()){
+        if (position < 0 || position >= bottomBuildingList.size()) {
             throw new IndexOutOfBoundsException();
         }
         BuildingCard selectedBuildingCard = this.bottomBuildingList.get(position);
-        try{
+        try {
             player.tryBuyBuilding(selectedBuildingCard);
-        }catch (NotEnoughFoodException exception){
-            throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
+        } catch (NotEnoughFoodException exception) {
+            throw new NotEnoughFoodException(player.getNickname() + " has not enough food");
         }
         this.bottomBuildingList.remove(position);
 
-        notifyCardRemovedFromBottom(position,CARD_TYPE.BUILDING);
+        notifyCardRemovedFromBottom(position, CARD_TYPE.BUILDING);
     }
     //the logic does not enforce that this is called at end-of-turn; it is assumed to only be called then,
     //but even if called mid-turn it is safe since it only returns a bool and does not actually resolve events
@@ -401,8 +411,8 @@ public class Market {
      *
      * @param observerToAdd the observer to subscribe.
      */
-    public void addObserver(MarketObserver observerToAdd){
-        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+    public void addObserver(MarketObserver observerToAdd) {
+        if (observerToAdd != null && !observers.contains(observerToAdd)) {
             observers.add(observerToAdd);
         }
     }
@@ -412,24 +422,25 @@ public class Market {
      *
      * @param observerToRemove the observer to remove.
      */
-    public void removeObserver(MarketObserver observerToRemove){
+    public void removeObserver(MarketObserver observerToRemove) {
         observers.remove(observerToRemove);
     }
 
-    private void notify(Consumer<MarketObserver> action){
-        for(MarketObserver observer:observers){
+    private void notify(Consumer<MarketObserver> action) {
+        for (MarketObserver observer : observers) {
             action.accept(observer);
         }
     }
+
     /**
      * this method is used to update all the subscribed observer
      */
-    public void notifyMarketChanged(){
+    public void notifyMarketChanged() {
         List<Card> topCardsSnapshot = List.copyOf(topCardList);
         List<Card> bottomCardsSnapshot = List.copyOf(bottomCardList);
         List<BuildingCard> topBuildingsSnapshot = List.copyOf(topBuildingList);
         List<BuildingCard> bottomBuildingsSnapshot = List.copyOf(bottomBuildingList);
-        notify(observer->observer.onMarketChanged(
+        notify(observer -> observer.onMarketChanged(
                 topCardsSnapshot,
                 bottomCardsSnapshot,
                 topBuildingsSnapshot,
@@ -440,39 +451,38 @@ public class Market {
     /**
      * at the end of the round a new top set card is created
      */
-    private void notifyTopCardRefreshed(){
+    private void notifyTopCardRefreshed() {
         List<Card> topCardsSnapshot = List.copyOf(topCardList);
-        notify(observer->observer.onTopCardRefreshed(topCardsSnapshot));
+        notify(observer -> observer.onTopCardRefreshed(topCardsSnapshot));
     }
+
     /**
      * Executes notify top building refreshed.
      */
-    private void notifyTopBuildingRefreshed(){
+    private void notifyTopBuildingRefreshed() {
         List<BuildingCard> topBuildingSnapshot = List.copyOf(topBuildingList);
-        notify(observer->observer.onTopBuildingRefreshed(topBuildingSnapshot));
+        notify(observer -> observer.onTopBuildingRefreshed(topBuildingSnapshot));
     }
 
     /**
      * Executes notify card remove from top.
+     *
      * @param position parameter position.
-     * @param card parameter card.
+     * @param card     parameter card.
      */
-    private void notifyCardRemoveFromTop(int position, CARD_TYPE card){
-        notify(observer->observer.onCardRemovedFromTop(position, card));
+    private void notifyCardRemoveFromTop(int position, CARD_TYPE card) {
+        notify(observer -> observer.onCardRemovedFromTop(position, card));
     }
 
     /**
      * Executes notify card removed from bottom.
+     *
      * @param position parameter position.
-     * @param card parameter card.
+     * @param card     parameter card.
      */
-    private void notifyCardRemovedFromBottom(int position, CARD_TYPE card){
-        notify(observer->observer.onCardRemovedFromBottom(position, card));
+    private void notifyCardRemovedFromBottom(int position, CARD_TYPE card) {
+        notify(observer -> observer.onCardRemovedFromBottom(position, card));
     }
-
-
-
-
 
 
     /**
@@ -500,9 +510,9 @@ public class Market {
      * First it order them by event Type (Sustenance are the last events to be solved), in case of two events from two different ERAS
      * the oldest one(the one with the "least ERA") must be done first
      */
-    private void solveEvents(){
-        List<EventCard> eventToBeSolved= this.bottomCardList.stream().filter(card -> card.getCardType()==CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
-        if(!eventToBeSolved.isEmpty()){
+    private void solveEvents() {
+        List<EventCard> eventToBeSolved = this.bottomCardList.stream().filter(card -> card.getCardType() == CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
+        if (!eventToBeSolved.isEmpty()) {
             eventToBeSolved.sort(Comparator.comparing(EventCard::getEventType).thenComparing(EventCard::getEra));
             eventToBeSolved.forEach(eventCard -> {
                 eventCard.applyEventEffect(gameView.getPlayerList());
@@ -515,10 +525,10 @@ public class Market {
     /**
      * this method first shuffles the deck then order it by era and at the end appends the two final events
      */
-    private  void organizeDeck(){
-        EventCard finalShamanEventCard=  (EventCard) this.deck.getLast();
+    private void organizeDeck() {
+        EventCard finalShamanEventCard = (EventCard) this.deck.getLast();
         this.deck.removeLast();
-        EventCard finalSustenanceEventCard= (EventCard) this.deck.getLast();
+        EventCard finalSustenanceEventCard = (EventCard) this.deck.getLast();
         this.deck.removeLast();
         Collections.shuffle(deck);
         deck.sort(Comparator.comparing(Card::getEra));
@@ -529,15 +539,15 @@ public class Market {
     /**
      * this method initialize the bottom list with the right amount o cards
      */
-    private void initializeBottomList(){
-        int numberOfCard= UtilitiesFunction.bindCorrectNumberOfBottomListCard(gameView.getPlayerNumber());
+    private void initializeBottomList() {
+        int numberOfCard = UtilitiesFunction.bindCorrectNumberOfBottomListCard(gameView.getPlayerNumber());
         Card cardToAdd;
         for (int i = 0; i < numberOfCard; i++) {
-            cardToAdd=deck.getFirst();
-            if(cardToAdd.getCardType()==CARD_TYPE.EVENT){
+            cardToAdd = deck.getFirst();
+            if (cardToAdd.getCardType() == CARD_TYPE.EVENT) {
                 this.topCardList.add(cardToAdd);
                 i--;
-            }else{
+            } else {
                 this.bottomCardList.add(cardToAdd);
             }
             deck.removeFirst();
@@ -547,19 +557,19 @@ public class Market {
     /**
      * this method initialize the top card list and the top building list
      */
-    private void initializeBothTopList(){
-        int numberOfCard=UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber());
-        numberOfCard=numberOfCard-this.topCardList.size();
+    private void initializeBothTopList() {
+        int numberOfCard = UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber());
+        numberOfCard = numberOfCard - this.topCardList.size();
         for (int i = 0; i < numberOfCard; i++) {
             this.topCardList.add(deck.getFirst());
             deck.removeFirst();
         }
-        this.topBuildingList.addAll(buildingCards.stream().filter(buildingCard -> buildingCard.getEra()==ERA.ERA_I).toList());
-        buildingCards.removeIf(buildingCard -> buildingCard.getEra()==ERA.ERA_I);
+        this.topBuildingList.addAll(buildingCards.stream().filter(buildingCard -> buildingCard.getEra() == ERA.ERA_I).toList());
+        buildingCards.removeIf(buildingCard -> buildingCard.getEra() == ERA.ERA_I);
     }
 
-    private void notifyResolvedEvent(int eventID, EVENT_TYPE eventType){
-        for(MarketObserver observer: observers){
+    private void notifyResolvedEvent(int eventID, EVENT_TYPE eventType) {
+        for (MarketObserver observer : observers) {
             observer.eventSolved(eventID, eventType);
         }
     }

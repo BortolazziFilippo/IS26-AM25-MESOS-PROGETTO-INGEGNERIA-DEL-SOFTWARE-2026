@@ -37,7 +37,9 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private final String nickname;
     private ClientRemoteInterface clientStub;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    /** Called when an RMI error is detected in a notification task, triggering disconnection. */
+    /**
+     * Called when an RMI error is detected in a notification task, triggering disconnection.
+     */
     private Runnable disconnectCallback;
     // --- HEARTBEAT ---
     private final AtomicInteger missedPings = new AtomicInteger(0);
@@ -50,7 +52,9 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private String playerToPlay;
     //_________________________________________________________________________________________
     Map<String, PlayerDTO> playersMap = new HashMap<>();
-    /** Accumulated tribe cards per player, used to resync reconnecting clients. */
+    /**
+     * Accumulated tribe cards per player, used to resync reconnecting clients.
+     */
     private final Map<String, List<CardDTO>> tribeSnapshot = new HashMap<>();
     //_________________________________________________________________________________________
     //MARKET DTO
@@ -67,6 +71,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     /**
      * Creates a new server virtual view instance.
+     *
      * @param clientStub         the RMI stub or Socket proxy to push notifications to.
      * @param nickname           the nickname of the player this view represents.
      * @param disconnectCallback called when an RMI error is detected, to trigger disconnection handling.
@@ -79,15 +84,25 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     // --- HEARTBEAT API ---
 
-    public String getNickname() { return nickname; }
+    public String getNickname() {
+        return nickname;
+    }
 
-    public ClientRemoteInterface getClientStub() { return clientStub; }
+    public ClientRemoteInterface getClientStub() {
+        return clientStub;
+    }
 
-    public boolean isConnected() { return connected; }
+    public boolean isConnected() {
+        return connected;
+    }
 
-    public void receivePing() { missedPings.set(0); }
+    public void receivePing() {
+        missedPings.set(0);
+    }
 
-    public int incrementMissedPings() { return missedPings.incrementAndGet(); }
+    public int incrementMissedPings() {
+        return missedPings.incrementAndGet();
+    }
 
     public void markDisconnected() {
         connected = false;
@@ -97,6 +112,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     /**
      * Swaps in a new client stub and restarts the executor so this view can be
      * reused after the player reconnects.
+     *
      * @param newStub               the new RMI stub or Socket proxy.
      * @param newDisconnectCallback disconnect callback bound to the new connection.
      */
@@ -125,21 +141,21 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         // 2. Board (offer tiles + default tiles, including totem positions)
         if (offerTileList != null) {
             List<OffertileDTO> board = new ArrayList<>(offerTileList);
-            List<DefaultTileDTO> defs  = new ArrayList<>(defaultTileList);
+            List<DefaultTileDTO> defs = new ArrayList<>(defaultTileList);
             submitTask(() -> clientStub.boardInitialize(board, defs));
         }
         // 3. Market (top cards + bottom cards + top buildings)
         if (topCards != null) {
-            List<CardDTO>     top  = new ArrayList<>(topCards);
-            List<CardDTO>     bot  = bottomCards  != null ? new ArrayList<>(bottomCards)  : new ArrayList<>();
-            List<BuildingDTO> bld  = topBuildings != null ? new ArrayList<>(topBuildings) : new ArrayList<>();
+            List<CardDTO> top = new ArrayList<>(topCards);
+            List<CardDTO> bot = bottomCards != null ? new ArrayList<>(bottomCards) : new ArrayList<>();
+            List<BuildingDTO> bld = topBuildings != null ? new ArrayList<>(topBuildings) : new ArrayList<>();
             submitTask(() -> clientStub.initializeMarket(top, bot, bld));
         }
         // 4. Updated food / PP for every player
         for (PlayerDTO dto : players) {
             final String nick = dto.getNickName();
-            final int food    = dto.getFood();
-            final int pp      = dto.getPrestigePoint();
+            final int food = dto.getFood();
+            final int pp = dto.getPrestigePoint();
             submitTask(() -> clientStub.playerUpdateFood(nick, food));
             submitTask(() -> clientStub.playerUpdatePP(nick, pp));
         }
@@ -150,7 +166,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         if (phase != null) submitTask(() -> clientStub.gamePhaseChanged(phase));
         // 6. Whose turn it is
         String toPlace = playerToPlace;
-        String toPlay  = playerToPlay;
+        String toPlay = playerToPlay;
         if (toPlace != null && playersMap.containsKey(toPlace)) {
             PlayerDTO dto = playersMap.get(toPlace);
             submitTask(() -> clientStub.playerToPlaceChanged(dto));

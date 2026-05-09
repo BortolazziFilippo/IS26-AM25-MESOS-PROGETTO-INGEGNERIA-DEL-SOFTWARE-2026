@@ -15,7 +15,8 @@ public class BoardDTO implements Serializable {
 
     /**
      * Creates a new board dto instance.
-     * @param offerTileList parameter offerTileList.
+     *
+     * @param offerTileList   parameter offerTileList.
      * @param defaultTileList parameter defaultTileList.
      */
     public BoardDTO(List<OffertileDTO> offerTileList, List<DefaultTileDTO> defaultTileList) {
@@ -25,6 +26,7 @@ public class BoardDTO implements Serializable {
 
     /**
      * Returns offer tile list.
+     *
      * @return the result of the operation.
      */
     public List<OffertileDTO> getOfferTileList() {
@@ -33,6 +35,7 @@ public class BoardDTO implements Serializable {
 
     /**
      * Sets offer tile list.
+     *
      * @param offerTileList parameter offerTileList.
      */
     public void setOfferTileList(List<OffertileDTO> offerTileList) {
@@ -41,6 +44,7 @@ public class BoardDTO implements Serializable {
 
     /**
      * Returns default tile list.
+     *
      * @return the result of the operation.
      */
     public List<DefaultTileDTO> getDefaultTileList() {
@@ -49,6 +53,7 @@ public class BoardDTO implements Serializable {
 
     /**
      * Sets default tile list.
+     *
      * @param defaultTileList parameter defaultTileList.
      */
     public void setDefaultTileList(List<DefaultTileDTO> defaultTileList) {

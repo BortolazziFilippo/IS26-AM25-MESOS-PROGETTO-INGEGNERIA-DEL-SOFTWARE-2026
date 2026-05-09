@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages;
 
-import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
@@ -17,10 +16,11 @@ public class InitializeGameMessage implements ServerToClientMessage {
 
     /**
      * Creates a message carrying the initial game state.
-     * @param currentEra the starting era.
-     * @param gamePhase the starting game phase.
+     *
+     * @param currentEra    the starting era.
+     * @param gamePhase     the starting game phase.
      * @param playerToPlace the first player to place.
-     * @param playerToPlay the first player to play.
+     * @param playerToPlay  the first player to play.
      */
     public InitializeGameMessage(ERA currentEra, GAME_PHASE gamePhase, String playerToPlace, String playerToPlay) {
         this.currentEra = currentEra;
@@ -29,9 +29,11 @@ public class InitializeGameMessage implements ServerToClientMessage {
         this.playerToPlay = playerToPlay;
     }
 
-    /** Dispatches this message by calling {@link ClientRemoteInterface#initializeGame}. */
+    /**
+     * Dispatches this message by calling {@link ClientRemoteInterface#initializeGame}.
+     */
     @Override
-    public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
-        clientRemoteInterface.initializeGame(currentEra,gamePhase,playerToPlace,playerToPlay);
+    public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
+        clientRemoteInterface.initializeGame(currentEra, gamePhase, playerToPlace, playerToPlay);
     }
 }

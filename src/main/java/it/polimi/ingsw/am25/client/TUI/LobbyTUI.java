@@ -18,10 +18,12 @@ import java.util.Scanner;
  */
 public class LobbyTUI {
 
-    /** Message sent by the server when no game lobby exists yet. */
+    /**
+     * Message sent by the server when no game lobby exists yet.
+     */
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
 
-    private final static String LOGO= """
+    private final static String LOGO = """
             $$\\      $$\\ $$$$$$$$\\  $$$$$$\\   $$$$$$\\   $$$$$$\\ \s
             $$$\\    $$$ |$$  _____|$$  __$$\\ $$  __$$\\ $$  __$$\\\s
             $$$$\\  $$$$ |$$ |      $$ /  \\__|$$ /  $$ |$$ /  \\__|
@@ -30,7 +32,7 @@ public class LobbyTUI {
             $$ |\\$  /$$ |$$ |      $$\\   $$ |$$ |  $$ |$$\\   $$ |
             $$ | \\_/ $$ |$$$$$$$$\\ \\$$$$$$  | $$$$$$  |\\$$$$$$  |
             \\__|     \\__|\\________| \\______/  \\______/  \\______/\s
-
+            
             """;
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
@@ -39,6 +41,7 @@ public class LobbyTUI {
 
     /**
      * Creates a new LobbyTUI instance.
+     *
      * @param serverStub    the remote server interface.
      * @param clientHandler the client's virtual view.
      * @param scanner       the shared input scanner.

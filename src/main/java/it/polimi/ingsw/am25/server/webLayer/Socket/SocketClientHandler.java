@@ -16,7 +16,7 @@ import java.net.Socket;
  * and dispatches each to the shared {@link ServerRemoteInterface}, then writes
  * back a {@link it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface} Socket proxy.
  */
-public class SocketClientHandler extends Thread{
+public class SocketClientHandler extends Thread {
     private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final Socket socket;
     private final ServerRemoteInterface serverLogic;
@@ -25,12 +25,13 @@ public class SocketClientHandler extends Thread{
 
     /**
      * Creates a new handler for the given client socket.
+     *
      * @param socket      the accepted client socket.
      * @param serverLogic the server logic that processes incoming messages.
      */
-    public SocketClientHandler(Socket socket,ServerRemoteInterface serverLogic){
-        this.socket=socket;
-        this.serverLogic=serverLogic;
+    public SocketClientHandler(Socket socket, ServerRemoteInterface serverLogic) {
+        this.socket = socket;
+        this.serverLogic = serverLogic;
     }
 
     /**

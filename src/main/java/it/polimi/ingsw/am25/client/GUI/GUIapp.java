@@ -2,15 +2,13 @@ package it.polimi.ingsw.am25.client.GUI;
 
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
-import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
-
+import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.geometry.Insets;
 import javafx.stage.Stage;
 
 import java.io.ObjectInputStream;
@@ -42,43 +40,42 @@ public class GUIapp extends Application {
         primaryStage.setOnCloseRequest(e -> System.exit(0));
 
         //tento la connessione
-        try{
+        try {
             connectionToServer(serverIP, method);
             connection.setText("✅ Connesso. Apro la lobby...");
             // Apri la Lobby. Il LobbyController riusa lo stesso Stage e ne sostituisce la scena.
             new LobbyController(serverStub, clientHandler, primaryStage).showing();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             connection.setText("❌ Connessione fallita ["
                     + e.getClass().getSimpleName() + "]: " + e.getMessage());
         }
 
 
-
     }
 
-    private void connectionToServer(String serverIP, String method) throws Exception{
+    private void connectionToServer(String serverIP, String method) throws Exception {
         clientHandler = new ClientVirtualView();
-        if(method.equals("RMI")){
+        if (method.equals("RMI")) {
             String IP = it.polimi.ingsw.am25.client.ClientApp.getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", IP);
             Registry registry = LocateRegistry.getRegistry(serverIP, 1099);
             serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
-        }else if(method.equals("SOCKET")){
+        } else if (method.equals("SOCKET")) {
             Socket socket = new Socket(serverIP, 6969);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             serverStub = new ServerSocketProxy(out, clientHandler);
             ServerListener listener = new ServerListener(in, clientHandler);
             listener.start();
-        }else {
+        } else {
             throw new IllegalArgumentException("Metodo non valido: " + method + " (usa RMI o SOCKET)");
         }
 
 
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         launch(args);
     }
 }

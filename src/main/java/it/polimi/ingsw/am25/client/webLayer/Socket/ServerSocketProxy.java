@@ -31,6 +31,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Creates a new proxy that forwards calls to the server via the given output stream.
+     *
      * @param out           the output stream connected to the server socket.
      * @param clientHandler the local client view used to wait for server confirmations.
      */
@@ -71,6 +72,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Sends a heartbeat ping to the server so it knows this client is still alive.
+     *
      * @param player the calling player (identifies the sender to the server).
      */
     @Override
@@ -80,6 +82,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Sends a placing-player request to the server.
+     *
      * @param playerToPlace the player who is placing.
      * @param position      the tile position chosen.
      */
@@ -91,6 +94,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Sends a request to draw a card from the top market list.
+     *
      * @param player   the acting player.
      * @param cardType the type of card to draw.
      * @param position the position in the top list.
@@ -103,6 +107,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Sends a request to draw a card from the bottom market list.
+     *
      * @param player   the acting player.
      * @param cardType the type of card to draw.
      * @param position the position in the bottom list.
@@ -116,6 +121,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     /**
      * Sends a request to draw an extra card and blocks until the server confirms success
      * or sends back an error.
+     *
      * @param player   the acting player.
      * @param cardType the type of card to draw.
      * @param position the position in the list.
@@ -152,6 +158,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
 
     /**
      * Sends a request indicating the player skips their turn.
+     *
      * @param playerDTO the player who does nothing.
      */
     @Override
@@ -163,6 +170,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     /**
      * Sends a skip-extra-draw request: the player declines the bonus draw without
      * selecting any card.
+     *
      * @param player the player declining the extra draw.
      */
     @Override
@@ -174,6 +182,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     /**
      * Sends a request to add the player to the current lobby.
      * The {@code clientRemoteInterface} is not serialized — the server already has the socket reference.
+     *
      * @param playerDTO             the player joining the game.
      * @param clientRemoteInterface ignored for socket transport.
      */
@@ -186,6 +195,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
     /**
      * Sends a request to create a new game.
      * The {@code clientRemoteInterface} is not serialized — the server already has the socket reference.
+     *
      * @param playerHost            the hosting player.
      * @param PlayerNumber          the required number of players.
      * @param clientRemoteInterface ignored for socket transport.

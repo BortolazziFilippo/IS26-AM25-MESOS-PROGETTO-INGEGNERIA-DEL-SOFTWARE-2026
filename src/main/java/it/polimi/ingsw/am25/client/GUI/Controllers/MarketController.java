@@ -1,6 +1,8 @@
 package it.polimi.ingsw.am25.client.GUI.Controllers;
 
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
+import it.polimi.ingsw.am25.client.GUI.popup.DisconnectPopup;
+import it.polimi.ingsw.am25.client.GUI.popup.EventPopup;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
@@ -25,11 +27,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 public class MarketController implements GUIObserver {
 
@@ -50,7 +48,9 @@ public class MarketController implements GUIObserver {
     // --- totem positions expressed as fractions of tile width / height ---
     private static final double OFFER_TOTEM_X = 0.50;
     private static final double OFFER_TOTEM_Y = 0.27;
-    /** Y-fraction slots on the default tile for each possible player count. */
+    /**
+     * Y-fraction slots on the default tile for each possible player count.
+     */
     private static final Map<Integer, double[]> DEFAULT_SLOT_Y = Map.of(
             2, new double[]{0.30, 0.48},
             3, new double[]{0.27, 0.43, 0.61},
@@ -64,9 +64,13 @@ public class MarketController implements GUIObserver {
     // --- tile selection state ---
     private int selectedTilePosition = -1;
     private javafx.scene.layout.StackPane selectedTilePane = null;
-    /** Position of the tile currently showing the local player's totem preview (-1 = none). */
+    /**
+     * Position of the tile currently showing the local player's totem preview (-1 = none).
+     */
     private int previewTilePosition = -1;
-    /** True while a totem preview animation is in flight; prevents re-entrant tile selection. */
+    /**
+     * True while a totem preview animation is in flight; prevents re-entrant tile selection.
+     */
     private boolean previewAnimating = false;
 
     // --- transparent overlay panes that host totem images on top of tile images ---
@@ -77,44 +81,80 @@ public class MarketController implements GUIObserver {
 
     // --- card selection state ---
     private ImageView selectedCardView = null;
-    /** Tracks active tooltips on building nodes so they can be cleanly uninstalled. */
+    /**
+     * Tracks active tooltips on building nodes so they can be cleanly uninstalled.
+     */
     private final WeakHashMap<Node, Tooltip> activeTooltips = new WeakHashMap<>();
-    /** Number of tribe cards (non-building) currently in the top row. */
+    /**
+     * Number of tribe cards (non-building) currently in the top row.
+     */
     private int topTribeCount = 0;
-    /** Number of tribe cards (non-building) currently in the bottom row. */
+    /**
+     * Number of tribe cards (non-building) currently in the bottom row.
+     */
     private int bottomTribeCount = 0;
-    /** True while the player must pick an extra card from the end-of-round snapshot. */
+    /**
+     * True while the player must pick an extra card from the end-of-round snapshot.
+     */
     private boolean extraDrawActive = false;
-    /** Number of tribe cards in the extra draw snapshot currently shown in the top row. */
+    /**
+     * Number of tribe cards in the extra draw snapshot currently shown in the top row.
+     */
     private int extraDrawTribeCount = 0;
-    /** Non-blocking banner shown while extra draw is active. */
+    /**
+     * Non-blocking banner shown while extra draw is active.
+     */
     private javafx.stage.Popup extraDrawPopup;
-    /** UI actions deferred until the player resolves the extra draw (event popups). */
+    /**
+     * UI actions deferred until the player resolves the extra draw (event popups).
+     */
     private final List<Runnable> deferredUiActions = new ArrayList<>();
-    /** Snapshot of the bottom tribe cards captured at round-end, applied after extra draw is resolved. */
+    /**
+     * Snapshot of the bottom tribe cards captured at round-end, applied after extra draw is resolved.
+     */
     private List<CardDTO> pendingBottomCards = null;
-    /** Snapshot of the bottom buildings captured at round-end, applied after extra draw is resolved. */
+    /**
+     * Snapshot of the bottom buildings captured at round-end, applied after extra draw is resolved.
+     */
     private List<BuildingDTO> pendingBottomBuildings = null;
     private final DisconnectPopup disconnectPopup = new DisconnectPopup();
 
-    @FXML private HBox topCardHbox;
-    @FXML private HBox tileHbox;
-    @FXML private HBox bottomCardHbox;
-    @FXML private Button selectCardButton;
-    @FXML private Button placeTotemButton;
-    @FXML private Button skipTurnButton;
-    @FXML private Button tribeVisualizerButton;
-    @FXML private Button playerStatusButton;
-    @FXML private Label phaseLabel;
-    @FXML private Label currentPlayerLabel;
-    @FXML private Label drawTopLabel;
-    @FXML private Label drawBotLabel;
-    @FXML private Label prestigePointLabel;
-    @FXML private Label foodLabel;
-    @FXML private Label shamanStarLabel;
-    @FXML private Label builderDiscountLabel;
-    @FXML private HBox headerHBox;
-    @FXML private javafx.scene.control.SplitPane splitPane;
+    @FXML
+    private HBox topCardHbox;
+    @FXML
+    private HBox tileHbox;
+    @FXML
+    private HBox bottomCardHbox;
+    @FXML
+    private Button selectCardButton;
+    @FXML
+    private Button placeTotemButton;
+    @FXML
+    private Button skipTurnButton;
+    @FXML
+    private Button tribeVisualizerButton;
+    @FXML
+    private Button playerStatusButton;
+    @FXML
+    private Label phaseLabel;
+    @FXML
+    private Label currentPlayerLabel;
+    @FXML
+    private Label drawTopLabel;
+    @FXML
+    private Label drawBotLabel;
+    @FXML
+    private Label prestigePointLabel;
+    @FXML
+    private Label foodLabel;
+    @FXML
+    private Label shamanStarLabel;
+    @FXML
+    private Label builderDiscountLabel;
+    @FXML
+    private HBox headerHBox;
+    @FXML
+    private javafx.scene.control.SplitPane splitPane;
 
     public MarketController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clientHandler = clientHandler;
@@ -127,7 +167,9 @@ public class MarketController implements GUIObserver {
     // FXML
     // =========================================================
 
-    /** Called by FXMLLoader after all @FXML fields are injected. Flushes any pending data. */
+    /**
+     * Called by FXMLLoader after all @FXML fields are injected. Flushes any pending data.
+     */
     @FXML
     public void initialize() {
         double availableH = javafx.stage.Screen.getPrimary().getVisualBounds().getHeight();
@@ -182,7 +224,9 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
-    /** Sends the selected card to the server (top or bottom row, tribe or building). */
+    /**
+     * Sends the selected card to the server (top or bottom row, tribe or building).
+     */
     @FXML
     private void handleSelectCard() {
         if (selectedCardView == null) return;
@@ -211,13 +255,18 @@ public class MarketController implements GUIObserver {
         }
     }
 
-    /** Sends the totem placement request to the server for the currently selected tile. */
+    /**
+     * Sends the totem placement request to the server for the currently selected tile.
+     */
     @FXML
     private void handlePlaceTotem() {
         if (selectedTilePosition == -1) return;
         try {
             serverRemoteInterface.placingPlayer(playerDTO, selectedTilePosition);
-            if (selectedTilePane != null) { selectedTilePane.setEffect(null); selectedTilePane = null; }
+            if (selectedTilePane != null) {
+                selectedTilePane.setEffect(null);
+                selectedTilePane = null;
+            }
             selectedTilePosition = -1;
             placeTotemButton.setDisable(true);
             updateInteractionState();
@@ -226,7 +275,9 @@ public class MarketController implements GUIObserver {
         }
     }
 
-    /** Notifies the server that the local player passes (or skips the extra draw). */
+    /**
+     * Notifies the server that the local player passes (or skips the extra draw).
+     */
     @FXML
     private void handleSkipTurn() {
         try {
@@ -358,7 +409,10 @@ public class MarketController implements GUIObserver {
                 return;
             }
             javafx.scene.Scene scene = topCardHbox.getScene();
-            if (scene == null) { doTopCardRefresh(top, bottomSnap); return; }
+            if (scene == null) {
+                doTopCardRefresh(top, bottomSnap);
+                return;
+            }
             Pane root = (Pane) scene.getRoot();
 
             // Collect all visible tribe cards (no buildings, no already-fading nodes)
@@ -425,7 +479,10 @@ public class MarketController implements GUIObserver {
                 return;
             }
             javafx.scene.Scene scene = topCardHbox.getScene();
-            if (scene == null) { doTopBuildingRefresh(topSnap, botSnap); return; }
+            if (scene == null) {
+                doTopBuildingRefresh(topSnap, botSnap);
+                return;
+            }
             Pane root = (Pane) scene.getRoot();
 
             // Collect all visible building nodes from the top row
@@ -437,13 +494,15 @@ public class MarketController implements GUIObserver {
             // Replace top buildings
             if (topCardHbox.getChildren().size() > topTribeCount)
                 topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
-            for (BuildingDTO bld : topSnap) topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+            for (BuildingDTO bld : topSnap)
+                topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
 
             // Clear old bottom buildings; the new ones are added after the fly animation
             if (bottomCardHbox.getChildren().size() > bottomTribeCount)
                 bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
             updateInteractionState();
-            for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++) fadeInNode(topCardHbox.getChildren().get(i));
+            for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++)
+                fadeInNode(topCardHbox.getChildren().get(i));
 
             flyToBottomThenFadeIn(root, floaters, () -> {
                 List<ImageView> nodes = new ArrayList<>();
@@ -458,7 +517,9 @@ public class MarketController implements GUIObserver {
         });
     }
 
-    /** Fallback for when the scene is not yet attached: replaces both rows without animations. */
+    /**
+     * Fallback for when the scene is not yet attached: replaces both rows without animations.
+     */
     private void doTopBuildingRefresh(List<BuildingDTO> topSnapshot, List<BuildingDTO> bottomSnapshot) {
         if (topCardHbox.getChildren().size() > topTribeCount)
             topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
@@ -515,7 +576,9 @@ public class MarketController implements GUIObserver {
         Platform.runLater(() -> refreshDefaultTileOverlay(order));
     }
 
-    /** Redraws totem icons on the default tile according to the given turn order. */
+    /**
+     * Redraws totem icons on the default tile according to the given turn order.
+     */
     private void refreshDefaultTileOverlay(List<PlayerDTO> order) {
         if (defaultTileOverlay == null) return;
         defaultTileOverlay.getChildren().clear();
@@ -583,7 +646,9 @@ public class MarketController implements GUIObserver {
     @Override
     public void onPlayerPPChanged(String n, int p) {
         if (playerDTO.getNickName().equals(n))
-            Platform.runLater(() -> { if (prestigePointLabel != null) prestigePointLabel.setText("Punti Prestigio: " + p); });
+            Platform.runLater(() -> {
+                if (prestigePointLabel != null) prestigePointLabel.setText("Punti Prestigio: " + p);
+            });
     }
 
     @Override
@@ -644,7 +709,9 @@ public class MarketController implements GUIObserver {
     // RENDER
     // =========================================================
 
-    /** Populates both card rows from scratch (called on market initialization). */
+    /**
+     * Populates both card rows from scratch (called on market initialization).
+     */
     private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
         topCardHbox.getChildren().clear();
         bottomCardHbox.getChildren().clear();
@@ -652,7 +719,8 @@ public class MarketController implements GUIObserver {
 
         topTribeCount = top.size();
         for (CardDTO card : top) topCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
-        for (BuildingDTO bld : topBld) topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+        for (BuildingDTO bld : topBld)
+            topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
 
         bottomTribeCount = bot.size();
         for (CardDTO card : bot) bottomCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
@@ -703,18 +771,24 @@ public class MarketController implements GUIObserver {
     // INTERACTION STATE
     // =========================================================
 
-    /** Returns true when the current phase is a placing phase (either normal or last round). */
+    /**
+     * Returns true when the current phase is a placing phase (either normal or last round).
+     */
     private boolean isPlacingPhase() {
         GAME_PHASE phase = clientHandler.getGamePhase();
         return phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE;
     }
 
-    /** Returns true when it is this player's turn to place their totem. */
+    /**
+     * Returns true when it is this player's turn to place their totem.
+     */
     private boolean isMyPlacingTurn() {
         return isPlacingPhase() && playerDTO.getNickName().equals(clientHandler.getPlayerToPlace());
     }
 
-    /** Returns true when it is this player's turn to pick a card. */
+    /**
+     * Returns true when it is this player's turn to pick a card.
+     */
     private boolean isMyPlayingTurn() {
         return !isPlacingPhase() && playerDTO.getNickName().equals(clientHandler.getPlayerToPlay());
     }
@@ -769,11 +843,12 @@ public class MarketController implements GUIObserver {
      */
     private boolean hasSelectableTribeCard() {
         if (clientHandler.getDrawTop() > 0 && tribeCardExistsInRow(topCardHbox, topTribeCount)) return true;
-        if (clientHandler.getDrawBot() > 0 && tribeCardExistsInRow(bottomCardHbox, bottomTribeCount)) return true;
-        return false;
+        return clientHandler.getDrawBot() > 0 && tribeCardExistsInRow(bottomCardHbox, bottomTribeCount);
     }
 
-    /** Checks whether a non-event tribe card exists among the first {@code tribeCount} children of the row. */
+    /**
+     * Checks whether a non-event tribe card exists among the first {@code tribeCount} children of the row.
+     */
     private boolean tribeCardExistsInRow(HBox row, int tribeCount) {
         for (int i = 0; i < tribeCount && i < row.getChildren().size(); i++) {
             Node node = row.getChildren().get(i);
@@ -782,16 +857,20 @@ public class MarketController implements GUIObserver {
         return false;
     }
 
-    /** Refreshes the shaman-star and builder-discount labels from the live player data. */
+    /**
+     * Refreshes the shaman-star and builder-discount labels from the live player data.
+     */
     private void updatePlayerStatsLabels() {
         int discount = totalBuilderDiscount();
         int stars = totalShamanStars();
         if (builderDiscountLabel != null) builderDiscountLabel.setText("Sconto Costruttori: " + discount);
-        if (shamanStarLabel != null)      shamanStarLabel.setText("Stelle sciamano: " + stars);
+        if (shamanStarLabel != null) shamanStarLabel.setText("Stelle sciamano: " + stars);
         updateInteractionState();
     }
 
-    /** Sums the star values of all shaman cards in the local player's tribe. */
+    /**
+     * Sums the star values of all shaman cards in the local player's tribe.
+     */
     private int totalShamanStars() {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
@@ -799,15 +878,17 @@ public class MarketController implements GUIObserver {
                 .map(p -> p.getCardDtoList().stream()
                         .filter(c -> c.getCardType() == CARD_TYPE.SHAMAN)
                         .mapToInt(c -> switch (c.getStarNumber()) {
-                            case ONE   -> 1;
-                            case TWO   -> 2;
+                            case ONE -> 1;
+                            case TWO -> 2;
                             case THREE -> 3;
                         })
                         .sum())
                 .orElse(0);
     }
 
-    /** Sums the food-discount values of all builder cards in the local player's tribe. */
+    /**
+     * Sums the food-discount values of all builder cards in the local player's tribe.
+     */
     private int totalBuilderDiscount() {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
@@ -851,7 +932,7 @@ public class MarketController implements GUIObserver {
             if (dto instanceof BuildingDTO && !canAfford(dto)) {
                 activeTooltips.computeIfAbsent(node, n -> {
                     Tooltip tt = new Tooltip("Non hai abbastanza cibo");
-                    tt.setShowDelay(new Duration( 300));
+                    tt.setShowDelay(new Duration(300));
                     Tooltip.install(n, tt);
                     return tt;
                 });
@@ -943,7 +1024,9 @@ public class MarketController implements GUIObserver {
         placeTotemButton.setDisable(selectedTilePosition == -1);
     }
 
-    /** Toggles card selection; applies or removes the gold glow effect. */
+    /**
+     * Toggles card selection; applies or removes the gold glow effect.
+     */
     private void selectCard(ImageView iv) {
         if (selectedCardView != null) selectedCardView.setEffect(null);
         if (selectedCardView == iv) {
@@ -976,7 +1059,9 @@ public class MarketController implements GUIObserver {
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
     }
 
-    /** Removes the gold glow from the currently selected card and resets selection state. */
+    /**
+     * Removes the gold glow from the currently selected card and resets selection state.
+     */
     private void clearCardSelection() {
         if (selectedCardView != null) {
             selectedCardView.setEffect(null);
@@ -985,20 +1070,22 @@ public class MarketController implements GUIObserver {
         if (selectCardButton != null) selectCardButton.setDisable(true);
     }
 
-    /** Builds and shows the extra-draw banner centered at the top of the current window. */
+    /**
+     * Builds and shows the extra-draw banner centered at the top of the current window.
+     */
     private void showExtraDrawPopup() {
         if (extraDrawPopup == null) {
             javafx.scene.control.Label label = new javafx.scene.control.Label("Seleziona carta extra:");
             label.setStyle(
-                "-fx-background-color: #2a1a0a;" +
-                "-fx-text-fill: gold;" +
-                "-fx-font-size: 22px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-padding: 14 28 14 28;" +
-                "-fx-border-color: gold;" +
-                "-fx-border-width: 2;" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;"
+                    "-fx-background-color: #2a1a0a;" +
+                            "-fx-text-fill: gold;" +
+                            "-fx-font-size: 22px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-padding: 14 28 14 28;" +
+                            "-fx-border-color: gold;" +
+                            "-fx-border-width: 2;" +
+                            "-fx-border-radius: 8;" +
+                            "-fx-background-radius: 8;"
             );
             extraDrawPopup = new javafx.stage.Popup();
             extraDrawPopup.getContent().add(label);
@@ -1009,7 +1096,9 @@ public class MarketController implements GUIObserver {
         extraDrawPopup.show(window, centerX - 160, window.getY() + 60);
     }
 
-    /** Hides the extra-draw banner if it is currently visible. */
+    /**
+     * Hides the extra-draw banner if it is currently visible.
+     */
     private void hideExtraDrawPopup() {
         if (extraDrawPopup != null && extraDrawPopup.isShowing()) extraDrawPopup.hide();
     }
@@ -1076,7 +1165,9 @@ public class MarketController implements GUIObserver {
         overlay.getChildren().add(iv);
     }
 
-    /** Looks up the totem color for the given player nickname. Defaults to RED if not found. */
+    /**
+     * Looks up the totem color for the given player nickname. Defaults to RED if not found.
+     */
     private COLOR colorOf(String nickname) {
         return clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(nickname))
@@ -1216,7 +1307,10 @@ public class MarketController implements GUIObserver {
      * the root pane, then removes the animated image and calls {@code onFinish}.
      */
     private void animateTotem(Point2D srcScene, Point2D dstScene, COLOR color, Runnable onFinish) {
-        if (tileHbox.getScene() == null) { if (onFinish != null) onFinish.run(); return; }
+        if (tileHbox.getScene() == null) {
+            if (onFinish != null) onFinish.run();
+            return;
+        }
         Pane root = (Pane) tileHbox.getScene().getRoot();
         Point2D srcRoot = root.sceneToLocal(srcScene);
         Point2D dstRoot = root.sceneToLocal(dstScene);
@@ -1237,7 +1331,10 @@ public class MarketController implements GUIObserver {
         tt.setByX(dstRoot.getX() - srcRoot.getX());
         tt.setByY(dstRoot.getY() - srcRoot.getY());
         tt.setInterpolator(Interpolator.EASE_BOTH);
-        tt.setOnFinished(e -> { root.getChildren().remove(iv); if (onFinish != null) onFinish.run(); });
+        tt.setOnFinished(e -> {
+            root.getChildren().remove(iv);
+            if (onFinish != null) onFinish.run();
+        });
         tt.play();
     }
 }

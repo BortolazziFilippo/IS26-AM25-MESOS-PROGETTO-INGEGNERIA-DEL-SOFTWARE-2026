@@ -2,8 +2,6 @@ package it.polimi.ingsw.am25.client.TUI;
 
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
-import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
@@ -31,6 +29,7 @@ public class ClientTUI {
 
     /**
      * Creates a new ClientTUI instance.
+     *
      * @param serverStub    the remote server interface.
      * @param clientHandler the client's virtual view.
      */
@@ -86,10 +85,10 @@ public class ClientTUI {
         // 3. GAME LOOP
         // myPlayer is now known — build the game-phase helpers.
         // ==========================================================
-        PlacementTUI    placementTUI    = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
-        MarketTUI       marketTUI       = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        PlacementTUI placementTUI = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        MarketTUI marketTUI = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
         PlayerStatusTUI playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
-        BoardTUI        boardTUI        = new BoardTUI(clientHandler, utils);
+        BoardTUI boardTUI = new BoardTUI(clientHandler, utils);
 
         while (true) {
             // Exit immediately if the server went away
@@ -295,7 +294,9 @@ public class ClientTUI {
         }
     }
 
-    /** Prints the static waiting screen with available commands. */
+    /**
+     * Prints the static waiting screen with available commands.
+     */
     private void printWaitingScreen() {
         utils.clearScreen();
         System.out.println("Sei in attesa del tuo turno...");
@@ -320,6 +321,7 @@ public class ClientTUI {
 
     /**
      * Checks whether it is currently this player's turn.
+     *
      * @return {@code true} if the player should act now.
      */
     private boolean isMyTurn() {
@@ -333,8 +335,7 @@ public class ClientTUI {
             return myPlayer.getNickName().equals(clientHandler.getPlayerToPlay());
         } else if (phase == GAME_PHASE.SOLVING_EVENTS) {
             return true;
-        }
-        else if (phase == GAME_PHASE.END_GAME) {
+        } else if (phase == GAME_PHASE.END_GAME) {
             List<PlayerDTO> w = clientHandler.getWinners();
             return w != null && !w.isEmpty();
         }

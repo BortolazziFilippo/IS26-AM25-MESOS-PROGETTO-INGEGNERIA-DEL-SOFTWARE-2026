@@ -13,7 +13,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class GameController implements GUIObserver{
+public class GameController implements GUIObserver {
     private final Stage stage;
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
@@ -34,7 +34,7 @@ public class GameController implements GUIObserver{
 
     public void showing() {
         phaseLabel = new Label("Fase: " + clientHandler.getGamePhase());
-        turnLabel  = new Label("Turno: -");
+        turnLabel = new Label("Turno: -");
         log = new TextArea();
         log.setEditable(false);
         log.setPrefRowCount(20);
@@ -53,49 +53,59 @@ public class GameController implements GUIObserver{
 
 
     private void appendLog(String line) {
-    Platform.runLater(() -> log.appendText(line + "\n"));
+        Platform.runLater(() -> log.appendText(line + "\n"));
     }
+
     @Override
     public void onGamePhaseChanged(GAME_PHASE phase) {
-    Platform.runLater(() -> phaseLabel.setText("Fase: " + phase));
-    appendLog("→ Cambio fase: " + phase);
+        Platform.runLater(() -> phaseLabel.setText("Fase: " + phase));
+        appendLog("→ Cambio fase: " + phase);
     }
+
     @Override
     public void onPlayerToPlaceChanged(String n) {
-    Platform.runLater(() -> turnLabel.setText("Turno (place): " + n));
-    appendLog("→ Tocca a " + n + " (placing)");
+        Platform.runLater(() -> turnLabel.setText("Turno (place): " + n));
+        appendLog("→ Tocca a " + n + " (placing)");
     }
+
     @Override
     public void onPlayerToPlayChanged(String n) {
         Platform.runLater(() -> turnLabel.setText("Turno (play): " + n));
         appendLog("→ Tocca a " + n + " (playing)");
     }
+
     @Override
-    public void onEventResolved(int eventID, it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE eventType){
+    public void onEventResolved(int eventID, it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE eventType) {
         appendLog("Evento #" + eventID + " (" + eventType + ") risolto");
     }
+
     @Override
-    public void onPlayerPPChanged (String n,int p){
+    public void onPlayerPPChanged(String n, int p) {
         appendLog(n + " PP=" + p);
     }
+
     @Override
-    public void onPlayerFoodChanged (String n,int f){
+    public void onPlayerFoodChanged(String n, int f) {
         appendLog(n + " food=" + f);
     }
+
     @Override
     public void onPlayerPlacedOnOfferTile(String n, int t, int fromSlot) {
         appendLog(n + " su tile " + t);
     }
+
     @Override
-    public void onTopCardRemoved ( int p){
+    public void onTopCardRemoved(int p) {
         appendLog("Top card removed @" + p);
     }
+
     @Override
-    public void onBottomCardRemoved ( int p){
+    public void onBottomCardRemoved(int p) {
         appendLog("Bot card removed @" + p);
     }
+
     @Override
-    public void onError (String m){
+    public void onError(String m) {
         appendLog("ERRORE: " + m);
     }
 }

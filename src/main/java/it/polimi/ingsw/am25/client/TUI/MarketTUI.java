@@ -26,6 +26,7 @@ public class MarketTUI {
 
     /**
      * Creates a new MarketTUI instance.
+     *
      * @param serverStub    the remote server interface.
      * @param clientHandler the client's virtual view.
      * @param scanner       the shared input scanner.
@@ -90,6 +91,7 @@ public class MarketTUI {
 
     /**
      * Handles drawing a tribe card from the top of the market.
+     *
      * @return {@code true} if the card was drawn successfully.
      */
     private boolean drawTopTribeCard() {
@@ -155,6 +157,7 @@ public class MarketTUI {
 
     /**
      * Handles drawing a building card from the top of the market.
+     *
      * @return {@code true} if the card was drawn successfully.
      */
     private boolean drawTopBuildingCard() {
@@ -263,11 +266,13 @@ public class MarketTUI {
             }
         }
     }
+
     /**
      * Handles drawing a tribe card from the bottom of the market.
+     *
      * @return {@code true} if the card was drawn successfully.
      */
-    private boolean drawBottomTribeCard(){
+    private boolean drawBottomTribeCard() {
         while (true) {
             clientHandler.connectionError = false;
             utils.clearScreen();
@@ -329,6 +334,7 @@ public class MarketTUI {
 
     /**
      * Handles drawing a building card from the bottom of the market.
+     *
      * @return {@code true} if the card was drawn successfully.
      */
     private boolean drawBottomBuildingCard() {
@@ -564,6 +570,7 @@ public class MarketTUI {
 
     /**
      * Prints a formatted table for a list of cards.
+     *
      * @param title the label to display above the table.
      * @param cards the list of cards to show.
      */

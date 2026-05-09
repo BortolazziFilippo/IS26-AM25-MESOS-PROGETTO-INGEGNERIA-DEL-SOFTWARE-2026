@@ -12,13 +12,21 @@ import java.util.concurrent.atomic.AtomicReference;
  * to {@code client.log}; output is silently dropped if the log has not been initialised.
  */
 public interface ClientUtilitiesFunction {
-    /** Log tag prepended to all messages written by this utility. */
+    /**
+     * Log tag prepended to all messages written by this utility.
+     */
     String LOG_PREFIX = "[CLIENT][UTILS]";
-    /** Path of the client log file. */
+    /**
+     * Path of the client log file.
+     */
     String LOG_FILE = "client.log";
-    /** Timestamp format used in every log entry. */
+    /**
+     * Timestamp format used in every log entry.
+     */
     DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    /** Shared reference to the active log writer; {@code null} until {@link #initLog()} is called. */
+    /**
+     * Shared reference to the active log writer; {@code null} until {@link #initLog()} is called.
+     */
     AtomicReference<PrintWriter> LOG_WRITER = new AtomicReference<>(null);
 
     /**

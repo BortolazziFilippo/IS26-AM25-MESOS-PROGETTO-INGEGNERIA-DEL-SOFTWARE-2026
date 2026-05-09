@@ -17,22 +17,22 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 public class BuildingCard extends Card {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int buildingID;
-    private  BuildingEffect buildingEffect;
+    private BuildingEffect buildingEffect;
     private final int foodCost;
     private final int endgamePP;
     private final EVENT_TYPE applyOn;
 
     /**
-     * @param era       the era this card belongs to.
-     * @param cardType  the card type (should be {@code CARD_TYPE.BUILDING}).
+     * @param era        the era this card belongs to.
+     * @param cardType   the card type (should be {@code CARD_TYPE.BUILDING}).
      * @param buildingID unique identifier for this building.
-     * @param foodCost  food cost to purchase this building.
-     * @param endgamePP prestige points awarded at end of game.
-     * @param applyOn   the event type that triggers this building's effect.
+     * @param foodCost   food cost to purchase this building.
+     * @param endgamePP  prestige points awarded at end of game.
+     * @param applyOn    the event type that triggers this building's effect.
      */
     public BuildingCard(ERA era, CARD_TYPE cardType, int buildingID, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
-        this.era=era;
-        this.cardType=cardType;
+        this.era = era;
+        this.cardType = cardType;
         this.buildingID = buildingID;
         this.foodCost = foodCost;
         this.endgamePP = endgamePP;
@@ -45,26 +45,34 @@ public class BuildingCard extends Card {
      *
      * @param buildingEffect the effect to execute when this building is triggered.
      */
-    public void setBuildingEffect(BuildingEffect buildingEffect){
-        this.buildingEffect=buildingEffect;
+    public void setBuildingEffect(BuildingEffect buildingEffect) {
+        this.buildingEffect = buildingEffect;
     }
 
-    /** @return the unique identifier of this building. */
+    /**
+     * @return the unique identifier of this building.
+     */
     public int getBuildingID() {
         return buildingID;
     }
 
-    /** @return the food cost required to purchase this building. */
+    /**
+     * @return the food cost required to purchase this building.
+     */
     public int getFoodCost() {
         return foodCost;
     }
 
-    /** @return the prestige points this building awards at the end of the game. */
+    /**
+     * @return the prestige points this building awards at the end of the game.
+     */
     public int getEndgamePP() {
         return endgamePP;
     }
 
-    /** @return the event type that triggers this building's effect. */
+    /**
+     * @return the event type that triggers this building's effect.
+     */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
@@ -86,7 +94,9 @@ public class BuildingCard extends Card {
         );
     }
 
-    /** Adds this building to the player's owned buildings. */
+    /**
+     * Adds this building to the player's owned buildings.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addBuilding(this);
@@ -98,14 +108,16 @@ public class BuildingCard extends Card {
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof BuildingCard toCompare){
+        if (obj instanceof BuildingCard toCompare) {
             return toCompare.buildingID == this.buildingID;
-        }else{
+        } else {
             return false;
         }
     }
 
-    /** @return a BuildingDTO snapshot of this card for network transfer. */
+    /**
+     * @return a BuildingDTO snapshot of this card for network transfer.
+     */
     @Override
     public CardDTO toDTO() {
         return new BuildingDTO(this);

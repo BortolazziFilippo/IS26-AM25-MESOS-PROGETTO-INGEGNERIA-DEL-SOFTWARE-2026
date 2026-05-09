@@ -15,13 +15,16 @@ public class PingMessage implements ClientToServerMessage {
 
     /**
      * Creates a ping message for the given player.
+     *
      * @param player the player sending the heartbeat.
      */
     public PingMessage(PlayerDTO player) {
         this.player = player;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#ping}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#ping}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
         serverRemoteInterface.ping(player);

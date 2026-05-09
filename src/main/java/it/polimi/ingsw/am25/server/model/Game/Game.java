@@ -683,6 +683,7 @@ public class Game implements GameView {
     /**
      * Removes the given player from both the placing and playing turn queues immediately.
      * Called when a player disconnects so the game never waits for them.
+     *
      * @param player the disconnected player.
      */
     public void removeFromTurnQueues(Player player) {
@@ -691,6 +692,7 @@ public class Game implements GameView {
 
     /**
      * Re-adds a reconnected player to the end of both turn queues.
+     *
      * @param player the reconnected player.
      */
     public void reAddToTurnQueues(Player player) {
@@ -700,6 +702,7 @@ public class Game implements GameView {
     /**
      * Advances the placing phase to the next connected player without placing a totem.
      * Used when the current placing player has disconnected mid-phase.
+     *
      * @throws EndOfPlacingPhaseException if no more connected players need to place.
      */
     public void skipDisconnectedPlacingPlayer() throws EndOfPlacingPhaseException {

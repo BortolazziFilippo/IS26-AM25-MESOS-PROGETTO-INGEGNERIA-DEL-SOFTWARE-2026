@@ -10,20 +10,29 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Abstract base class for all Mesos cards (tribe members, buildings, events).
  */
 public abstract class Card {
-    public Card() {}
+    public Card() {
+    }
 
-    /** The era in which this card was introduced. */
+    /**
+     * The era in which this card was introduced.
+     */
     protected ERA era;
-    /** The type of this card (tribe member role, building, or event). */
+    /**
+     * The type of this card (tribe member role, building, or event).
+     */
     protected CARD_TYPE cardType;
 
-    /** @return the era this card belongs to. */
+    /**
+     * @return the era this card belongs to.
+     */
     public ERA getEra() {
         return era;
     }
 
-    /** @return the type of this card (tribe role, building, or event). */
-    public CARD_TYPE getCardType(){
+    /**
+     * @return the type of this card (tribe role, building, or event).
+     */
+    public CARD_TYPE getCardType() {
         return cardType;
     }
 

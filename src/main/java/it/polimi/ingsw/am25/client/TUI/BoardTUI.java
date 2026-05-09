@@ -20,6 +20,7 @@ public class BoardTUI {
 
     /**
      * Creates a new BoardTUI instance.
+     *
      * @param clientHandler the client's virtual view.
      * @param utils         the shared TUI utilities.
      */
@@ -78,10 +79,10 @@ public class BoardTUI {
                 }
                 nick = String.format("%-25s", nick);
                 System.out.printf("   [%d]   | %-6d | %-25s\n",
-                        (i + 1), defaultTiles.get(i).getFoodPerSlotPosition(), ansi + nick + TUIUtils.RESET);
+                        (i + 1), defaultTiles.get(i).foodPerSlotPosition(), ansi + nick + TUIUtils.RESET);
             } else {
                 System.out.printf("   [%d]   | %-6d | %-25s\n",
-                        (i + 1), defaultTiles.get(i).getFoodPerSlotPosition(), "[libera]");
+                        (i + 1), defaultTiles.get(i).foodPerSlotPosition(), "[libera]");
             }
         }
 

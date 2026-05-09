@@ -1,5 +1,6 @@
-package it.polimi.ingsw.am25.client.GUI.Controllers;
+package it.polimi.ingsw.am25.client.GUI.popup;
 
+import it.polimi.ingsw.am25.client.GUI.Controllers.CardImageFactory;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -19,7 +20,7 @@ public class EventPopup {
 
     public void addEvent(int eventID, EVENT_TYPE eventType, double cardFitHeight) {
         if (stage == null || !stage.isShowing()) {
-            leftCol  = new VBox(12);
+            leftCol = new VBox(12);
             leftCol.setPadding(new Insets(16));
             rightCol = new VBox(12);
             rightCol.setPadding(new Insets(16, 16, 16, 0));
@@ -30,7 +31,12 @@ public class EventPopup {
             Scene scene = new Scene(new HBox(leftCol, rightCol));
             scene.getStylesheets().add(getClass().getResource("/FXML/Market.css").toExternalForm());
             stage.setScene(scene);
-            stage.setOnHidden(e -> { stage = null; leftCol = null; rightCol = null; count = 0; });
+            stage.setOnHidden(e -> {
+                stage = null;
+                leftCol = null;
+                rightCol = null;
+                count = 0;
+            });
             stage.show();
         }
 
@@ -42,7 +48,8 @@ public class EventPopup {
             iv.setFitHeight(cardFitHeight * 1.2);
             iv.setPreserveRatio(true);
             row.getChildren().add(iv);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         Label lbl = new Label(eventType.toString());
         lbl.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
         row.getChildren().add(lbl);

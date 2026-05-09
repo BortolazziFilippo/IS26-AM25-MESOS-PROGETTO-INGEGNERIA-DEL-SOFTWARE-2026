@@ -8,9 +8,11 @@ import java.util.Map;
 
 public class SendRankMessage implements ServerToClientMessage {
     private final Map<Integer, List<String>> leaderboards;
+
     public SendRankMessage(Map<Integer, List<String>> leaderboards) {
         this.leaderboards = leaderboards;
     }
+
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws
             Exception {

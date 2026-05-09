@@ -1,5 +1,4 @@
 [
-
   {
     "eventID": 1,
     "era": "ERA_I",
@@ -7,59 +6,57 @@
   },
   {
     "eventID": 2,
-    "era":"ERA_I",
-    "eventType":"SUSTENANCE"
+    "era": "ERA_I",
+    "eventType": "SUSTENANCE"
   },
   {
     "eventID": 3,
-    "era":"ERA_I",
-    "eventType":"SHAMANIC_RIT"
+    "era": "ERA_I",
+    "eventType": "SHAMANIC_RIT"
   },
   {
     "eventID": 4,
-    "era":"ERA_I",
+    "era": "ERA_I",
     "eventType": "PAINTINGS"
   },
-
   {
     "eventID": 5,
-    "era":"ERA_II",
-    "eventType":"HUNT"
+    "era": "ERA_II",
+    "eventType": "HUNT"
   },
   {
     "eventID": 6,
-    "era":"ERA_II",
-    "eventType":"SUSTENANCE"
+    "era": "ERA_II",
+    "eventType": "SUSTENANCE"
   },
   {
     "eventID": 7,
-    "era":"ERA_II",
-    "eventType":"SHAMANIC_RIT"
+    "era": "ERA_II",
+    "eventType": "SHAMANIC_RIT"
   },
   {
     "eventID": 8,
-    "era":"ERA_II",
-    "eventType":"PAINTINGS"
+    "era": "ERA_II",
+    "eventType": "PAINTINGS"
   },
-
   {
     "eventID": 9,
-    "era":"ERA_III",
-    "eventType":"HUNT"
+    "era": "ERA_III",
+    "eventType": "HUNT"
   },
   {
     "eventID": 10,
-    "era":"ERA_III",
-    "eventType":"PAINTINGS"
+    "era": "ERA_III",
+    "eventType": "PAINTINGS"
   },
   {
     "eventID": 11,
-    "era":"ERA_III",
-    "eventType":"SUSTENANCE"
+    "era": "ERA_III",
+    "eventType": "SUSTENANCE"
   },
   {
     "eventID": 12,
-    "era":"ERA_III",
-    "eventType":"SHAMANIC_RIT"
+    "era": "ERA_III",
+    "eventType": "SHAMANIC_RIT"
   }
 ]

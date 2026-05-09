@@ -17,34 +17,42 @@ public class BuildingDTO extends CardDTO implements Serializable {
     private final int buildingID;
     private final int foodCost;
     private final int endGamePP;
-    private  EVENT_TYPE applyOn;
+    private EVENT_TYPE applyOn;
 
     /**
      * @param buildingCard the source BuildingCard to snapshot.
      */
     public BuildingDTO(BuildingCard buildingCard) {
         super(buildingCard.getEra(), CARD_TYPE.BUILDING);
-        this.foodCost=buildingCard.getFoodCost();
-        this.endGamePP=buildingCard.getEndgamePP();
+        this.foodCost = buildingCard.getFoodCost();
+        this.endGamePP = buildingCard.getEndgamePP();
         this.buildingID = buildingCard.getBuildingID();
     }
 
-    /** @return the food cost required to purchase this building. */
+    /**
+     * @return the food cost required to purchase this building.
+     */
     public int getFoodCost() {
         return foodCost;
     }
 
-    /** @return the prestige points this building awards at the end of the game. */
+    /**
+     * @return the prestige points this building awards at the end of the game.
+     */
     public int getEndGamePP() {
         return endGamePP;
     }
 
-    /** @return the event type that triggers this building's effect, or {@code null} if end-game only. */
+    /**
+     * @return the event type that triggers this building's effect, or {@code null} if end-game only.
+     */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
 
-    /** @return the unique identifier of this building. */
+    /**
+     * @return the unique identifier of this building.
+     */
     public int getBuildingID() {
         return buildingID;
     }

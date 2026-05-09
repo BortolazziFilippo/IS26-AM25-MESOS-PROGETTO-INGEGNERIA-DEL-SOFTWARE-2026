@@ -38,4 +38,5 @@ module it.polimi.ingsw.am25 {
     exports it.polimi.ingsw.am25.server.model.Factory.OfferTile;
     exports it.polimi.ingsw.am25.server.model.Factory.Event;
     exports it.polimi.ingsw.am25.server.webLayer;
+    opens it.polimi.ingsw.am25.client.GUI.popup to javafx.fxml;
 }

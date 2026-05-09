@@ -2,7 +2,7 @@
 /* sfondo principale: grigio caldo chiaro */
 
 .root {
-    -fx-background-color: #9a9a9a ;
+    -fx-background-color: #9a9a9a;
 }
 
 /* SplitPane e il suo divisore */
@@ -10,6 +10,7 @@
     -fx-background-color: #9a9a9a;
     -fx-padding: 0;
 }
+
 .split-pane > .split-pane-divider {
     -fx-background-color: #9a9a9a;
     -fx-padding: 0 2 0 2;
@@ -20,6 +21,7 @@
     -fx-background-color: transparent;
     -fx-background: #9a9a9a;
 }
+
 .scroll-pane > .viewport {
     -fx-background-color: #9a9a9a;
 }

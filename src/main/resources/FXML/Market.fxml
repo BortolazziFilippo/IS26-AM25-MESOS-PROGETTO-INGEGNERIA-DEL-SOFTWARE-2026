@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <AnchorPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
             stylesheets="@Market.css">
     <children>
@@ -22,25 +15,35 @@
                 <VBox spacing="4">
                     <children>
                         <Label fx:id="phaseLabel" text="Fase corrente: -">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                         <Label fx:id="currentPlayerLabel" text="Giocatore di turno: -">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                     </children>
                 </VBox>
                 <VBox spacing="4">
                     <children>
                         <Label text="Azioni disponibili:">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                         <HBox spacing="20">
                             <children>
                                 <Label fx:id="drawTopLabel" text="Pesca da sopra: -">
-                                    <font><Font name="System Bold" size="14.0" /></font>
+                                    <font>
+                                        <Font name="System Bold" size="14.0"/>
+                                    </font>
                                 </Label>
                                 <Label fx:id="drawBotLabel" text="Pesca da sotto: -">
-                                    <font><Font name="System Bold" size="14.0" /></font>
+                                    <font>
+                                        <Font name="System Bold" size="14.0"/>
+                                    </font>
                                 </Label>
                             </children>
                         </HBox>
@@ -49,29 +52,37 @@
                 <VBox spacing="4">
                     <children>
                         <Label fx:id="foodLabel" text="Cibo:">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                         <Label fx:id="prestigePointLabel" text="Punti Prestigio:">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                     </children>
                 </VBox>
                 <VBox spacing="4">
                     <children>
                         <Label fx:id="shamanStarLabel" text="Stelle sciamano:">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                         <Label fx:id="builderDiscountLabel" text="Sconto Costruttori:">
-                            <font><Font name="System Bold" size="14.0" /></font>
+                            <font>
+                                <Font name="System Bold" size="14.0"/>
+                            </font>
                         </Label>
                     </children>
                 </VBox>
                 <!-- pushes buttons to the right -->
-                <Region HBox.hgrow="ALWAYS" />
+                <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="tribeVisualizerButton" mnemonicParsing="false"
-                        onAction="#showThisPlayerTribe" prefHeight="48.0" text="Visualizza tribù" />
+                        onAction="#showThisPlayerTribe" prefHeight="48.0" text="Visualizza tribù"/>
                 <Button fx:id="playerStatusButton" mnemonicParsing="false"
-                        onAction="#showPlayerStatus" prefHeight="48.0" text="Stato giocatori" />
+                        onAction="#showPlayerStatus" prefHeight="48.0" text="Stato giocatori"/>
             </children>
         </HBox>
 
@@ -86,21 +97,21 @@
                                 hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
                         <content>
                             <HBox fx:id="topCardHbox" spacing="10"
-                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;" />
+                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;"/>
                         </content>
                     </ScrollPane>
                     <ScrollPane fitToHeight="false" fitToWidth="false"
                                 hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
                         <content>
                             <HBox fx:id="tileHbox" spacing="10"
-                                  style="-fx-padding: 8; -fx-alignment: CENTER;" />
+                                  style="-fx-padding: 8; -fx-alignment: CENTER;"/>
                         </content>
                     </ScrollPane>
                     <ScrollPane fitToHeight="false" fitToWidth="false"
                                 hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
                         <content>
                             <HBox fx:id="bottomCardHbox" spacing="10"
-                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;" />
+                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;"/>
                         </content>
                     </ScrollPane>
                 </VBox>
@@ -109,11 +120,11 @@
                 <VBox alignment="CENTER" spacing="40" style="-fx-padding: 40;">
                     <children>
                         <Button fx:id="selectCardButton" maxWidth="Infinity" mnemonicParsing="false"
-                                onAction="#handleSelectCard" prefHeight="80.0" text="Seleziona carta" />
+                                onAction="#handleSelectCard" prefHeight="80.0" text="Seleziona carta"/>
                         <Button fx:id="placeTotemButton" maxWidth="Infinity" mnemonicParsing="false"
-                                onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem" />
+                                onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem"/>
                         <Button fx:id="skipTurnButton" maxWidth="Infinity" mnemonicParsing="false"
-                                onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno" />
+                                onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno"/>
                     </children>
                 </VBox>
             </items>

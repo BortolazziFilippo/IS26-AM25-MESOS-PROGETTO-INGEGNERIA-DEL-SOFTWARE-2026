@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.util.List;
+
 /**
  * Event effect for a hunt event:
  * every player receives {@code food} food and {@code PPtoMultiply * hunterCount} prestige points.
@@ -15,12 +16,14 @@ public class HuntEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int food;
     private final int PPtoMultiply;
+
     /**
      * Creates a hunt event effect.
-     * @param food the flat food bonus granted to every player.
+     *
+     * @param food         the flat food bonus granted to every player.
      * @param PPtoMultiply the prestige-point multiplier applied per Hunter card in the tribe.
      */
-    public HuntEvent(int food, int PPtoMultiply){
+    public HuntEvent(int food, int PPtoMultiply) {
         this.food = food;
         this.PPtoMultiply = PPtoMultiply;
     }

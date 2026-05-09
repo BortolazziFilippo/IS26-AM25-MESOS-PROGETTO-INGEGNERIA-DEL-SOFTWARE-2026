@@ -10,7 +10,8 @@ public class GUIEffects {
 
     public static final ColorAdjust GRAY = new ColorAdjust(0, -0.45, -0.1, 0);
 
-    private GUIEffects() {}
+    private GUIEffects() {
+    }
 
     public static DropShadow goldGlow() {
         DropShadow glow = new DropShadow();

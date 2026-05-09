@@ -13,7 +13,7 @@ import java.util.List;
  * players with fewer Artists lose {@code PPLost} PP.
  * Building effects tagged {@link EVENT_TYPE#PAINTINGS} are also triggered.
  */
-public class ArtistEvent extends EventEffect{
+public class ArtistEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int artistNeeded;
     private final int PPLost;
@@ -22,11 +22,11 @@ public class ArtistEvent extends EventEffect{
     /**
      * Creates an ArtistEvent.
      *
-     * @param artistNeeded  minimum number of Artist cards needed to gain PP
-     * @param PPLost        prestige points lost by players who do not meet the threshold
-     * @param PPtoMultiply  prestige points multiplier applied per Artist for qualifying players
+     * @param artistNeeded minimum number of Artist cards needed to gain PP
+     * @param PPLost       prestige points lost by players who do not meet the threshold
+     * @param PPtoMultiply prestige points multiplier applied per Artist for qualifying players
      */
-    public ArtistEvent(int artistNeeded, int PPLost, int PPtoMultiply){
+    public ArtistEvent(int artistNeeded, int PPLost, int PPtoMultiply) {
         this.artistNeeded = artistNeeded;
         this.PPLost = PPLost;
         this.PPtoMultiply = PPtoMultiply;

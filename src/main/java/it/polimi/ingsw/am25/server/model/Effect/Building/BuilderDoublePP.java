@@ -4,11 +4,12 @@ import it.polimi.ingsw.am25.server.model.Card.BuilderCard;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+
 /**
  * Building effect that doubles the final prestige points of every Builder card in the player's tribe.
  * Triggered at the end of the game.
  */
-public class BuilderDoublePP extends BuildingEffect{
+public class BuilderDoublePP extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
     public BuilderDoublePP() {
@@ -25,6 +26,6 @@ public class BuilderDoublePP extends BuildingEffect{
         UtilitiesFunction.logInfo(LOG_PREFIX,
                 "BuilderDoublePP: doubling final PP for " + builderCount + " Builder card(s) in player '" +
                         player.getNickname() + "' tribe");
-        player.getTribe().stream().filter(card -> card.getCardType()== CARD_TYPE.BUILDER).map(card -> (BuilderCard)card).forEach(card -> card.setFinalPrestigePoint(card.getFinalPrestigePoint()*2) );
+        player.getTribe().stream().filter(card -> card.getCardType() == CARD_TYPE.BUILDER).map(card -> (BuilderCard) card).forEach(card -> card.setFinalPrestigePoint(card.getFinalPrestigePoint() * 2));
     }
 }

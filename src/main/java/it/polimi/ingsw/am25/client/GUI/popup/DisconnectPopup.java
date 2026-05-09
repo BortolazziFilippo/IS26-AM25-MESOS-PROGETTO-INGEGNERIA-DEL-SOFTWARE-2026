@@ -1,9 +1,11 @@
-package it.polimi.ingsw.am25.client.GUI.Controllers;
+package it.polimi.ingsw.am25.client.GUI.popup;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class DisconnectPopup {
@@ -14,9 +16,8 @@ public class DisconnectPopup {
     public void addDisconnection(String nickname) {
         addEntry("Il giocatore " + nickname + " si è disconnesso", "#c0392b");
     }
-
     public void addReconnection(String nickname) {
-        addEntry("Il giocatore " + nickname + " si è riconnesso", "#27ae60");
+        addEntry("Il giocatore " + nickname + " si è riconnesso","#027404" );
     }
 
     private void addEntry(String text, String color) {
@@ -29,7 +30,10 @@ public class DisconnectPopup {
             Scene scene = new Scene(box);
             scene.getStylesheets().add(getClass().getResource("/FXML/Market.css").toExternalForm());
             stage.setScene(scene);
-            stage.setOnHidden(e -> { stage = null; box = null; });
+            stage.setOnHidden(e -> {
+                stage = null;
+                box = null;
+            });
             stage.show();
         }
 

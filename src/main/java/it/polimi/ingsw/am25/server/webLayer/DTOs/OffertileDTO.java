@@ -18,6 +18,7 @@ public class OffertileDTO implements Serializable {
 
     /**
      * Creates a new offertile dto instance.
+     *
      * @param offerTile parameter offerTile.
      */
     public OffertileDTO(OfferTile offerTile) {
@@ -28,6 +29,7 @@ public class OffertileDTO implements Serializable {
 
     /**
      * Returns the single-character identifier of this offer tile (e.g. 'A', 'B', …).
+     *
      * @return the tile ID character.
      */
     public char getOfferTileID() {
@@ -36,6 +38,7 @@ public class OffertileDTO implements Serializable {
 
     /**
      * Returns the number of top-row draws available on this tile.
+     *
      * @return top draws.
      */
     public int getDrawTop() {
@@ -44,6 +47,7 @@ public class OffertileDTO implements Serializable {
 
     /**
      * Returns the number of bottom-row draws available on this tile.
+     *
      * @return bottom draws.
      */
     public int getDrawBot() {

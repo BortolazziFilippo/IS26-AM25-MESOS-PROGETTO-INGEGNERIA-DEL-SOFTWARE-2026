@@ -10,7 +10,7 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Represents an Inventor tribe card. Each Inventor card carries an {@link it.polimi.ingsw.am25.server.model.Enums.INV_ICON};
  * having one of each distinct icon in the tribe grants a prestige-point bonus at end of game.
  */
-public class InventorCard extends Card{
+public class InventorCard extends Card {
     private final INV_ICON invIcon;
 
     /**
@@ -18,18 +18,22 @@ public class InventorCard extends Card{
      * @param cardType the card type (should be {@code CARD_TYPE.INVENTOR}).
      * @param invIcon  the invention icon carried by this card.
      */
-    public InventorCard( ERA era, CARD_TYPE cardType,INV_ICON invIcon){
-        this.invIcon=invIcon;
-        this.cardType=cardType;
-        this.era=era;
+    public InventorCard(ERA era, CARD_TYPE cardType, INV_ICON invIcon) {
+        this.invIcon = invIcon;
+        this.cardType = cardType;
+        this.era = era;
     }
 
-    /** @return the invention icon carried by this card. */
+    /**
+     * @return the invention icon carried by this card.
+     */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
 
-    /** Adds this card to the player's tribe. */
+    /**
+     * Adds this card to the player's tribe.
+     */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
@@ -45,7 +49,9 @@ public class InventorCard extends Card{
         return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
     }
 
-    /** @return a CardDTO snapshot of this card for network transfer. */
+    /**
+     * @return a CardDTO snapshot of this card for network transfer.
+     */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

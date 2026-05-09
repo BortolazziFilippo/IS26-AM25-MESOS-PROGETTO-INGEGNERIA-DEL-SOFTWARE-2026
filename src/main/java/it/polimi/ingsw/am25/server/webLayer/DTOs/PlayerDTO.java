@@ -19,18 +19,18 @@ public class PlayerDTO implements Serializable {
     private int food;
     private int prestigePoint;
     private COLOR colorTotem;
-    private List<CardDTO> cardDtoList=new ArrayList<>();
+    private List<CardDTO> cardDtoList = new ArrayList<>();
 
     /**
      * Builds a DTO snapshot from a player instance.
      *
      * @param player the player to convert.
      */
-    public PlayerDTO(Player player){
-        this.nickName=player.getNickname();
-        this.food=player.getFood();
-        this.prestigePoint=player.getPrestigePoint();
-        this.colorTotem=player.getTotem().color();
+    public PlayerDTO(Player player) {
+        this.nickName = player.getNickname();
+        this.food = player.getFood();
+        this.prestigePoint = player.getPrestigePoint();
+        this.colorTotem = player.getTotem().color();
     }
 
     /**
@@ -46,53 +46,73 @@ public class PlayerDTO implements Serializable {
         this.colorTotem = colorTotem;
     }
 
-    /** @return the player's display name. */
+    /**
+     * @return the player's display name.
+     */
     public String getNickName() {
         return nickName;
     }
 
-    /** @param nickName the player's display name. */
+    /**
+     * @param nickName the player's display name.
+     */
     public void setNickName(String nickName) {
         this.nickName = nickName;
     }
 
-    /** @return the player's current food total. */
+    /**
+     * @return the player's current food total.
+     */
     public int getFood() {
         return food;
     }
 
-    /** @param food the player's current food total. */
+    /**
+     * @param food the player's current food total.
+     */
     public void setFood(int food) {
         this.food = food;
     }
 
-    /** @return the player's current prestige-point total. */
+    /**
+     * @return the player's current prestige-point total.
+     */
     public int getPrestigePoint() {
         return prestigePoint;
     }
 
-    /** @param prestigePoint the player's current prestige-point total. */
+    /**
+     * @param prestigePoint the player's current prestige-point total.
+     */
     public void setPrestigePoint(int prestigePoint) {
         this.prestigePoint = prestigePoint;
     }
 
-    /** @return the color of the player's totem. */
+    /**
+     * @return the color of the player's totem.
+     */
     public COLOR getColorTotem() {
         return colorTotem;
     }
 
-    /** @param colorTotem the color of the player's totem. */
+    /**
+     * @param colorTotem the color of the player's totem.
+     */
     public void setColorTotem(COLOR colorTotem) {
         this.colorTotem = colorTotem;
     }
 
-    /** @return the list of tribe cards belonging to this player. */
+    /**
+     * @return the list of tribe cards belonging to this player.
+     */
     public List<CardDTO> getCardDtoList() {
         return cardDtoList;
     }
 
-    /** @param cardDTO the card to append to the player's tribe list. */
-    public void addCardToTribe(CardDTO cardDTO){
+    /**
+     * @param cardDTO the card to append to the player's tribe list.
+     */
+    public void addCardToTribe(CardDTO cardDTO) {
         if (this.cardDtoList == null) {
             this.cardDtoList = new ArrayList<>();
         }

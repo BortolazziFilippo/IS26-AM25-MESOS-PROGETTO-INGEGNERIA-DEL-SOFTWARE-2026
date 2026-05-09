@@ -44,85 +44,85 @@ public class BuildingFactory {
      * @param boardView    read-only board reference needed by position-dependent building effects.
      * @return list of {@link BuildingCard}s ordered by era.
      */
-    public List<BuildingCard> createBuildingDeck (int playerNumber, BoardView boardView){
+    public List<BuildingCard> createBuildingDeck(int playerNumber, BoardView boardView) {
 
-        List<BuildingCard> tempList =new ArrayList<>();
-        List<BuildingCard> listToReturn=new ArrayList<>();
+        List<BuildingCard> tempList = new ArrayList<>();
+        List<BuildingCard> listToReturn = new ArrayList<>();
         List<Integer> randomNumber;
         InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
-        if(inputStream==null) {
-            throw new RuntimeException(getClass()+ ": Errore apertura file building.json");
+        if (inputStream == null) {
+            throw new RuntimeException(getClass() + ": Errore apertura file building.json");
         }
-        Reader reader= new InputStreamReader(inputStream);
-        Gson gson= new Gson();
-        BuildingDTO[] tempCatalogue= gson.fromJson(reader, BuildingDTO[].class);
-        for (BuildingDTO dto : tempCatalogue){
-            tempList.add(new BuildingCard(dto.getEra(),CARD_TYPE.BUILDING,dto.getBuildingID(),dto.getFoodCost(),dto.getEndGamePP(),dto.getApplyOn()));
+        Reader reader = new InputStreamReader(inputStream);
+        Gson gson = new Gson();
+        BuildingDTO[] tempCatalogue = gson.fromJson(reader, BuildingDTO[].class);
+        for (BuildingDTO dto : tempCatalogue) {
+            tempList.add(new BuildingCard(dto.getEra(), CARD_TYPE.BUILDING, dto.getBuildingID(), dto.getFoodCost(), dto.getEndGamePP(), dto.getApplyOn()));
         }
 
-        switch (playerNumber){
+        switch (playerNumber) {
             case 2:
                 //ERA 1
-                randomNumber=shuffledFromYToXExclusive(0,6);
+                randomNumber = shuffledFromYToXExclusive(0, 6);
                 listToReturn.add(tempList.get(randomNumber.get(0)));
                 //ERA 2
-                randomNumber=shuffledFromYToXExclusive(6,13);
+                randomNumber = shuffledFromYToXExclusive(6, 13);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=shuffledFromYToXExclusive(13,21);
+                randomNumber = shuffledFromYToXExclusive(13, 21);
                 for (int i = 0; i < 3; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 3:
                 //ERA 1
-                randomNumber=shuffledFromYToXExclusive(0,6);
+                randomNumber = shuffledFromYToXExclusive(0, 6);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
-                randomNumber=shuffledFromYToXExclusive(6,13);
+                randomNumber = shuffledFromYToXExclusive(6, 13);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=shuffledFromYToXExclusive(13,21);
+                randomNumber = shuffledFromYToXExclusive(13, 21);
                 for (int i = 0; i < 4; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 4:
                 //ERA 1
-                randomNumber=shuffledFromYToXExclusive(0,6);
+                randomNumber = shuffledFromYToXExclusive(0, 6);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
-                randomNumber=shuffledFromYToXExclusive(6,13);
+                randomNumber = shuffledFromYToXExclusive(6, 13);
                 for (int i = 0; i < 3; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=shuffledFromYToXExclusive(13,21);
+                randomNumber = shuffledFromYToXExclusive(13, 21);
                 for (int i = 0; i < 4; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 break;
             case 5:
                 //ERA 1
-                randomNumber=shuffledFromYToXExclusive(0,6);
+                randomNumber = shuffledFromYToXExclusive(0, 6);
                 for (int i = 0; i < 2; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 2
-                randomNumber=shuffledFromYToXExclusive(6,13);
+                randomNumber = shuffledFromYToXExclusive(6, 13);
                 for (int i = 0; i < 3; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
                 //ERA 3
-                randomNumber=shuffledFromYToXExclusive(13,21);
+                randomNumber = shuffledFromYToXExclusive(13, 21);
                 for (int i = 0; i < 5; i++) {
                     listToReturn.add(tempList.get(randomNumber.get(i)));
                 }
@@ -130,19 +130,20 @@ public class BuildingFactory {
             default:
                 logServerError("Invalid player number: " + playerNumber);
         }
-        for (BuildingCard n:listToReturn){
-            n.setBuildingEffect(returnCorrectBuildingEffect(n,boardView));
+        for (BuildingCard n : listToReturn) {
+            n.setBuildingEffect(returnCorrectBuildingEffect(n, boardView));
         }
         return listToReturn;
     }
 
     /**
      * private method use to get the right effect-ID bind
+     *
      * @param buildingToSetEffect building to bind the effect
      * @return return the Right Building effect for the building
      */
-    private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect,BoardView boardView){
-        BuildingEffect effectToReturn= null;
+    private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect, BoardView boardView) {
+        BuildingEffect effectToReturn = null;
         switch (buildingToSetEffect.getBuildingID()) {
             case 1:
                 effectToReturn = new SixFoodCompletedSet();
@@ -185,22 +186,22 @@ public class BuildingFactory {
                 effectToReturn = new SetSixCard();
                 break;
             case 14:
-                effectToReturn = new PPPerCharType(3,CARD_TYPE.HUNTER);
+                effectToReturn = new PPPerCharType(3, CARD_TYPE.HUNTER);
                 break;
             case 15:
-                effectToReturn = new PPPerCharType(4,CARD_TYPE.GATHERER);
+                effectToReturn = new PPPerCharType(4, CARD_TYPE.GATHERER);
                 break;
             case 16:
-                effectToReturn = new PPPerCharType(4,CARD_TYPE.SHAMAN);
+                effectToReturn = new PPPerCharType(4, CARD_TYPE.SHAMAN);
                 break;
             case 17:
-                effectToReturn = new PPPerCharType(4,CARD_TYPE.BUILDER);
+                effectToReturn = new PPPerCharType(4, CARD_TYPE.BUILDER);
                 break;
             case 18:
-                effectToReturn = new PPPerCharType(4,CARD_TYPE.ARTIST);
+                effectToReturn = new PPPerCharType(4, CARD_TYPE.ARTIST);
                 break;
             case 19:
-                effectToReturn = new PPPerCharType(2,CARD_TYPE.INVENTOR);
+                effectToReturn = new PPPerCharType(2, CARD_TYPE.INVENTOR);
                 break;
             case 20:
                 effectToReturn = new DrawOneMoreCard();
@@ -223,17 +224,18 @@ public class BuildingFactory {
      * @return Return a shuffled list with numbers between the lower and upper bound
      */
     @Deprecated
-    private List<Integer> randomNumerList(int lowerBound, int upperBound){
+    private List<Integer> randomNumerList(int lowerBound, int upperBound) {
         List<Integer> number = new ArrayList<>();
-        for (int i = lowerBound; i <= upperBound ; i++) {
+        for (int i = lowerBound; i <= upperBound; i++) {
             number.add(i);
         }
         Collections.shuffle(number);
-        return  number;
+        return number;
     }
 
     /**
      * Executes log server error.
+     *
      * @param message parameter message.
      */
     private void logServerError(String message) {

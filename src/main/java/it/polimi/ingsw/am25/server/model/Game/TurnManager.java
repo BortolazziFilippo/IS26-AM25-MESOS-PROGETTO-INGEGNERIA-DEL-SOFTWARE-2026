@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.Exception.EndOfPlayingPhaseEx
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Manages the turn order for both the placing and playing phases.
  * The placing order is determined by the positions on the default tiles;
@@ -19,6 +20,7 @@ public class TurnManager {
     private Player currentPlayingPlayer;
     private Player currentPlacingPlayer;
     private final BoardView boardView;
+
     /**
      * Creates a TurnManager backed by the given board view.
      *
@@ -26,7 +28,7 @@ public class TurnManager {
      */
     public TurnManager(BoardView boardView) {
         this.placingOrder = new ArrayList<>();
-        this.playingOrder= new ArrayList<>();
+        this.playingOrder = new ArrayList<>();
         this.boardView = boardView;
 
     }
@@ -72,6 +74,7 @@ public class TurnManager {
     /**
      * Removes a disconnected player from both the placing and playing queues immediately.
      * This prevents the game from waiting for a player who will never act.
+     *
      * @param player the player to remove.
      */
     public void removePlayer(Player player) {
@@ -82,6 +85,7 @@ public class TurnManager {
     /**
      * Re-adds a reconnected player to the end of both turn queues,
      * provided they are not already present.
+     *
      * @param player the reconnected player.
      */
     public void reAddPlayer(Player player) {
@@ -90,7 +94,6 @@ public class TurnManager {
         if (!inPlacing) placingOrder.add(player);
         if (!inPlaying) playingOrder.add(player);
     }
-    
 
 
     /**
@@ -101,6 +104,7 @@ public class TurnManager {
     public List<Player> getPlacingOrder() {
         return placingOrder;
     }
+
     /**
      * Returns the current (unmodified) playing-order queue.
      *
@@ -109,20 +113,22 @@ public class TurnManager {
     public List<Player> getPlayingOrder() {
         return playingOrder;
     }
+
     /**
      * Refreshes the playing order from the board by reading the current offer-tile positions.
      * Must be called at the start of every playing phase.
      */
 
-    public void updatePlayingOrder(){
-        this.playingOrder= boardView.getOrderedPlayerOnOfferTile();
+    public void updatePlayingOrder() {
+        this.playingOrder = boardView.getOrderedPlayerOnOfferTile();
     }
+
     /**
      * Refreshes the placing order from the board by reading the current default-tile positions.
      * Must be called at the start of every placing phase.
      */
 
-    public void updatePlacingOrder(){
+    public void updatePlacingOrder() {
         this.placingOrder = boardView.getOrderedPlayerOnDefaultTile();
     }
 }
