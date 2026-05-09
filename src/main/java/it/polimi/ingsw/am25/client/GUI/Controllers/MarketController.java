@@ -13,8 +13,11 @@ import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -23,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -222,7 +226,22 @@ public class MarketController implements GUIObserver {
 
     @FXML
     private void showPlayerStatus() {
-        //TODO show all players' status (ROBERT)
+        try {
+            PlayerStatusController controller = new PlayerStatusController();
+            controller.init(clientHandler, playerDTO);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/PlayerStatus.fxml"));
+            loader.setController(controller);
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Stato dei giocatori");
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            GUIEffects.showError("Impossibile aprire lo stato giocatori: " + e.getMessage());
+        }
     }
 
     // =========================================================
