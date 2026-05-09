@@ -114,6 +114,9 @@
                                 onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem" />
                         <Button fx:id="skipTurnButton" maxWidth="Infinity" mnemonicParsing="false"
                                 onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno" />
+                        <Button fx:id="testEndGameButton" maxWidth="Infinity" mnemonicParsing="false"
+                                onAction="#handleTestEndGame" prefHeight="80.0" text="[TEST] Fine partita"
+                                style="-fx-background-color: #000000, #ff6b6b;" />
                     </children>
                 </VBox>
             </items>
