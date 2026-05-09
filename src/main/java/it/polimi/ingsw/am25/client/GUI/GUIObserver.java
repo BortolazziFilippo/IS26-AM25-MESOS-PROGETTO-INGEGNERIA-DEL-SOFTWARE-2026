@@ -29,5 +29,6 @@ public interface GUIObserver {
     default void onEventResolved(int eventID, EVENT_TYPE eventType) {}
     default void onWinners(List<PlayerDTO> winners) {}
     default void onAskExtraDraw(List<CardDTO> cards, List<BuildingDTO> buildings) {}
+    default void onPlayerDisconnected(String nickname) {}
 
 }
