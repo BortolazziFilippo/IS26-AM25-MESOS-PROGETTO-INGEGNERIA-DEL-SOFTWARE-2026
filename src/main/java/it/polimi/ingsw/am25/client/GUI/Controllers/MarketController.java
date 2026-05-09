@@ -95,6 +95,7 @@ public class MarketController implements GUIObserver {
     private List<CardDTO> pendingBottomCards = null;
     /** Snapshot of the bottom buildings captured at round-end, applied after extra draw is resolved. */
     private List<BuildingDTO> pendingBottomBuildings = null;
+    private final DisconnectPopup disconnectPopup = new DisconnectPopup();
 
     @FXML private HBox topCardHbox;
     @FXML private HBox tileHbox;
@@ -526,6 +527,11 @@ public class MarketController implements GUIObserver {
     @Override
     public void onError(String message) {
         Platform.runLater(() -> GUIEffects.showError(message));
+    }
+
+    @Override
+    public void onPlayerDisconnected(String nickname) {
+        Platform.runLater(() -> disconnectPopup.addDisconnection(nickname));
     }
 
     @Override

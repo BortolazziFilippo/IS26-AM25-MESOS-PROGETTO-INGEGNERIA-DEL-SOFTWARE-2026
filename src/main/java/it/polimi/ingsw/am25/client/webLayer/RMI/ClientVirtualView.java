@@ -773,6 +773,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onPlayerDisconnected(nickname));
     }
 
     /**
