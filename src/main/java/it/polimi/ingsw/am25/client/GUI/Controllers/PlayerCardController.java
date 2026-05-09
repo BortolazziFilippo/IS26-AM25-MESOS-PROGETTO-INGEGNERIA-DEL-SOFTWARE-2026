@@ -9,10 +9,12 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -164,6 +166,7 @@ public class PlayerCardController {
             ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
             iv.setFitHeight(CARD_THUMB_H);
             iv.setPreserveRatio(true);
+            attachTooltip(iv, tooltipText(card));
             return iv;
         } catch (Exception e) {
             return null;
@@ -178,10 +181,53 @@ public class PlayerCardController {
             ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
             iv.setFitHeight(CARD_THUMB_H);
             iv.setPreserveRatio(true);
+            attachTooltip(iv, bld.toString());
             return iv;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /** Creates and installs a styled tooltip on the given node. */
+    private void attachTooltip(ImageView iv, String text) {
+        Tooltip tt = new Tooltip(text);
+        tt.setShowDelay(Duration.millis(300));
+        tt.setStyle(
+            "-fx-background-color: #2a1c0e;" +
+            "-fx-text-fill: #e8d4a0;" +
+            "-fx-font-size: 12px;" +
+            "-fx-border-color: #d4a017;" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 5;" +
+            "-fx-background-radius: 5;" +
+            "-fx-padding: 6 10 6 10;"
+        );
+        Tooltip.install(iv, tt);
+    }
+
+    /** Returns a human-readable description of a tribe card for its tooltip. */
+    private String tooltipText(CardDTO card) {
+        return switch (card.getCardType()) {
+            case HUNTER   -> card.isHasIcon()
+                    ? "Cacciatore\nHa l'icona — guadagni cibo immediato"
+                    : "Cacciatore\nSenza icona";
+            case GATHERER -> "Raccoglitore";
+            case ARTIST   -> "Artista";
+            case SHAMAN   -> "Sciamano\n" + shamanTooltip(card.getStarNumber());
+            case BUILDER  -> "Costruttore\nSconto edifici: " + card.getFoodDiscount()
+                    + " cibo\nPP a fine partita: " + card.getFinalPrestigePoint();
+            case INVENTOR -> "Inventore\nIcona: " + iconName(card.getInvIcon());
+            default       -> card.getCardType().name();
+        };
+    }
+
+    private String shamanTooltip(SHAMAN_STAR star) {
+        if (star == null) return "stelle: ?";
+        return switch (star) {
+            case ONE   -> "1 stella  — contribuisce 1 al totale sciamano";
+            case TWO   -> "2 stelle — contribuisce 2 al totale sciamano";
+            case THREE -> "3 stelle — contribuisce 3 al totale sciamano";
+        };
     }
 
     /** Returns the resource path for a tribe card image, mirroring CardImageFactory logic. */
