@@ -7,37 +7,31 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="620.0" prefWidth="820.0"
-            stylesheets="@Market.css"
+<AnchorPane prefHeight="680.0" prefWidth="860.0"
+            stylesheets="@PlayerStatus.css"
             xmlns="http://javafx.com/javafx/26"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="it.polimi.ingsw.am25.client.GUI.Controllers.PlayerStatusController">
+            xmlns:fx="http://javafx.com/fxml/1">
     <children>
 
         <!-- ── Title bar ───────────────────────────────────────── -->
-        <HBox fx:id="titleBar" spacing="16"
-              style="-fx-padding: 10 14 10 14; -fx-alignment: CENTER_LEFT;"
+        <HBox fx:id="titleBar" styleClass="status-title-bar"
               AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <Label text="STATO DEI GIOCATORI">
-                    <font><Font name="System Bold" size="18.0" /></font>
-                </Label>
+                <Label styleClass="status-title" text="STATO DEI GIOCATORI" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button mnemonicParsing="false" onAction="#handleClose"
-                        prefHeight="36.0" text="Chiudi" />
+                <Button styleClass="status-close-btn"
+                        mnemonicParsing="false" onAction="#handleClose" text="Chiudi" />
             </children>
         </HBox>
 
         <!-- ── Scrollable player list ──────────────────────────── -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
                     AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="52.0">
             <content>
-                <!-- Player cards are added here dynamically by the controller -->
-                <VBox fx:id="playersVBox" spacing="12"
-                      style="-fx-padding: 12;" />
+                <VBox fx:id="playersVBox" spacing="14"
+                      style="-fx-padding: 16;" />
             </content>
         </ScrollPane>
 

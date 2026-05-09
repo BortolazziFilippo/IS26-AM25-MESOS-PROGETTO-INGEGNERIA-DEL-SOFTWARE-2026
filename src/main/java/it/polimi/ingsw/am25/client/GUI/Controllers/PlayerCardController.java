@@ -4,10 +4,13 @@ import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.INV_ICON;
 import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -17,143 +20,183 @@ import java.util.stream.Collectors;
 /**
  * Controller for PlayerCard.fxml.
  *
- * <p>After FXMLLoader creates this controller, call
- * {@link #populate(PlayerDTO, boolean, boolean)} to inject player data.
- * Totem color is applied by adding a CSS class (e.g. {@code totem-red})
- * to {@code cardRoot}; all other styles come from PlayerCard.css.
+ * <p>Call {@link #populate(PlayerDTO, boolean, boolean)} after loading to inject data.
+ * Styling comes entirely from PlayerCard.css; totem color is applied via a CSS class.
+ * The tribe section shows actual card image thumbnails grouped by type.
  */
 public class PlayerCardController {
 
-    @FXML private VBox  cardRoot;
-    @FXML private Label nameLabel;
-    @FXML private Label colorLabel;
-    @FXML private Label statusLabel;
-    @FXML private Label meLabel;
-    @FXML private Label foodLabel;
-    @FXML private Label ppLabel;
-    @FXML private Label discountLabel;
-    @FXML private Label shamanLabel;
-    @FXML private VBox  tribeSection;
-    @FXML private Label tribeTitleLabel;
+    private static final double CARD_THUMB_H = 62.0;
+    private static final int    MAX_THUMBS   = 8;
+
+    @FXML private VBox      cardRoot;
+    @FXML private ImageView totemImageView;
+    @FXML private Label     nameLabel;
+    @FXML private Label     colorLabel;
+    @FXML private Label     statusLabel;
+    @FXML private Label     meLabel;
+    @FXML private Label     foodLabel;
+    @FXML private Label     ppLabel;
+    @FXML private Label     discountLabel;
+    @FXML private Label     shamanLabel;
+    @FXML private VBox      tribeSection;
+    @FXML private Label     tribeTitleLabel;
 
     // =========================================================
     // Public API
     // =========================================================
 
-    /**
-     * Fills the card with the given player's data.
-     *
-     * @param player       the player to display.
-     * @param isMe         true if this player is the local player.
-     * @param disconnected true if this player is currently disconnected.
-     */
     public void populate(PlayerDTO player, boolean isMe, boolean disconnected) {
         List<CardDTO> tribe = player.getCardDtoList();
 
+        // Totem color: CSS class + image
         cardRoot.getStyleClass().add(totemStyleClass(player.getColorTotem()));
+        loadTotemImage(player.getColorTotem());
 
+        // Header labels
         nameLabel.setText(player.getNickName());
-        colorLabel.setText("[" + colorName(player.getColorTotem()) + "]");
-
+        colorLabel.setText(colorName(player.getColorTotem()));
         if (disconnected) {
-            statusLabel.setText(" [DISCONNESSO]");
+            statusLabel.setText("DISCONNESSO");
             statusLabel.getStyleClass().remove("player-status-online");
             statusLabel.getStyleClass().add("player-status-disconnected");
         } else {
-            statusLabel.setText(" [ONLINE]");
+            statusLabel.setText("ONLINE");
         }
-
         meLabel.setVisible(isMe);
         meLabel.setManaged(isMe);
 
+        // Stats
         foodLabel.setText(String.valueOf(player.getFood()));
         ppLabel.setText(String.valueOf(player.getPrestigePoint()));
         discountLabel.setText(computeBuildingDiscount(tribe) + " cibo");
         shamanLabel.setText(String.valueOf(computeShamanStars(tribe)));
 
+        // Tribe
         int total = tribe == null ? 0 : tribe.size();
-        tribeTitleLabel.setText("TRIBU' (" + total + " carte):");
+        tribeTitleLabel.setText("TRIBU'  ·  " + total + " carte");
 
         if (tribe == null || tribe.isEmpty()) {
-            tribeSection.getChildren().add(styledLabel("  (nessuna carta)", "tribe-empty"));
+            tribeSection.getChildren().add(styledLabel("nessuna carta", "tribe-empty"));
         } else {
-            addHunterRow(tribe);
-            addGathererRow(tribe);
-            addArtistRow(tribe);
-            addShamanRow(tribe);
-            addBuilderRow(tribe);
-            addInventorRow(tribe);
-            addBuildingRows(tribe);
+            addTribeTypeRow("Cacciatori",   byType(tribe, CARD_TYPE.HUNTER));
+            addTribeTypeRow("Raccoglitori", byType(tribe, CARD_TYPE.GATHERER));
+            addTribeTypeRow("Artisti",      byType(tribe, CARD_TYPE.ARTIST));
+            addTribeTypeRow("Sciamani",     byType(tribe, CARD_TYPE.SHAMAN));
+            addTribeTypeRow("Costruttori",  byType(tribe, CARD_TYPE.BUILDER));
+            addTribeTypeRow("Inventori",    byType(tribe, CARD_TYPE.INVENTOR));
+            addBuildingRows(byType(tribe, CARD_TYPE.BUILDING));
         }
     }
 
     // =========================================================
-    // Tribe rows
+    // Tribe rows with card thumbnails
     // =========================================================
 
-    private void addHunterRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.HUNTER);
-        if (list.isEmpty()) return;
-        long withIcon    = list.stream().filter(CardDTO::isHasIcon).count();
-        long withoutIcon = list.size() - withIcon;
-        tribeSection.getChildren().add(tribeRow(
-            "Cacciatori: " + list.size(),
-            "(con icona: " + withIcon + " | senza icona: " + withoutIcon + ")"
-        ));
+    private void addTribeTypeRow(String typeName, List<CardDTO> cards) {
+        if (cards.isEmpty()) return;
+
+        HBox row = new HBox(10);
+        row.getStyleClass().add("tribe-type-row");
+
+        Label typeLabel = styledLabel(typeName + "  (" + cards.size() + ")", "tribe-type-label");
+        row.getChildren().add(typeLabel);
+
+        HBox strip = new HBox(4);
+        strip.getStyleClass().add("tribe-image-strip");
+
+        int shown = Math.min(cards.size(), MAX_THUMBS);
+        for (int i = 0; i < shown; i++) {
+            ImageView iv = cardThumb(cards.get(i));
+            if (iv != null) strip.getChildren().add(iv);
+        }
+        if (cards.size() > MAX_THUMBS) {
+            strip.getChildren().add(styledLabel("+" + (cards.size() - MAX_THUMBS), "tribe-more-label"));
+        }
+
+        row.getChildren().add(strip);
+        tribeSection.getChildren().add(row);
     }
 
-    private void addGathererRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.GATHERER);
-        if (!list.isEmpty())
-            tribeSection.getChildren().add(tribeRow("Raccoglitori: " + list.size(), ""));
+    private void addBuildingRows(List<CardDTO> buildings) {
+        if (buildings.isEmpty()) return;
+
+        HBox row = new HBox(10);
+        row.getStyleClass().add("tribe-type-row");
+        row.getChildren().add(styledLabel("Edifici  (" + buildings.size() + ")", "tribe-type-label"));
+
+        HBox strip = new HBox(4);
+        strip.getStyleClass().add("tribe-image-strip");
+
+        int shown = Math.min(buildings.size(), MAX_THUMBS);
+        for (int i = 0; i < shown; i++) {
+            ImageView iv = buildingThumb((BuildingDTO) buildings.get(i));
+            if (iv != null) strip.getChildren().add(iv);
+        }
+        if (buildings.size() > MAX_THUMBS)
+            strip.getChildren().add(styledLabel("+" + (buildings.size() - MAX_THUMBS), "tribe-more-label"));
+
+        row.getChildren().add(strip);
+        tribeSection.getChildren().add(row);
+
+        // Tooltip-style text list under the images
+        for (CardDTO c : buildings) {
+            tribeSection.getChildren().add(
+                styledLabel("  › " + c, "tribe-building-text"));
+        }
     }
 
-    private void addArtistRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.ARTIST);
-        if (!list.isEmpty())
-            tribeSection.getChildren().add(tribeRow("Artisti: " + list.size(), ""));
+    // =========================================================
+    // Image helpers
+    // =========================================================
+
+    private void loadTotemImage(COLOR color) {
+        try {
+            Image img = new Image(getClass().getResourceAsStream(CardImageFactory.totemPath(color)));
+            totemImageView.setImage(img);
+        } catch (Exception ignored) {}
     }
 
-    private void addShamanRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.SHAMAN);
-        if (list.isEmpty()) return;
-        String detail = list.stream()
-                .map(c -> shamanStarLabel(c.getStarNumber()))
-                .collect(Collectors.joining("  "));
-        tribeSection.getChildren().add(tribeRow("Sciamani: " + list.size(), "[" + detail + "]"));
+    private ImageView cardThumb(CardDTO card) {
+        String path = cardImagePath(card);
+        if (path == null) return null;
+        try {
+            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
+            iv.setFitHeight(CARD_THUMB_H);
+            iv.setPreserveRatio(true);
+            return iv;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    private void addBuilderRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.BUILDER);
-        if (list.isEmpty()) return;
-        String detail = list.stream()
-                .map(c -> "sc." + c.getFoodDiscount() + " PP" + c.getFinalPrestigePoint())
-                .collect(Collectors.joining(" | "));
-        tribeSection.getChildren().add(tribeRow("Costruttori: " + list.size(), "[" + detail + "]"));
+    private ImageView buildingThumb(BuildingDTO bld) {
+        try {
+            int id = bld.getBuildingID();
+            String era = id <= 6 ? "eraOne" : id <= 13 ? "eraTwo" : "eraThree";
+            String path = "/images/Card/Buildings/" + era + "/" + id + "IDbuilding.png";
+            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
+            iv.setFitHeight(CARD_THUMB_H);
+            iv.setPreserveRatio(true);
+            return iv;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    private void addInventorRow(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.INVENTOR);
-        if (list.isEmpty()) return;
-        String icons = list.stream()
-                .map(c -> c.getInvIcon() == null ? "?" : iconName(c.getInvIcon()))
-                .collect(Collectors.joining("  "));
-        tribeSection.getChildren().add(tribeRow("Inventori: " + list.size(), icons));
-    }
-
-    private void addBuildingRows(List<CardDTO> tribe) {
-        List<CardDTO> list = byType(tribe, CARD_TYPE.BUILDING);
-        if (list.isEmpty()) return;
-        tribeSection.getChildren().add(tribeRow("Edifici: " + list.size(), ""));
-        for (CardDTO card : list)
-            tribeSection.getChildren().add(styledLabel("     > " + card, "tribe-building-entry"));
-    }
-
-    private HBox tribeRow(String left, String right) {
-        HBox row = new HBox(8);
-        row.getChildren().add(styledLabel(left, "tribe-row-main"));
-        if (!right.isEmpty()) row.getChildren().add(styledLabel(right, "tribe-row-detail"));
-        return row;
+    /** Returns the resource path for a tribe card image, mirroring CardImageFactory logic. */
+    private String cardImagePath(CardDTO card) {
+        return switch (card.getCardType()) {
+            case GATHERER -> "/images/Card/gatherer/Gatherer.png";
+            case HUNTER   -> card.isHasIcon()
+                    ? "/images/Card/hunters/hunterWIcon.png"
+                    : "/images/Card/hunters/hunterNormal.png";
+            case SHAMAN   -> "/images/Card/shaman/" + shamanImageName(card.getStarNumber()) + "Shaman.png";
+            case INVENTOR -> card.getInvIcon() == null ? null
+                    : "/images/Card/inventors/" + invImageName(card.getInvIcon()) + "Inventor.png";
+            case BUILDER  -> "/images/Card/builders/" + card.getBuilderID() + "IDBuilder.png";
+            default       -> "/images/Card/artist/Artist.png";
+        };
     }
 
     // =========================================================
@@ -164,20 +207,18 @@ public class PlayerCardController {
         if (tribe == null) return 0;
         return tribe.stream()
                 .filter(c -> c.getCardType() == CARD_TYPE.BUILDER)
-                .mapToInt(CardDTO::getFoodDiscount)
-                .sum();
+                .mapToInt(CardDTO::getFoodDiscount).sum();
     }
 
     private int computeShamanStars(List<CardDTO> tribe) {
         if (tribe == null) return 0;
         return tribe.stream()
                 .filter(c -> c.getCardType() == CARD_TYPE.SHAMAN && c.getStarNumber() != null)
-                .mapToInt(c -> shamanStarValue(c.getStarNumber()))
-                .sum();
+                .mapToInt(c -> shamanStarValue(c.getStarNumber())).sum();
     }
 
     // =========================================================
-    // Helpers
+    // Small helpers
     // =========================================================
 
     private List<CardDTO> byType(List<CardDTO> tribe, CARD_TYPE type) {
@@ -188,24 +229,24 @@ public class PlayerCardController {
         return switch (star) { case ONE -> 1; case TWO -> 2; case THREE -> 3; };
     }
 
-    private String shamanStarLabel(SHAMAN_STAR star) {
-        if (star == null) return "?";
-        return switch (star) { case ONE -> "1*"; case TWO -> "2**"; case THREE -> "3***"; };
+    private String shamanImageName(SHAMAN_STAR star) {
+        if (star == null) return "oneStar";
+        return switch (star) { case ONE -> "oneStar"; case TWO -> "twoStar"; case THREE -> "threeStar"; };
     }
 
-    private String iconName(INV_ICON icon) {
+    private String invImageName(INV_ICON icon) {
         return switch (icon) {
-            case BREAD    -> "PANE";
-            case STONE    -> "PIETRA";
-            case NECKLACE -> "COLLANA";
-            case BAIT     -> "ESCA";
-            case GHOST    -> "SPIRITO";
-            case ARROW    -> "FRECCIA";
-            case LEATHER  -> "CUOIO";
-            case ROPE     -> "CORDA";
-            case FLUTE    -> "FLAUTO";
-            case BOWL     -> "CIOTOLA";
-            default       -> icon.name();
+            case BREAD    -> "bread";
+            case STONE    -> "stone";
+            case NECKLACE -> "necklace";
+            case BAIT     -> "bait";
+            case GHOST    -> "ghost";
+            case ARROW    -> "arrow";
+            case LEATHER  -> "leather";
+            case ROPE     -> "rope";
+            case FLUTE    -> "flute";
+            case BOWL     -> "bowl";
+            default       -> "bread";
         };
     }
 
@@ -220,7 +261,6 @@ public class PlayerCardController {
         };
     }
 
-    /** Returns the CSS style class name corresponding to the given totem color. */
     private String totemStyleClass(COLOR color) {
         if (color == null) return "totem-white";
         return switch (color) {
@@ -232,7 +272,6 @@ public class PlayerCardController {
         };
     }
 
-    /** Creates a Label with the given CSS style class applied. */
     private Label styledLabel(String text, String styleClass) {
         Label lbl = new Label(text);
         lbl.getStyleClass().add(styleClass);

@@ -1,0 +1,52 @@
+/* ── PlayerStatus window ──────────────────────────────────── */
+
+.root {
+    -fx-background-color: #1a0f05;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Title bar */
+.status-title-bar {
+    -fx-padding: 14 18 14 18;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2d1e0a, #1a0f05);
+    -fx-border-color: transparent transparent #3d2b10 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.status-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d4a017;
+}
+
+/* Close button */
+.status-close-btn {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d4a017;
+    -fx-background-color: #000000, #2a1e0a;
+    -fx-background-insets: 3 0 0 0, 0 0 3 0;
+    -fx-background-radius: 8;
+    -fx-border-color: #3d2b10;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 7 18 7 18;
+    -fx-cursor: hand;
+}
+.status-close-btn:hover {
+    -fx-background-color: #000000, #3d2e14;
+    -fx-background-insets: 4 0 0 0, 0 0 4 0;
+    -fx-translate-y: -1;
+}
+.status-close-btn:pressed {
+    -fx-background-insets: 0, 0;
+    -fx-translate-y: 3;
+}

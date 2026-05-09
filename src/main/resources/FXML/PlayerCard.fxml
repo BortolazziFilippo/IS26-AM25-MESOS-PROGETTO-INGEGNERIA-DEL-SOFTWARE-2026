@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -13,45 +14,64 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.polimi.ingsw.am25.client.GUI.Controllers.PlayerCardController">
 
-    <!-- ── Header ─────────────────────────────────────────────── -->
-    <HBox fx:id="headerBox" spacing="10" styleClass="player-header">
+    <!-- ── Header: totem image + name + status ────────────────── -->
+    <HBox fx:id="headerBox" spacing="12" styleClass="player-header">
         <children>
-            <Label fx:id="nameLabel" text="NickName" styleClass="player-name" />
-            <Label fx:id="colorLabel" text="[COLORE]" styleClass="player-color-tag" />
-            <Label fx:id="statusLabel" text="[ONLINE]" styleClass="player-status-online" />
-            <Label fx:id="meLabel" text="  &lt;&lt; TU &gt;&gt;"
-                   styleClass="player-me-tag"
-                   visible="false" managed="false" />
+            <ImageView fx:id="totemImageView" fitHeight="60.0"
+                       preserveRatio="true" rotate="90.0" />
+            <VBox spacing="5">
+                <children>
+                    <Label fx:id="nameLabel" text="NickName" styleClass="player-name" />
+                    <HBox spacing="6">
+                        <children>
+                            <Label fx:id="colorLabel" text="[COLORE]" styleClass="player-color-tag" />
+                            <Label fx:id="statusLabel" text="[ONLINE]" styleClass="player-status-online" />
+                        </children>
+                    </HBox>
+                </children>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="meLabel" text="&lt;&lt; TU &gt;&gt;"
+                   styleClass="player-me-tag" visible="false" managed="false" />
         </children>
     </HBox>
 
-    <!-- ── Stats row ──────────────────────────────────────────── -->
-    <HBox styleClass="stats-row">
+    <!-- ── Stats: 4 boxes in a row ────────────────────────────── -->
+    <HBox spacing="8" styleClass="stats-row">
         <children>
-            <VBox spacing="2">
-                <Label text="Cibo" styleClass="stat-key" />
-                <Label fx:id="foodLabel" text="0" styleClass="stat-value" />
+            <VBox styleClass="stat-box">
+                <children>
+                    <Label text="CIBO" styleClass="stat-key" />
+                    <Label fx:id="foodLabel" text="0" styleClass="stat-value" />
+                </children>
             </VBox>
-            <VBox spacing="2">
-                <Label text="Punti Prestigio" styleClass="stat-key" />
-                <Label fx:id="ppLabel" text="0" styleClass="stat-value" />
+            <VBox styleClass="stat-box">
+                <children>
+                    <Label text="PUNTI PRESTIGIO" styleClass="stat-key" />
+                    <Label fx:id="ppLabel" text="0" styleClass="stat-value" />
+                </children>
             </VBox>
-            <VBox spacing="2">
-                <Label text="Sconto Edifici" styleClass="stat-key" />
-                <Label fx:id="discountLabel" text="0 cibo" styleClass="stat-value" />
+            <VBox styleClass="stat-box">
+                <children>
+                    <Label text="SCONTO EDIFICI" styleClass="stat-key" />
+                    <Label fx:id="discountLabel" text="0 cibo" styleClass="stat-value" />
+                </children>
             </VBox>
-            <VBox spacing="2">
-                <Label text="Stelle Sciamano" styleClass="stat-key" />
-                <Label fx:id="shamanLabel" text="0" styleClass="stat-value" />
+            <VBox styleClass="stat-box">
+                <children>
+                    <Label text="STELLE SCIAMANO" styleClass="stat-key" />
+                    <Label fx:id="shamanLabel" text="0" styleClass="stat-value" />
+                </children>
             </VBox>
         </children>
     </HBox>
 
-    <!-- ── Tribe section ──────────────────────────────────────── -->
-    <VBox fx:id="tribeSection" styleClass="tribe-section">
+    <!-- ── Tribe section: title + dynamic image rows ──────────── -->
+    <VBox fx:id="tribeSection" spacing="2" styleClass="tribe-section">
         <children>
-            <Label fx:id="tribeTitleLabel" text="TRIBU' (0 carte):" styleClass="tribe-title" />
-            <!-- Tribe rows are added here dynamically by PlayerCardController -->
+            <Label fx:id="tribeTitleLabel" text="TRIBU' (0 carte):"
+                   styleClass="tribe-title" />
+            <!-- Tribe rows (with card images) are added here dynamically -->
         </children>
     </VBox>
 
