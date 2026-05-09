@@ -12,12 +12,20 @@ public class DisconnectPopup {
     private VBox box = null;
 
     public void addDisconnection(String nickname) {
+        addEntry("Il giocatore " + nickname + " si è disconnesso", "#c0392b");
+    }
+
+    public void addReconnection(String nickname) {
+        addEntry("Il giocatore " + nickname + " si è riconnesso", "#27ae60");
+    }
+
+    private void addEntry(String text, String color) {
         if (stage == null || !stage.isShowing()) {
             box = new VBox(10);
             box.setPadding(new Insets(20));
 
             stage = new Stage();
-            stage.setTitle("Disconnessione");
+            stage.setTitle("Stato giocatori");
             Scene scene = new Scene(box);
             scene.getStylesheets().add(getClass().getResource("/FXML/Market.css").toExternalForm());
             stage.setScene(scene);
@@ -25,8 +33,8 @@ public class DisconnectPopup {
             stage.show();
         }
 
-        Label lbl = new Label("Il giocatore " + nickname + " si è disconnesso");
-        lbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
         box.getChildren().add(lbl);
         stage.sizeToScene();
     }

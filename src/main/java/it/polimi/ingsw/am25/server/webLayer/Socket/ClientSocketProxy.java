@@ -16,6 +16,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages.*;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.marketMessages.*;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.AddedCardToTribeMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.PlayerDisconnectedMessage;
+import it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages.PlayerReconnectedMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.PlayerUpdateFoodMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.PlayerUpdatePPMessage;
 
@@ -488,6 +489,23 @@ public class ClientSocketProxy implements ClientRemoteInterface {
         } catch (java.io.IOException e) {
             UtilitiesFunction.logError(LOG_PREFIX, "Error sending rank to client");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Notifies the client that a previously-disconnected player has reconnected.
+     * @param nickname the nickname of the reconnected player.
+     */
+    @Override
+    public void playerReconnected(String nickname) throws RemoteException {
+        try {
+            synchronized (out) {
+                out.writeObject(new PlayerReconnectedMessage(nickname));
+                out.flush();
+                out.reset();
+            }
+        } catch (java.io.IOException e) {
+            UtilitiesFunction.logError(LOG_PREFIX, "Error sending playerReconnected for '" + nickname + "'");
         }
     }
 

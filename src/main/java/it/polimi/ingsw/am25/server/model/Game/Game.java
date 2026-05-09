@@ -436,11 +436,21 @@ public class Game implements GameView {
      * @throws EndOfPlayingPhaseException if there are no more players left to play this round
      */
     public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
-        this.playerToPlay = turnManager.getNextPlayingPlayer();
-        this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
-        notifyActionChanged();
-        logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
-        notifyPlayerToPlayChanged();
+        // Loop so we can skip players who reconnected mid-round without having placed
+        // their totem (they are not on any offer tile and cannot act this round).
+        while (true) {
+            Player next = turnManager.getNextPlayingPlayer(); // throws EndOfPlayingPhaseException when queue empty
+            try {
+                this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(next);
+                this.playerToPlay = next;
+                notifyActionChanged();
+                logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
+                notifyPlayerToPlayChanged();
+                return;
+            } catch (IllegalStateException e) {
+                logServerEvent("Skipping player '" + next.getNickname() + "' (not on any offer tile this round).");
+            }
+        }
     }
 
     /**
@@ -677,6 +687,14 @@ public class Game implements GameView {
      */
     public void removeFromTurnQueues(Player player) {
         turnManager.removePlayer(player);
+    }
+
+    /**
+     * Re-adds a reconnected player to the end of both turn queues.
+     * @param player the reconnected player.
+     */
+    public void reAddToTurnQueues(Player player) {
+        turnManager.reAddPlayer(player);
     }
 
     /**
