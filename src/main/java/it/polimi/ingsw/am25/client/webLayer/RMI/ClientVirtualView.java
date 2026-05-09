@@ -232,11 +232,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         if (gamePhase == GAME_PHASE.PLACING_PHASE || gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             offerTileOccupants.clear();
         }
-        if (gamePhase == GAME_PHASE.PLACING_PHASE) {
-            this.isGameStarted = true;
-            synchronized (gameStartLock) {
-                gameStartLock.notifyAll();
-            }
+        // Always unblock the lobby-wait: in normal flow PLACING_PHASE arrives first;
+        // for a reconnecting client any phase means the game is already running.
+        this.isGameStarted = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
         }
 
         // Phase changes often mean a new turn mechanic is starting, wake up the UI to check
