@@ -618,7 +618,22 @@ public class MarketController implements GUIObserver {
                 playerDTO
         );
         List<PlayerDTO> fakeWinners = List.of(fakeAll.get(2));
-        onWinners(fakeWinners);
+        Platform.runLater(() -> {
+            try {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                        getClass().getResource("/FXML/EndGame.fxml"));
+                it.polimi.ingsw.am25.client.GUI.EndGameController ctrl =
+                        new it.polimi.ingsw.am25.client.GUI.EndGameController();
+                loader.setController(ctrl);
+                javafx.scene.Parent root = loader.load();
+                ctrl.setData(fakeWinners, fakeAll);
+                javafx.stage.Stage stage = (javafx.stage.Stage) tileHbox.getScene().getWindow();
+                stage.setScene(new javafx.scene.Scene(root));
+                stage.setTitle("IS26-AM25 — Fine Partita");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     // =========================================================
