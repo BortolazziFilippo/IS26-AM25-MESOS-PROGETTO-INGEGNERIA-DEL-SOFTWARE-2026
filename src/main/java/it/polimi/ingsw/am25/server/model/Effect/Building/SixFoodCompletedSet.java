@@ -20,9 +20,6 @@ public class SixFoodCompletedSet extends BuildingEffect {
     private  List<Integer> setCard;
     private List<Card> listOldCard;
 
-    /**
-     * Default constructor for SixFoodCompletedSet.
-     */
     public SixFoodCompletedSet() {
     }
 

@@ -11,9 +11,6 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class OnEventHuntOneFoodAndOnePPPerHunter extends BuildingEffect{
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
-    /**
-     * Default constructor for OnEventHuntOneFoodAndOnePPPerHunter.
-     */
     public OnEventHuntOneFoodAndOnePPPerHunter() {
     }
     /**

@@ -21,7 +21,7 @@ class BuilderCardTest {
     @BeforeEach
     void setup(){
         player = new Player("Luigi", COLOR.RED);
-        builderCard = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
+        builderCard = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5, 0);
     }
 
     @Test
@@ -54,7 +54,7 @@ class BuilderCardTest {
 
     @Test void testMultipleBuildersDisc(){
         builderCard.addCardToPlayer(player);
-        new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 1, 3)
+        new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 1, 3, 0)
                 .addCardToPlayer(player);
 
         assertEquals(3, player.getBuilderDiscount());
@@ -62,22 +62,22 @@ class BuilderCardTest {
 
     @Test
     void testEquals() {
-        BuilderCard card1 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
+        BuilderCard card1 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5, 0);
 
         // same fields → equal
-        BuilderCard card2 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5);
+        BuilderCard card2 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5, 0);
         assertEquals(card1, card2);
 
         // different era → not equal
-        BuilderCard card3 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 5);
+        BuilderCard card3 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 5, 0);
         assertNotEquals(card1, card3);
 
         // different foodDiscount → not equal
-        BuilderCard card4 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 1, 5);
+        BuilderCard card4 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 1, 5, 0);
         assertNotEquals(card1, card4);
 
         // different finalPrestigePoint → not equal
-        BuilderCard card5 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 10);
+        BuilderCard card5 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 10, 0);
         assertNotEquals(card1, card5);
 
         // different type → not equal

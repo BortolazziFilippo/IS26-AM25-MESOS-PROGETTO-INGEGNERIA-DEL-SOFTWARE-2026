@@ -14,10 +14,9 @@ public class InventorCard extends Card{
     private final INV_ICON invIcon;
 
     /**
-     * Default constructor of inventorCard
-     * @param invIcon Type of icon the inventorCard has
-     * @param era Card ERA
-     * @param cardType Card type
+     * @param era      the era this card belongs to.
+     * @param cardType the card type (should be {@code CARD_TYPE.INVENTOR}).
+     * @param invIcon  the invention icon carried by this card.
      */
     public InventorCard( ERA era, CARD_TYPE cardType,INV_ICON invIcon){
         this.invIcon=invIcon;
@@ -25,39 +24,30 @@ public class InventorCard extends Card{
         this.era=era;
     }
 
-    /**
-     * Returns inv icon.
-     * @return the result of the operation.
-     */
+    /** @return the invention icon carried by this card. */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
-    /**
-     * Executes add card to player.
-     * @param player parameter player.
-     */
+
+    /** Adds this card to the player's tribe. */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
 
     /**
-     * Executes equals.
-     * @param o parameter o.
-     * @return the result of the operation.
+     * @param o the object to compare against.
+     * @return true if {@code o} is an InventorCard with the same era, card type, and icon.
      */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof InventorCard that)) return false;
         return invIcon == that.invIcon && this.cardType == that.cardType && this.era == that.era;
     }
-    /**
-     * Executes to dto.
-     * @return the result of the operation.
-     */
+
+    /** @return a CardDTO snapshot of this card for network transfer. */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
-
 }

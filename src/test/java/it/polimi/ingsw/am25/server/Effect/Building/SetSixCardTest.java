@@ -23,7 +23,7 @@ class SetSixCardTest {
     void Set1() {
             ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
             playerP1.addCardToTribe(card1);
-            BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12);
+            BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
             playerP1.addCardToTribe(card2);
             GathererCard card3= new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
             playerP1.addCardToTribe(card3);
@@ -46,7 +46,7 @@ class SetSixCardTest {
     void Set2() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
-        BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12);
+        BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
         playerP1.addCardToTribe(card2);
         GathererCard card3= new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
         playerP1.addCardToTribe(card3);
@@ -59,7 +59,7 @@ class SetSixCardTest {
 
         ArtistCard card7 = new ArtistCard(ERA.ERA_III, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card7);
-        BuilderCard card8 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 3, 14);
+        BuilderCard card8 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 3, 14, 0);
         playerP1.addCardToTribe(card8);
         GathererCard card9= new GathererCard(ERA.ERA_III, CARD_TYPE.GATHERER);
         playerP1.addCardToTribe(card9);
@@ -95,7 +95,7 @@ class SetSixCardTest {
     void SetIncompleted() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
-        BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12);
+        BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
         playerP1.addCardToTribe(card2);
         GathererCard card3= new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
         playerP1.addCardToTribe(card3);

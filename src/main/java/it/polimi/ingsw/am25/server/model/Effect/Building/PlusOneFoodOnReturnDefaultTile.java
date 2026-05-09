@@ -12,10 +12,6 @@ public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect{
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private BoardView boardView;
 
-    /**
-     * Default constructor for PlusOneFoodOnReturnDefaultTile.
-     * {@link #setBoardView(BoardView)} must be called before the effect can be applied.
-     */
     public PlusOneFoodOnReturnDefaultTile() {
     }
     /**

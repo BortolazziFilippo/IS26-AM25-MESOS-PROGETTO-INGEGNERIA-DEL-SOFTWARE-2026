@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
 import it.polimi.ingsw.am25.server.model.Player.Player;
+import it.polimi.ingsw.am25.server.model.Utilities.Exception.ActionNotAvailable;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.TileOccupiedException;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +29,9 @@ class ControllerTest {
     void setUp() {
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
-        player3 = new Player("Terzo", COLOR.GREEN);
+        player3 = new Player("Terzo", COLOR.YELLOW);
         controller = new Controller();
-        controller.createGame(host,3);
+        controller.createGame(host, 3);
     }
 
     /** Reflectively extracts the private {@code game} field from the controller. */
@@ -41,12 +42,14 @@ class ControllerTest {
     }
 
     /**
-     * Places all three players on offer tiles (indices 1, 2, 3) so the game advances
-     * to RESOLVE_ACTION and returns the resulting Game instance.
+     * Adds the remaining players, starts the game, places all three players on offer
+     * tiles (indices 1, 2, 3) so the game advances to RESOLVE_ACTION and returns the
+     * resulting Game instance.
      */
     private Game advanceToResolveAction() throws Exception {
         controller.addPlayer(player2);
-        controller.addPlayer(player3); // triggers gameStart → PLACING_PHASE
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
         controller.placingPlayer(game.getPlayerToPlace(), 1);
@@ -63,15 +66,15 @@ class ControllerTest {
         Game game = getGame(controller);
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
 
-        // adding the last player triggers gameStart → PLACING_PHASE
         controller.addPlayer(player3);
+        controller.controllerGameStar();
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
     @Test
     void addingPlayerAfterGameStartedShouldBeIgnored() throws Exception {
         controller.addPlayer(player2);
-        controller.addPlayer(player3); // triggers gameStart
+        controller.addPlayer(player3);
 
         Game game = getGame(controller);
         Player extraPlayer = new Player("Extra", COLOR.YELLOW);
@@ -85,7 +88,8 @@ class ControllerTest {
     @Test
     void placingPlayerInPlacingPhase() throws Exception {
         controller.addPlayer(player2);
-        controller.addPlayer(player3); // game started, now PLACING_PHASE
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -97,6 +101,7 @@ class ControllerTest {
     void placingWrongPlayerInPlacingPhaseShouldBeIgnored() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -106,7 +111,7 @@ class ControllerTest {
                 .orElseThrow();
 
         GAME_PHASE phaseBefore = game.getGamePhase();
-        assertDoesNotThrow(() -> controller.placingPlayer(wrongPlayer, 0));
+        assertThrows(ActionNotAvailable.class, () -> controller.placingPlayer(wrongPlayer, 0));
         assertEquals(phaseBefore, game.getGamePhase());
     }
 
@@ -114,6 +119,7 @@ class ControllerTest {
     void placingPlayerOutOfBoundsThrowsIndexOutOfBoundsException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -125,6 +131,7 @@ class ControllerTest {
     void placingPlayerOnOccupiedTileThrowsTileOccupiedException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
         Player first = game.getPlayerToPlace();
@@ -136,11 +143,10 @@ class ControllerTest {
     }
 
     @Test
-    void placingPlayerInWrongPhaseIsIgnored() throws Exception {
-        // still in SETUP, no placing should happen
+    void placingPlayerInWrongPhaseThrowsActionNotAvailable() throws Exception {
         Game game = getGame(controller);
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
-        assertDoesNotThrow(() -> controller.placingPlayer(host, 0));
+        assertThrows(ActionNotAvailable.class, () -> controller.placingPlayer(host, 0));
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
     }
 
@@ -148,6 +154,7 @@ class ControllerTest {
     void fullPlacingPhaseTransitionsToResolveAction() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
 
@@ -161,15 +168,15 @@ class ControllerTest {
     // ─────────────────────────── selectCardFromTopList ───────────────────────────
 
     @Test
-    void selectCardFromTopListInWrongPhaseIsIgnored() throws Exception {
+    void selectCardFromTopListInWrongPhaseThrowsActionNotAvailable() throws Exception {
         Game game = getGame(controller);
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromTopList(host, CARD_TYPE.ARTIST, 0));
     }
 
     @Test
-    void selectCardFromTopListWrongPlayerIsIgnored() throws Exception {
+    void selectCardFromTopListWrongPlayerThrowsActionNotAvailable() throws Exception {
         Game game = advanceToResolveAction();
 
         Player wrongPlayer = game.getPlayerList().stream()
@@ -178,18 +185,18 @@ class ControllerTest {
                 .orElseThrow();
 
         int tribeBefore = wrongPlayer.getTribe().size();
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromTopList(wrongPlayer, CARD_TYPE.ARTIST, 0));
         assertEquals(tribeBefore, wrongPlayer.getTribe().size());
     }
 
     @Test
-    void selectCardFromTopListWhenTileHasNoTopActionIsIgnored() throws Exception {
+    void selectCardFromTopListWhenTileHasNoTopActionThrowsActionNotAvailable() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Place players so that the first to play sits on tile index 0 (tile 'B': drawTop=0, drawBot=1).
         Player p1 = game.getPlayerToPlace();
         controller.placingPlayer(p1, 0); // tile B: drawTop=0
         controller.placingPlayer(game.getPlayerToPlace(), 1);
@@ -197,11 +204,10 @@ class ControllerTest {
 
         assertEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
         Player playerToPlay = game.getPlayerToPlay();
-        // tile B has drawTop=0, so top-list selection must be silently ignored
         assertEquals(0, game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop());
 
         int tribeBefore = playerToPlay.getTribe().size();
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromTopList(playerToPlay, CARD_TYPE.ARTIST, 0));
         assertEquals(tribeBefore, playerToPlay.getTribe().size());
     }
@@ -211,7 +217,6 @@ class ControllerTest {
         Game game = advanceToResolveAction();
         Player playerToPlay = game.getPlayerToPlay();
 
-        // Only attempt the assertion when the current tile actually allows top draws
         if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() > 0) {
             assertThrows(IndexOutOfBoundsException.class,
                     () -> controller.selectCardFromTopList(playerToPlay, CARD_TYPE.ARTIST, 9999));
@@ -224,8 +229,6 @@ class ControllerTest {
         Player playerToPlay = game.getPlayerToPlay();
 
         if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() > 0) {
-            // Find the index of a non-event card to use — we pass CARD_TYPE.EVENT as the
-            // requested type so Game throws NotSelectableCardException regardless of position.
             assertThrows(NotSelectableCardException.class,
                     () -> controller.selectCardFromTopList(playerToPlay, CARD_TYPE.EVENT, 0));
         }
@@ -235,15 +238,13 @@ class ControllerTest {
     void selectCardFromTopListWithRightPlayerAddsCardToTribe() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
 
-        // Place so the first player ends up on a tile with at least one top-draw action.
-        // Tile index 2 = 'D' (drawTop=0, drawBot=2) in 3-player config
-        // Tile index 3 = 'E' (drawTop=1, drawBot=1) — first placed → plays first
-        controller.placingPlayer(game.getPlayerToPlace(), 3); // tile E
-        controller.placingPlayer(game.getPlayerToPlace(), 4); // tile F
-        controller.placingPlayer(game.getPlayerToPlace(), 1); // tile C
+        controller.placingPlayer(game.getPlayerToPlace(), 3); // tile E: drawTop=1
+        controller.placingPlayer(game.getPlayerToPlace(), 4);
+        controller.placingPlayer(game.getPlayerToPlace(), 1);
 
         assertEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
         Player playerToPlay = game.getPlayerToPlay();
@@ -254,7 +255,6 @@ class ControllerTest {
 
         if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() > 0
                 && topListSizeBefore > 0) {
-            // Find a non-event card index to pick
             int idx = 0;
             List<Card> topList = game.getMarket().getTopCardList();
             for (int i = 0; i < topList.size(); i++) {
@@ -273,15 +273,15 @@ class ControllerTest {
     // ─────────────────────────── selectCardFromBottomList ───────────────────────────
 
     @Test
-    void selectCardFromBottomListInWrongPhaseIsIgnored() throws Exception {
+    void selectCardFromBottomListInWrongPhaseThrowsActionNotAvailable() throws Exception {
         Game game = getGame(controller);
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromBottomList(host, CARD_TYPE.ARTIST, 0));
     }
 
     @Test
-    void selectCardFromBottomListWrongPlayerIsIgnored() throws Exception {
+    void selectCardFromBottomListWrongPlayerThrowsActionNotAvailable() throws Exception {
         Game game = advanceToResolveAction();
 
         Player wrongPlayer = game.getPlayerList().stream()
@@ -290,20 +290,18 @@ class ControllerTest {
                 .orElseThrow();
 
         int tribeBefore = wrongPlayer.getTribe().size();
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromBottomList(wrongPlayer, CARD_TYPE.ARTIST, 0));
         assertEquals(tribeBefore, wrongPlayer.getTribe().size());
     }
 
     @Test
-    void selectCardFromBottomListWhenTileHasNoBottomActionIsIgnored() throws Exception {
+    void selectCardFromBottomListWhenTileHasNoBottomActionThrowsActionNotAvailable() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Tile index 1 = 'C': drawTop=1, drawBot=0.
-        // Place p1 on tile 1 and the others on higher indices (2, 3) so that tile 1
-        // is the lowest occupied index and p1 is therefore first to play.
         Player p1 = game.getPlayerToPlace();
         controller.placingPlayer(p1, 1); // tile C: drawBot=0
         controller.placingPlayer(game.getPlayerToPlace(), 2);
@@ -314,7 +312,7 @@ class ControllerTest {
         assertEquals(0, game.getOffertilePlayerIsOn().getActionAvailable().getDrawFromBottom());
 
         int tribeBefore = playerToPlay.getTribe().size();
-        assertDoesNotThrow(() ->
+        assertThrows(ActionNotAvailable.class, () ->
                 controller.selectCardFromBottomList(playerToPlay, CARD_TYPE.ARTIST, 0));
         assertEquals(tribeBefore, playerToPlay.getTribe().size());
     }
@@ -345,10 +343,10 @@ class ControllerTest {
     void selectCardFromBottomListWithRightPlayerAddsCardToTribe() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Tile index 0 = 'B': drawTop=0, drawBot=1 → first placed = first to play
-        controller.placingPlayer(game.getPlayerToPlace(), 0); // tile B
+        controller.placingPlayer(game.getPlayerToPlace(), 0); // tile B: drawBot=1
         controller.placingPlayer(game.getPlayerToPlace(), 1);
         controller.placingPlayer(game.getPlayerToPlace(), 2);
 
@@ -379,16 +377,15 @@ class ControllerTest {
     // ─────────────────────────── playerDoNothing ───────────────────────────
 
     @Test
-    void playerDoNothingInWrongPhaseIsIgnored() throws Exception {
-        // SETUP phase — call must not throw and must not change state
+    void playerDoNothingInWrongPhaseThrowsActionNotAvailable() throws Exception {
         Game game = getGame(controller);
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
-        assertDoesNotThrow(() -> controller.playerDoNothing(host));
+        assertThrows(ActionNotAvailable.class, () -> controller.playerDoNothing(host));
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
     }
 
     @Test
-    void playerDoNothingWrongPlayerIsIgnored() throws Exception {
+    void playerDoNothingWrongPlayerThrowsActionNotAvailable() throws Exception {
         Game game = advanceToResolveAction();
 
         Player wrongPlayer = game.getPlayerList().stream()
@@ -397,7 +394,7 @@ class ControllerTest {
                 .orElseThrow();
 
         Player currentBefore = game.getPlayerToPlay();
-        assertDoesNotThrow(() -> controller.playerDoNothing(wrongPlayer));
+        assertThrows(ActionNotAvailable.class, () -> controller.playerDoNothing(wrongPlayer));
         assertEquals(currentBefore, game.getPlayerToPlay());
     }
 
@@ -406,8 +403,6 @@ class ControllerTest {
         Game game = advanceToResolveAction();
         Player playerToPlay = game.getPlayerToPlay();
 
-        // The market is freshly initialised and contains selectable cards,
-        // so canCurrentPlayingPlayerDoSomething() must return true.
         assertTrue(game.canCurrentPlayingPlayerDoSomething());
         assertThrows(Exception.class, () -> controller.playerDoNothing(playerToPlay));
     }
@@ -417,13 +412,11 @@ class ControllerTest {
         Game game = advanceToResolveAction();
         Player firstToPlay = game.getPlayerToPlay();
 
-        // Drain both card lists so canCurrentPlayingPlayerDoSomething() returns false.
         game.getMarket().getTopCardList().clear();
         game.getMarket().getBottomCardList().clear();
 
         assertFalse(game.canCurrentPlayingPlayerDoSomething());
         assertDoesNotThrow(() -> controller.playerDoNothing(firstToPlay));
-        // Turn must have advanced to a different player (or round ended)
         assertNotEquals(firstToPlay, game.getPlayerToPlay());
     }
 
@@ -431,19 +424,17 @@ class ControllerTest {
     void playerDoNothingLastPlayerEndsRound() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Place all three players and advance to RESOLVE_ACTION
         controller.placingPlayer(game.getPlayerToPlace(), 0);
         controller.placingPlayer(game.getPlayerToPlace(), 1);
         controller.placingPlayer(game.getPlayerToPlace(), 2);
         assertEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
 
-        // Drain market so no player can act
         game.getMarket().getTopCardList().clear();
         game.getMarket().getBottomCardList().clear();
 
-        // Skip every player's turn — each reference must be effectively final for the lambda
         Player p1 = game.getPlayerToPlay();
         assertDoesNotThrow(() -> controller.playerDoNothing(p1));
         Player p2 = game.getPlayerToPlay();
@@ -451,7 +442,6 @@ class ControllerTest {
         Player p3 = game.getPlayerToPlay();
         assertDoesNotThrow(() -> controller.playerDoNothing(p3));
 
-        // After all three players pass, the round must have advanced (→ PLACING_PHASE)
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
@@ -461,13 +451,11 @@ class ControllerTest {
     void selectCardFromTopListLastActionAdvancesToNextPlayer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Tile 'C' (index 1): drawTop=1, drawBot=0 — single top-draw action.
-        // Place firstPlacer on tile 1 and the others on higher indices (2, 3) so that
-        // tile 1 is the lowest occupied index and firstPlacer is first to play.
         Player firstPlacer = game.getPlayerToPlace();
-        controller.placingPlayer(firstPlacer, 1); // tile C (drawTop=1)
+        controller.placingPlayer(firstPlacer, 1); // tile C: drawTop=1
         controller.placingPlayer(game.getPlayerToPlace(), 2);
         controller.placingPlayer(game.getPlayerToPlace(), 3);
 
@@ -486,7 +474,6 @@ class ControllerTest {
                 }
             }
             final int finalIdx = idx;
-            // After consuming the single top action, the turn must advance automatically
             assertDoesNotThrow(() ->
                     controller.selectCardFromTopList(firstToPlay, CARD_TYPE.ARTIST, finalIdx));
             assertNotEquals(firstToPlay, game.getPlayerToPlay());
@@ -499,11 +486,11 @@ class ControllerTest {
     void selectCardFromBottomListLastActionAdvancesToNextPlayer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
+        controller.controllerGameStar();
 
         Game game = getGame(controller);
-        // Tile 'B' (index 0): drawTop=0, drawBot=1 — single bottom-draw action
         Player firstPlacer = game.getPlayerToPlace();
-        controller.placingPlayer(firstPlacer, 0); // tile B (drawBot=1)
+        controller.placingPlayer(firstPlacer, 0); // tile B: drawBot=1
         controller.placingPlayer(game.getPlayerToPlace(), 1);
         controller.placingPlayer(game.getPlayerToPlace(), 2);
 
@@ -524,7 +511,6 @@ class ControllerTest {
             final int finalIdx = idx;
             assertDoesNotThrow(() ->
                     controller.selectCardFromBottomList(firstToPlay, CARD_TYPE.ARTIST, finalIdx));
-            // Turn must have advanced automatically after consuming the last action
             assertNotEquals(firstToPlay, game.getPlayerToPlay());
         }
     }

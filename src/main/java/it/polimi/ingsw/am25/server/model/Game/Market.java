@@ -95,12 +95,8 @@ public class Market {
         return topCardList;
     }
 
-    /**
-     * this method clear the bottom list from everything
-     */
+    /** Clears all cards from the bottom card row. */
     public void clearBottomCardList(){
-        //guard against uninitialized list — should never happen if the constructor is correct
-        //this branch is untestable because the constructor always initializes the list
         if (bottomCardList == null) {
             throw new IllegalStateException("bottomCardList has not been initialized yet");
         }
@@ -224,15 +220,16 @@ public class Market {
             notifyTopBuildingRefreshed();
 
         } catch (DeckFinishedException e) {
-            notifyTopCardRefreshed(); //here it notifies all the subscribed method of the changes
+            notifyTopCardRefreshed();
             throw new DeckFinishedException();
         }
     }
 
     /**
-     * this method refill the top Card List,
-     * @throws ChangedEraException in the case an Era change is detected it throws a ChangedEraException.
-     * @throws DeckFinishedException In the case The deck is finished it throws a DeckFinishedException
+     * Refills the top card row from the deck, one card at a time.
+     *
+     * @throws ChangedEraException  if the last drawn card belongs to a new era.
+     * @throws DeckFinishedException if the deck is exhausted before the row is full.
      */
     private void refillTopCardList() throws ChangedEraException, DeckFinishedException{
         Card cardToAdd = null;
@@ -265,38 +262,33 @@ public class Market {
         this.bottomBuildingList.removeIf(buildingCard -> buildingCard.getEra()==gameView.getCurrentEra());
     }
 
-    /**
-     * this method clears the bottomBuildingList
-     */
+    /** Clears all buildings from the bottom building row. */
     private void clearBottomBuildingList(){
         this.bottomBuildingList.clear();
     }
 
-    /**
-     * this method shift the card from the topList To the bottom list
-     */
+    /** Moves all cards from the top row to the bottom row and clears the top row. */
     private void shiftCardTopToBottomList(){
         bottomCardList.addAll(topCardList);
         topCardList.clear();
     }
 
-    /**
-     * this method shift the buildings from the top to the bottom list
-     */
+    /** Moves all buildings from the top row to the bottom row and clears the top row. */
     private void shiftBuildingTopToBottom(){
         this.bottomBuildingList.addAll(this.topBuildingList);
         this.topBuildingList.clear();
     }
 
     /**
-     * This method is used to draw a card from the top list and add it to the player deck
-     * @param position position of the card to be drawn
-     * @param player player that has draw the card
+     * Draws a card from the top row and adds it to the player's tribe.
+     *
+     * @param position the index of the card to draw.
+     * @param player   the player drawing the card.
+     * @throws NotSelectableCardException if the card at the given position is an event card.
+     * @throws EmptyMarketException       if the top row contains no selectable cards.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
-        //safety guard — should not happen under normal conditions; consider also handling the case where the list is non-null but empty
-        // in which the player wants to draw a card but the list is not null yet empty
-
         if (topCardList == null || player == null) {
             throw new IllegalArgumentException("topCardList is null or player is null");
         }
@@ -307,24 +299,24 @@ public class Market {
         if (position < 0 || position >= topCardList.size()) {
             throw new IndexOutOfBoundsException("Invalid position");
         }
-        Card selected_card = this.topCardList.get(position);
-        try { //if the card throw an exception it must not be removed from the list
-            selected_card.addCardToPlayer(player);
+        Card selectedCard = this.topCardList.get(position);
+        try {
+            selectedCard.addCardToPlayer(player);
         }catch (NotSelectableCardException e) {
              throw new NotSelectableCardException("Cannot Select EventCard");
         }
-        //if everything went good it removes it
         this.topCardList.remove(position);
-        notifyCardRemoveFromTop(position,CARD_TYPE.ARTIST);//here it notifies the changed list
+        notifyCardRemoveFromTop(position,CARD_TYPE.ARTIST);
     }
 
     /**
-     * this method checks if the player has enough food to buy the house, if it can't throws exception. Otherwise add the building
-     * to the player building list
-     * @param position position of the card it wants to buy
-     * @param player the player who wants to buy
-     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
-     * @throws IndexOutOfBoundsException in the case the position is not valid
+     * Purchases a building from the top row and adds it to the player's buildings.
+     *
+     * @param position the index of the building to buy.
+     * @param player   the player buying the building.
+     * @throws NotEnoughFoodException    if the player cannot afford the building.
+     * @throws EmptyMarketException      if the top building row is empty.
+     * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
     public void buyBuildingTopList(int position, Player player) throws IndexOutOfBoundsException, NotEnoughFoodException,EmptyMarketException{
         if(topBuildingList.isEmpty()){
@@ -334,22 +326,25 @@ public class Market {
             throw new IndexOutOfBoundsException();
         }
         BuildingCard selectedBuildingCard = this.topBuildingList.get(position);
-        try{ //if the player has not enough food the card cannot be buyed
+        try{
             player.tryBuyBuilding(selectedBuildingCard);
         }catch (NotEnoughFoodException exception){
             throw new NotEnoughFoodException(player.getNickname()+" has not enough food");
         }
         this.topBuildingList.remove(position);
-        notifyCardRemoveFromTop(position,CARD_TYPE.BUILDING);//here it notifies the changed list
+        notifyCardRemoveFromTop(position,CARD_TYPE.BUILDING);
     }
 
     /**
-     * This method is used to draw a card from the bottom list and add it to the player deck
-     * @param position position of the card to be drawn
-     * @param player player that has draw the card
+     * Draws a card from the bottom row and adds it to the player's tribe.
+     *
+     * @param position the index of the card to draw.
+     * @param player   the player drawing the card.
+     * @throws NotSelectableCardException if the card at the given position is an event card.
+     * @throws EmptyMarketException       if the bottom row contains no selectable cards.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException,EmptyMarketException{
-        // null-guard first, before any method is called on bottomCardList
         if (bottomCardList == null || player == null) {
             throw new IllegalArgumentException("bottomCardList is null or player is null");
         }
@@ -361,10 +356,9 @@ public class Market {
             throw new IndexOutOfBoundsException("Invalid position");
         }
 
-        //selects the card at the given position and stores it in selected_card, same as in the method above
-        Card selected_card = this.bottomCardList.get(position);
+        Card selectedCard = this.bottomCardList.get(position);
         try{
-            selected_card.addCardToPlayer(player);
+            selectedCard.addCardToPlayer(player);
         }catch (NotSelectableCardException e) {
             throw new NotSelectableCardException("Cannot select EventCard");
         }
@@ -374,12 +368,13 @@ public class Market {
     }
 
     /**
-     * this method checks if the player has enough food to buy the house, if it can't throw exception. Otherwise, add the building
-     * to the player building list
-     * @param position position of the card it wants to buy
-     * @param player the player who wants to buy
-     * @throws NotEnoughFoodException in the case the player has not enough food to buy the building
-     * @throws IndexOutOfBoundsException in the case the position is not valid
+     * Purchases a building from the bottom row and adds it to the player's buildings.
+     *
+     * @param position the index of the building to buy.
+     * @param player   the player buying the building.
+     * @throws NotEnoughFoodException    if the player cannot afford the building.
+     * @throws EmptyMarketException      if the bottom building row is empty.
+     * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
     public void buyBuildingBottomList(int position, Player player) throws NotEnoughFoodException, IndexOutOfBoundsException,EmptyMarketException{
         if(bottomBuildingList.isEmpty()){
@@ -402,8 +397,9 @@ public class Market {
     //but even if called mid-turn it is safe since it only returns a bool and does not actually resolve events
 
     /**
-     * this method is used to subscribe an observer to the class
-     * @param observerToAdd observer to subscribe
+     * Subscribes an observer to receive market change notifications.
+     *
+     * @param observerToAdd the observer to subscribe.
      */
     public void addObserver(MarketObserver observerToAdd){
         if(observerToAdd!=null && !observers.contains(observerToAdd)){
@@ -412,8 +408,9 @@ public class Market {
     }
 
     /**
-     * this method unsubscribe an observer
-     * @param observerToRemove observer to unsubscribe
+     * Unsubscribes an observer from market change notifications.
+     *
+     * @param observerToRemove the observer to remove.
      */
     public void removeObserver(MarketObserver observerToRemove){
         observers.remove(observerToRemove);

@@ -17,11 +17,10 @@ public class MarketDTO implements Serializable {
     private List<BuildingDTO> bottomBuildings;
 
     /**
-     * Creates a new market dto instance.
-     * @param topCards parameter topCards.
-     * @param bottomCards parameter bottomCards.
-     * @param topBuildings parameter topBuildings.
-     * @param bottomBuildings parameter bottomBuildings.
+     * @param topCards       cards in the top row of the market.
+     * @param bottomCards    cards in the bottom row of the market.
+     * @param topBuildings   buildings in the top row of the market.
+     * @param bottomBuildings buildings in the bottom row of the market.
      */
     public MarketDTO(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings, List<BuildingDTO> bottomBuildings) {
         this.topCards = topCards;
@@ -30,66 +29,42 @@ public class MarketDTO implements Serializable {
         this.bottomBuildings = bottomBuildings;
     }
 
-    /**
-     * Returns top cards.
-     * @return the result of the operation.
-     */
+    /** @return cards in the top row of the market. */
     public List<CardDTO> getTopCards() {
         return topCards;
     }
 
-    /**
-     * Returns bottom cards.
-     * @return the result of the operation.
-     */
+    /** @return cards in the bottom row of the market. */
     public List<CardDTO> getBottomCards() {
         return bottomCards;
     }
 
-    /**
-     * Returns top buildings.
-     * @return the result of the operation.
-     */
+    /** @return buildings in the top row of the market. */
     public List<BuildingDTO> getTopBuildings() {
         return topBuildings;
     }
 
-    /**
-     * Returns bottom buildings.
-     * @return the result of the operation.
-     */
+    /** @return buildings in the bottom row of the market. */
     public List<BuildingDTO> getBottomBuildings() {
         return bottomBuildings;
     }
 
-    /**
-     * Sets top cards.
-     * @param topCards parameter topCards.
-     */
+    /** @param topCards the new top-row card list. */
     public void setTopCards(List<CardDTO> topCards) {
         this.topCards = topCards;
     }
 
-    /**
-     * Sets bottom cards.
-     * @param bottomCards parameter bottomCards.
-     */
+    /** @param bottomCards the new bottom-row card list. */
     public void setBottomCards(List<CardDTO> bottomCards) {
         this.bottomCards = bottomCards;
     }
 
-    /**
-     * Sets top buildings.
-     * @param topBuildings parameter topBuildings.
-     */
+    /** @param topBuildings the new top-row building list. */
     public void setTopBuildings(List<BuildingDTO> topBuildings) {
         this.topBuildings = topBuildings;
     }
 
-    /**
-     * Sets bottom buildings.
-     * @param bottomBuildings parameter bottomBuildings.
-     */
+    /** @param bottomBuildings the new bottom-row building list. */
     public void setBottomBuildings(List<BuildingDTO> bottomBuildings) {
         this.bottomBuildings = bottomBuildings;
     }

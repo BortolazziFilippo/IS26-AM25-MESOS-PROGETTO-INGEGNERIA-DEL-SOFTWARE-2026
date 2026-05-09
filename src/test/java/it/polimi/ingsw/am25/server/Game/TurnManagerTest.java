@@ -27,7 +27,7 @@ class TurnManagerTest {
     void setup() {
         host = new Player("primo", COLOR.RED);
         player2 = new Player("secondo", COLOR.BLUE);
-        player3 = new Player("terzo", COLOR.GREEN);
+        player3 = new Player("terzo", COLOR.YELLOW);
 
         game = new Game(host, 3);
         game.addPlayer(player2);

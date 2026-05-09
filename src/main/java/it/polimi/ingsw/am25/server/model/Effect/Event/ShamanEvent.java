@@ -77,7 +77,7 @@ public class ShamanEvent extends EventEffect{
                         LOG_PREFIX,
                         "Player '" + player.getNickname() + "' has min stars (" + stars + "), PP delta=-" + PPToLeast
                 );
-                player.managePP(PPToLeast);
+                player.managePP(-PPToLeast);
             }
         }
 

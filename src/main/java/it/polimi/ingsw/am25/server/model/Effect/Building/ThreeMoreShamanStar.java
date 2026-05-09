@@ -15,9 +15,6 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class ThreeMoreShamanStar extends BuildingEffect{
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private boolean flag = false;
-    /**
-     * Default constructor for ThreeMoreShamanStar.
-     */
     public ThreeMoreShamanStar() {
     }
 

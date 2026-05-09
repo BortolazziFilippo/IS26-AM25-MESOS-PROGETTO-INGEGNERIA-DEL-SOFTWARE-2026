@@ -13,9 +13,6 @@ public class NoPPLostOnShaman extends BuildingEffect{
     private int prevPP;
     private boolean flag = false;
 
-    /**
-     * Default constructor for NoPPLostOnShaman.
-     */
     public NoPPLostOnShaman() {
 
     }

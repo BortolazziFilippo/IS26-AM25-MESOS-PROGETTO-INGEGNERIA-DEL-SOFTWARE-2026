@@ -15,9 +15,6 @@ public class SetSixCard extends BuildingEffect{
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int foodToGive = 5;
     private List<Card> oldCards = new ArrayList<>();
-    /**
-     * Default constructor for SetSixCard.
-     */
     public SetSixCard() {
     }
     /**

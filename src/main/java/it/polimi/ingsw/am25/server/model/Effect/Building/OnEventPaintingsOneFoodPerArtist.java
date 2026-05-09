@@ -9,9 +9,6 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  */
 public class OnEventPaintingsOneFoodPerArtist extends BuildingEffect{
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
-    /**
-     * Default constructor for OnEventPaintingsOneFoodPerArtist.
-     */
     public OnEventPaintingsOneFoodPerArtist() {
     }
     /**
