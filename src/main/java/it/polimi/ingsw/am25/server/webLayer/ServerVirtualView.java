@@ -50,6 +50,8 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     private String playerToPlay;
     //_________________________________________________________________________________________
     Map<String, PlayerDTO> playersMap = new HashMap<>();
+    /** Accumulated tribe cards per player, used to resync reconnecting clients. */
+    private final Map<String, List<CardDTO>> tribeSnapshot = new HashMap<>();
     //_________________________________________________________________________________________
     //MARKET DTO
     private List<CardDTO> topCards;
@@ -113,10 +115,12 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      * resume without missing any game state that was pushed while they were offline.
      */
     public void resyncClient() {
-        // 1. All players (nicknames, colors, food, PP)
+        // 1. All players with their full tribe snapshot included in the DTO
         List<PlayerDTO> players = new ArrayList<>(playersMap.values());
         for (PlayerDTO dto : players) {
-            submitTask(() -> clientStub.playerAdded(dto));
+            PlayerDTO enriched = new PlayerDTO(dto.getNickName(), dto.getFood(), dto.getPrestigePoint(), dto.getColorTotem());
+            tribeSnapshot.getOrDefault(dto.getNickName(), List.of()).forEach(enriched::addCardToTribe);
+            submitTask(() -> clientStub.playerAdded(enriched));
         }
         // 2. Board (offer tiles + default tiles, including totem positions)
         if (offerTileList != null) {
@@ -321,7 +325,9 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     @Override
     public void notifyCardAddedToTribe(String playername, Card cardAdded) {
-        submitTask(() -> clientStub.addedCardToTribe(playername, cardAdded.toDTO()));
+        CardDTO dto = cardAdded.toDTO();
+        tribeSnapshot.computeIfAbsent(playername, k -> new ArrayList<>()).add(dto);
+        submitTask(() -> clientStub.addedCardToTribe(playername, dto));
     }
 
     @Override

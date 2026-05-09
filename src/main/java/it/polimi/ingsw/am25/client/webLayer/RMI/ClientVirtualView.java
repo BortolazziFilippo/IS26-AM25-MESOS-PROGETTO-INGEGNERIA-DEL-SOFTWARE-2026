@@ -788,6 +788,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onPlayerReconnected(nickname));
     }
 
+
     /**
      * Returns {@code true} if the given player is known to have disconnected.
      * @param nickname the player's nickname.

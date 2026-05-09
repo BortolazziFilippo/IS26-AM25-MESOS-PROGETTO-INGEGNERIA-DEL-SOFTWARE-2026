@@ -219,4 +219,5 @@ public interface ClientRemoteInterface extends Remote {
      * @throws RemoteException if the RMI call fails.
      */
     void playerReconnected(String nickname) throws RemoteException;
+
 }
