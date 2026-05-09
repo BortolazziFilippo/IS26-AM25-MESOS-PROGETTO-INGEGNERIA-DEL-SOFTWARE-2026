@@ -20,6 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
@@ -111,6 +112,8 @@ public class MarketController implements GUIObserver {
     @FXML private Label foodLabel;
     @FXML private Label shamanStarLabel;
     @FXML private Label builderDiscountLabel;
+    @FXML private HBox headerHBox;
+    @FXML private javafx.scene.control.SplitPane splitPane;
 
     public MarketController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clientHandler = clientHandler;
@@ -127,7 +130,11 @@ public class MarketController implements GUIObserver {
     @FXML
     public void initialize() {
         double availableH = javafx.stage.Screen.getPrimary().getVisualBounds().getHeight();
-        cardFitHeight = availableH / 3 - 100;
+        cardFitHeight = Math.max(100, (availableH - 80) / 3 - 30);
+
+        // Keep SplitPane top-anchor in sync with whatever height the header actually needs.
+        headerHBox.heightProperty().addListener((obs, old, newH) ->
+                AnchorPane.setTopAnchor(splitPane, newH.doubleValue()));
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
         if (skipTurnButton != null) skipTurnButton.setDisable(true);

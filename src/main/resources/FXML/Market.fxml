@@ -5,109 +5,119 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
             stylesheets="@Market.css">
     <children>
-        <SplitPane dividerPositions="0.8" prefHeight="863" prefWidth="1500" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
+
+        <!-- ── Header bar ─────────────────────────────────────── -->
+        <HBox fx:id="headerHBox" spacing="24"
+              style="-fx-padding: 10 14 10 14; -fx-alignment: CENTER_LEFT;"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <VBox spacing="4">
+                    <children>
+                        <Label fx:id="phaseLabel" text="Fase corrente: -">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                        <Label fx:id="currentPlayerLabel" text="Giocatore di turno: -">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                    </children>
+                </VBox>
+                <VBox spacing="4">
+                    <children>
+                        <Label text="Azioni disponibili:">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                        <HBox spacing="20">
+                            <children>
+                                <Label fx:id="drawTopLabel" text="Pesca da sopra: -">
+                                    <font><Font name="System Bold" size="14.0" /></font>
+                                </Label>
+                                <Label fx:id="drawBotLabel" text="Pesca da sotto: -">
+                                    <font><Font name="System Bold" size="14.0" /></font>
+                                </Label>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <VBox spacing="4">
+                    <children>
+                        <Label fx:id="foodLabel" text="Cibo:">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                        <Label fx:id="prestigePointLabel" text="Punti Prestigio:">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                    </children>
+                </VBox>
+                <VBox spacing="4">
+                    <children>
+                        <Label fx:id="shamanStarLabel" text="Stelle sciamano:">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                        <Label fx:id="builderDiscountLabel" text="Sconto Costruttori:">
+                            <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                    </children>
+                </VBox>
+                <!-- pushes buttons to the right -->
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="tribeVisualizerButton" mnemonicParsing="false"
+                        onAction="#showThisPlayerTribe" prefHeight="48.0" text="Visualizza tribù" />
+                <Button fx:id="playerStatusButton" mnemonicParsing="false"
+                        onAction="#showPlayerStatus" prefHeight="48.0" text="Stato giocatori" />
+            </children>
+        </HBox>
+
+        <!-- ── Main content (topAnchor updated at runtime by controller) ── -->
+        <SplitPane fx:id="splitPane" dividerPositions="0.8"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
             <items>
-                <BorderPane>
-                    <top>
-                        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
-                            <content>
-                                <HBox fx:id="topCardHbox" spacing="10" style="-fx-padding: 10; -fx-alignment: CENTER_LEFT;" />
-                            </content>
-                        </ScrollPane>
-                    </top>
-                    <center>
-                        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
-                            <content>
-                                <HBox fx:id="tileHbox" spacing="10" style="-fx-padding: 10; -fx-alignment: CENTER;" />
-                            </content>
-                        </ScrollPane>
-                    </center>
-                    <bottom>
-                        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
-                            <content>
-                                <HBox fx:id="bottomCardHbox" spacing="10" style="-fx-padding: 10; -fx-alignment: CENTER_LEFT;" />
-                            </content>
-                        </ScrollPane>
-                    </bottom>
-                </BorderPane>
+                <!-- Left: three card rows grouped and centred vertically -->
+                <VBox alignment="CENTER" spacing="10" style="-fx-padding: 8;">
+                    <ScrollPane fitToHeight="false" fitToWidth="false"
+                                hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="topCardHbox" spacing="10"
+                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;" />
+                        </content>
+                    </ScrollPane>
+                    <ScrollPane fitToHeight="false" fitToWidth="false"
+                                hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="tileHbox" spacing="10"
+                                  style="-fx-padding: 8; -fx-alignment: CENTER;" />
+                        </content>
+                    </ScrollPane>
+                    <ScrollPane fitToHeight="false" fitToWidth="false"
+                                hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
+                        <content>
+                            <HBox fx:id="bottomCardHbox" spacing="10"
+                                  style="-fx-padding: 8; -fx-alignment: CENTER_LEFT;" />
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- Right: action buttons -->
                 <VBox alignment="CENTER" spacing="40" style="-fx-padding: 40;">
                     <children>
-                        <Button fx:id="selectCardButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSelectCard" prefHeight="80.0" text="Seleziona carta" />
-                        <Button fx:id="placeTotemButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem" />
-                        <Button fx:id="skipTurnButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno" />
+                        <Button fx:id="selectCardButton" maxWidth="Infinity" mnemonicParsing="false"
+                                onAction="#handleSelectCard" prefHeight="80.0" text="Seleziona carta" />
+                        <Button fx:id="placeTotemButton" maxWidth="Infinity" mnemonicParsing="false"
+                                onAction="#handlePlaceTotem" prefHeight="80.0" text="Posiziona totem" />
+                        <Button fx:id="skipTurnButton" maxWidth="Infinity" mnemonicParsing="false"
+                                onAction="#handleSkipTurn" prefHeight="80.0" text="Salta turno" />
                     </children>
                 </VBox>
             </items>
         </SplitPane>
-      <HBox spacing="60" style="-fx-padding: 12 14 12 14; -fx-alignment: CENTER_LEFT;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <children>
-            <VBox spacing="6">
-               <children>
-                  <Label fx:id="phaseLabel" text="Fase corrente: -">
-                     <font><Font name="System Bold" size="16.0" /></font>
-                  </Label>
-                  <Label fx:id="currentPlayerLabel" text="Giocatore di turno: -">
-                     <font><Font name="System Bold" size="16.0" /></font>
-                  </Label>
-               </children>
-            </VBox>
-            <VBox spacing="6">
-               <children>
-                  <Label text="Azioni disponibili:">
-                     <font><Font name="System Bold" size="16.0" /></font>
-                  </Label>
-                  <HBox spacing="24">
-                     <children>
-                        <Label fx:id="drawTopLabel" text="Pesca da sopra: -">
-                           <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
-                        <Label fx:id="drawBotLabel" text="Pesca da sotto: -">
-                           <font><Font name="System Bold" size="16.0" /></font>
-                        </Label>
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox prefHeight="50.0" prefWidth="196.0">
-               <children>
-                  <Label fx:id="foodLabel" text="Cibo:">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="prestigePointLabel" layoutX="10.0" layoutY="10.0" prefHeight="22.0" prefWidth="165.0" text="Punti Prestigio:">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-               </children>
-            </VBox>
-            <VBox spacing="6">
-               <children>
-                  <Label fx:id="shamanStarLabel" text="Stelle sciamano:">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="builderDiscountLabel" text="Sconto Costruttori:">
-                     <font>
-                        <Font name="System Bold" size="16.0" />
-                     </font>
-                  </Label>
-               </children>
-            </VBox>
-            <Button fx:id="tribeVisualizerButton" mnemonicParsing="false" onAction="#showThisPlayerTribe" prefHeight="51.0" text="Visualizza tribù" />
-            <Button fx:id="playerStatusButton" mnemonicParsing="false" onAction="#showPlayerStatus" prefHeight="51.0" text="Stato giocatori" />
-         </children>
-      </HBox>
-      <HBox layoutY="963.0" prefHeight="100.0" prefWidth="1700.0" />
+
     </children>
 </AnchorPane>
