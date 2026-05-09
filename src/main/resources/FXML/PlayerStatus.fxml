@@ -2,21 +2,19 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="680.0" prefWidth="860.0"
-            stylesheets="@PlayerStatus.css"
-            xmlns="http://javafx.com/javafx/26"
-            xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="660.0" prefWidth="520.0"
+      stylesheets="@PlayerStatus.css"
+      xmlns="http://javafx.com/javafx/26"
+      xmlns:fx="http://javafx.com/fxml/1">
     <children>
 
         <!-- ── Title bar ───────────────────────────────────────── -->
-        <HBox fx:id="titleBar" styleClass="status-title-bar"
-              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <HBox styleClass="status-title-bar">
             <children>
                 <Label styleClass="status-title" text="STATO DEI GIOCATORI" />
                 <Region HBox.hgrow="ALWAYS" />
@@ -25,15 +23,12 @@
             </children>
         </HBox>
 
-        <!-- ── Scrollable player list ──────────────────────────── -->
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="52.0">
-            <content>
-                <VBox fx:id="playersVBox" spacing="14"
-                      style="-fx-padding: 16;" />
-            </content>
-        </ScrollPane>
+        <!-- ── Leaderboard (always visible above tabs) ─────────── -->
+        <VBox fx:id="leaderboardBox" style="-fx-padding: 12 16 8 16;" />
+
+        <!-- ── One tab per player ───────────────────────────────── -->
+        <TabPane fx:id="playerTabPane" tabClosingPolicy="UNAVAILABLE"
+                 styleClass="player-tab-pane" VBox.vgrow="ALWAYS" />
 
     </children>
-</AnchorPane>
+</VBox>

@@ -60,6 +60,18 @@
     -fx-border-width: 1;
 }
 
+.turn-badge {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0a2010;
+    -fx-background-color: #44dd88;
+    -fx-background-radius: 5;
+    -fx-padding: 3 10 3 10;
+    -fx-border-color: #22bb66;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+}
+
 /* ── Stats row ──────────────────────────────────────────────── */
 
 .stats-row {

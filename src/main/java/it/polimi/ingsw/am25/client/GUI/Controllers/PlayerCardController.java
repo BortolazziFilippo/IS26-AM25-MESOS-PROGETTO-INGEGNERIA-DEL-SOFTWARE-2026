@@ -7,13 +7,23 @@ import it.polimi.ingsw.am25.server.model.Enums.SHAMAN_STAR;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+import javafx.animation.FadeTransition;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.util.List;
@@ -36,6 +46,7 @@ public class PlayerCardController {
     @FXML private Label     nameLabel;
     @FXML private Label     colorLabel;
     @FXML private Label     statusLabel;
+    @FXML private Label     turnLabel;
     @FXML private Label     meLabel;
     @FXML private Label     foodLabel;
     @FXML private Label     ppLabel;
@@ -48,7 +59,7 @@ public class PlayerCardController {
     // Public API
     // =========================================================
 
-    public void populate(PlayerDTO player, boolean isMe, boolean disconnected) {
+    public void populate(PlayerDTO player, boolean isMe, boolean disconnected, boolean isCurrentTurn) {
         List<CardDTO> tribe = player.getCardDtoList();
 
         // Totem color: CSS class + image
@@ -67,6 +78,18 @@ public class PlayerCardController {
         }
         meLabel.setVisible(isMe);
         meLabel.setManaged(isMe);
+
+        // Turn badge
+        turnLabel.setVisible(isCurrentTurn);
+        turnLabel.setManaged(isCurrentTurn);
+        if (isCurrentTurn) {
+            FadeTransition pulse = new FadeTransition(Duration.millis(700), turnLabel);
+            pulse.setFromValue(1.0);
+            pulse.setToValue(0.35);
+            pulse.setCycleCount(Timeline.INDEFINITE);
+            pulse.setAutoReverse(true);
+            pulse.play();
+        }
 
         // Stats
         foodLabel.setText(String.valueOf(player.getFood()));
@@ -163,10 +186,12 @@ public class PlayerCardController {
         String path = cardImagePath(card);
         if (path == null) return null;
         try {
-            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
+            Image img = new Image(getClass().getResourceAsStream(path));
+            ImageView iv = new ImageView(img);
             iv.setFitHeight(CARD_THUMB_H);
             iv.setPreserveRatio(true);
             attachTooltip(iv, tooltipText(card));
+            makeClickable(iv, img, tooltipText(card));
             return iv;
         } catch (Exception e) {
             return null;
@@ -178,14 +203,71 @@ public class PlayerCardController {
             int id = bld.getBuildingID();
             String era = id <= 6 ? "eraOne" : id <= 13 ? "eraTwo" : "eraThree";
             String path = "/images/Card/Buildings/" + era + "/" + id + "IDbuilding.png";
-            ImageView iv = new ImageView(new Image(getClass().getResourceAsStream(path)));
+            Image img = new Image(getClass().getResourceAsStream(path));
+            ImageView iv = new ImageView(img);
             iv.setFitHeight(CARD_THUMB_H);
             iv.setPreserveRatio(true);
             attachTooltip(iv, bld.toString());
+            makeClickable(iv, img, bld.toString());
             return iv;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /** Adds hover glow + hand cursor + click-to-enlarge to a thumbnail. */
+    private void makeClickable(ImageView iv, Image fullImage, String description) {
+        iv.setStyle("-fx-cursor: hand;");
+
+        DropShadow glow = new DropShadow(12, Color.web("#d4a017"));
+        iv.setOnMouseEntered(e -> { iv.setEffect(glow); iv.setScaleX(1.06); iv.setScaleY(1.06); });
+        iv.setOnMouseExited(e  -> { iv.setEffect(null); iv.setScaleX(1.0);  iv.setScaleY(1.0);  });
+        iv.setOnMouseClicked(e -> showEnlargedCard(fullImage, description));
+    }
+
+    /** Opens a floating popup with the card image at full size + its description. */
+    private void showEnlargedCard(Image image, String description) {
+        // Large image
+        ImageView bigIv = new ImageView(image);
+        bigIv.setFitHeight(340);
+        bigIv.setPreserveRatio(true);
+
+        // Description lines
+        VBox descBox = new VBox(4);
+        descBox.setAlignment(Pos.CENTER);
+        for (String line : description.split("\n")) {
+            Label lbl = new Label(line);
+            lbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #e8d4a0;");
+            descBox.getChildren().add(lbl);
+        }
+
+        // Hint
+        Label hint = new Label("clic o ESC per chiudere");
+        hint.setStyle("-fx-font-size: 11px; -fx-text-fill: #6a5a40; -fx-padding: 10 0 0 0;");
+
+        VBox root = new VBox(14, bigIv, descBox, hint);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(20));
+        root.setStyle(
+            "-fx-background-color: #1e1408;" +
+            "-fx-background-radius: 12;" +
+            "-fx-border-color: #3d2b10;" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 12;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.85), 24, 0.5, 0, 8);"
+        );
+
+        Scene scene = new Scene(root, Color.TRANSPARENT);
+        scene.getStylesheets().add(getClass().getResource("/FXML/PlayerCard.css").toExternalForm());
+
+        Stage popup = new Stage(StageStyle.TRANSPARENT);
+        popup.setScene(scene);
+
+        // Close on click anywhere or ESC
+        root.setOnMouseClicked(e -> popup.close());
+        scene.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ESCAPE) popup.close(); });
+
+        popup.show();
     }
 
     /** Creates and installs a styled tooltip on the given node. */

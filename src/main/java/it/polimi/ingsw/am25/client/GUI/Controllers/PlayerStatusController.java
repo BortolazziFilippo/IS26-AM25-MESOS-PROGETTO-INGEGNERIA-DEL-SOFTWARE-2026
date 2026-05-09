@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.client.GUI.Controllers;
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
+import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import javafx.application.Platform;
@@ -10,6 +11,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -24,22 +28,20 @@ import java.util.Map;
 /**
  * Controller for PlayerStatus.fxml.
  *
- * <p>Shows a leaderboard at the top (sorted by PP) followed by one card per player.
+ * <p>Shows a leaderboard above a TabPane where each tab contains one player's card.
  * Implements {@link GUIObserver} for live updates; registers on init and
  * deregisters when the window closes.
  */
 public class PlayerStatusController implements GUIObserver {
 
-    /** Index in playersVBox occupied by the leaderboard widget. */
-    private static final int LEADERBOARD_IDX = 0;
-
-    @FXML private VBox playersVBox;
+    @FXML private VBox    leaderboardBox;
+    @FXML private TabPane playerTabPane;
 
     private ClientVirtualView clientHandler;
     private PlayerDTO myPlayer;
 
-    /** Maps each player's nickname to their card index in playersVBox (cards start at index 1). */
-    private final Map<String, Integer> cardIndex = new HashMap<>();
+    /** Maps each player's nickname to their Tab. */
+    private final Map<String, Tab> playerTabs = new HashMap<>();
 
     public PlayerStatusController() {}
 
@@ -61,26 +63,21 @@ public class PlayerStatusController implements GUIObserver {
         if (clientHandler == null) return;
         clientHandler.addGUIObserver(this);
 
-        // Leaderboard always at index 0
-        playersVBox.getChildren().add(buildLeaderboard());
+        buildLeaderboardContent(leaderboardBox);
 
         List<PlayerDTO> players = clientHandler.getPlayers();
-        if (players.isEmpty()) {
-            Label empty = new Label("Nessun dato giocatore disponibile.");
-            empty.setStyle("-fx-font-size: 14px; -fx-text-fill: #9a8060;");
-            playersVBox.getChildren().add(empty);
-            return;
-        }
+        if (players.isEmpty()) return;
+
         for (PlayerDTO player : players) {
-            int idx = playersVBox.getChildren().size();
-            cardIndex.put(player.getNickName(), idx);
-            playersVBox.getChildren().add(buildCard(player));
+            Tab tab = buildTab(player);
+            playerTabs.put(player.getNickName(), tab);
+            playerTabPane.getTabs().add(tab);
         }
     }
 
     @FXML
     private void handleClose() {
-        Stage stage = (Stage) playersVBox.getScene().getWindow();
+        Stage stage = (Stage) playerTabPane.getScene().getWindow();
         stage.close();
     }
 
@@ -116,24 +113,23 @@ public class PlayerStatusController implements GUIObserver {
         Platform.runLater(() -> rebuildCard(nickname));
     }
 
+    @Override
+    public void onPlayerToPlayChanged(String nickname) {
+        Platform.runLater(this::rebuildAllCards);
+    }
+
+    @Override
+    public void onPlayerToPlaceChanged(String nickname) {
+        Platform.runLater(this::rebuildAllCards);
+    }
+
     // =========================================================
     // Leaderboard
     // =========================================================
 
-    private VBox buildLeaderboard() {
-        VBox box = new VBox(8);
-        box.getStyleClass().add("leaderboard");
-        buildLeaderboardContent(box);
-        return box;
-    }
-
-    /** Replaces the leaderboard at index 0 with a fresh one. */
     private void refreshLeaderboard() {
-        if (playersVBox.getChildren().isEmpty()) return;
-        VBox box = new VBox(8);
-        box.getStyleClass().add("leaderboard");
-        buildLeaderboardContent(box);
-        playersVBox.getChildren().set(LEADERBOARD_IDX, box);
+        leaderboardBox.getChildren().clear();
+        buildLeaderboardContent(leaderboardBox);
     }
 
     private void buildLeaderboardContent(VBox box) {
@@ -145,8 +141,7 @@ public class PlayerStatusController implements GUIObserver {
                 .sorted(Comparator.comparingInt(PlayerDTO::getPrestigePoint).reversed())
                 .toList();
 
-        int maxPP = sorted.isEmpty() ? 1
-                : Math.max(1, sorted.get(0).getPrestigePoint());
+        int maxPP = sorted.isEmpty() ? 1 : Math.max(1, sorted.get(0).getPrestigePoint());
 
         for (int i = 0; i < sorted.size(); i++) {
             box.getChildren().add(buildRankRow(sorted.get(i), i + 1, maxPP));
@@ -157,20 +152,15 @@ public class PlayerStatusController implements GUIObserver {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        // Rank badge
         Label rankLabel = new Label(rankText(rank));
         rankLabel.getStyleClass().add(rank <= 3 ? "rank-" + rank : "rank-other");
 
-        // Player name (colored by totem)
         Label nameLabel = new Label(player.getNickName());
         nameLabel.getStyleClass().add("leaderboard-name");
         nameLabel.setStyle("-fx-text-fill: " + totemHex(player.getColorTotem()) + ";");
 
-        // Progress bar
-        HBox bar = buildBar(player.getPrestigePoint(), maxPP,
-                totemHex(player.getColorTotem()));
+        HBox bar = buildBar(player.getPrestigePoint(), maxPP, totemHex(player.getColorTotem()));
 
-        // PP value
         Label ppLabel = new Label(player.getPrestigePoint() + " PP");
         ppLabel.getStyleClass().add("leaderboard-pp");
 
@@ -178,10 +168,6 @@ public class PlayerStatusController implements GUIObserver {
         return row;
     }
 
-    /**
-     * Builds a custom progress bar: a filled region next to an empty one,
-     * proportional to {@code value / max}, colored with {@code colorHex}.
-     */
     private HBox buildBar(int value, int max, String colorHex) {
         double fraction = max == 0 ? 0 : Math.min(1.0, (double) value / max);
         double totalW   = 220;
@@ -208,17 +194,60 @@ public class PlayerStatusController implements GUIObserver {
     }
 
     // =========================================================
-    // Card management
+    // Tab / card management
     // =========================================================
 
+    private Tab buildTab(PlayerDTO player) {
+        Tab tab = new Tab();
+        tab.setClosable(false);
+        tab.setGraphic(buildTabHeader(player));
+
+        ScrollPane sp = new ScrollPane(buildCard(player));
+        sp.setFitToWidth(true);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.getStyleClass().add("player-tab-scroll");
+        tab.setContent(sp);
+
+        return tab;
+    }
+
+    private Label buildTabHeader(PlayerDTO player) {
+        boolean isTurn = player.getNickName().equals(currentTurnNickname());
+        String prefix = isTurn ? "▶  " : "●  ";
+        Label lbl = new Label(prefix + player.getNickName());
+        lbl.setStyle(
+            "-fx-text-fill: " + totemHex(player.getColorTotem()) + ";" +
+            "-fx-font-weight: bold;" +
+            "-fx-font-size: 13px;"
+        );
+        return lbl;
+    }
+
     private void rebuildCard(String nickname) {
-        Integer idx = cardIndex.get(nickname);
-        if (idx == null || idx >= playersVBox.getChildren().size()) return;
+        Tab tab = playerTabs.get(nickname);
+        if (tab == null) return;
         PlayerDTO updated = clientHandler.getPlayers().stream()
                 .filter(p -> p.getNickName().equals(nickname))
                 .findFirst().orElse(null);
         if (updated == null) return;
-        playersVBox.getChildren().set(idx, buildCard(updated));
+        setTabCard(tab, updated);
+    }
+
+    private void rebuildAllCards() {
+        for (PlayerDTO player : clientHandler.getPlayers()) {
+            Tab tab = playerTabs.get(player.getNickName());
+            if (tab != null) {
+                tab.setGraphic(buildTabHeader(player));
+                setTabCard(tab, player);
+            }
+        }
+    }
+
+    private void setTabCard(Tab tab, PlayerDTO player) {
+        tab.setGraphic(buildTabHeader(player));
+        ScrollPane sp = (ScrollPane) tab.getContent();
+        sp.setContent(buildCard(player));
     }
 
     private VBox buildCard(PlayerDTO player) {
@@ -226,16 +255,27 @@ public class PlayerStatusController implements GUIObserver {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/PlayerCard.fxml"));
             VBox card = loader.load();
             PlayerCardController ctrl = loader.getController();
-            boolean isMe         = myPlayer != null
+            boolean isMe          = myPlayer != null
                     && myPlayer.getNickName().equals(player.getNickName());
-            boolean disconnected = clientHandler.isPlayerDisconnected(player.getNickName());
-            ctrl.populate(player, isMe, disconnected);
+            boolean disconnected  = clientHandler.isPlayerDisconnected(player.getNickName());
+            boolean isCurrentTurn = player.getNickName().equals(currentTurnNickname());
+            ctrl.populate(player, isMe, disconnected, isCurrentTurn);
             return card;
         } catch (Exception e) {
             Label err = new Label("Errore: " + e.getMessage());
             err.setStyle("-fx-text-fill: red;");
             return new VBox(err);
         }
+    }
+
+    /** Returns the nickname of the player whose turn it currently is, or null if unknown. */
+    private String currentTurnNickname() {
+        GAME_PHASE phase = clientHandler.getGamePhase();
+        if (phase == null) return null;
+        return switch (phase) {
+            case PLACING_PHASE, LAST_ROUND_PLACING_PHASE -> clientHandler.getPlayerToPlace();
+            default -> clientHandler.getPlayerToPlay();
+        };
     }
 
     // =========================================================

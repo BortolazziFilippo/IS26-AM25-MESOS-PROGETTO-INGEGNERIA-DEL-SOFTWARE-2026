@@ -86,3 +86,54 @@
     -fx-min-width: 52;
     -fx-alignment: CENTER_RIGHT;
 }
+
+/* ── Player Tab Pane ───────────────────────────────────────── */
+
+.player-tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 36px;
+    -fx-tab-min-width: 80px;
+}
+
+.player-tab-pane > .tab-header-area {
+    -fx-background-color: #16100a;
+    -fx-padding: 6 0 0 12;
+}
+
+.player-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #16100a;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #2a1c0e;
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 0;
+    -fx-padding: 7 16 7 16;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #3d2b10;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-underline: false;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:hover:!selected {
+    -fx-background-color: #332210;
+    -fx-cursor: hand;
+}
+
+.player-tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.player-tab-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.player-tab-scroll > .viewport {
+    -fx-background-color: transparent;
+}

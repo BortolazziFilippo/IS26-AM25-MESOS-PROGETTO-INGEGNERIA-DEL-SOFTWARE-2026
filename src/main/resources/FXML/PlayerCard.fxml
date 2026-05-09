@@ -31,6 +31,8 @@
                 </children>
             </VBox>
             <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="turnLabel" text="▶ DI TURNO"
+                   styleClass="turn-badge" visible="false" managed="false" />
             <Label fx:id="meLabel" text="&lt;&lt; TU &gt;&gt;"
                    styleClass="player-me-tag" visible="false" managed="false" />
         </children>
