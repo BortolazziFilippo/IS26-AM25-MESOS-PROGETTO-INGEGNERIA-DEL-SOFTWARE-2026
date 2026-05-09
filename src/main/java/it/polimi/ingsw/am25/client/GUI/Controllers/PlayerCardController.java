@@ -216,7 +216,7 @@ public class PlayerCardController {
             case SHAMAN   -> "Sciamano\n" + shamanTooltip(card.getStarNumber());
             case BUILDER  -> "Costruttore\nSconto edifici: " + card.getFoodDiscount()
                     + " cibo\nPP a fine partita: " + card.getFinalPrestigePoint();
-            case INVENTOR -> "Inventore\nIcona: " + iconName(card.getInvIcon());
+            case INVENTOR -> "Inventore\nIcona: " + (card.getInvIcon() != null ? card.getInvIcon() : "?");
             default       -> card.getCardType().name();
         };
     }
