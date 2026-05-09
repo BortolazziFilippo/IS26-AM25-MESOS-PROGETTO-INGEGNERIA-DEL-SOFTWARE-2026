@@ -105,7 +105,6 @@ public class MarketController implements GUIObserver {
     @FXML private Button skipTurnButton;
     @FXML private Button tribeVisualizerButton;
     @FXML private Button playerStatusButton;
-    @FXML private Button testEndGameButton;
     @FXML private Label phaseLabel;
     @FXML private Label currentPlayerLabel;
     @FXML private Label drawTopLabel;
@@ -609,32 +608,6 @@ public class MarketController implements GUIObserver {
         });
     }
 
-    @FXML
-    private void handleTestEndGame() {
-        List<PlayerDTO> fakeAll = List.of(
-                new PlayerDTO("Alice", 3, 42, it.polimi.ingsw.am25.server.model.Enums.COLOR.RED),
-                new PlayerDTO("Bob",   5, 38, it.polimi.ingsw.am25.server.model.Enums.COLOR.BLUE),
-                new PlayerDTO("Carlo", 1, 51, it.polimi.ingsw.am25.server.model.Enums.COLOR.YELLOW),
-                playerDTO
-        );
-        List<PlayerDTO> fakeWinners = List.of(fakeAll.get(2));
-        Platform.runLater(() -> {
-            try {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                        getClass().getResource("/FXML/EndGame.fxml"));
-                it.polimi.ingsw.am25.client.GUI.EndGameController ctrl =
-                        new it.polimi.ingsw.am25.client.GUI.EndGameController();
-                loader.setController(ctrl);
-                javafx.scene.Parent root = loader.load();
-                ctrl.setData(fakeWinners, fakeAll);
-                javafx.stage.Stage stage = (javafx.stage.Stage) tileHbox.getScene().getWindow();
-                stage.setScene(new javafx.scene.Scene(root));
-                stage.setTitle("IS26-AM25 — Fine Partita");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
 
     // =========================================================
     // RENDER
