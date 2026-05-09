@@ -12,9 +12,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
-import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 
 /**
  * Client-side implementation of {@link ClientRemoteInterface}. Receives game-state
@@ -107,6 +107,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             }
         }
     }
+
+    // --- DISCONNECTION TRACKING ---
+    /** Set of nicknames of players that have disconnected during the game. */
+    private final Set<String> disconnectedPlayers = ConcurrentHashMap.newKeySet();
+    /**
+     * Queue of nicknames whose disconnection has not yet been displayed to the user.
+     * The TUI drains this queue each iteration and prints a notification.
+     */
+    private final Queue<String> recentDisconnections = new ConcurrentLinkedQueue<>();
+    /** {@code true} when the server has been detected as unreachable. */
+    public volatile boolean serverDead = false;
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -747,6 +758,67 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         }
     }
 
+    // --- DISCONNECTION ---
 
+    /**
+     * Called by the server (via RMI stub or Socket proxy) when a player has disconnected.
+     * Adds the player to the disconnected set and wakes up the TUI turn lock.
+     * @param nickname the disconnected player's nickname.
+     * @throws RemoteException if the RMI call fails.
+     */
+    @Override
+    public void playerDisconnected(String nickname) throws RemoteException {
+        disconnectedPlayers.add(nickname);
+        recentDisconnections.add(nickname);   // TUI will drain and display this
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
+
+    /**
+     * Returns {@code true} if the given player is known to have disconnected.
+     * @param nickname the player's nickname.
+     * @return whether the player is disconnected.
+     */
+    public boolean isPlayerDisconnected(String nickname) {
+        return disconnectedPlayers.contains(nickname);
+    }
+
+    /**
+     * Drains and returns all player nicknames whose disconnection has not yet
+     * been displayed to the user. Each nickname appears at most once.
+     * @return list of recently-disconnected player nicknames (may be empty).
+     */
+    public List<String> drainRecentDisconnections() {
+        List<String> result = new ArrayList<>();
+        String n;
+        while ((n = recentDisconnections.poll()) != null) {
+            result.add(n);
+        }
+        return result;
+    }
+
+    /**
+     * Called when the server becomes unreachable (socket drop, RMI timeout, etc.).
+     * Sets the {@code serverDead} flag and wakes up any waiting TUI threads so they
+     * can exit cleanly.
+     */
+    public void handleServerDeath() {
+        this.serverDead = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
+        }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+    }
+
+    /**
+     * Returns {@code true} if the server has been detected as unreachable.
+     * @return server-dead flag.
+     */
+    public boolean isServerDead() {
+        return serverDead;
+    }
 
 }
