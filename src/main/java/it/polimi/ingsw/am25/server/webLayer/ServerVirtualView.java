@@ -35,10 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
-    private final ClientRemoteInterface clientStub;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ClientRemoteInterface clientStub;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
     /** Called when an RMI error is detected in a notification task, triggering disconnection. */
-    private final Runnable disconnectCallback;
+    private Runnable disconnectCallback;
     // --- HEARTBEAT ---
     private final AtomicInteger missedPings = new AtomicInteger(0);
     private volatile boolean connected = true;
@@ -92,9 +92,76 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         executor.shutdownNow();
     }
 
+    /**
+     * Swaps in a new client stub and restarts the executor so this view can be
+     * reused after the player reconnects.
+     * @param newStub               the new RMI stub or Socket proxy.
+     * @param newDisconnectCallback disconnect callback bound to the new connection.
+     */
+    public synchronized void reconnect(ClientRemoteInterface newStub, Runnable newDisconnectCallback) {
+        this.clientStub = newStub;
+        this.disconnectCallback = newDisconnectCallback;
+        this.executor = Executors.newSingleThreadExecutor();
+        this.connected = true;
+        this.missedPings.set(0);
+    }
+
+    /**
+     * Sends all stored state snapshots to the reconnecting client so they can
+     * resume without missing any game state that was pushed while they were offline.
+     */
+    public void resyncClient() {
+        // 1. All players (nicknames, colors, food, PP)
+        List<PlayerDTO> players = new ArrayList<>(playersMap.values());
+        for (PlayerDTO dto : players) {
+            submitTask(() -> clientStub.playerAdded(dto));
+        }
+        // 2. Board (offer tiles + default tiles, including totem positions)
+        if (offerTileList != null) {
+            List<OffertileDTO> board = new ArrayList<>(offerTileList);
+            List<DefaultTileDTO> defs  = new ArrayList<>(defaultTileList);
+            submitTask(() -> clientStub.boardInitialize(board, defs));
+        }
+        // 3. Market (top cards + bottom cards + top buildings)
+        if (topCards != null) {
+            List<CardDTO>     top  = new ArrayList<>(topCards);
+            List<CardDTO>     bot  = bottomCards  != null ? new ArrayList<>(bottomCards)  : new ArrayList<>();
+            List<BuildingDTO> bld  = topBuildings != null ? new ArrayList<>(topBuildings) : new ArrayList<>();
+            submitTask(() -> clientStub.initializeMarket(top, bot, bld));
+        }
+        // 4. Updated food / PP for every player
+        for (PlayerDTO dto : players) {
+            final String nick = dto.getNickName();
+            final int food    = dto.getFood();
+            final int pp      = dto.getPrestigePoint();
+            submitTask(() -> clientStub.playerUpdateFood(nick, food));
+            submitTask(() -> clientStub.playerUpdatePP(nick, pp));
+        }
+        // 5. Era and game phase (phase change is what unlocks the TUI waiting loop)
+        ERA era = currentEra;
+        if (era != null) submitTask(() -> clientStub.eraChanged(era));
+        GAME_PHASE phase = currentGamePhase;
+        if (phase != null) submitTask(() -> clientStub.gamePhaseChanged(phase));
+        // 6. Whose turn it is
+        String toPlace = playerToPlace;
+        String toPlay  = playerToPlay;
+        if (toPlace != null && playersMap.containsKey(toPlace)) {
+            PlayerDTO dto = playersMap.get(toPlace);
+            submitTask(() -> clientStub.playerToPlaceChanged(dto));
+        } else if (toPlay != null && playersMap.containsKey(toPlay)) {
+            PlayerDTO dto = playersMap.get(toPlay);
+            submitTask(() -> clientStub.playerToPlayChanged(dto));
+        }
+    }
+
     public void notifyPlayerDisconnected(String disconnectedNickname) {
         if (!connected) return;
         submitTask(() -> clientStub.playerDisconnected(disconnectedNickname));
+    }
+
+    public void notifyPlayerReconnected(String reconnectedNickname) {
+        if (!connected) return;
+        submitTask(() -> clientStub.playerReconnected(reconnectedNickname));
     }
 
     @Override

@@ -561,6 +561,11 @@ public class MarketController implements GUIObserver {
     }
 
     @Override
+    public void onPlayerReconnected(String nickname) {
+        Platform.runLater(() -> disconnectPopup.addReconnection(nickname));
+    }
+
+    @Override
     public void onServerDead() {
         Platform.runLater(() -> {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(

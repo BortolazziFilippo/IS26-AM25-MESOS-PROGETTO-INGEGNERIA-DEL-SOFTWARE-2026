@@ -680,6 +680,14 @@ public class Game implements GameView {
     }
 
     /**
+     * Re-adds a reconnected player to the end of both turn queues.
+     * @param player the reconnected player.
+     */
+    public void reAddToTurnQueues(Player player) {
+        turnManager.reAddPlayer(player);
+    }
+
+    /**
      * Advances the placing phase to the next connected player without placing a totem.
      * Used when the current placing player has disconnected mid-phase.
      * @throws EndOfPlacingPhaseException if no more connected players need to place.

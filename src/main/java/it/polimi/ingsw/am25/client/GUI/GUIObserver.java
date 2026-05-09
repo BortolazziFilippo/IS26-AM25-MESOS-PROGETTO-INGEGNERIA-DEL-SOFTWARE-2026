@@ -30,6 +30,7 @@ public interface GUIObserver {
     default void onWinners(List<PlayerDTO> winners) {}
     default void onAskExtraDraw(List<CardDTO> cards, List<BuildingDTO> buildings) {}
     default void onPlayerDisconnected(String nickname) {}
+    default void onPlayerReconnected(String nickname) {}
     default void onServerDead() {}
 
 }
