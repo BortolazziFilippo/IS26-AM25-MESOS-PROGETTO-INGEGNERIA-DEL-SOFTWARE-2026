@@ -103,7 +103,9 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.disconnectCallback = newDisconnectCallback;
         this.executor = Executors.newSingleThreadExecutor();
         this.connected = true;
-        this.missedPings.set(0);
+        // Start negative so the watchdog needs ~21s (7 ticks × 3s) before it can
+        // declare this player disconnected again — same window as the startup grace.
+        this.missedPings.set(-4);
     }
 
     /**
