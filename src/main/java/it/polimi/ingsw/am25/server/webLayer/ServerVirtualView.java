@@ -300,18 +300,7 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     }
 
     @Override
-    public void eventSolved (int eventID, EVENT_TYPE eventType) {
-        final String description = "Evento #" + eventID + " (" + eventType + ") risolto";
-        // Passa attraverso il single-thread executor per preservare l'ordine FIFO
-        // rispetto a notifyPP/Food, gamePhaseChanged, playerToPlay/PlaceChanged.
-        // In precedenza era sincrono e bypassava la coda, generando una race
-        // condition con i task asincroni già in coda.
-        executor.submit(() -> {
-            try {
-                clientStub.eventResolved(eventID, eventType);
-            } catch (RemoteException e) {
-                logServerError("Failed to notify event resolved: " + description);
-            }
-        });
+    public void eventSolved(int eventID, EVENT_TYPE eventType) {
+        submitTask(() -> clientStub.eventResolved(eventID, eventType));
     }
 }
