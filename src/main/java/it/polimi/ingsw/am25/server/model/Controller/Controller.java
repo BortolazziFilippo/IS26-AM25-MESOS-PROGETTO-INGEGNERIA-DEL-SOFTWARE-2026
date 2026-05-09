@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.server.model.Controller;
 
 import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
@@ -329,6 +330,69 @@ public class Controller {
      */
     private boolean checkIsPlayerPlayingTurn(Player player) {
         return game.getPlayerToPlay().equals(player);
+    }
+
+    // --- DISCONNECTION ---
+
+    /**
+     * Handles a player disconnection at the game-logic level.
+     * <ol>
+     *   <li>Marks the player as {@link CONNECTION_STATUS#DISCONNECTED} in the model.</li>
+     *   <li>Removes them from the placing/playing turn queues.</li>
+     *   <li>Ends the game immediately if only one (or zero) connected players remain.</li>
+     *   <li>If it was the disconnected player's turn, automatically advances to the next player.</li>
+     * </ol>
+     * @param nickname the nickname of the disconnected player.
+     */
+    public synchronized void notifyPlayerDisconnected(String nickname) {
+        if (game == null) return;
+
+        // 1. Find and mark the player as disconnected
+        Player disconnectedPlayer = game.getPlayerList().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst().orElse(null);
+        if (disconnectedPlayer == null) return;
+        disconnectedPlayer.setConnection(CONNECTION_STATUS.DISCONNECTED);
+
+        // 2. Remove from turn queues so the game never waits for them
+        game.removeFromTurnQueues(disconnectedPlayer);
+
+        // 3. Count remaining connected players
+        long connectedCount = game.getPlayerList().stream()
+                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
+                .count();
+        if (connectedCount <= 1) {
+            forceEndGame();
+            return;
+        }
+
+        // 4. If it was this player's turn, advance the game
+        GAME_PHASE phase = game.getGamePhase();
+        if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            Player toPlace = game.getPlayerToPlace();
+            if (toPlace != null && toPlace.getNickname().equals(nickname)) {
+                try {
+                    game.skipDisconnectedPlacingPlayer();
+                } catch (EndOfPlacingPhaseException e) {
+                    game.advancePlayingPhase();
+                }
+            }
+        } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
+            Player toPlay = game.getPlayerToPlay();
+            if (toPlay != null && toPlay.getNickname().equals(nickname)) {
+                advanceTurnOrRound();
+            }
+        }
+    }
+
+    /**
+     * Forces the game to end immediately, running end-game scoring and notifying all clients.
+     * Called when too few connected players remain to continue.
+     */
+    public void forceEndGame() {
+        if (game == null) return;
+        game.endGameIter();
+        game.checkWinner();
     }
 
 }

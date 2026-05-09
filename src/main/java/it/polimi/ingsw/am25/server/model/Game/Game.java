@@ -156,6 +156,20 @@ public class Game implements GameView {
     }
 
     /**
+     * Advances the placing turn without an actual totem placement, used when the current
+     * placing player has disconnected. Mirrors the tail of {@link #placePlayer} after a
+     * successful placement.
+     */
+    public void forceAdvancePlacing() {
+        try {
+            this.playerToPlace = turnManager.getNextPlacingPlayer();
+            notifyPlayerToPlaceChanged();
+        } catch (EndOfPlacingPhaseException e) {
+            advancePlayingPhase();
+        }
+    }
+
+    /**
      * Transitions the game from the placing phase to the playing (resolve-action) phase.
      * Updates the playing order, sets the first player to play, and — if that player is
      * on offer tile 'A' (no actions, only food) — automatically advances to the next player.
@@ -652,6 +666,27 @@ public class Game implements GameView {
      */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
+    }
+
+    // --- DISCONNECTION SUPPORT ---
+
+    /**
+     * Removes the given player from both the placing and playing turn queues immediately.
+     * Called when a player disconnects so the game never waits for them.
+     * @param player the disconnected player.
+     */
+    public void removeFromTurnQueues(Player player) {
+        turnManager.removePlayer(player);
+    }
+
+    /**
+     * Advances the placing phase to the next connected player without placing a totem.
+     * Used when the current placing player has disconnected mid-phase.
+     * @throws EndOfPlacingPhaseException if no more connected players need to place.
+     */
+    public void skipDisconnectedPlacingPlayer() throws EndOfPlacingPhaseException {
+        this.playerToPlace = turnManager.getNextPlacingPlayer();
+        notifyPlayerToPlaceChanged();
     }
 
 }

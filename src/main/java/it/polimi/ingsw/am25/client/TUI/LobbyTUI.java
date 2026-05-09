@@ -137,7 +137,6 @@ public class LobbyTUI {
                     }
                 } else {
                     System.out.println("\n✅ Tutti i giocatori connessi! La partita inizia!");
-                    utils.pauseAndClear();
                     return player;
                 }
             }
@@ -184,7 +183,6 @@ public class LobbyTUI {
             }
 
             System.out.println("\n✅ Tutti i giocatori connessi! La partita inizia!");
-            utils.pauseAndClear();
             return player;
         }
     }

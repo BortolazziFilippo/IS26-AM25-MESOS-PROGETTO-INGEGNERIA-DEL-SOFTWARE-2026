@@ -204,4 +204,12 @@ public interface ClientRemoteInterface extends Remote {
     void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException;
 
     void sendRank(Map<Integer,List<String>> Leaderboard) throws RemoteException;
+
+    /**
+     * Notifies the client that a player has disconnected from the game.
+     * The client uses this to mark the player as DISCONNESSO in the UI.
+     * @param nickname the nickname of the disconnected player.
+     * @throws RemoteException if the RMI call fails.
+     */
+    void playerDisconnected(String nickname) throws RemoteException;
 }
