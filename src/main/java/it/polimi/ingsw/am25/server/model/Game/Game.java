@@ -50,7 +50,7 @@ public class Game implements GameView {
      */
     public Game(Player playerHost, int playerNumber) {
         if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost nullo");
+            throw new IllegalArgumentException("playerHost is null");
         }
         this.playerNumber = playerNumber;
         this.gamePhase = GAME_PHASE.SETUP;
@@ -61,10 +61,6 @@ public class Game implements GameView {
         this.playerHost = playerHost;
         this.players = new HashMap<>();
         players.put(playerHost.getNickname(), playerHost);
-        //standard null-guard for the constructor argument
-        if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost is null");
-        }
         notifyGameChanged();
     }
 
@@ -213,9 +209,8 @@ public class Game implements GameView {
      * @return the list of winning players (one or more).
      */
     public List<Player> checkWinner() {
-        // This is only for completeness, but if the constructor works it should never happen
         if (this.players == null || this.players.isEmpty()) {
-            throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
+            throw new IllegalStateException("No players found");
         }
 
         List<Player> winners = players.values().stream()
@@ -292,7 +287,6 @@ public class Game implements GameView {
                 notifyGamePhaseChanged();
                 notifyPlayerToPlaceChanged();
             } catch (EndOfPlacingPhaseException e) {
-                // should never be triggered
                 e.printStackTrace();
             }
         } else {

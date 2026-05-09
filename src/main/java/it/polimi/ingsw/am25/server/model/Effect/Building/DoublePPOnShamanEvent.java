@@ -12,9 +12,6 @@ public class DoublePPOnShamanEvent extends BuildingEffect{
     private boolean flag = false;
     private int prevPP;
 
-    /**
-     * Default constructor for DoublePPOnShamanEvent.
-     */
     public DoublePPOnShamanEvent() {
     }
 

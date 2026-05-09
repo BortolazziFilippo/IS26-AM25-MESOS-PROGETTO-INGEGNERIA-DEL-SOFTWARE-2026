@@ -15,13 +15,11 @@ public class BuilderCard extends Card{
     private final int builderID;
 
     /**
-     * Default constructor for BuilderCard.
-     *
-     * @param era                Card ERA
-     * @param cardType           Card type
-     * @param foodDiscount       food discount applied when buying a building
-     * @param finalPrestigePoint prestige points awarded at end of game
-     * @param builderID          unique identifier shared by cards with the same effect
+     * @param era                the era this card belongs to.
+     * @param cardType           the card type (should be {@code CARD_TYPE.BUILDER}).
+     * @param foodDiscount       food discount applied when buying a building.
+     * @param finalPrestigePoint prestige points awarded at end of game.
+     * @param builderID          unique identifier shared by cards with the same effect.
      */
     public BuilderCard(ERA era, CARD_TYPE cardType, int foodDiscount, int finalPrestigePoint, int builderID){
         this.era = era;
@@ -31,10 +29,7 @@ public class BuilderCard extends Card{
         this.builderID = builderID;
     }
 
-    /**
-     * Returns food discount.
-     * @return the result of the operation.
-     */
+    /** @return the food discount this builder provides when buying a building. */
     public int getFoodDiscount() {
         return foodDiscount;
     }
@@ -43,34 +38,25 @@ public class BuilderCard extends Card{
         return builderID;
     }
 
-    /**
-     * Sets final prestige point.
-     * @param finalPrestigePoint parameter finalPrestigePoint.
-     */
+    /** @param finalPrestigePoint the new end-game prestige-point value (used by doubling effects). */
     public void setFinalPrestigePoint(int finalPrestigePoint) {
         this.finalPrestigePoint = finalPrestigePoint;
     }
 
-    /**
-     * Returns final prestige point.
-     * @return the result of the operation.
-     */
+    /** @return the prestige points this builder awards at end of game. */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
     }
-    /**
-     * Executes add card to player.
-     * @param player parameter player.
-     */
+
+    /** Adds this card to the player's tribe. */
     @Override
     public void addCardToPlayer(Player player) {
         player.addCardToTribe(this);
     }
 
     /**
-     * Executes equals.
-     * @param obj parameter obj.
-     * @return the result of the operation.
+     * @param obj the object to compare against.
+     * @return true if {@code obj} is a BuilderCard with the same era, type, discount, and prestige points.
      */
     @Override
     public boolean equals(Object obj) {
@@ -81,10 +67,8 @@ public class BuilderCard extends Card{
             return false;
         }
     }
-    /**
-     * Executes to dto.
-     * @return the result of the operation.
-     */
+
+    /** @return a CardDTO snapshot of this card for network transfer. */
     @Override
     public CardDTO toDTO() {
         return new CardDTO(this);

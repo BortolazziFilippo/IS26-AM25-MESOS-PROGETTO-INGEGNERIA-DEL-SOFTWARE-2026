@@ -11,9 +11,6 @@ public class DrawOneMoreCard extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final boolean turnFinished = false; /* flag to signal the end of a round; the corresponding game-layer method still needs to be reviewed */
 
-    /**
-     * Default constructor for DrawOneMoreCard.
-     */
     public DrawOneMoreCard() {
     }
 
@@ -28,7 +25,6 @@ public class DrawOneMoreCard extends BuildingEffect {
     public void applyEffect(Player player) {
         UtilitiesFunction.logInfo(LOG_PREFIX,
                 "DrawOneMoreCard: requesting extra card draw for player '" + player.getNickname() + "'");
-        // Scatena la richiesta verso il Client
         player.requestExtraDraw();
     }
 }

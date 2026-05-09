@@ -19,19 +19,20 @@ public class EventDTO extends CardDTO implements Serializable {
     private final EVENT_TYPE eventType;
 
     /**
-     * Creates a new event dto instance.
-     * @param eventID parameter eventID.
-     * @param era parameter era.
-     * @param eventType parameter eventType.
+     * @param eventID   the unique event identifier.
+     * @param era       the era this event belongs to.
+     * @param eventType the category of event (hunt, sustenance, etc.).
      */
     public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
         super(era,CARD_TYPE.EVENT);
         this.eventID = eventID;
         this.eventType = eventType;
     }
+
     /**
-     * Creates a new event dto instance.
-     * @param eventCard parameter eventCard.
+     * Builds a DTO snapshot from an EventCard instance.
+     *
+     * @param eventCard the source EventCard to snapshot.
      */
     public EventDTO(EventCard eventCard) {
         super(eventCard.getEra(), CARD_TYPE.EVENT);
@@ -39,25 +40,18 @@ public class EventDTO extends CardDTO implements Serializable {
         this.eventType = eventCard.getEventType();
     }
 
-    /**
-     * Returns event id.
-     * @return the result of the operation.
-     */
+    /** @return the unique event identifier. */
     public int getEventID() {
         return eventID;
     }
 
-    /**
-     * Returns event type.
-     * @return the result of the operation.
-     */
+    /** @return the category of event (hunt, sustenance, shamanic ritual, paintings). */
     public EVENT_TYPE getEventType() {
         return eventType;
     }
 
     /**
-     * Executes to string.
-     * @return the result of the operation.
+     * Returns a human-readable string shown in the TUI describing the event's parameters.
      */
     @Override
     public String toString() {

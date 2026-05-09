@@ -18,9 +18,6 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
     private List<Card> beforeTurnCards = new ArrayList<>();
     private final List<InventorCard> pairsCards = new ArrayList<>();
 
-    /**
-     * Default constructor for FoodOnNewCoupleInventors.
-     */
     public FoodOnNewCoupleInventors() {
     }
     /**

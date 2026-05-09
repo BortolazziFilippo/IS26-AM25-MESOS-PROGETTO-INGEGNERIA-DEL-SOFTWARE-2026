@@ -12,36 +12,30 @@ public class ActionDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     int drawTop;
     int drawBot;
+
     /**
-     * Creates a new action dto instance.
-     * @param action parameter action.
+     * @param action the Action whose draw counts to copy.
      */
     public ActionDTO(Action action){
         this.drawBot=action.drawBot;
         this.drawTop=action.drawTop;
     }
+
     /**
-     * Creates a new action dto instance.
-     * @param drawTop parameter drawTop.
-     * @param drawBot parameter drawBot.
+     * @param drawTop number of top-row draws available.
+     * @param drawBot number of bottom-row draws available.
      */
     public ActionDTO(int drawTop,int drawBot){
         this.drawBot=drawBot;
         this.drawTop=drawTop;
     }
 
-    /**
-     * Returns draw top.
-     * @return the result of the operation.
-     */
+    /** @return the number of top-row draws available. */
     public int getDrawTop() {
         return drawTop;
     }
 
-    /**
-     * Returns draw bot.
-     * @return the result of the operation.
-     */
+    /** @return the number of bottom-row draws available. */
     public int getDrawBot() {
         return drawBot;
     }
