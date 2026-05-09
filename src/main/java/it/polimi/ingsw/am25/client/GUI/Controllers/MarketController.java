@@ -557,6 +557,21 @@ public class MarketController implements GUIObserver {
     }
 
     @Override
+    public void onServerDead() {
+        Platform.runLater(() -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Errore di connessione");
+            alert.setHeaderText(null);
+            alert.setContentText("Connessione al server persa");
+            alert.getDialogPane().getStylesheets().add(
+                    getClass().getResource("/FXML/Market.css").toExternalForm());
+            alert.setOnHidden(e -> Platform.exit());
+            alert.show();
+        });
+    }
+
+    @Override
     public void onPlayerPPChanged(String n, int p) {
         if (playerDTO.getNickName().equals(n))
             Platform.runLater(() -> { if (prestigePointLabel != null) prestigePointLabel.setText("Punti Prestigio: " + p); });
