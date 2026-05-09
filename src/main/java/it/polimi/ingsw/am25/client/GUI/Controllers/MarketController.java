@@ -140,12 +140,16 @@ public class MarketController implements GUIObserver {
         // Send heartbeat pings to the server every 3 s so the watchdog doesn't
         // declare this GUI client disconnected (the TUI does the same in ClientTUI).
         Thread pingThread = new Thread(() -> {
+            int failedPings = 0;
             while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
                 try {
                     serverRemoteInterface.ping(playerDTO);
+                    failedPings = 0;
                 } catch (Exception e) {
-                    clientHandler.handleServerDeath();
-                    return;
+                    if (++failedPings >= 3) {
+                        clientHandler.handleServerDeath();
+                        return;
+                    }
                 }
                 try {
                     Thread.sleep(3000);
