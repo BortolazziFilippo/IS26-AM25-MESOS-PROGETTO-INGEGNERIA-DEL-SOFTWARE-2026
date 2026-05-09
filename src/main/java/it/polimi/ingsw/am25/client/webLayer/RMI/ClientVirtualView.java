@@ -116,6 +116,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * The TUI drains this queue each iteration and prints a notification.
      */
     private final Queue<String> recentDisconnections = new ConcurrentLinkedQueue<>();
+    /**
+     * Queue of nicknames whose reconnection has not yet been displayed to the user.
+     * The TUI drains this queue each iteration and prints a notification.
+     */
+    private final Queue<String> recentReconnections = new ConcurrentLinkedQueue<>();
     /** {@code true} when the server has been detected as unreachable. */
     public volatile boolean serverDead = false;
 
@@ -779,6 +784,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void playerReconnected(String nickname) throws RemoteException {
         disconnectedPlayers.remove(nickname);
+        recentReconnections.add(nickname);
         updateObservers(obs -> obs.onPlayerReconnected(nickname));
     }
 
@@ -800,6 +806,20 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         List<String> result = new ArrayList<>();
         String n;
         while ((n = recentDisconnections.poll()) != null) {
+            result.add(n);
+        }
+        return result;
+    }
+
+    /**
+     * Drains and returns all player nicknames whose reconnection has not yet been
+     * displayed to the user. Each nickname appears at most once.
+     * @return list of recently-reconnected player nicknames (may be empty).
+     */
+    public List<String> drainRecentReconnections() {
+        List<String> result = new ArrayList<>();
+        String n;
+        while ((n = recentReconnections.poll()) != null) {
             result.add(n);
         }
         return result;

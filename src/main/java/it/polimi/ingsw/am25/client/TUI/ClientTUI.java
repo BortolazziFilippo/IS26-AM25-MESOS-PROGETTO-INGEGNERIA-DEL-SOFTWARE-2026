@@ -99,12 +99,16 @@ public class ClientTUI {
                 return;
             }
 
-            // Show a notification for every player that disconnected since last iteration
+            // Show a notification for every player that disconnected/reconnected since last iteration
             List<String> disconnected = clientHandler.drainRecentDisconnections();
-            if (!disconnected.isEmpty()) {
+            List<String> reconnected = clientHandler.drainRecentReconnections();
+            if (!disconnected.isEmpty() || !reconnected.isEmpty()) {
                 utils.clearScreen();
                 for (String dc : disconnected) {
                     System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso dalla partita.");
+                }
+                for (String rc : reconnected) {
+                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso alla partita.");
                 }
                 utils.pauseAndClear();
             }
@@ -252,12 +256,16 @@ public class ClientTUI {
 
             if (isMyTurn()) break;
 
-            // Show disconnection notices while waiting
+            // Show disconnection/reconnection notices while waiting
             List<String> dcWhileWaiting = clientHandler.drainRecentDisconnections();
-            if (!dcWhileWaiting.isEmpty()) {
+            List<String> rcWhileWaiting = clientHandler.drainRecentReconnections();
+            if (!dcWhileWaiting.isEmpty() || !rcWhileWaiting.isEmpty()) {
                 System.out.println();
                 for (String dc : dcWhileWaiting) {
                     System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso.");
+                }
+                for (String rc : rcWhileWaiting) {
+                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso.");
                 }
                 if (!isMyTurn()) printWaitingScreen();
             }
