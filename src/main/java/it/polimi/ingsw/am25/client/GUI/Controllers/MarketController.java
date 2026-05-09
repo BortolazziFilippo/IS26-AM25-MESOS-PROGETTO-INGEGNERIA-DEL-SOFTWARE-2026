@@ -136,6 +136,28 @@ public class MarketController implements GUIObserver {
         // Keep SplitPane top-anchor in sync with whatever height the header actually needs.
         headerHBox.heightProperty().addListener((obs, old, newH) ->
                 AnchorPane.setTopAnchor(splitPane, newH.doubleValue()));
+
+        // Send heartbeat pings to the server every 3 s so the watchdog doesn't
+        // declare this GUI client disconnected (the TUI does the same in ClientTUI).
+        Thread pingThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
+                try {
+                    serverRemoteInterface.ping(playerDTO);
+                } catch (Exception e) {
+                    clientHandler.handleServerDeath();
+                    return;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+        pingThread.setDaemon(true);
+        pingThread.setName("gui-heartbeat-ping");
+        pingThread.start();
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
         if (skipTurnButton != null) skipTurnButton.setDisable(true);
