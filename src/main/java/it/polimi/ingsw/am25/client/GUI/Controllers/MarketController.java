@@ -262,8 +262,8 @@ public class MarketController implements GUIObserver {
 
             Stage stage = new Stage();
             stage.setTitle("Stato dei giocatori");
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
+            stage.setScene(new Scene(root));
+            stage.setOnHidden(e -> controller.unregister());
             stage.show();
         } catch (Exception e) {
             GUIEffects.showError("Impossibile aprire lo stato giocatori: " + e.getMessage());
