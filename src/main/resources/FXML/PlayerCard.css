@@ -1,0 +1,139 @@
+/* ── PlayerCard ─────────────────────────────────────────────── */
+
+.player-card {
+    -fx-border-width: 3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    /* default (nessun totem) */
+    -fx-border-color: #888888;
+    -fx-background-color: #f8f8f8;
+}
+
+.player-header {
+    -fx-padding: 8 12 8 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-radius: 5 5 0 0;
+    /* default */
+    -fx-background-color: #888888;
+}
+
+.player-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.player-color-tag {
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.player-status-online {
+    -fx-font-size: 14px;
+    -fx-text-fill: #ccffcc;
+}
+
+.player-status-disconnected {
+    -fx-font-size: 14px;
+    -fx-text-fill: #ffcc44;
+}
+
+.player-me-tag {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffee88;
+}
+
+/* ── Stats row ─────────────────────────────────────────────── */
+
+.stats-row {
+    -fx-padding: 8 12 4 12;
+    -fx-spacing: 30;
+}
+
+.stat-key {
+    -fx-font-size: 11px;
+    -fx-text-fill: #555555;
+}
+
+.stat-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111111;
+}
+
+/* ── Tribe section ─────────────────────────────────────────── */
+
+.tribe-section {
+    -fx-padding: 4 12 10 12;
+    -fx-spacing: 4;
+}
+
+.tribe-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.tribe-row-main {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #222222;
+}
+
+.tribe-row-detail {
+    -fx-font-size: 12px;
+    -fx-text-fill: #555555;
+}
+
+.tribe-building-entry {
+    -fx-font-size: 11px;
+    -fx-text-fill: #444444;
+}
+
+.tribe-empty {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888888;
+}
+
+/* ── Totem colors ──────────────────────────────────────────── */
+
+.totem-red {
+    -fx-border-color: #cc3333;
+    -fx-background-color: #fdf0f0;
+}
+.totem-red .player-header {
+    -fx-background-color: #cc3333;
+}
+
+.totem-blue {
+    -fx-border-color: #2255cc;
+    -fx-background-color: #f0f3fd;
+}
+.totem-blue .player-header {
+    -fx-background-color: #2255cc;
+}
+
+.totem-yellow {
+    -fx-border-color: #bb9900;
+    -fx-background-color: #fdfbf0;
+}
+.totem-yellow .player-header {
+    -fx-background-color: #bb9900;
+}
+
+.totem-white {
+    -fx-border-color: #888888;
+    -fx-background-color: #f8f8f8;
+}
+.totem-white .player-header {
+    -fx-background-color: #888888;
+}
+
+.totem-purple {
+    -fx-border-color: #8822cc;
+    -fx-background-color: #f7f0fd;
+}
+.totem-purple .player-header {
+    -fx-background-color: #8822cc;
+}

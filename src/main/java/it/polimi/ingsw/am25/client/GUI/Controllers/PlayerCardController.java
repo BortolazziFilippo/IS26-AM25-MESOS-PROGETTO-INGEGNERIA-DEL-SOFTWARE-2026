@@ -17,14 +17,14 @@ import java.util.stream.Collectors;
 /**
  * Controller for PlayerCard.fxml.
  *
- * <p>After FXMLLoader creates this controller via the no-arg constructor,
- * call {@link #populate(PlayerDTO, boolean, boolean)} to inject player data.
- * The method fills all @FXML labels and builds the dynamic tribe rows.
+ * <p>After FXMLLoader creates this controller, call
+ * {@link #populate(PlayerDTO, boolean, boolean)} to inject player data.
+ * Totem color is applied by adding a CSS class (e.g. {@code totem-red})
+ * to {@code cardRoot}; all other styles come from PlayerCard.css.
  */
 public class PlayerCardController {
 
     @FXML private VBox  cardRoot;
-    @FXML private HBox  headerBox;
     @FXML private Label nameLabel;
     @FXML private Label colorLabel;
     @FXML private Label statusLabel;
@@ -42,7 +42,6 @@ public class PlayerCardController {
 
     /**
      * Fills the card with the given player's data.
-     * Must be called after FXMLLoader has loaded the FXML and run initialize().
      *
      * @param player       the player to display.
      * @param isMe         true if this player is the local player.
@@ -51,13 +50,18 @@ public class PlayerCardController {
     public void populate(PlayerDTO player, boolean isMe, boolean disconnected) {
         List<CardDTO> tribe = player.getCardDtoList();
 
-        applyColors(player.getColorTotem());
+        cardRoot.getStyleClass().add(totemStyleClass(player.getColorTotem()));
 
         nameLabel.setText(player.getNickName());
         colorLabel.setText("[" + colorName(player.getColorTotem()) + "]");
-        statusLabel.setText(disconnected ? " [DISCONNESSO]" : " [ONLINE]");
-        statusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: "
-                + (disconnected ? "#ffcc44" : "#ccffcc") + ";");
+
+        if (disconnected) {
+            statusLabel.setText(" [DISCONNESSO]");
+            statusLabel.getStyleClass().remove("player-status-online");
+            statusLabel.getStyleClass().add("player-status-disconnected");
+        } else {
+            statusLabel.setText(" [ONLINE]");
+        }
 
         meLabel.setVisible(isMe);
         meLabel.setManaged(isMe);
@@ -71,8 +75,7 @@ public class PlayerCardController {
         tribeTitleLabel.setText("TRIBU' (" + total + " carte):");
 
         if (tribe == null || tribe.isEmpty()) {
-            tribeSection.getChildren().add(
-                    makeLabel("  (nessuna carta)", 12, false, "#888888"));
+            tribeSection.getChildren().add(styledLabel("  (nessuna carta)", "tribe-empty"));
         } else {
             addHunterRow(tribe);
             addGathererRow(tribe);
@@ -82,28 +85,6 @@ public class PlayerCardController {
             addInventorRow(tribe);
             addBuildingRows(tribe);
         }
-    }
-
-    // =========================================================
-    // Color application
-    // =========================================================
-
-    private void applyColors(COLOR color) {
-        String border = borderColor(color);
-        String bg     = cardBackground(color);
-        cardRoot.setStyle(
-            "-fx-border-color: " + border + ";" +
-            "-fx-border-width: 3;" +
-            "-fx-border-radius: 8;" +
-            "-fx-background-color: " + bg + ";" +
-            "-fx-background-radius: 8;"
-        );
-        headerBox.setStyle(
-            "-fx-padding: 8 12 8 12;" +
-            "-fx-alignment: CENTER_LEFT;" +
-            "-fx-background-color: " + border + ";" +
-            "-fx-background-radius: 5 5 0 0;"
-        );
     }
 
     // =========================================================
@@ -165,13 +146,13 @@ public class PlayerCardController {
         if (list.isEmpty()) return;
         tribeSection.getChildren().add(tribeRow("Edifici: " + list.size(), ""));
         for (CardDTO card : list)
-            tribeSection.getChildren().add(makeLabel("     > " + card, 11, false, "#444444"));
+            tribeSection.getChildren().add(styledLabel("     > " + card, "tribe-building-entry"));
     }
 
     private HBox tribeRow(String left, String right) {
         HBox row = new HBox(8);
-        row.getChildren().add(makeLabel(left, 12, true, "#222222"));
-        if (!right.isEmpty()) row.getChildren().add(makeLabel(right, 12, false, "#555555"));
+        row.getChildren().add(styledLabel(left, "tribe-row-main"));
+        if (!right.isEmpty()) row.getChildren().add(styledLabel(right, "tribe-row-detail"));
         return row;
     }
 
@@ -239,35 +220,22 @@ public class PlayerCardController {
         };
     }
 
-    private String borderColor(COLOR color) {
-        if (color == null) return "#666666";
+    /** Returns the CSS style class name corresponding to the given totem color. */
+    private String totemStyleClass(COLOR color) {
+        if (color == null) return "totem-white";
         return switch (color) {
-            case RED    -> "#cc3333";
-            case BLUE   -> "#2255cc";
-            case YELLOW -> "#bb9900";
-            case WHITE  -> "#888888";
-            case PURPLE -> "#8822cc";
+            case RED    -> "totem-red";
+            case BLUE   -> "totem-blue";
+            case YELLOW -> "totem-yellow";
+            case WHITE  -> "totem-white";
+            case PURPLE -> "totem-purple";
         };
     }
 
-    private String cardBackground(COLOR color) {
-        if (color == null) return "#f5f5f5";
-        return switch (color) {
-            case RED    -> "#fdf0f0";
-            case BLUE   -> "#f0f3fd";
-            case YELLOW -> "#fdfbf0";
-            case WHITE  -> "#f8f8f8";
-            case PURPLE -> "#f7f0fd";
-        };
-    }
-
-    private Label makeLabel(String text, double size, boolean bold, String color) {
+    /** Creates a Label with the given CSS style class applied. */
+    private Label styledLabel(String text, String styleClass) {
         Label lbl = new Label(text);
-        lbl.setStyle(
-            "-fx-font-size: " + size + "px;" +
-            (bold ? "-fx-font-weight: bold;" : "") +
-            "-fx-text-fill: " + color + ";"
-        );
+        lbl.getStyleClass().add(styleClass);
         return lbl;
     }
 }
