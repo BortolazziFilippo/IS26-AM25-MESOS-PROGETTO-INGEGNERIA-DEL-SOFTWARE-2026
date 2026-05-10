@@ -78,6 +78,18 @@ public class TurnManager {
         placingOrder.removeIf(p -> p.getNickname().equals(player.getNickname()));
         playingOrder.removeIf(p -> p.getNickname().equals(player.getNickname()));
     }
+
+    /**
+     * Re-adds a reconnected player to the end of both turn queues,
+     * provided they are not already present.
+     * @param player the reconnected player.
+     */
+    public void reAddPlayer(Player player) {
+        boolean inPlacing = placingOrder.stream().anyMatch(p -> p.getNickname().equals(player.getNickname()));
+        boolean inPlaying = playingOrder.stream().anyMatch(p -> p.getNickname().equals(player.getNickname()));
+        if (!inPlacing) placingOrder.add(player);
+        if (!inPlaying) playingOrder.add(player);
+    }
     
 
 

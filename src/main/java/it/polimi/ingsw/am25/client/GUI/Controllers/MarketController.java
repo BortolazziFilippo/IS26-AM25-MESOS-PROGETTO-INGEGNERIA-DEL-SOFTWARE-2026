@@ -13,8 +13,11 @@ import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -23,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -136,6 +140,32 @@ public class MarketController implements GUIObserver {
         // Keep SplitPane top-anchor in sync with whatever height the header actually needs.
         headerHBox.heightProperty().addListener((obs, old, newH) ->
                 AnchorPane.setTopAnchor(splitPane, newH.doubleValue()));
+
+        // Send heartbeat pings to the server every 3 s so the watchdog doesn't
+        // declare this GUI client disconnected (the TUI does the same in ClientTUI).
+        Thread pingThread = new Thread(() -> {
+            int failedPings = 0;
+            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
+                try {
+                    serverRemoteInterface.ping(playerDTO);
+                    failedPings = 0;
+                } catch (Exception e) {
+                    if (++failedPings >= 3) {
+                        clientHandler.handleServerDeath();
+                        return;
+                    }
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+        pingThread.setDaemon(true);
+        pingThread.setName("gui-heartbeat-ping");
+        pingThread.start();
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
         if (skipTurnButton != null) skipTurnButton.setDisable(true);
@@ -222,7 +252,22 @@ public class MarketController implements GUIObserver {
 
     @FXML
     private void showPlayerStatus() {
-        //TODO show all players' status (ROBERT)
+        try {
+            PlayerStatusController controller = new PlayerStatusController();
+            controller.init(clientHandler, playerDTO);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/PlayerStatus.fxml"));
+            loader.setController(controller);
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Stato dei giocatori");
+            stage.setScene(new Scene(root));
+            stage.setOnHidden(e -> controller.unregister());
+            stage.show();
+        } catch (Exception e) {
+            GUIEffects.showError("Impossibile aprire lo stato giocatori: " + e.getMessage());
+        }
     }
 
     // =========================================================
@@ -532,6 +577,26 @@ public class MarketController implements GUIObserver {
     @Override
     public void onPlayerDisconnected(String nickname) {
         Platform.runLater(() -> disconnectPopup.addDisconnection(nickname));
+    }
+
+    @Override
+    public void onPlayerReconnected(String nickname) {
+        Platform.runLater(() -> disconnectPopup.addReconnection(nickname));
+    }
+
+    @Override
+    public void onServerDead() {
+        Platform.runLater(() -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Errore di connessione");
+            alert.setHeaderText(null);
+            alert.setContentText("Connessione al server persa");
+            alert.getDialogPane().getStylesheets().add(
+                    getClass().getResource("/FXML/Market.css").toExternalForm());
+            alert.setOnHidden(e -> System.exit(0));
+            alert.show();
+        });
     }
 
     @Override

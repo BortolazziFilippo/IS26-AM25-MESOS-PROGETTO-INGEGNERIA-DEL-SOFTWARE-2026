@@ -395,4 +395,19 @@ public class Controller {
         game.checkWinner();
     }
 
+    /**
+     * Marks a reconnected player as connected again and re-adds them to the end of
+     * the turn queues so they participate from the next turn/round.
+     * @param nickname the nickname of the reconnected player.
+     */
+    public synchronized void notifyPlayerReconnected(String nickname) {
+        if (game == null) return;
+        Player player = game.getPlayerList().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst().orElse(null);
+        if (player == null) return;
+        player.setConnection(CONNECTION_STATUS.CONNECTED);
+        game.reAddToTurnQueues(player);
+    }
+
 }

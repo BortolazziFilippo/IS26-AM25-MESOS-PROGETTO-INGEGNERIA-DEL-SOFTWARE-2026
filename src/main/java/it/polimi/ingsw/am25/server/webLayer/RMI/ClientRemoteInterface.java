@@ -212,4 +212,12 @@ public interface ClientRemoteInterface extends Remote {
      * @throws RemoteException if the RMI call fails.
      */
     void playerDisconnected(String nickname) throws RemoteException;
+
+    /**
+     * Notifies the client that a previously-disconnected player has reconnected.
+     * @param nickname the nickname of the player who reconnected.
+     * @throws RemoteException if the RMI call fails.
+     */
+    void playerReconnected(String nickname) throws RemoteException;
+
 }
