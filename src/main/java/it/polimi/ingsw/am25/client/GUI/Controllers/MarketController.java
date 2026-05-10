@@ -656,7 +656,7 @@ public class MarketController implements GUIObserver {
             alert.setHeaderText(null);
             alert.setContentText("Connessione al server persa");
             alert.getDialogPane().getStylesheets().add(
-                    getClass().getResource("/FXML/Market.css").toExternalForm());
+                    getClass().getResource("/FXML/lobby.css").toExternalForm());
             alert.setOnHidden(e -> System.exit(0));
             alert.show();
         });

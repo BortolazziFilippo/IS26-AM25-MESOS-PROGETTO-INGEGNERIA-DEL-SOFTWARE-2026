@@ -1,32 +1,35 @@
-/* ── palette ── */
-/* sfondo principale: grigio caldo chiaro */
+/* === Market — tema MESOS === */
 
 .root {
-    -fx-background-color: #9a9a9a;
+    -fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);
+    -fx-font-family: "Georgia", "Times New Roman", serif;
 }
 
-/* SplitPane e il suo divisore */
+/* ── SplitPane ─────────────────────────────────────────────── */
+
 .split-pane {
-    -fx-background-color: #9a9a9a;
+    -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
 .split-pane > .split-pane-divider {
-    -fx-background-color: #9a9a9a;
+    -fx-background-color: #6b4a2a;
     -fx-padding: 0 2 0 2;
 }
 
-/* ScrollPane: viewport e sfondo interno */
+/* ── ScrollPane ────────────────────────────────────────────── */
+
 .scroll-pane {
     -fx-background-color: transparent;
-    -fx-background: #9a9a9a;
+    -fx-background: transparent;
 }
 
 .scroll-pane > .viewport {
-    -fx-background-color: #9a9a9a;
+    -fx-background-color: transparent;
 }
 
-/* Pannelli generici */
+/* ── Layout containers ─────────────────────────────────────── */
+
 .border-pane,
 .anchor-pane,
 .vbox,
@@ -34,31 +37,46 @@
     -fx-background-color: transparent;
 }
 
+/* ── Labels ────────────────────────────────────────────────── */
+
+.label {
+    -fx-text-fill: #e8c98b;
+    -fx-font-size: 14px;
+}
+
+/* ── Bottoni ───────────────────────────────────────────────── */
+
 .button {
+    -fx-background-color: linear-gradient(to bottom, #d97a2a, #a04a14);
+    -fx-text-fill: #fff5d8;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1a1a1a;
+    -fx-padding: 10 28 10 28;
+    -fx-background-radius: 8;
+    -fx-border-color: #ffaa44;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.2;
     -fx-cursor: hand;
-    -fx-background-radius: 10;
-
-    /* due layer: ombra nera sotto + colore sopra */
-    -fx-background-color: #000000, #e8e8e8;
-    -fx-background-insets: 4 0 0 0, 0 0 4 0;
-
-    -fx-padding: 10 20 10 20;
-    -fx-translate-y: 0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.45), 10, 0.3, 0, 2);
     -fx-wrap-text: true;
     -fx-text-alignment: center;
 }
 
 .button:hover {
-    /* si alza */
-    -fx-background-insets: 5 0 0 0, 0 0 5 0;
-    -fx-translate-y: -1;
+    -fx-background-color: linear-gradient(to bottom, #ff9530, #c25a18);
+    -fx-effect: dropshadow(gaussian, rgba(255, 140, 0, 0.75), 14, 0.5, 0, 3);
 }
 
 .button:pressed {
-    /* si abbassa (ombra scompare) */
-    -fx-background-insets: 0, 0;
-    -fx-translate-y: 4;
+    -fx-background-color: linear-gradient(to bottom, #a04a14, #7a3210);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.25), 6, 0.2, 0, 1);
+    -fx-translate-y: 2;
+}
+
+.button:disabled {
+    -fx-background-color: #3a2a20;
+    -fx-text-fill: #7a6a55;
+    -fx-border-color: #4a3a28;
+    -fx-effect: none;
+    -fx-opacity: 0.7;
 }
