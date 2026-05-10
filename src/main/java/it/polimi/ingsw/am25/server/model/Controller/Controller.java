@@ -8,11 +8,14 @@ import it.polimi.ingsw.am25.server.model.Game.Game;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.model.persistance.GameMemento;
+import it.polimi.ingsw.am25.server.model.persistance.PersistanceLogger;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * MVC controller for a Mesos game session. Validates player actions against the current
@@ -20,6 +23,7 @@ import java.util.List;
  * transitions (placing → resolve-action → next round → end game).
  */
 public class Controller {
+    PersistanceLogger persistanceLogger = new PersistanceLogger();
     private Game game;
     private List<Player> players;
     private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
@@ -211,10 +215,12 @@ public class Controller {
             game.goNextPlayingPlayer();
         } catch (EndOfPlayingPhaseException e) {
             try {
+                persistanceLogger.save(game.createMemento());
                 game.nextRoundIter();
             } catch (EndGameException ex) {
                 game.endGameIter();
                 game.checkWinner();
+                persistanceLogger.deleteFile();
             }
 
         }
@@ -413,6 +419,15 @@ public class Controller {
         if (player == null) return;
         player.setConnection(CONNECTION_STATUS.CONNECTED);
         game.reAddToTurnQueues(player);
+    }
+
+    public synchronized void loadGame() throws IllegalStateException {
+        Optional<GameMemento> gameMemento= persistanceLogger.load();
+        if(gameMemento.isPresent()) {
+            game.restoreMemento(gameMemento.get());
+        }else {
+            throw new IllegalStateException("Non ci sono game da caricare");
+        }
     }
 
 }

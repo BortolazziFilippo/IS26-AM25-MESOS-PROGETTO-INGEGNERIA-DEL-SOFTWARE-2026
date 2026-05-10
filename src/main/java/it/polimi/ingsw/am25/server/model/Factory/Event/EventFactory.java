@@ -103,6 +103,19 @@ public class EventFactory {
     }
 
     /**
+     * Creates a single EventCard with its effect bound, looked up by event ID.
+     *
+     * @param id the event ID to look up.
+     * @return the matching EventCard with its effect bound.
+     */
+    public EventCard createEventById(int id) {
+        return createEvent().stream()
+            .filter(e -> e.getEventID() == id)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown event ID: " + id));
+    }
+
+    /**
      * Executes log server error.
      *
      * @param message parameter message.

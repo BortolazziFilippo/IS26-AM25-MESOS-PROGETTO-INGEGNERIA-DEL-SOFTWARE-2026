@@ -24,6 +24,7 @@ public class CardDTO implements Serializable {
     private int finalPrestigePoint;
     private boolean hasIcon;
     private int builderID;
+    private int eventID;
 
     /**
      * Constructs a CardDTO from an {@link ArtistCard}.
@@ -150,6 +151,10 @@ public class CardDTO implements Serializable {
 
     public int getBuilderID() {
         return builderID;
+    }
+
+    public int getEventID() {
+        return eventID;
     }
 
     /**

@@ -67,4 +67,11 @@ public class ShamanCard extends Card {
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.SHAMAN
+            && dto.getEra() == this.era
+            && dto.getStarNumber() == this.starNumber;
+    }
 }

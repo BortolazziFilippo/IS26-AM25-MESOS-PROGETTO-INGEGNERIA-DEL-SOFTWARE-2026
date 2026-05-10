@@ -48,4 +48,9 @@ public class GathererCard extends Card {
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.GATHERER && dto.getEra() == this.era;
+    }
 }

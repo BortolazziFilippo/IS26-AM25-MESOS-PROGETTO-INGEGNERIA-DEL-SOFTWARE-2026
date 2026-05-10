@@ -12,6 +12,11 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
+import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
+import it.polimi.ingsw.am25.server.model.persistance.GameMemento;
+import it.polimi.ingsw.am25.server.model.persistance.MementoManager;
+import it.polimi.ingsw.am25.server.model.persistance.PlayerMemento;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.io.IOException;
@@ -26,7 +31,7 @@ import java.util.stream.Collectors;
  * progression, and all game-phase transitions from setup through end-game.
  * Notifies registered {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}s on every state change.
  */
-public class Game implements GameView {
+public class Game implements GameView, MementoManager<GameMemento> {
     private static final String LOG_PREFIX = "[SERVER][GAME]";
     private ERA currentEra = ERA.ERA_I;
     private final Board board;
@@ -35,7 +40,7 @@ public class Game implements GameView {
     private final TurnManager turnManager;
     private final Map<String, Player> players;
     private final Player playerHost;
-    private final int playerNumber;
+    private int playerNumber;
     private GAME_PHASE gamePhase;
     private Player playerToPlace;
     private Player playerToPlay;
@@ -710,4 +715,65 @@ public class Game implements GameView {
         notifyPlayerToPlaceChanged();
     }
 
+    @Override
+    public GameMemento createMemento() {
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Creating game memento (era=" + currentEra + ", phase=" + gamePhase + ")");
+        return new GameMemento(
+                this.currentEra,
+                this.gamePhase,
+                this.playerNumber,
+                this.playerToPlace != null ? this.playerToPlace.getNickname() : null,
+                this.playerToPlay != null ? this.playerToPlay.getNickname() : null,
+                this.players.values().stream().map(Player::createMemento).toList(),
+                this.market.createMemento(),
+                this.board.createMemento()
+        );
+
+    }
+
+    @Override
+    public void restoreMemento(GameMemento memento) {
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring game memento (era=" + memento.getCurrentEra() + ", phase=" + memento.getGamePhase() + ", players=" + memento.getPlayers().size() + ")");
+        // 1. Restore game-level state
+        this.currentEra = memento.getCurrentEra();
+        this.gamePhase = memento.getGamePhase();
+
+        // 2. Recreate players with tribe and buildings
+        this.players.clear();
+        BuildingFactory buildingFactory = new BuildingFactory();
+        for (PlayerMemento pm : memento.getPlayers()) {
+            Player p = new Player(pm.getNickname(), pm.getTotemColor());
+            p.restoreMemento(pm);
+            List<BuildingCard> buildings = pm.getBuildingIDs().stream()
+                    .map(id -> buildingFactory.createBuildingById(id, boardView))
+                    .toList();
+            p.restoreBuildings(buildings);
+            this.players.put(p.getNickname(), p);
+        }
+
+        // 3. Restore market
+        this.market.restoreMemento(memento.getMarket());
+
+        // 4. Clear board tiles and place players on default tiles in saved order
+        this.board.restoreMemento(memento.getBoard());
+        List<String> ordered = memento.getBoard().getOrderedNicknamesOnDefaultTiles();
+        for (int i = 0; i < ordered.size(); i++) {
+            try {
+                board.placePlayerOnDefaultTile(players.get(ordered.get(i)), i);
+            } catch (TileOccupiedException e) {
+                throw new RuntimeException("Error restoring board state", e);
+            }
+        }
+
+        // 5. Sync turn manager with restored board order
+        turnManager.updatePlacingOrder();
+
+        // 6. Restore current placing/playing player references
+        if (memento.getPlayerToPlaceNickname() != null) {
+            this.playerToPlace = this.players.get(memento.getPlayerToPlaceNickname());
+        }
+        if (memento.getPlayerToPlayNickname() != null) {
+            this.playerToPlay = this.players.get(memento.getPlayerToPlayNickname());
+        }
+    }
 }

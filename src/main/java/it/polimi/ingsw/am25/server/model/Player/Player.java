@@ -2,9 +2,12 @@ package it.polimi.ingsw.am25.server.model.Player;
 
 import it.polimi.ingsw.am25.server.model.Card.*;
 import it.polimi.ingsw.am25.server.model.Enums.*;
+import it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.model.persistance.MementoManager;
+import it.polimi.ingsw.am25.server.model.persistance.PlayerMemento;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
@@ -18,10 +21,10 @@ import java.util.function.Consumer;
  * prestige-point total, tribe cards, and buildings. Notifies registered
  * {@link PlayerObserver}s on every state change.
  */
-public class Player {
+public class Player implements MementoManager<PlayerMemento> {
     private static final String LOG_PREFIX = "[SERVER][PLAYER]";
-    private final String nickname;
-    private final Totem totem;
+    private String nickname;
+    private Totem totem;
     private int food;
     private int prestigePoint;
     private final List<Card> tribe;
@@ -483,5 +486,38 @@ public class Player {
         inventorPoints = inventorPoints * getNumberOfDifferentInventorIcon();
         finalPoints = finalPoints + (int) inventorPoints + builderPoints;
         return finalPoints;
+    }
+
+    @Override
+    public PlayerMemento createMemento() {
+        logServerEvent("Creating memento for player '" + nickname + "' (food=" + food + ", pp=" + prestigePoint + ", tribe=" + tribe.size() + ", buildings=" + buildingCards.size() + ")");
+        return new PlayerMemento(
+                this.nickname,
+                this.totem.color(),
+                this.food,
+                this.prestigePoint,
+                this.tribe.stream().map(Card::toDTO).toList(),
+                this.buildingCards.stream().map(BuildingCard::getBuildingID).toList()
+        );
+    }
+
+    @Override
+    public void restoreMemento(PlayerMemento memento) {
+        logServerEvent("Restoring memento for player '" + nickname + "' (food=" + memento.getFood() + ", pp=" + memento.getPrestigePoints() + ", tribe=" + memento.getTribe().size() + ")");
+        this.food = memento.getFood();
+        this.prestigePoint = memento.getPrestigePoints();
+        this.tribe.clear();
+        this.tribe.addAll(new DeckFactory().loadDeck(memento.getTribe()));
+    }
+
+    /**
+     * Restores the player's building cards. Called by Game.restoreMemento after
+     * building cards have been recreated via BuildingFactory.
+     *
+     * @param buildings the fully initialised building cards to assign to this player.
+     */
+    public void restoreBuildings(List<BuildingCard> buildings) {
+        this.buildingCards.clear();
+        this.buildingCards.addAll(buildings);
     }
 }

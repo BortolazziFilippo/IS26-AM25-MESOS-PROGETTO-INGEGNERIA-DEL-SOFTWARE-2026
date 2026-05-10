@@ -218,6 +218,30 @@ public class BuildingFactory {
     }
 
     /**
+     * Creates a single BuildingCard with its effect bound, looked up by building ID.
+     *
+     * @param id        the building ID to look up.
+     * @param boardView read-only board reference needed by position-dependent effects.
+     * @return the matching BuildingCard with its effect bound.
+     */
+    public BuildingCard createBuildingById(int id, BoardView boardView) {
+        InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
+        if (inputStream == null) {
+            throw new RuntimeException(getClass() + ": Errore apertura file building.json");
+        }
+        BuildingDTO[] catalogue = new Gson().fromJson(new InputStreamReader(inputStream), BuildingDTO[].class);
+        for (BuildingDTO dto : catalogue) {
+            if (dto.getBuildingID() == id) {
+                BuildingCard card = new BuildingCard(dto.getEra(), CARD_TYPE.BUILDING, dto.getBuildingID(),
+                        dto.getFoodCost(), dto.getEndGamePP(), dto.getApplyOn());
+                card.setBuildingEffect(returnCorrectBuildingEffect(card, boardView));
+                return card;
+            }
+        }
+        throw new IllegalArgumentException("Unknown building ID: " + id);
+    }
+
+    /**
      *
      * @param lowerBound lowerBound
      * @param upperBound upperBound

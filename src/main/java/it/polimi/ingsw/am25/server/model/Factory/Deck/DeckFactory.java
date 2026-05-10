@@ -1,8 +1,12 @@
 package it.polimi.ingsw.am25.server.model.Factory.Deck;
 
 import com.google.gson.Gson;
+import it.polimi.ingsw.am25.server.model.Board.Board;
+import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Card.*;
+import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.server.model.Factory.DefaultTile.DefaultTileFactory;
+import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Factory.Event.EventFactory;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
@@ -60,29 +64,9 @@ public class DeckFactory {
         Gson gson = new Gson();
         CardDTO[] cardDTOS = gson.fromJson(reader, CardDTO[].class);
 
+
         for (CardDTO temp : cardDTOS) {
-            switch (temp.getCardType()) {
-                case ARTIST:
-                    cardToReturn.add(new ArtistCard(temp.getEra(), temp.getCardType()));
-                    break;
-                case BUILDER:
-                    cardToReturn.add(new BuilderCard(temp.getEra(), temp.getCardType(), temp.getFoodDiscount(), temp.getFinalPrestigePoint(), temp.getBuilderID()));
-                    break;
-                case GATHERER:
-                    cardToReturn.add(new GathererCard(temp.getEra(), temp.getCardType()));
-                    break;
-                case HUNTER:
-                    cardToReturn.add(new HuntersCard(temp.getEra(), temp.getCardType(), temp.isHasIcon()));
-                    break;
-                case INVENTOR:
-                    cardToReturn.add(new InventorCard(temp.getEra(), temp.getCardType(), temp.getInvIcon()));
-                    break;
-                case SHAMAN:
-                    cardToReturn.add(new ShamanCard(temp.getEra(), temp.getCardType(), temp.getStarNumber()));
-                    break;
-                default:
-                    logServerError("Unrecognised card type: " + temp.getCardType());
-            }
+            cardToReturn.add(cardBinder(temp ));
         }
 
         List<EventCard> listEventToMerge = new EventFactory().createEvent();
@@ -90,7 +74,45 @@ public class DeckFactory {
         return cardToReturn;
 
     }
+    private Card cardBinder(CardDTO cardDTO) {
+        return switch (cardDTO.getCardType()) {
+            case ARTIST   -> new ArtistCard(cardDTO.getEra(), cardDTO.getCardType());
+            case BUILDER  -> new BuilderCard(cardDTO.getEra(), cardDTO.getCardType(), cardDTO.getFoodDiscount(), cardDTO.getFinalPrestigePoint(), cardDTO.getBuilderID());
+            case GATHERER -> new GathererCard(cardDTO.getEra(), cardDTO.getCardType());
+            case HUNTER   -> new HuntersCard(cardDTO.getEra(), cardDTO.getCardType(), cardDTO.isHasIcon());
+            case INVENTOR -> new InventorCard(cardDTO.getEra(), cardDTO.getCardType(), cardDTO.getInvIcon());
+            case SHAMAN   -> new ShamanCard(cardDTO.getEra(), cardDTO.getCardType(), cardDTO.getStarNumber());
+            default -> throw new IllegalArgumentException("Unrecognised card type: " + cardDTO.getCardType());
+        };
+    }
 
+    /**
+     * Rebuilds a list of Cards from their DTO snapshots during game restore.
+     * Handles tribe cards and event cards; building cards are restored separately via loadBuildingDeck.
+     *
+     * @param cards     list of CardDTO snapshots from the memento.
+     * @return list of fully initialised Card instances.
+     */
+    public List<Card> loadDeck(List<CardDTO> cards) {
+        EventFactory eventFactory = new EventFactory();
+        List<Card> deckToReturn = new ArrayList<>();
+        for (CardDTO temp : cards) {
+            if (temp.getCardType() == CARD_TYPE.EVENT) {
+                deckToReturn.add(eventFactory.createEventById(temp.getEventID()));
+            } else {
+                deckToReturn.add(cardBinder(temp));
+            }
+        }
+        return deckToReturn;
+    }
+    public List<BuildingCard> loadBuidlingDeck(List<Integer> buildingIds, BoardView boardView) {
+        List<BuildingCard> buidlingDeckToReturn = new ArrayList<>();
+        BuildingFactory buildingFactory = new BuildingFactory();
+        for (Integer temp : buildingIds) {
+            buidlingDeckToReturn.add(buildingFactory.createBuildingById(temp, boardView));
+        }
+        return buidlingDeckToReturn;
+    }
     /**
      * Executes log server error.
      *

@@ -121,4 +121,9 @@ public class EventCard extends Card {
     public CardDTO toDTO() {
         return new EventDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.EVENT && dto.getEventID() == this.eventID;
+    }
 }

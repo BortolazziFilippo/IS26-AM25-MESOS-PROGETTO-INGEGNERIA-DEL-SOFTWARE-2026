@@ -64,4 +64,11 @@ public class HuntersCard extends Card {
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.HUNTER
+            && dto.getEra() == this.era
+            && dto.isHasIcon() == this.hasICON;
+    }
 }

@@ -48,4 +48,9 @@ public class ArtistCard extends Card {
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.ARTIST && dto.getEra() == this.era;
+    }
 }

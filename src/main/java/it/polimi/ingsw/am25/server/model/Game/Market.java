@@ -13,6 +13,8 @@ import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.model.persistance.MarketMemento;
+import it.polimi.ingsw.am25.server.model.persistance.MementoManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,14 +28,15 @@ import java.util.stream.Collectors;
  * the top building row, and the underlying deck. Notifies registered
  * {@link MarketObserver}s on every change (draws, refreshes, event resolutions).
  */
-public class Market {
-    private final List<Card> topCardList;
-    private final List<BuildingCard> topBuildingList;
-    private final List<Card> bottomCardList;
-    private final List<BuildingCard> bottomBuildingList;
-    private final List<Card> deck;
-    private final List<BuildingCard> buildingCards;
+public class Market implements MementoManager<MarketMemento> {
+    private List<Card> topCardList;
+    private List<BuildingCard> topBuildingList;
+    private List<Card> bottomCardList;
+    private List<BuildingCard> bottomBuildingList;
+    private List<Card> deck;
+    private List<BuildingCard> buildingCards;
     private final GameView gameView;
+    private final BoardView boardView;
     private final List<MarketObserver> observers = new ArrayList<>();
     private List<Card> extraDrawCardSnapshot = new ArrayList<>();
     private List<BuildingCard> extraDrawBuildingSnapshot = new ArrayList<>();
@@ -52,6 +55,7 @@ public class Market {
         this.bottomCardList = new ArrayList<>();
         this.topBuildingList = new ArrayList<>();
         this.gameView = gameView;
+        this.boardView = boardView;
         this.buildingCards = new BuildingFactory().createBuildingDeck(gameView.getPlayerNumber(), boardView);
         this.deck = new DeckFactory().createDeck(gameView.getPlayerNumber());
         this.organizeDeck();
@@ -59,6 +63,7 @@ public class Market {
         this.initializeBothTopList();
         notifyMarketChanged();
     }
+
 
     /**
      * Returns the list of building cards available in the bottom (previous-round) building row.
@@ -580,5 +585,29 @@ public class Market {
         notify(observer -> observer.onExtraDrawSnapshotReady(cardSnap, buildingSnap));
     }
 
+    @Override
+    public MarketMemento createMemento() {
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Creating market memento (deck=" + deck.size() + ", top=" + topCardList.size() + ", bottom=" + bottomCardList.size() + ")");
+        return new MarketMemento(
+                this.topCardList.stream().map(Card::toDTO).toList(),
+                this.bottomCardList.stream().map(Card::toDTO).toList(),
+                this.deck.stream().map(Card::toDTO).toList(),
+                this.topBuildingList.stream().map(BuildingCard::getBuildingID).toList(),
+                this.bottomBuildingList.stream().map(BuildingCard::getBuildingID).toList(),
+                this.buildingCards.stream().map(BuildingCard::getBuildingID).toList()
 
+        );
+    }
+
+    @Override
+    public void restoreMemento(MarketMemento memento) {
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring market memento");
+        DeckFactory deckFactory = new DeckFactory();
+        this.topCardList = deckFactory.loadDeck(memento.getTopCards());
+        this.bottomCardList = deckFactory.loadDeck(memento.getBottomCards());
+        this.deck = deckFactory.loadDeck(memento.getDeck());
+        this.topBuildingList = deckFactory.loadBuidlingDeck(memento.getTopBuildingIDs(), this.boardView);
+        this.bottomBuildingList = deckFactory.loadBuidlingDeck(memento.getBottomBuildingIDs(), this.boardView);
+        this.buildingCards = deckFactory.loadBuidlingDeck(memento.getBuildingPoolIDs(), this.boardView);
+    }
 }

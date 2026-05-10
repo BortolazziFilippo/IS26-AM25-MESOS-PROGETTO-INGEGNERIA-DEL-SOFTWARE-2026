@@ -48,4 +48,12 @@ public abstract class Card {
      * @return a {@link CardDTO} carrying the data needed by the client.
      */
     public abstract CardDTO toDTO();
+
+    /**
+     * Returns true if this card matches the given DTO snapshot (used during game restore).
+     *
+     * @param dto the DTO to compare against.
+     * @return true if this card corresponds to the given DTO.
+     */
+    public abstract boolean matchesDTO(CardDTO dto);
 }

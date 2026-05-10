@@ -1,7 +1,6 @@
 package it.polimi.ingsw.am25.server.model.Board;
 
 import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
-import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.server.model.Factory.OfferTile.OfferTileFactory;
 import it.polimi.ingsw.am25.server.model.Game.GameView;
@@ -9,6 +8,8 @@ import it.polimi.ingsw.am25.server.model.Observers.BoardObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.TileOccupiedException;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.model.persistance.BoardMemento;
+import it.polimi.ingsw.am25.server.model.persistance.MementoManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.function.Consumer;
  * during the placing phase) and the default tiles (where players return at the end
  * of each round to collect food).
  */
-public class Board implements BoardView {
+public class Board implements BoardView, MementoManager<BoardMemento> {
     private static final String LOG_PREFIX = "[SERVER][BOARD]";
     private final List<OfferTile> offerTiles;
     private final List<DefaultTile> defaultTiles;
@@ -269,5 +270,20 @@ public class Board implements BoardView {
      */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
+    }
+
+    @Override
+    public BoardMemento createMemento() {
+        logServerEvent("Creating board memento (" + getOrderedPlayerOnDefaultTile().size() + " players on default tiles)");
+        return new BoardMemento(
+                this.getOrderedPlayerOnDefaultTile().stream().map(Player::getNickname).toList()
+        );
+    }
+
+    @Override
+    public void restoreMemento(BoardMemento memento) {
+        logServerEvent("Restoring board memento (clearing all tiles)");
+        defaultTiles.stream().filter(Tile::isOccupied).forEach(Tile::removePlayer);
+        offerTiles.stream().filter(Tile::isOccupied).forEach(Tile::removePlayer);
     }
 }

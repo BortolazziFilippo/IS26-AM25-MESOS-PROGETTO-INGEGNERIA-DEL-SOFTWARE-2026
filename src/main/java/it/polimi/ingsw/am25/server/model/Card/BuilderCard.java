@@ -83,4 +83,11 @@ public class BuilderCard extends Card {
     public CardDTO toDTO() {
         return new CardDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return dto.getCardType() == CARD_TYPE.BUILDER
+            && dto.getEra() == this.era
+            && dto.getBuilderID() == this.builderID;
+    }
 }
