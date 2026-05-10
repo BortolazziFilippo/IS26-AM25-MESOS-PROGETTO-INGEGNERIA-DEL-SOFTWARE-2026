@@ -7,19 +7,19 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 /**
  * Building effect that awards 6 prestige points for each complete set of one of each of
  * the six tribe-card types that was added since the last evaluation.
  */
-public class SetSixCard extends BuildingEffect{
+public class SetSixCard extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int foodToGive = 5;
     private List<Card> oldCards = new ArrayList<>();
-    /**
-     * Default constructor for SetSixCard.
-     */
+
     public SetSixCard() {
     }
+
     /**
      * Counts one of each of the six card types among newly added tribe members.
      * For each complete set found, awards 6 prestige points.

@@ -12,13 +12,16 @@ public class ErrorMessage implements ServerToClientMessage {
 
     /**
      * Creates a message carrying an error description to show to the client.
+     *
      * @param errorMessage the error description.
      */
     public ErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
-    /** Dispatches this message by calling {@link ClientRemoteInterface#showErrorMessage}. */
+    /**
+     * Dispatches this message by calling {@link ClientRemoteInterface#showErrorMessage}.
+     */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.showErrorMessage(errorMessage);

@@ -4,8 +4,8 @@ import it.polimi.ingsw.am25.client.TUI.ClientTUI;
 import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
-import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
+import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,23 +22,27 @@ import java.util.Enumeration;
  * (selected by command-line argument) and launches the TUI.
  */
 public class ClientApp {
-    /** Creates a new client app instance. */
-    public ClientApp() {}
+    /**
+     * Creates a new client app instance.
+     */
+    public ClientApp() {
+    }
 
     private static final String LOG_PREFIX = "[CLIENT][APP]";
 
     /**
      * Executes main.
+     *
      * @param args parameter args.
      */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         ClientUtilitiesFunction.initLog();
         //if no ip si written default sets loopback
         String serverIp = "127.0.0.1";
-        String method="RMI";
-        if (args.length ==2 ) {
+        String method = "RMI";
+        if (args.length == 2) {
             serverIp = args[0]; //gets ip from terminal
-             method=args[1];
+            method = args[1];
             if (!method.equalsIgnoreCase("RMI") && !method.equalsIgnoreCase("SOCKET")) {
                 System.err.println("❌ METODO non valido! Usa 'RMI' o 'SOCKET'.");
                 return;
@@ -50,20 +54,20 @@ public class ClientApp {
             ServerRemoteInterface serverStub;
             ClientVirtualView clientHandler = new ClientVirtualView();
 
-            if(method.equalsIgnoreCase("RMI")){
+            if (method.equalsIgnoreCase("RMI")) {
                 String myIp = getLocalIPv4();
                 System.setProperty("java.rmi.server.hostname", myIp);
                 ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Tentativo di connessione al Server [" + serverIp + "] dal Client [" + myIp + "]...");
                 Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
                 serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
 
-            }else{
-                ClientUtilitiesFunction.logInfo(LOG_PREFIX,"Connessione tramite socket al Server ["+ serverIp+"]");
-                Socket socket= new Socket(serverIp,6969);
+            } else {
+                ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Connessione tramite socket al Server [" + serverIp + "]");
+                Socket socket = new Socket(serverIp, 6969);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                serverStub=new ServerSocketProxy(out, clientHandler);
-                ServerListener listener=new ServerListener(in,clientHandler);
+                serverStub = new ServerSocketProxy(out, clientHandler);
+                ServerListener listener = new ServerListener(in, clientHandler);
                 listener.start();
             }
             ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Connessione al server completata con successo.");
@@ -78,8 +82,10 @@ public class ClientApp {
     }
 
     // ---  AUTOMATIC BINDER---
+
     /**
      * Returns local ipv4.
+     *
      * @return the result of the operation.
      */
     public static String getLocalIPv4() {

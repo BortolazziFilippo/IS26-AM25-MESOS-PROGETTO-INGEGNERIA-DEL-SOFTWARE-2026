@@ -24,6 +24,7 @@ public class PlacementTUI {
 
     /**
      * Creates a new PlacementTUI instance.
+     *
      * @param serverStub    the remote server interface.
      * @param clientHandler the client's virtual view.
      * @param scanner       the shared input scanner.
@@ -92,6 +93,7 @@ public class PlacementTUI {
 
     /**
      * Reads and validates the tile index from user input.
+     *
      * @return the 0-based tile index, or -1 if the user cancelled.
      */
     private int getPlacingIndex() {

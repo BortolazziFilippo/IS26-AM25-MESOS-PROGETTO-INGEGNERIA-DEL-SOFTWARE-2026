@@ -2,6 +2,7 @@ package it.polimi.ingsw.am25.server.model.Effect.Building;
 
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+
 /**
  * Building effect that entitles the player to draw one extra card per round from the top list.
  * The actual card selection is delegated to the controller layer, which must invoke the
@@ -11,9 +12,6 @@ public class DrawOneMoreCard extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final boolean turnFinished = false; /* flag to signal the end of a round; the corresponding game-layer method still needs to be reviewed */
 
-    /**
-     * Default constructor for DrawOneMoreCard.
-     */
     public DrawOneMoreCard() {
     }
 
@@ -28,7 +26,6 @@ public class DrawOneMoreCard extends BuildingEffect {
     public void applyEffect(Player player) {
         UtilitiesFunction.logInfo(LOG_PREFIX,
                 "DrawOneMoreCard: requesting extra card draw for player '" + player.getNickname() + "'");
-        // Scatena la richiesta verso il Client
         player.requestExtraDraw();
     }
 }

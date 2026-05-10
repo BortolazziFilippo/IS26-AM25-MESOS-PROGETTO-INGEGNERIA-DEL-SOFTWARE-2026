@@ -12,21 +12,34 @@ public class TUIUtils {
 
     private final Scanner scanner;
 
-    /** ANSI reset sequence — restores the default terminal colour. */
-    public static final String RESET  = "\033[0m";
-    /** ANSI bold-red colour sequence. */
-    public static final String RED    = "\033[31;49;1m";
-    /** ANSI bold-green colour sequence. */
-    public static final String GREEN  = "\033[32;49;1m";
-    /** ANSI bold-yellow colour sequence. */
+    /**
+     * ANSI reset sequence — restores the default terminal colour.
+     */
+    public static final String RESET = "\033[0m";
+    /**
+     * ANSI bold-red colour sequence.
+     */
+    public static final String RED = "\033[31;49;1m";
+    /**
+     * ANSI bold-green colour sequence.
+     */
+    public static final String GREEN = "\033[32;49;1m";
+    /**
+     * ANSI bold-yellow colour sequence.
+     */
     public static final String YELLOW = "\033[33;49;1m";
-    /** ANSI bold-blue colour sequence. */
-    public static final String BLUE   = "\033[34;49;1m";
-    /** ANSI bold-purple colour sequence. */
+    /**
+     * ANSI bold-blue colour sequence.
+     */
+    public static final String BLUE = "\033[34;49;1m";
+    /**
+     * ANSI bold-purple colour sequence.
+     */
     public static final String PURPLE = "\033[35;49;1m";
 
     /**
      * Creates a new TUIUtils instance.
+     *
      * @param scanner the shared Scanner for user input.
      */
     public TUIUtils(Scanner scanner) {
@@ -52,6 +65,7 @@ public class TUIUtils {
 
     /**
      * Extracts a human-readable message from an exception.
+     *
      * @param e the exception to parse.
      * @return the cleaned error message.
      */
@@ -65,6 +79,7 @@ public class TUIUtils {
 
     /**
      * Asks the user to enter the number of players (2-5).
+     *
      * @return the validated number of players.
      */
     public int numberOfPlayer() {
@@ -82,31 +97,39 @@ public class TUIUtils {
 
     /**
      * Asks the user to choose a totem color.
+     *
      * @return the chosen COLOR enum value.
      */
     public COLOR bindTotemColor() {
         while (true) {
             System.out.println("\nScegli colore totem:");
             System.out.println(RED + "1-ROSSO" + BLUE + "\n2-BLU" + YELLOW + "\n3-GIALLO"
-                    + GREEN + "\n4-GREEN" + PURPLE + "\n5-PURPLE" + RESET);
+                    + RESET + "\n4-BIANCO" + PURPLE + "\n5-VIOLA" + RESET);
             System.out.print("Scelta: ");
             switch (scanner.nextLine()) {
-                case "1": return COLOR.RED;
-                case "2": return COLOR.BLUE;
-                case "3": return COLOR.YELLOW;
-                case "4": return COLOR.GREEN;
-                case "5": return COLOR.PURPLE;
-                default: System.err.println("\n❌ Input non valido");
+                case "1":
+                    return COLOR.RED;
+                case "2":
+                    return COLOR.BLUE;
+                case "3":
+                    return COLOR.YELLOW;
+                case "4":
+                    return COLOR.WHITE;
+                case "5":
+                    return COLOR.PURPLE;
+                default:
+                    System.err.println("\n❌ Input non valido");
             }
         }
     }
+
     public String getAnsiColor(COLOR color) {
         if (color == null) return RESET;
         return switch (color) {
-            case RED    -> RED;
-            case BLUE   -> BLUE;
+            case RED -> RED;
+            case BLUE -> BLUE;
             case YELLOW -> YELLOW;
-            case GREEN  -> GREEN;
+            case WHITE -> RESET;
             case PURPLE -> PURPLE;
         };
     }

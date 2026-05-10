@@ -15,11 +15,12 @@ public interface PlayerObserver {
 
     /**
      * Called once at game start to push the full initial player state to the observer.
-     * @param nickname the player's nickname.
-     * @param totem the player's totem.
-     * @param food the player's starting food total.
+     *
+     * @param nickname      the player's nickname.
+     * @param totem         the player's totem.
+     * @param food          the player's starting food total.
      * @param prestigePoint the player's starting prestige-point total.
-     * @param tribe the player's initial tribe (empty at game start).
+     * @param tribe         the player's initial tribe (empty at game start).
      * @param buildingCards the player's initial buildings (empty at game start).
      */
     void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint,
@@ -27,27 +28,31 @@ public interface PlayerObserver {
 
     /**
      * Called when the player's food total changes.
+     *
      * @param playerNickName the affected player's nickname.
-     * @param newFood the player's new food total.
+     * @param newFood        the player's new food total.
      */
     void notifyFoodChanged(String playerNickName, int newFood);
 
     /**
      * Called when the player's prestige-point total changes.
+     *
      * @param playerNickName the affected player's nickname.
-     * @param newPP the player's new prestige-point total.
+     * @param newPP          the player's new prestige-point total.
      */
     void notifyPPChanged(String playerNickName, int newPP);
 
     /**
      * Called when a card is added to the player's tribe.
+     *
      * @param playername the affected player's nickname.
-     * @param cardAdded the card that was added.
+     * @param cardAdded  the card that was added.
      */
     void notifyCardAddedToTribe(String playername, Card cardAdded);
 
     /**
      * Called when the player must select one extra card from the market (draw-one-more building effect).
+     *
      * @param nickname the affected player's nickname.
      */
     void requestExtraDraw(String nickname);

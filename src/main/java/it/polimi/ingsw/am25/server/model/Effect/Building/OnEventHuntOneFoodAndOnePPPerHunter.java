@@ -8,14 +8,12 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  * Building effect triggered during a hunt event: awards 1 food plus 1 prestige point
  * per Hunter card in the player's tribe.
  */
-public class OnEventHuntOneFoodAndOnePPPerHunter extends BuildingEffect{
+public class OnEventHuntOneFoodAndOnePPPerHunter extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
-    /**
-     * Default constructor for OnEventHuntOneFoodAndOnePPPerHunter.
-     */
     public OnEventHuntOneFoodAndOnePPPerHunter() {
     }
+
     /**
      * Awards the player 1 food and 1 PP per Hunter card in their tribe.
      *

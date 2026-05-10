@@ -3,6 +3,7 @@ package it.polimi.ingsw.am25.server.webLayer.Socket;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ClientToServerMessage;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.RMI.ServerNetworkHandler;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,7 +16,7 @@ import java.net.Socket;
  * and dispatches each to the shared {@link ServerRemoteInterface}, then writes
  * back a {@link it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface} Socket proxy.
  */
-public class SocketClientHandler extends Thread{
+public class SocketClientHandler extends Thread {
     private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final Socket socket;
     private final ServerRemoteInterface serverLogic;
@@ -24,12 +25,13 @@ public class SocketClientHandler extends Thread{
 
     /**
      * Creates a new handler for the given client socket.
+     *
      * @param socket      the accepted client socket.
      * @param serverLogic the server logic that processes incoming messages.
      */
-    public SocketClientHandler(Socket socket,ServerRemoteInterface serverLogic){
-        this.socket=socket;
-        this.serverLogic=serverLogic;
+    public SocketClientHandler(Socket socket, ServerRemoteInterface serverLogic) {
+        this.socket = socket;
+        this.serverLogic = serverLogic;
     }
 
     /**
@@ -39,11 +41,13 @@ public class SocketClientHandler extends Thread{
      */
     @Override
     public void run() {
+        // Declared here so the catch block can reference it for disconnection handling.
+        ClientSocketProxy clientSocketProxy = null;
         try {
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
             in = new ObjectInputStream(socket.getInputStream());
-            ClientSocketProxy clientSocketProxy = new ClientSocketProxy(out);
+            clientSocketProxy = new ClientSocketProxy(out);
 
             while (true) {
                 ClientToServerMessage message;
@@ -56,7 +60,6 @@ public class SocketClientHandler extends Thread{
 
                 try {
                     // Game logic errors do NOT close the connection.
-                    //here arrives a "generic" message which implements the execute method.
                     message.execute(serverLogic, clientSocketProxy);
                 } catch (Exception e) {
                     UtilitiesFunction.logError(LOG_PREFIX, "Game logic error: " + e.getMessage());
@@ -65,8 +68,12 @@ public class SocketClientHandler extends Thread{
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            UtilitiesFunction.logInfo(LOG_PREFIX, "A client disconnected.");
-            // TODO: handle disconnection
+            UtilitiesFunction.logInfo(LOG_PREFIX, "A client disconnected (socket drop).");
+            // Delegate disconnection handling to the network handler so the game
+            // can skip this player's turns and notify remaining clients.
+            if (clientSocketProxy != null && serverLogic instanceof ServerNetworkHandler handler) {
+                handler.handleSocketClientDisconnection(clientSocketProxy);
+            }
         } finally {
             try {
                 socket.close();

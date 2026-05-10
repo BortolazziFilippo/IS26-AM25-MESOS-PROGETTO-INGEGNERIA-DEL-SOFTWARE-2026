@@ -31,7 +31,7 @@ class GameTest {
     void setup() {
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
-        player3 = new Player("Terzo", COLOR.GREEN);
+        player3 = new Player("Terzo", COLOR.YELLOW);
         game = new Game(host, 3);
     }
 
@@ -264,7 +264,7 @@ class GameTest {
         //reset and create a new game for convenience
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
-        player3 = new Player("Terzo", COLOR.GREEN);
+        player3 = new Player("Terzo", COLOR.YELLOW);
         game = new Game(host, 3);
 
         assertDoesNotThrow(() -> game.addPlayer(player2));
@@ -289,7 +289,7 @@ class GameTest {
         //reset again
         host = new Player("Primo", COLOR.RED);
         player2 = new Player("Secondo", COLOR.BLUE);
-        player3 = new Player("Terzo", COLOR.GREEN);
+        player3 = new Player("Terzo", COLOR.YELLOW);
         game = new Game(host, 3);
 
         assertDoesNotThrow(() -> game.addPlayer(player2));

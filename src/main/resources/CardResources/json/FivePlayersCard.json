@@ -264,73 +264,85 @@
     "cardType": "BUILDER",
     "era": "ERA_I",
     "foodDiscount": 1,
-    "finalPrestigePoint": 3
+    "finalPrestigePoint": 3,
+    "builderID": 2
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_I",
     "foodDiscount": 2,
-    "finalPrestigePoint": 0
+    "finalPrestigePoint": 0,
+    "builderID": 5
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_I",
     "foodDiscount": 1,
-    "finalPrestigePoint": 2
+    "finalPrestigePoint": 2,
+    "builderID": 1
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_I",
     "foodDiscount": 2,
-    "finalPrestigePoint": 1
+    "finalPrestigePoint": 1,
+    "builderID": 6
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_II",
     "foodDiscount": 1,
-    "finalPrestigePoint": 4
+    "finalPrestigePoint": 4,
+    "builderID": 3
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_II",
     "foodDiscount": 1,
-    "finalPrestigePoint": 2
+    "finalPrestigePoint": 2,
+    "builderID": 1
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_II",
     "foodDiscount": 2,
-    "finalPrestigePoint": 1
+    "finalPrestigePoint": 1,
+    "builderID": 6
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_II",
     "foodDiscount": 2,
-    "finalPrestigePoint": 3
+    "finalPrestigePoint": 3,
+    "builderID": 8
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_III",
     "foodDiscount": 1,
-    "finalPrestigePoint": 5
+    "finalPrestigePoint": 5,
+    "builderID": 4
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_III",
     "foodDiscount": 2,
-    "finalPrestigePoint": 3
+    "finalPrestigePoint": 3,
+    "builderID": 8
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_III",
     "foodDiscount": 2,
-    "finalPrestigePoint": 2
+    "finalPrestigePoint": 2,
+    "builderID": 7
   },
   {
     "cardType": "BUILDER",
     "era": "ERA_III",
     "foodDiscount": 1,
-    "finalPrestigePoint": 4
+    "finalPrestigePoint": 4,
+    "builderID": 3
   },
   {
     "cardType": "HUNTER",

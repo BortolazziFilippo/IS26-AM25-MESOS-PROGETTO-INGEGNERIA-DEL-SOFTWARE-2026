@@ -13,18 +13,21 @@ public interface GameView {
 
     /**
      * Returns the total number of players in this game session.
+     *
      * @return the player count (2–5).
      */
     int getPlayerNumber();
 
     /**
      * Returns the ordered list of all players participating in the game.
+     *
      * @return an unmodifiable snapshot of the player list.
      */
     List<Player> getPlayerList();
 
     /**
      * Returns the era the game is currently in.
+     *
      * @return the current {@link ERA}.
      */
     ERA getCurrentEra();

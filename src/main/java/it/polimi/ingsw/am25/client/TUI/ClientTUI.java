@@ -2,8 +2,6 @@ package it.polimi.ingsw.am25.client.TUI;
 
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
-import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
@@ -31,6 +29,7 @@ public class ClientTUI {
 
     /**
      * Creates a new ClientTUI instance.
+     *
      * @param serverStub    the remote server interface.
      * @param clientHandler the client's virtual view.
      */
@@ -57,15 +56,62 @@ public class ClientTUI {
         }
 
         // ==========================================================
-        // 2. GAME LOOP
+        // 2. PING THREAD
+        // myPlayer is now known — start sending heartbeats every 3 s.
+        // ==========================================================
+        final PlayerDTO pingPlayer = myPlayer;
+        Thread pingThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
+                try {
+                    serverStub.ping(pingPlayer);
+                } catch (Exception e) {
+                    // Server unreachable — wake up the TUI so it can exit cleanly.
+                    clientHandler.handleServerDeath();
+                    return;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+        pingThread.setDaemon(true);
+        pingThread.setName("heartbeat-ping");
+        pingThread.start();
+
+        // ==========================================================
+        // 3. GAME LOOP
         // myPlayer is now known — build the game-phase helpers.
         // ==========================================================
-        PlacementTUI    placementTUI    = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
-        MarketTUI       marketTUI       = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        PlacementTUI placementTUI = new PlacementTUI(serverStub, clientHandler, scanner, utils, myPlayer);
+        MarketTUI marketTUI = new MarketTUI(serverStub, clientHandler, scanner, utils, myPlayer);
         PlayerStatusTUI playerStatusTUI = new PlayerStatusTUI(clientHandler, scanner, utils, myPlayer);
-        BoardTUI        boardTUI        = new BoardTUI(clientHandler, utils);
+        BoardTUI boardTUI = new BoardTUI(clientHandler, utils);
 
         while (true) {
+            // Exit immediately if the server went away
+            if (clientHandler.isServerDead()) {
+                utils.clearScreen();
+                System.err.println("Connessione al server persa. Il gioco si chiude.");
+                return;
+            }
+
+            // Show a notification for every player that disconnected/reconnected since last iteration
+            List<String> disconnected = clientHandler.drainRecentDisconnections();
+            List<String> reconnected = clientHandler.drainRecentReconnections();
+            if (!disconnected.isEmpty() || !reconnected.isEmpty()) {
+                utils.clearScreen();
+                for (String dc : disconnected) {
+                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso dalla partita.");
+                }
+                for (String rc : reconnected) {
+                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso alla partita.");
+                }
+                utils.pauseAndClear();
+            }
+
             // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
             // dal suo wait loop su gamePhaseChanged(SOLVING_EVENTS) e, prima che
             // il thread TUI arrivi a waitForMyTurn(), l'executor ha già consegnato
@@ -192,6 +238,9 @@ public class ClientTUI {
         printWaitingScreen();
 
         while (!isMyTurn()) {
+            // Exit if the server went away while we were waiting
+            if (clientHandler.isServerDead()) return;
+
             // Release the lock for up to 300 ms so the server can notify us.
             synchronized (clientHandler.turnLock) {
                 if (!isMyTurn()) {
@@ -205,6 +254,20 @@ public class ClientTUI {
             }
 
             if (isMyTurn()) break;
+
+            // Show disconnection/reconnection notices while waiting
+            List<String> dcWhileWaiting = clientHandler.drainRecentDisconnections();
+            List<String> rcWhileWaiting = clientHandler.drainRecentReconnections();
+            if (!dcWhileWaiting.isEmpty() || !rcWhileWaiting.isEmpty()) {
+                System.out.println();
+                for (String dc : dcWhileWaiting) {
+                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso.");
+                }
+                for (String rc : rcWhileWaiting) {
+                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso.");
+                }
+                if (!isMyTurn()) printWaitingScreen();
+            }
 
             // Check for pending keyboard input without blocking.
             try {
@@ -231,7 +294,9 @@ public class ClientTUI {
         }
     }
 
-    /** Prints the static waiting screen with available commands. */
+    /**
+     * Prints the static waiting screen with available commands.
+     */
     private void printWaitingScreen() {
         utils.clearScreen();
         System.out.println("Sei in attesa del tuo turno...");
@@ -256,6 +321,7 @@ public class ClientTUI {
 
     /**
      * Checks whether it is currently this player's turn.
+     *
      * @return {@code true} if the player should act now.
      */
     private boolean isMyTurn() {
@@ -269,8 +335,7 @@ public class ClientTUI {
             return myPlayer.getNickName().equals(clientHandler.getPlayerToPlay());
         } else if (phase == GAME_PHASE.SOLVING_EVENTS) {
             return true;
-        }
-        else if (phase == GAME_PHASE.END_GAME) {
+        } else if (phase == GAME_PHASE.END_GAME) {
             List<PlayerDTO> w = clientHandler.getWinners();
             return w != null && !w.isEmpty();
         }

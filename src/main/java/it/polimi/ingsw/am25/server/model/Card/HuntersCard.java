@@ -10,60 +10,55 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Cards with an icon grant an immediate food bonus equal to the player's current hunter count
  * when added to the tribe.
  */
-public class HuntersCard extends Card{
+public class HuntersCard extends Card {
 
     private final boolean hasICON;
 
     /**
-     * Default HunterCard Constructor
-     * @param era Card ERA
-     * @param cardType Card type
-     * @param hasICON boolean parameter for signaling the card has the icon
+     * @param era      the era this card belongs to.
+     * @param cardType the card type (should be {@code CARD_TYPE.HUNTER}).
+     * @param hasICON  whether this card carries an icon granting an immediate food bonus.
      */
-    public HuntersCard(ERA era, CARD_TYPE cardType, boolean hasICON){
+    public HuntersCard(ERA era, CARD_TYPE cardType, boolean hasICON) {
         this.era = era;
-        this.cardType=cardType;
+        this.cardType = cardType;
         this.hasICON = hasICON;
     }
 
-
     /**
-     * Returns has icon.
-     * @return the result of the operation.
+     * @return whether this card carries an icon granting an immediate food bonus.
      */
     public boolean getHasICON() {
-
         return hasICON;
     }
+
     /**
-     * Executes add card to player.
-     * @param player parameter player.
+     * Adds this card to the player's tribe.
+     * If the card has an icon, immediately grants food equal to the player's current hunter count.
      */
     @Override
     public void addCardToPlayer(Player player) {
-        if(this.hasICON){
-            player.manageFoodAndPP( player.getHunterNumber() );
+        if (this.hasICON) {
+            player.manageFoodAndPP(player.getHunterNumber());
         }
         player.addCardToTribe(this);
-
     }
 
     /**
-     * Executes equals.
-     * @param obj parameter obj.
-     * @return the result of the operation.
+     * @param obj the object to compare against.
+     * @return true if {@code obj} is a HuntersCard with the same era, card type, and icon flag.
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof HuntersCard toCompare) {
+        if (obj instanceof HuntersCard toCompare) {
             return toCompare.era == this.era && toCompare.cardType == this.cardType && toCompare.hasICON == this.hasICON;
-        }else {
+        } else {
             return false;
         }
     }
+
     /**
-     * Executes to dto.
-     * @return the result of the operation.
+     * @return a CardDTO snapshot of this card for network transfer.
      */
     @Override
     public CardDTO toDTO() {

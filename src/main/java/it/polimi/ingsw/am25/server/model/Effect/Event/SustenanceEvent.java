@@ -16,6 +16,7 @@ public class SustenanceEvent extends EventEffect {
     private static final String LOG_PREFIX = "[SERVER][EVENT]";
     private final int foodPerCharacter;
     private final int PPLost;
+
     /**
      * Constructor for SustenanceEvent.
      *
@@ -26,6 +27,7 @@ public class SustenanceEvent extends EventEffect {
         this.foodPerCharacter = foodPerCharacter;
         this.PPLost = -PPLost;
     }
+
     /**
      * Solves the sustenance event for all players:
      * each tribe member costs {@code foodPerCharacter} food; gatherers discount 3 food each.

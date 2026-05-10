@@ -15,7 +15,9 @@ public class AskExtraDrawMessage implements ServerToClientMessage {
     private final List<CardDTO> snapshotCards;
     private final List<BuildingDTO> snapshotBuildings;
 
-    /** Creates an ask-extra-draw notification carrying the end-of-round market snapshot. */
+    /**
+     * Creates an ask-extra-draw notification carrying the end-of-round market snapshot.
+     */
     public AskExtraDrawMessage(List<CardDTO> snapshotCards, List<BuildingDTO> snapshotBuildings) {
         this.snapshotCards = snapshotCards;
         this.snapshotBuildings = snapshotBuildings;

@@ -22,7 +22,7 @@ class BoardTest {
         this.p1 = new Player("P1", COLOR.RED);
         this.p2 = new Player("P2", COLOR.BLUE);
         this.p3 = new Player("P3", COLOR.YELLOW);
-        this.p4 = new Player("P4", COLOR.GREEN);
+        this.p4 = new Player("P4", COLOR.YELLOW);
         this.game = new Game(p1,4);
         game.addPlayer(p2);
         game.addPlayer(p3);

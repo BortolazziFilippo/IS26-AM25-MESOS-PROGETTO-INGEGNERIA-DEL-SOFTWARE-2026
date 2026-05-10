@@ -18,9 +18,9 @@ class BuilderDoublePPTest {
     //this On endGame should double the amount of PP of the builders
     void applyEffecTest() {
         Player player = new Player("Lorem Ipsum", COLOR.RED);
-        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,2));
-        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,3));
-        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,4));
+        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,2, 0));
+        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,3, 0));
+        player.addCardToTribe(new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER,7,4, 0));
         BuildingCard buildingCard=new BuildingCard(ERA.ERA_II,CARD_TYPE.BUILDING,1,10,10,EVENT_TYPE.END_GAME);
         buildingCard.setBuildingEffect(new BuilderDoublePP());
         buildingCard.applyBuildingEffect(player);

@@ -12,12 +12,10 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  * before a shamanic ritual event, then removes it afterwards.
  * This effectively grants the player 3 extra Shaman stars for the duration of that event.
  */
-public class ThreeMoreShamanStar extends BuildingEffect{
+public class ThreeMoreShamanStar extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private boolean flag = false;
-    /**
-     * Default constructor for ThreeMoreShamanStar.
-     */
+
     public ThreeMoreShamanStar() {
     }
 
@@ -29,13 +27,13 @@ public class ThreeMoreShamanStar extends BuildingEffect{
      */
     @Override
     public void applyEffect(Player player) {
-        if(!flag) {
+        if (!flag) {
             UtilitiesFunction.logInfo(LOG_PREFIX,
                     "ThreeMoreShamanStar: adding temporary 3-star Shaman card to player '" +
                             player.getNickname() + "' tribe for shamanic ritual event");
             player.addCardToTribe(new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE));
             flag = true;
-        }else{
+        } else {
             UtilitiesFunction.logInfo(LOG_PREFIX,
                     "ThreeMoreShamanStar: removing temporary 3-star Shaman card from player '" +
                             player.getNickname() + "' tribe after shamanic ritual event");

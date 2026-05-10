@@ -2,7 +2,6 @@ package it.polimi.ingsw.am25.server.model.Player;
 
 import it.polimi.ingsw.am25.server.model.Card.*;
 import it.polimi.ingsw.am25.server.model.Enums.*;
-import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotEnoughFoodException;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
@@ -28,11 +27,12 @@ public class Player {
     private final List<Card> tribe;
     private final List<BuildingCard> buildingCards;
     private CONNECTION_STATUS connectionStatus;
-    private final List<PlayerObserver> observers= new ArrayList<>();
+    private final List<PlayerObserver> observers = new ArrayList<>();
 
 
     /**
      * Returns nickname.
+     *
      * @return the result of the operation.
      */
     public String getNickname() {
@@ -43,31 +43,31 @@ public class Player {
      * Builds a player with the provided nickname and totem color.
      *
      * @param nickname player's nickname
-     * @param color totem color
+     * @param color    totem color
      */
     public Player(String nickname, COLOR color) {
-            this.nickname = nickname;
-            this.food=0;
-            this.prestigePoint=0;
-            this.tribe = new ArrayList<>();
-            this.buildingCards = new ArrayList<>();
-            this.totem=new Totem(color);
+        this.nickname = nickname;
+        this.food = 0;
+        this.prestigePoint = 0;
+        this.tribe = new ArrayList<>();
+        this.buildingCards = new ArrayList<>();
+        this.totem = new Totem(color);
     }
 
     /**
      * Builds a player and subscribes the provided virtual view as observer.
      *
-     * @param nickname player's nickname
-     * @param color totem color
+     * @param nickname    player's nickname
+     * @param color       totem color
      * @param virtualView observer to bind
      */
     public Player(String nickname, COLOR color, ServerVirtualView virtualView) {
         this.nickname = nickname;
-        this.food=0;
-        this.prestigePoint=0;
+        this.food = 0;
+        this.prestigePoint = 0;
         this.tribe = new ArrayList<>();
         this.buildingCards = new ArrayList<>();
-        this.totem=new Totem(color);
+        this.totem = new Totem(color);
         addObserver(virtualView);
         notifyPlayerChanged();
     }
@@ -77,13 +77,13 @@ public class Player {
      *
      * @param playerDTO player data transfer object
      */
-    public Player(PlayerDTO playerDTO){
-        this.nickname=playerDTO.getNickName();
-        this.food=0;
-        this.prestigePoint=0;
+    public Player(PlayerDTO playerDTO) {
+        this.nickname = playerDTO.getNickName();
+        this.food = 0;
+        this.prestigePoint = 0;
         this.tribe = new ArrayList<>();
         this.buildingCards = new ArrayList<>();
-        this.totem=new Totem(playerDTO.getColorTotem());
+        this.totem = new Totem(playerDTO.getColorTotem());
     }
 
     /**
@@ -93,19 +93,18 @@ public class Player {
      *
      * @param foodAmount delta to apply to food (positive or negative)
      */
-    public void manageFoodAndPP(int foodAmount){
+    public void manageFoodAndPP(int foodAmount) {
         int previousFood = this.food;
-        if(foodAmount < 0){
-            if( (this.food + foodAmount) < 0){
+        if (foodAmount < 0) {
+            if ((this.food + foodAmount) < 0) {
                 this.food += foodAmount;
-                int temp = this.food*2;
+                int temp = this.food * 2;
                 managePP(temp);
                 this.food = 0;
-            }else{
-                this.food+=foodAmount;
+            } else {
+                this.food += foodAmount;
             }
-        }
-        else{
+        } else {
             this.food += foodAmount;
         }
         logServerEvent(
@@ -121,16 +120,16 @@ public class Player {
      * @param selectedBuildingCard building to buy
      * @throws NotEnoughFoodException if the player cannot afford the card
      */
-    public void tryBuyBuilding( BuildingCard selectedBuildingCard) throws NotEnoughFoodException{
+    public void tryBuyBuilding(BuildingCard selectedBuildingCard) throws NotEnoughFoodException {
         int originalCost = selectedBuildingCard.getFoodCost();
         int cost = originalCost - this.getBuilderDiscount();
-        if(cost<0){
-            cost=0;
+        if (cost < 0) {
+            cost = 0;
         }
-        if(this.food-cost<0){
+        if (this.food - cost < 0) {
             throw new NotEnoughFoodException();
-        }else{
-            this.food-=cost;
+        } else {
+            this.food -= cost;
             selectedBuildingCard.addCardToPlayer(this);
             logServerEvent(
                     "Player '" + nickname + "' bought building #" + selectedBuildingCard.getBuildingID() +
@@ -146,7 +145,7 @@ public class Player {
      *
      * @param PPamount delta to apply (positive or negative)
      */
-    public void managePP(int PPamount){
+    public void managePP(int PPamount) {
         int previousPP = this.prestigePoint;
         this.prestigePoint += PPamount;
         logServerEvent(
@@ -155,6 +154,7 @@ public class Player {
         );
         notifyPPChanged();
     }
+
     /**
      * Returns the current connection status of the player.
      *
@@ -163,6 +163,7 @@ public class Player {
     public CONNECTION_STATUS getConnection() {
         return connectionStatus;
     }
+
     /**
      * Sets the connection status of the player.
      *
@@ -177,7 +178,7 @@ public class Player {
      *
      * @param card card to add
      */
-    public void addCardToTribe(Card card){
+    public void addCardToTribe(Card card) {
         this.tribe.add(card);
         logServerEvent("Added " + formatCardForLog(card) + " to player '" + nickname + "'");
         notifyCardAdded(card);
@@ -188,11 +189,12 @@ public class Player {
      *
      * @param buildingCard building card to add
      */
-    public void addBuilding(BuildingCard buildingCard){
+    public void addBuilding(BuildingCard buildingCard) {
         this.buildingCards.add(buildingCard);
         logServerEvent("Added building #" + buildingCard.getBuildingID() + " to player '" + nickname + "'");
         notifyCardAdded(buildingCard);
     }
+
     /**
      * Returns the player's current food amount.
      *
@@ -201,6 +203,7 @@ public class Player {
     public int getFood() {
         return food;
     }
+
     /**
      * Returns the player's current prestige-point total.
      *
@@ -209,12 +212,13 @@ public class Player {
     public int getPrestigePoint() {
         return prestigePoint;
     }
+
     /**
      * Returns the number of distinct inventor icons in the player's tribe.
      *
      * @return count of unique {@link INV_ICON} values
      */
-    public int getNumberOfDifferentInventorIcon(){
+    public int getNumberOfDifferentInventorIcon() {
         return (int) tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
                 .map(InventorCard.class::cast)
@@ -222,15 +226,17 @@ public class Player {
                 .distinct()
                 .count();
     }
+
     /**
      * Returns the total number of Shaman stars across all Shaman cards in the tribe.
+     *
      * @return the sum of star values for all Shaman cards.
      */
-    public int getShamanStarTotal(){
+    public int getShamanStarTotal() {
         int countStar = 0;
-        for(Card card : this.tribe){
-            if(card.getCardType()== CARD_TYPE.SHAMAN){
-                countStar= countStar + ((ShamanCard) card).getStarNumber();
+        for (Card card : this.tribe) {
+            if (card.getCardType() == CARD_TYPE.SHAMAN) {
+                countStar = countStar + ((ShamanCard) card).getStarNumber();
             }
         }
         return countStar;
@@ -238,62 +244,67 @@ public class Player {
 
     /**
      * Returns the total food discount granted by all Builder cards in the tribe.
+     *
      * @return the sum of food discounts across all Builder cards.
      */
-    public int getBuilderDiscount(){
+    public int getBuilderDiscount() {
 
         return this.tribe.stream().
-                filter(card -> card.getCardType()==CARD_TYPE.BUILDER).
-                map(card -> (BuilderCard)card).
+                filter(card -> card.getCardType() == CARD_TYPE.BUILDER).
+                map(card -> (BuilderCard) card).
                 mapToInt(BuilderCard::getFoodDiscount).
                 sum();
     }
 
     /**
      * Returns the food penalty reduction granted by Gatherer cards during a sustenance event (3 per Gatherer).
+     *
      * @return the total food discount from Gatherer cards.
      */
-    public int getGatherDiscount(){
+    public int getGatherDiscount() {
 
-        return  (int) this.tribe.stream().
-                filter(card -> card.getCardType()==CARD_TYPE.GATHERER).
-                count()*3;
+        return (int) this.tribe.stream().
+                filter(card -> card.getCardType() == CARD_TYPE.GATHERER).
+                count() * 3;
     }
 
     /**
      * Returns the number of Hunter cards in the player's tribe.
+     *
      * @return the hunter count.
      */
-    public int getHunterNumber(){
+    public int getHunterNumber() {
         return (int) tribe.stream().
-                filter(card -> card.getCardType()==CARD_TYPE.HUNTER).
+                filter(card -> card.getCardType() == CARD_TYPE.HUNTER).
                 count();
     }
 
     /**
      * Returns the number of Artist cards in the player's tribe.
+     *
      * @return the artist count.
      */
-    public int getArtistNumber(){
+    public int getArtistNumber() {
         return (int) this.tribe.stream()
-                .filter(card -> card.getCardType()==CARD_TYPE.ARTIST)
+                .filter(card -> card.getCardType() == CARD_TYPE.ARTIST)
                 .count();
     }
 
     /**
      * Returns the total number of cards in the player's tribe.
+     *
      * @return the tribe size.
      */
-    public int getNumberOfCard(){
+    public int getNumberOfCard() {
         return this.tribe.size();
     }
 
     /**
      * Triggers all end-round building effects owned by this player.
      */
-    public void triggerEndRoundBuilding(){
+    public void triggerEndRoundBuilding() {
         this.buildingCards.stream()
-                .filter(buildingCard -> buildingCard.getApplyOn()== EVENT_TYPE.END_ROUND )
+                .filter(buildingCard -> buildingCard.getApplyOn() == EVENT_TYPE.END_ROUND)
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
         notifyPlayerChanged();
     }
@@ -301,13 +312,14 @@ public class Player {
     /**
      * Triggers all end-game building effects owned by this player.
      */
-    public void triggerEndGameBuilding(){
+    public void triggerEndGameBuilding() {
         this.buildingCards
                 .stream()
-                .filter(buildingCard -> buildingCard.getApplyOn()==EVENT_TYPE.END_GAME)
+                .filter(buildingCard -> buildingCard.getApplyOn() == EVENT_TYPE.END_GAME)
                 .forEach(buildingCard -> buildingCard.applyBuildingEffect(this));
         notifyPlayerChanged();
     }
+
     /**
      * Returns an unmodifiable view of all villager cards in the player's tribe.
      *
@@ -319,6 +331,7 @@ public class Player {
 
     /**
      * Returns totem.
+     *
      * @return the result of the operation.
      */
     public Totem getTotem() {
@@ -340,17 +353,18 @@ public class Player {
      *
      * @param observerToAdd observer to subscribe
      */
-    public void addObserver(PlayerObserver observerToAdd){
-        if(observerToAdd!=null && !observers.contains(observerToAdd)){
+    public void addObserver(PlayerObserver observerToAdd) {
+        if (observerToAdd != null && !observers.contains(observerToAdd)) {
             observers.add(observerToAdd);
         }
     }
 
     /**
      * Returns observers.
+     *
      * @return the result of the operation.
      */
-    public List<PlayerObserver> getObservers(){
+    public List<PlayerObserver> getObservers() {
         return this.observers;
     }
 
@@ -359,47 +373,52 @@ public class Player {
      *
      * @param observerToRemove observer to unsubscribe
      */
-    public void removeObserver(PlayerObserver observerToRemove){
+    public void removeObserver(PlayerObserver observerToRemove) {
         observers.remove(observerToRemove);
     }
+
     /**
      * Notifies all subscribed observers with a snapshot of the current player state.
      */
 
-    private void notify(Consumer<PlayerObserver> action){
-        for(PlayerObserver observer:observers){
+    private void notify(Consumer<PlayerObserver> action) {
+        for (PlayerObserver observer : observers) {
             action.accept(observer);
         }
     }
-    private void notifyPlayerChanged(){
+
+    private void notifyPlayerChanged() {
         List<Card> tribeSnapshot = List.copyOf(this.tribe);
         List<BuildingCard> buildingSnapshot = List.copyOf(this.buildingCards);
-        notify(o->o.onPlayerChanged(this.nickname, this.totem, this.food, this.prestigePoint, tribeSnapshot,buildingSnapshot));
+        notify(o -> o.onPlayerChanged(this.nickname, this.totem, this.food, this.prestigePoint, tribeSnapshot, buildingSnapshot));
     }
+
     /**
      * Executes notify food changed.
      */
-    private void notifyFoodChanged(){
-            notify(o->o.notifyFoodChanged(this.nickname,food));
+    private void notifyFoodChanged() {
+        notify(o -> o.notifyFoodChanged(this.nickname, food));
     }
 
     /**
      * Executes notify ppchanged.
      */
-    private void notifyPPChanged(){
-        notify(o->o.notifyPPChanged(this.nickname,prestigePoint));
+    private void notifyPPChanged() {
+        notify(o -> o.notifyPPChanged(this.nickname, prestigePoint));
     }
 
     /**
      * Executes notify card added.
+     *
      * @param cardAdded parameter cardAdded.
      */
-    private void notifyCardAdded(Card cardAdded){
-        notify(o-> o.notifyCardAddedToTribe(this.nickname,cardAdded));
+    private void notifyCardAdded(Card cardAdded) {
+        notify(o -> o.notifyCardAddedToTribe(this.nickname, cardAdded));
     }
 
     /**
      * Executes format card for log.
+     *
      * @param card parameter card.
      * @return the result of the operation.
      */
@@ -412,6 +431,7 @@ public class Player {
 
     /**
      * Executes log server event.
+     *
      * @param message parameter message.
      */
     private void logServerEvent(String message) {
@@ -420,6 +440,7 @@ public class Player {
 
     /**
      * Executes equals.
+     *
      * @param o parameter o.
      * @return the result of the operation.
      */
@@ -437,17 +458,19 @@ public class Player {
             observer.requestExtraDraw(this.nickname);
         }
     }
+
     /**
      * Executes checkpoints.
+     *
      * @return the result of the operation.
      */
-    public int checkpoints(){
+    public int checkpoints() {
         int finalPoints = 0;
         long artistPoints = 0;
         int builderPoints = 0;
         long inventorPoints = 0;
         artistPoints = getArtistNumber();
-        finalPoints = (int)(artistPoints/2)*10;
+        finalPoints = (int) (artistPoints / 2) * 10;
 
         builderPoints = this.tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.BUILDER)
@@ -457,8 +480,8 @@ public class Player {
         inventorPoints = this.tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
                 .count();
-        inventorPoints = inventorPoints*getNumberOfDifferentInventorIcon();
-        finalPoints = finalPoints + (int)inventorPoints + builderPoints;
+        inventorPoints = inventorPoints * getNumberOfDifferentInventorIcon();
+        finalPoints = finalPoints + (int) inventorPoints + builderPoints;
         return finalPoints;
     }
 }

@@ -1,7 +1,9 @@
 package it.polimi.ingsw.am25.client.webLayer.RMI;
 
+import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
+import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
@@ -10,6 +12,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -78,6 +81,48 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private List<CardDTO> extraDrawCards = new ArrayList<>();
     /** Top building row snapshot sent with the draw-one-more request; shows round-closing buildings. */
     private List<BuildingDTO> extraDrawBuildings = new ArrayList<>();
+    // ----------------------------------------------------------------------
+//  GUI integration. La TUI usa i lock; la GUI registra un osservatore qui.
+//  Le callback dal server, oltre al solito notifyAll sui lock per la TUI,
+//  chiameranno il metodo corrispondente sull'osservatore se presente.
+//  L'osservatore GUI è responsabile di passare al thread JavaFX
+//  (Platform.runLater) prima di toccare i nodi grafici.
+// ----------------------------------------------------------------------
+    private final java.util.concurrent.CopyOnWriteArrayList<GUIObserver> guiObservers = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    public void addGUIObserver(GUIObserver observer) {
+        guiObservers.add(observer);
+    }
+
+    public void removeGUIObserver(GUIObserver observer) {
+        guiObservers.remove(observer);
+    }
+
+    private void updateObservers(java.util.function.Consumer<GUIObserver> action) {
+        for (GUIObserver observer : guiObservers) {
+            try {
+                action.accept(observer);
+            } catch (Throwable t) {
+                System.out.println("[GUI observer error] " + t.getMessage());
+            }
+        }
+    }
+
+    // --- DISCONNECTION TRACKING ---
+    /** Set of nicknames of players that have disconnected during the game. */
+    private final Set<String> disconnectedPlayers = ConcurrentHashMap.newKeySet();
+    /**
+     * Queue of nicknames whose disconnection has not yet been displayed to the user.
+     * The TUI drains this queue each iteration and prints a notification.
+     */
+    private final Queue<String> recentDisconnections = new ConcurrentLinkedQueue<>();
+    /**
+     * Queue of nicknames whose reconnection has not yet been displayed to the user.
+     * The TUI drains this queue each iteration and prints a notification.
+     */
+    private final Queue<String> recentReconnections = new ConcurrentLinkedQueue<>();
+    /** {@code true} when the server has been detected as unreachable. */
+    public volatile boolean serverDead = false;
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -144,7 +189,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock){
             turnLock.notifyAll();
         }
-
+        updateObservers(obs -> obs.onWinners(playerDTOSWinner));
     }
 
     /**
@@ -165,6 +210,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void playerAdded(PlayerDTO playerAdded) throws RemoteException {
         this.playersMap.put(playerAdded.getNickName(),playerAdded);
+        updateObservers(obs -> obs.onPlayerAdded(playerAdded));
     }
 
     /**
@@ -187,17 +233,18 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         if (gamePhase == GAME_PHASE.PLACING_PHASE || gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             offerTileOccupants.clear();
         }
-        if (gamePhase == GAME_PHASE.PLACING_PHASE) {
-            this.isGameStarted = true;
-            synchronized (gameStartLock) {
-                gameStartLock.notifyAll();
-            }
+        // Always unblock the lobby-wait: in normal flow PLACING_PHASE arrives first;
+        // for a reconnecting client any phase means the game is already running.
+        this.isGameStarted = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
         }
 
         // Phase changes often mean a new turn mechanic is starting, wake up the UI to check
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onGamePhaseChanged(gamePhase));
     }
 
     /**
@@ -211,6 +258,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onPlayerToPlaceChanged(playerChanged.getNickName()));
     }
 
     /**
@@ -225,6 +273,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onPlayerToPlayChanged(playerChanged.getNickName()));
     }
 
     /**
@@ -241,7 +290,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.bottomCards = new ArrayList<>(bottomCards);
             this.topBuildings = new ArrayList<>(topBuildings);
         }
-
+        updateObservers(obs -> obs.onMarketInitialized(topCards, bottomCards, topBuildings));
     }
 
     /**
@@ -258,6 +307,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
         temp.addCardToTribe(cardDTO);
         playersMap.put(nickname, temp);
+        updateObservers(obs -> obs.onCardAddedToTribe(nickname, cardDTO));
     }
 
     /**
@@ -272,6 +322,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onTopCardRemoved(position));
     }
 
     /**
@@ -286,6 +337,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onTopBuildRemoved(position));
     }
 
     /**
@@ -297,7 +349,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.bottomCards.remove(position);
         }
-
+        updateObservers(obs -> obs.onBottomCardRemoved(position));
     }
 
     /**
@@ -309,7 +361,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.bottomBuildings.remove(position);
         }
-
+        updateObservers(obs -> obs.onBottomBuildRemoved(position));
     }
 
     /**
@@ -324,7 +376,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             }
             this.topBuildings = new ArrayList<>(topBuildingCards);
         }
-
+        updateObservers(obs -> obs.onTopBuildingRefreshed(topBuildingCards));
     }
 
     /**
@@ -339,7 +391,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             }
             this.topCards = new ArrayList<>(topCards);
         }
-
+        updateObservers(obs -> obs.onTopCardRefreshed(topCards));
     }
 
     /**
@@ -352,6 +404,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         PlayerDTO temp = playersMap.get(nickname);
         temp.setFood(food);
         playersMap.put(temp.getNickName(),temp);
+        updateObservers(obs -> obs.onPlayerFoodChanged(nickname, food));
     }
 
     /**
@@ -364,6 +417,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         PlayerDTO temp = playersMap.get(nickname);
         temp.setPrestigePoint(PP);
         playersMap.put(temp.getNickName(),temp);
+        updateObservers(obs -> obs.onPlayerPPChanged(nickname, PP));
     }
 
     /**
@@ -377,7 +431,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.offerTileList=offerTileList;
             this.defaultTileList=defaultTileList;
         }
-
+        updateObservers(obs -> obs.onBoardInitialized(offerTileList, defaultTileList));
     }
 
     /**
@@ -387,8 +441,17 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      */
     @Override
     public void playerPlacedOnOffertile(String PlayerNickname, int offertilePosition) throws RemoteException {
+        int fromSlot = -1;
+        for (int i = 0; i < defaultTileOrder.size(); i++) {
+            PlayerDTO p = defaultTileOrder.get(i);
+            if (p != null && Objects.equals(p.getNickName(), PlayerNickname)) { fromSlot = i; break; }
+        }
         defaultTileOrder.replaceAll(p -> p != null && Objects.equals(p.getNickName(), PlayerNickname) ? null : p);
         offerTileOccupants.put(offertilePosition, PlayerNickname);
+        List<PlayerDTO> updatedOrder = new ArrayList<>(defaultTileOrder);
+        final int slot = fromSlot;
+        updateObservers(obs -> obs.onDefaultTileOrderChanged(updatedOrder));
+        updateObservers(obs -> obs.onPlayerPlacedOnOfferTile(PlayerNickname, offertilePosition, slot));
     }
 
 
@@ -427,6 +490,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void orderOnDefaultTile(List<PlayerDTO> orderOnDefaultTile) throws RemoteException {
         this.defaultTileOrder = new ArrayList<>(orderOnDefaultTile);
+        List<PlayerDTO> snapshot = new ArrayList<>(orderOnDefaultTile);
+        updateObservers(obs -> obs.onDefaultTileOrderChanged(snapshot));
     }
 
     /**
@@ -448,6 +513,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.needsExtraDraw = true;
             turnLock.notifyAll(); // Wake up the TUI!
         }
+        List<CardDTO> cardsCopy = new ArrayList<>(snapshotCards);
+        List<BuildingDTO> buildingsCopy = new ArrayList<>(snapshotBuildings);
+        updateObservers(obs -> obs.onAskExtraDraw(cardsCopy, buildingsCopy));
     }
 
     /** Returns the top card row snapshot for the current extra draw request. */
@@ -489,7 +557,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
             this.drawTop=action.getDrawTop();
             turnLock.notifyAll();
         }
-
+        updateObservers(obs -> obs.onActionAvailableChanged(action.getDrawTop(), action.getDrawBot()));
 
     }
 
@@ -650,13 +718,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     @Override
-    public void eventResolved(String eventdescription) throws RemoteException {
+    public void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException {
+        String description = "Evento #" + eventID + " (" + eventType + ") risolto";
         synchronized (stateLock){
-            resolvedEvents.add(eventdescription);
+            resolvedEvents.add(description);
         }
         synchronized (turnLock){
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onEventResolved(eventID, eventType));
     }
 
     @Override
@@ -692,6 +762,93 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             resolvedEvents.clear();
         }
+    }
+
+    // --- DISCONNECTION ---
+
+    /**
+     * Called by the server (via RMI stub or Socket proxy) when a player has disconnected.
+     * Adds the player to the disconnected set and wakes up the TUI turn lock.
+     * @param nickname the disconnected player's nickname.
+     * @throws RemoteException if the RMI call fails.
+     */
+    @Override
+    public void playerDisconnected(String nickname) throws RemoteException {
+        disconnectedPlayers.add(nickname);
+        recentDisconnections.add(nickname);   // TUI will drain and display this
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+        updateObservers(obs -> obs.onPlayerDisconnected(nickname));
+    }
+
+    @Override
+    public void playerReconnected(String nickname) throws RemoteException {
+        disconnectedPlayers.remove(nickname);
+        recentReconnections.add(nickname);
+        updateObservers(obs -> obs.onPlayerReconnected(nickname));
+    }
+
+
+    /**
+     * Returns {@code true} if the given player is known to have disconnected.
+     * @param nickname the player's nickname.
+     * @return whether the player is disconnected.
+     */
+    public boolean isPlayerDisconnected(String nickname) {
+        return disconnectedPlayers.contains(nickname);
+    }
+
+    /**
+     * Drains and returns all player nicknames whose disconnection has not yet
+     * been displayed to the user. Each nickname appears at most once.
+     * @return list of recently-disconnected player nicknames (may be empty).
+     */
+    public List<String> drainRecentDisconnections() {
+        List<String> result = new ArrayList<>();
+        String n;
+        while ((n = recentDisconnections.poll()) != null) {
+            result.add(n);
+        }
+        return result;
+    }
+
+    /**
+     * Drains and returns all player nicknames whose reconnection has not yet been
+     * displayed to the user. Each nickname appears at most once.
+     * @return list of recently-reconnected player nicknames (may be empty).
+     */
+    public List<String> drainRecentReconnections() {
+        List<String> result = new ArrayList<>();
+        String n;
+        while ((n = recentReconnections.poll()) != null) {
+            result.add(n);
+        }
+        return result;
+    }
+
+    /**
+     * Called when the server becomes unreachable (socket drop, RMI timeout, etc.).
+     * Sets the {@code serverDead} flag and wakes up any waiting TUI threads so they
+     * can exit cleanly.
+     */
+    public void handleServerDeath() {
+        this.serverDead = true;
+        synchronized (gameStartLock) {
+            gameStartLock.notifyAll();
+        }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
+        updateObservers(obs -> obs.onServerDead());
+    }
+
+    /**
+     * Returns {@code true} if the server has been detected as unreachable.
+     * @return server-dead flag.
+     */
+    public boolean isServerDead() {
+        return serverDead;
     }
 
 }

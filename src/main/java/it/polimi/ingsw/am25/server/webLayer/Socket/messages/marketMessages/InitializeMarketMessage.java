@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer.Socket.messages.marketMessages;
 
-import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.BuildingDTO;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
@@ -18,8 +17,9 @@ public class InitializeMarketMessage implements ServerToClientMessage {
 
     /**
      * Creates a message carrying the initial market state.
-     * @param topCards top row of cards.
-     * @param bottomCards bottom row of cards.
+     *
+     * @param topCards     top row of cards.
+     * @param bottomCards  bottom row of cards.
      * @param topBuildings top row of buildings.
      */
     public InitializeMarketMessage(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) {
@@ -28,9 +28,11 @@ public class InitializeMarketMessage implements ServerToClientMessage {
         this.topBuildings = topBuildings;
     }
 
-    /** Dispatches this message by calling {@link ClientRemoteInterface#initializeMarket}. */
+    /**
+     * Dispatches this message by calling {@link ClientRemoteInterface#initializeMarket}.
+     */
     @Override
-    public void execute( ClientRemoteInterface clientRemoteInterface) throws Exception {
-        clientRemoteInterface.initializeMarket(topCards,bottomCards,topBuildings);
+    public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
+        clientRemoteInterface.initializeMarket(topCards, bottomCards, topBuildings);
     }
 }

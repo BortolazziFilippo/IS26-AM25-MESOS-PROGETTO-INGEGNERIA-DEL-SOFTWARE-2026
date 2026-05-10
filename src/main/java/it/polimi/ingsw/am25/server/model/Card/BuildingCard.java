@@ -17,77 +17,70 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 public class BuildingCard extends Card {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int buildingID;
-    private  BuildingEffect buildingEffect;
+    private BuildingEffect buildingEffect;
     private final int foodCost;
     private final int endgamePP;
     private final EVENT_TYPE applyOn;
 
     /**
-     * Default BuildingCard Constructor
-     * @param era Card ERA
-     * @param cardType Card type
-     * @param buildingID ID of the building
-     * @param foodCost cost of the building
-     * @param endgamePP pp givent at end game
-     * @param applyOn when the buildingeffect is triggered
+     * @param era        the era this card belongs to.
+     * @param cardType   the card type (should be {@code CARD_TYPE.BUILDING}).
+     * @param buildingID unique identifier for this building.
+     * @param foodCost   food cost to purchase this building.
+     * @param endgamePP  prestige points awarded at end of game.
+     * @param applyOn    the event type that triggers this building's effect.
      */
     public BuildingCard(ERA era, CARD_TYPE cardType, int buildingID, int foodCost, int endgamePP, EVENT_TYPE applyOn) {
-        this.era=era;
-        this.cardType=cardType;
+        this.era = era;
+        this.cardType = cardType;
         this.buildingID = buildingID;
-
         this.foodCost = foodCost;
         this.endgamePP = endgamePP;
         this.applyOn = applyOn;
     }
 
     /**
-     * used to set the building effect afterward
-     * @param buildingEffect  building effect to bind
+     * Binds the effect strategy to this building card.
+     * Called by the factory after construction because the effect depends on the building ID.
+     *
+     * @param buildingEffect the effect to execute when this building is triggered.
      */
-    public void setBuildingEffect(BuildingEffect buildingEffect){
-        this.buildingEffect=buildingEffect;
+    public void setBuildingEffect(BuildingEffect buildingEffect) {
+        this.buildingEffect = buildingEffect;
     }
 
     /**
-     * Returns the unique identifier of this building.
-     *
-     * @return building ID
+     * @return the unique identifier of this building.
      */
     public int getBuildingID() {
         return buildingID;
     }
 
     /**
-     * Returns the food cost required to purchase this building.
-     *
-     * @return food cost
+     * @return the food cost required to purchase this building.
      */
     public int getFoodCost() {
         return foodCost;
     }
 
     /**
-     * Returns the prestige points this building awards at the end of the game.
-     *
-     * @return end-game prestige points
+     * @return the prestige points this building awards at the end of the game.
      */
     public int getEndgamePP() {
         return endgamePP;
     }
 
     /**
-     * Returns the event type that triggers this building's effect.
-     *
-     * @return the {@link EVENT_TYPE} this building reacts to
+     * @return the event type that triggers this building's effect.
      */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
 
     /**
-     * Method for applying the building effect
-     * @param player the player to apply the effect to
+     * Fires the bound building effect on the given player.
+     *
+     * @param player the player who owns this building.
      */
     public void applyBuildingEffect(Player player) {
         UtilitiesFunction.logInfo(
@@ -100,9 +93,9 @@ public class BuildingCard extends Card {
                 "Completed building #" + buildingID + " for player '" + player.getNickname() + "'"
         );
     }
+
     /**
-     * Executes add card to player.
-     * @param player parameter player.
+     * Adds this building to the player's owned buildings.
      */
     @Override
     public void addCardToPlayer(Player player) {
@@ -110,22 +103,20 @@ public class BuildingCard extends Card {
     }
 
     /**
-     * Executes equals.
-     * @param obj parameter obj.
-     * @return the result of the operation.
+     * @param obj the object to compare against.
+     * @return true if {@code obj} is a BuildingCard with the same building ID.
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof BuildingCard toCompare){
+        if (obj instanceof BuildingCard toCompare) {
             return toCompare.buildingID == this.buildingID;
-        }else{
+        } else {
             return false;
         }
     }
 
     /**
-     * Executes to dto.
-     * @return the result of the operation.
+     * @return a BuildingDTO snapshot of this card for network transfer.
      */
     @Override
     public CardDTO toDTO() {

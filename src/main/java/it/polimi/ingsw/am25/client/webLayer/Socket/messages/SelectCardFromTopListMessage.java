@@ -16,9 +16,10 @@ public class SelectCardFromTopListMessage implements ClientToServerMessage {
 
     /**
      * Creates a message requesting a card draw from the top market row.
+     *
      * @param playerDTO the acting player.
-     * @param cardType the type of card to draw.
-     * @param position the position in the top row.
+     * @param cardType  the type of card to draw.
+     * @param position  the position in the top row.
      */
     public SelectCardFromTopListMessage(PlayerDTO playerDTO, CARD_TYPE cardType, int position) {
         this.playerDTO = playerDTO;
@@ -26,9 +27,11 @@ public class SelectCardFromTopListMessage implements ClientToServerMessage {
         this.position = position;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#selectCardFromTopList}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#selectCardFromTopList}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
-        serverRemoteInterface.selectCardFromTopList(playerDTO,cardType,position);
+        serverRemoteInterface.selectCardFromTopList(playerDTO, cardType, position);
     }
 }

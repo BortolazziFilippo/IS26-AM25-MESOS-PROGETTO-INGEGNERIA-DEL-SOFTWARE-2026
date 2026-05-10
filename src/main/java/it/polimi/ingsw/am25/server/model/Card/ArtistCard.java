@@ -9,20 +9,19 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Represents an Artist tribe member card. Artists contribute to the painting event
  * and may provide food bonuses through building effects.
  */
-public class ArtistCard extends Card{
+public class ArtistCard extends Card {
+
     /**
-     * Default ArtistCard contructor
-     * @param era Card ERA
-     * @param cardType Card type
+     * @param era      the era this card belongs to.
+     * @param cardType the card type (should be {@code CARD_TYPE.ARTIST}).
      */
-    public ArtistCard(ERA era, CARD_TYPE cardType){
-        this.era=era;
-        this.cardType=cardType;
+    public ArtistCard(ERA era, CARD_TYPE cardType) {
+        this.era = era;
+        this.cardType = cardType;
     }
 
     /**
-     * Executes add card to player.
-     * @param player parameter player.
+     * Adds this card to the player's tribe.
      */
     @Override
     public void addCardToPlayer(Player player) {
@@ -30,22 +29,20 @@ public class ArtistCard extends Card{
     }
 
     /**
-     * Executes equals.
-     * @param obj parameter obj.
-     * @return the result of the operation.
+     * @param obj the object to compare against.
+     * @return true if {@code obj} is an ArtistCard with the same era and card type.
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof ArtistCard toCompare){
+        if (obj instanceof ArtistCard toCompare) {
             return toCompare.cardType == this.cardType && toCompare.era == this.getEra();
-        }else{
+        } else {
             return false;
         }
     }
 
     /**
-     * Executes to dto.
-     * @return the result of the operation.
+     * @return a CardDTO snapshot of this card for network transfer.
      */
     @Override
     public CardDTO toDTO() {

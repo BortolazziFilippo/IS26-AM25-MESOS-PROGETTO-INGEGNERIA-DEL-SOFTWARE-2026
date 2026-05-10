@@ -2,9 +2,9 @@ package it.polimi.ingsw.am25.server.model.Controller;
 
 import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
-import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
@@ -39,14 +39,15 @@ public class Controller {
      * @param playerNumber the total number of players required to start the game (2–5).
      * @throws IllegalStateException if a game has already been created on this controller.
      */
-    public void createGame(Player playerHost, int playerNumber) throws IllegalStateException{
-        if(this.game==null){
-            this.game=new Game(playerHost,playerNumber);
-        }else {
+    public void createGame(Player playerHost, int playerNumber) throws IllegalStateException {
+        if (this.game == null) {
+            this.game = new Game(playerHost, playerNumber);
+        } else {
             throw new IllegalStateException("Game already created");
         }
 
     }
+
     /**
      * Registers a {@link ServerVirtualView} as an observer of the game model,
      * so the client associated with that view receives all game-event notifications
@@ -54,12 +55,13 @@ public class Controller {
      *
      * @param virtualView the virtual view to register.
      */
-    public void linkObserver(ServerVirtualView virtualView){
+    public void linkObserver(ServerVirtualView virtualView) {
         game.linkObserver(virtualView);
     }
 
     /**
      * Returns all players currently in the game.
+     *
      * @return unmodifiable list of {@link Player} instances.
      */
     public List<Player> getAllPlayers() {
@@ -110,7 +112,16 @@ public class Controller {
      * Starts the Mesos game and pushes the initial state snapshot to all connected clients.
      * Must be called after all players have joined and all observers have been linked.
      */
-    public void controllerGameStar(){
+    public void controllerGameStar() {
+        new Thread(() -> {
+            try {
+                DBManager.getConnection();
+            } catch (IOException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "IOexception DB");
+            } catch (SQLException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione server");
+            }
+        }).start();
         game.gameStart();
         game.notifyChanges();
     }
@@ -156,12 +167,12 @@ public class Controller {
      * @param player   the player who will receive the selected card.
      * @param cardType the type of card to be selected (tribe member or {@link CARD_TYPE#BUILDING}).
      * @param position the index of the card within the top row.
-     * @throws ActionNotAvailable        if the game is not in a resolve-action phase, it is not this player's turn,
-     *                                   or their offer tile grants no top-row draws.
-     * @throws IndexOutOfBoundsException if {@code position} is out of range.
-     * @throws NotEnoughFoodException    if the player lacks the food to buy a building.
+     * @throws ActionNotAvailable         if the game is not in a resolve-action phase, it is not this player's turn,
+     *                                    or their offer tile grants no top-row draws.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
+     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
      * @throws NotSelectableCardException if the card at that position is an event card.
-     * @throws EmptyMarketException      if the top row has no selectable cards.
+     * @throws EmptyMarketException       if the top row has no selectable cards.
      */
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {

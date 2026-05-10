@@ -13,15 +13,18 @@ public class AddPlayerMessage implements ClientToServerMessage {
 
     /**
      * Creates a message requesting that the given player join the current lobby.
+     *
      * @param playerDTO the player who wants to join.
      */
     public AddPlayerMessage(PlayerDTO playerDTO) {
         this.playerDTO = playerDTO;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#addPlayer}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#addPlayer}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
-        serverRemoteInterface.addPlayer(playerDTO,clientRemoteInterface);
+        serverRemoteInterface.addPlayer(playerDTO, clientRemoteInterface);
     }
 }

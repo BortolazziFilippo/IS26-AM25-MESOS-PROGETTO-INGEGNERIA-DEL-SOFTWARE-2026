@@ -17,12 +17,9 @@ import java.util.List;
 public class SixFoodCompletedSet extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private boolean alreadyUsed = false;
-    private  List<Integer> setCard;
+    private List<Integer> setCard;
     private List<Card> listOldCard;
 
-    /**
-     * Default constructor for SixFoodCompletedSet.
-     */
     public SixFoodCompletedSet() {
     }
 
@@ -36,27 +33,27 @@ public class SixFoodCompletedSet extends BuildingEffect {
     @Override
     public void applyEffect(Player player) {
 
-        if(!alreadyUsed){
-            int quantity=6;
-            setCard = new ArrayList<>(Collections.nCopies(quantity,0));
-            listOldCard=new ArrayList<>(player.getTribe());
-            this.alreadyUsed=true;
+        if (!alreadyUsed) {
+            int quantity = 6;
+            setCard = new ArrayList<>(Collections.nCopies(quantity, 0));
+            listOldCard = new ArrayList<>(player.getTribe());
+            this.alreadyUsed = true;
             UtilitiesFunction.logInfo(LOG_PREFIX,
                     "SixFoodCompletedSet: initialised card counters for player '" + player.getNickname() + "'");
-        }else{
+        } else {
             List<Card> listOfNewCard = player.getTribe();
             List<Card> difference = new ArrayList<>(listOfNewCard);
             difference.removeIf(card ->
                     listOldCard.stream().anyMatch(oldCard -> oldCard == card)
             );
-            listOldCard=new ArrayList<>(listOfNewCard);
+            listOldCard = new ArrayList<>(listOfNewCard);
 
             UtilitiesFunction.countOccurrence(difference, setCard);
 
             int setsAwarded = 0;
-            while (!setCard.contains(0)){
+            while (!setCard.contains(0)) {
                 player.manageFoodAndPP(5);
-                setCard.replaceAll(integer -> integer-1);
+                setCard.replaceAll(integer -> integer - 1);
                 setsAwarded++;
             }
             if (setsAwarded > 0) {

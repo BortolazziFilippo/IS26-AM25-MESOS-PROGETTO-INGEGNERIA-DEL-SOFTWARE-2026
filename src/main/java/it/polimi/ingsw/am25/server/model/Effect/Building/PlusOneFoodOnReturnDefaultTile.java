@@ -8,16 +8,13 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  * Building effect that awards 1 extra food when the player returns to a default tile
  * whose food reward is non-negative (i.e. an eligible default tile).
  */
-public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect{
+public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private BoardView boardView;
 
-    /**
-     * Default constructor for PlusOneFoodOnReturnDefaultTile.
-     * {@link #setBoardView(BoardView)} must be called before the effect can be applied.
-     */
     public PlusOneFoodOnReturnDefaultTile() {
     }
+
     /**
      * Sets the board view used to determine whether the player is on an eligible tile.
      *
@@ -34,7 +31,7 @@ public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect{
      */
     @Override
     public void applyEffect(Player player) {
-        if(boardView.isPlayerOnAnEligibleDefaultTile(player)){
+        if (boardView.isPlayerOnAnEligibleDefaultTile(player)) {
             UtilitiesFunction.logInfo(LOG_PREFIX,
                     "PlusOneFoodOnReturnDefaultTile: player '" + player.getNickname() +
                             "' is on an eligible default tile, awarding +1 food");

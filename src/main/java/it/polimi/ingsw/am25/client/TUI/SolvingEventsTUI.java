@@ -4,8 +4,8 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 
 public class SolvingEventsTUI {
-    private ClientVirtualView clientVirtualView;
-    private TUIUtils tuiUtils;
+    private final ClientVirtualView clientVirtualView;
+    private final TUIUtils tuiUtils;
 
     public SolvingEventsTUI(ClientVirtualView clientVirtualView, TUIUtils tUIUtils) {
         this.clientVirtualView = clientVirtualView;
@@ -26,7 +26,7 @@ public class SolvingEventsTUI {
         synchronized (clientVirtualView.turnLock) {
             while (clientVirtualView.getGamePhase() == GAME_PHASE.SOLVING_EVENTS) {
                 System.out.println("Eventi risolti finora: ");
-                clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event.toString()));
+                clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event));
                 System.out.println();
                 System.out.println(" ⏳ Risoluzione in corso... ");
                 try {
@@ -44,7 +44,7 @@ public class SolvingEventsTUI {
         //     (la wait esce ma non rifa' la stampa prima del controllo while)
         tuiUtils.clearScreen();
         System.out.println("✅ Gli eventi sono stati risolti:");
-        clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event.toString()));
+        clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event));
 
         // Puliamo ORA, dopo che l'utente ha avuto modo di vederli, cosi'
         // la prossima fase SOLVING_EVENTS partira' da una lista vuota.

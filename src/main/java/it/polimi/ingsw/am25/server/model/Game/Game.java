@@ -50,7 +50,7 @@ public class Game implements GameView {
      */
     public Game(Player playerHost, int playerNumber) {
         if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost nullo");
+            throw new IllegalArgumentException("playerHost is null");
         }
         this.playerNumber = playerNumber;
         this.gamePhase = GAME_PHASE.SETUP;
@@ -61,10 +61,6 @@ public class Game implements GameView {
         this.playerHost = playerHost;
         this.players = new HashMap<>();
         players.put(playerHost.getNickname(), playerHost);
-        //standard null-guard for the constructor argument
-        if (playerHost == null) {
-            throw new IllegalArgumentException("playerHost is null");
-        }
         notifyGameChanged();
     }
 
@@ -160,6 +156,20 @@ public class Game implements GameView {
     }
 
     /**
+     * Advances the placing turn without an actual totem placement, used when the current
+     * placing player has disconnected. Mirrors the tail of {@link #placePlayer} after a
+     * successful placement.
+     */
+    public void forceAdvancePlacing() {
+        try {
+            this.playerToPlace = turnManager.getNextPlacingPlayer();
+            notifyPlayerToPlaceChanged();
+        } catch (EndOfPlacingPhaseException e) {
+            advancePlayingPhase();
+        }
+    }
+
+    /**
      * Transitions the game from the placing phase to the playing (resolve-action) phase.
      * Updates the playing order, sets the first player to play, and — if that player is
      * on offer tile 'A' (no actions, only food) — automatically advances to the next player.
@@ -213,9 +223,8 @@ public class Game implements GameView {
      * @return the list of winning players (one or more).
      */
     public List<Player> checkWinner() {
-        // This is only for completeness, but if the constructor works it should never happen
         if (this.players == null || this.players.isEmpty()) {
-            throw new IllegalStateException("Nessun giocatore presente, errore nel costruttore");
+            throw new IllegalStateException("No players found");
         }
 
         List<Player> winners = players.values().stream()
@@ -292,7 +301,6 @@ public class Game implements GameView {
                 notifyGamePhaseChanged();
                 notifyPlayerToPlaceChanged();
             } catch (EndOfPlacingPhaseException e) {
-                // should never be triggered
                 e.printStackTrace();
             }
         } else {
@@ -428,11 +436,21 @@ public class Game implements GameView {
      * @throws EndOfPlayingPhaseException if there are no more players left to play this round
      */
     public void goNextPlayingPlayer() throws EndOfPlayingPhaseException {
-        this.playerToPlay = turnManager.getNextPlayingPlayer();
-        this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(playerToPlay);
-        notifyActionChanged();
-        logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
-        notifyPlayerToPlayChanged();
+        // Loop so we can skip players who reconnected mid-round without having placed
+        // their totem (they are not on any offer tile and cannot act this round).
+        while (true) {
+            Player next = turnManager.getNextPlayingPlayer(); // throws EndOfPlayingPhaseException when queue empty
+            try {
+                this.offertilePlayerIsOn = board.getCopyTilePlayerIsOn(next);
+                this.playerToPlay = next;
+                notifyActionChanged();
+                logServerEvent("Turn passed to player '" + this.playerToPlay.getNickname() + "'");
+                notifyPlayerToPlayChanged();
+                return;
+            } catch (IllegalStateException e) {
+                logServerEvent("Skipping player '" + next.getNickname() + "' (not on any offer tile this round).");
+            }
+        }
     }
 
     /**
@@ -658,6 +676,38 @@ public class Game implements GameView {
      */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
+    }
+
+    // --- DISCONNECTION SUPPORT ---
+
+    /**
+     * Removes the given player from both the placing and playing turn queues immediately.
+     * Called when a player disconnects so the game never waits for them.
+     *
+     * @param player the disconnected player.
+     */
+    public void removeFromTurnQueues(Player player) {
+        turnManager.removePlayer(player);
+    }
+
+    /**
+     * Re-adds a reconnected player to the end of both turn queues.
+     *
+     * @param player the reconnected player.
+     */
+    public void reAddToTurnQueues(Player player) {
+        turnManager.reAddPlayer(player);
+    }
+
+    /**
+     * Advances the placing phase to the next connected player without placing a totem.
+     * Used when the current placing player has disconnected mid-phase.
+     *
+     * @throws EndOfPlacingPhaseException if no more connected players need to place.
+     */
+    public void skipDisconnectedPlacingPlayer() throws EndOfPlacingPhaseException {
+        this.playerToPlace = turnManager.getNextPlacingPlayer();
+        notifyPlayerToPlaceChanged();
     }
 
 }

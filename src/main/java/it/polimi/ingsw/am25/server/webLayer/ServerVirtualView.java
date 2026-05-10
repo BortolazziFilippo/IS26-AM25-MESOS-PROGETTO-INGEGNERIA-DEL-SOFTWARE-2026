@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Server-side per-client view. Listens to all model observers and forwards each event
@@ -34,9 +35,15 @@ import java.util.concurrent.Executors;
 public class ServerVirtualView implements BoardObserver, GameObserver, MarketObserver, PlayerObserver {
     private static final String LOG_PREFIX = "[SERVER][VIEW]";
     private final String nickname;
-    private final ClientRemoteInterface clientStub;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-
+    private ClientRemoteInterface clientStub;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    /**
+     * Called when an RMI error is detected in a notification task, triggering disconnection.
+     */
+    private Runnable disconnectCallback;
+    // --- HEARTBEAT ---
+    private final AtomicInteger missedPings = new AtomicInteger(0);
+    private volatile boolean connected = true;
     //_________________________________________________________________________________________
     private List<PlayerDTO> winners;
     private ERA currentEra;

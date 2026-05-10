@@ -8,14 +8,11 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  * ritual event. On the first call it snapshots the player's PP before the event; on the
  * second call it restores any PP that was lost.
  */
-public class NoPPLostOnShaman extends BuildingEffect{
+public class NoPPLostOnShaman extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private int prevPP;
     private boolean flag = false;
 
-    /**
-     * Default constructor for NoPPLostOnShaman.
-     */
     public NoPPLostOnShaman() {
 
     }
@@ -28,13 +25,13 @@ public class NoPPLostOnShaman extends BuildingEffect{
      */
     @Override
     public void applyEffect(Player player) {
-        if(!flag){
+        if (!flag) {
             prevPP = player.getPrestigePoint();
             flag = true;
             UtilitiesFunction.logInfo(LOG_PREFIX,
                     "NoPPLostOnShaman: snapshotted PP=" + prevPP + " for player '" + player.getNickname() + "' before shamanic event");
-        }else{
-            if(player.getPrestigePoint()<prevPP){
+        } else {
+            if (player.getPrestigePoint() < prevPP) {
                 int restored = prevPP - player.getPrestigePoint();
                 UtilitiesFunction.logInfo(LOG_PREFIX,
                         "NoPPLostOnShaman: player '" + player.getNickname() + "' lost " + restored +

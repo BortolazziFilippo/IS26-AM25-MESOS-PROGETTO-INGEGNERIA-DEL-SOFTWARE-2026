@@ -3,11 +3,12 @@ package it.polimi.ingsw.am25.server.model.Effect.Building;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+
 /**
  * Building effect that awards a fixed number of prestige points for each tribe member
  * of a specified card type at end of game (or the configured trigger).
  */
-public class PPPerCharType extends BuildingEffect{
+public class PPPerCharType extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private final int PrestigePoint;
     private final CARD_TYPE cardType;

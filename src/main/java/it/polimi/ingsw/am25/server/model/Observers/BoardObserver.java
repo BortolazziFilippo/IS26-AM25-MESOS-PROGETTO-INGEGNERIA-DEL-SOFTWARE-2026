@@ -23,15 +23,17 @@ public interface BoardObserver {
 
     /**
      * all the player went back to the default tiles,
+     *
      * @param playerOrder order of the player
      */
     void playerToDefaultTile(
-      List<Player> playerOrder
+            List<Player> playerOrder
     );
 
     /**
      * the player has been moved to the {@param tilePosition} index
-     * @param player player to move
+     *
+     * @param player       player to move
      * @param tilePosition index
      */
     void playerPlacedOnOffertile(

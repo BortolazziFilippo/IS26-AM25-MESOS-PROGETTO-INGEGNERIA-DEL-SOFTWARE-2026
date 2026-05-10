@@ -16,9 +16,10 @@ public class SelectExtraCardMessage implements ClientToServerMessage {
 
     /**
      * Creates a message requesting an extra card draw.
+     *
      * @param playerDTO the acting player.
-     * @param cardType the type of card to draw.
-     * @param position the position in the list.
+     * @param cardType  the type of card to draw.
+     * @param position  the position in the list.
      */
     public SelectExtraCardMessage(PlayerDTO playerDTO, CARD_TYPE cardType, int position) {
         this.playerDTO = playerDTO;
@@ -26,9 +27,11 @@ public class SelectExtraCardMessage implements ClientToServerMessage {
         this.position = position;
     }
 
-    /** Dispatches this message by calling {@link ServerRemoteInterface#selectExtraCard}. */
+    /**
+     * Dispatches this message by calling {@link ServerRemoteInterface#selectExtraCard}.
+     */
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
-        serverRemoteInterface.selectExtraCard(playerDTO,cardType,position);
+        serverRemoteInterface.selectExtraCard(playerDTO, cardType, position);
     }
 }

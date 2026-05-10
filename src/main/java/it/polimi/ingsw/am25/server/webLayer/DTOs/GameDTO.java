@@ -21,95 +21,84 @@ public class GameDTO implements Serializable {
     private String playerToPlay;
 
     /**
-     * Creates a new game dto instance.
-     * @param currentEra parameter currentEra.
-     * @param currentGamePhase parameter currentGamePhase.
-     * @param playerToPlace parameter playerToPlace.
-     * @param playerToPlay parameter playerToPlay.
+     * @param currentEra       the era the game is currently in.
+     * @param currentGamePhase the current phase of the game.
+     * @param playerToPlace    nickname of the player who must place their totem.
+     * @param playerToPlay     nickname of the player whose turn it is to play.
      */
-    public GameDTO(ERA currentEra,  GAME_PHASE currentGamePhase, String playerToPlace, String playerToPlay) {
+    public GameDTO(ERA currentEra, GAME_PHASE currentGamePhase, String playerToPlace, String playerToPlay) {
         this.currentEra = currentEra;
-        this.winners=null;
+        this.winners = null;
         this.currentGamePhase = currentGamePhase;
         this.playerToPlace = playerToPlace;
         this.playerToPlay = playerToPlay;
     }
 
     /**
-     * Returns winners.
-     * @return the result of the operation.
+     * @return the ordered list of winners, or {@code null} if the game is still ongoing.
      */
     public List<PlayerDTO> getWinners() {
         return winners;
     }
 
     /**
-     * Sets winners.
-     * @param winners parameter winners.
+     * @param winners the ordered list of winners to set.
      */
     public void setWinners(List<PlayerDTO> winners) {
         this.winners = winners;
     }
 
     /**
-     * Returns current era.
-     * @return the result of the operation.
+     * @return the era the game is currently in.
      */
     public ERA getCurrentEra() {
         return currentEra;
     }
 
     /**
-     * Sets current era.
-     * @param currentEra parameter currentEra.
+     * @param currentEra the new current era.
      */
     public void setCurrentEra(ERA currentEra) {
         this.currentEra = currentEra;
     }
 
     /**
-     * Returns current game phase.
-     * @return the result of the operation.
+     * @return the current phase of the game.
      */
     public GAME_PHASE getCurrentGamePhase() {
         return currentGamePhase;
     }
 
     /**
-     * Sets current game phase.
-     * @param currentGamePhase parameter currentGamePhase.
+     * @param currentGamePhase the new game phase.
      */
     public void setCurrentGamePhase(GAME_PHASE currentGamePhase) {
         this.currentGamePhase = currentGamePhase;
     }
 
     /**
-     * Returns player to place.
-     * @return the result of the operation.
+     * @return nickname of the player who must place their totem.
      */
     public String getPlayerToPlace() {
         return playerToPlace;
     }
 
     /**
-     * Sets player to place.
-     * @param playerToPlace parameter playerToPlace.
+     * @param playerToPlace nickname of the player who must place their totem.
      */
     public void setPlayerToPlace(String playerToPlace) {
         this.playerToPlace = playerToPlace;
     }
 
     /**
-     * Returns player to play.
-     * @return the result of the operation.
+     * @return nickname of the player whose turn it is to play.
      */
     public String getPlayerToPlay() {
         return playerToPlay;
     }
 
     /**
-     * Sets player to play.
-     * @param playerToPlay parameter playerToPlay.
+     * @param playerToPlay nickname of the player whose turn it is to play.
      */
     public void setPlayerToPlay(String playerToPlay) {
         this.playerToPlay = playerToPlay;

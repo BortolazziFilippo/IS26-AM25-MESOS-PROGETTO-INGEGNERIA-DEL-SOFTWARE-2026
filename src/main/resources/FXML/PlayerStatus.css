@@ -1,0 +1,139 @@
+/* ── PlayerStatus window ──────────────────────────────────── */
+
+.root {
+    -fx-background-color: #1a0f05;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Title bar */
+.status-title-bar {
+    -fx-padding: 14 18 14 18;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2d1e0a, #1a0f05);
+    -fx-border-color: transparent transparent #3d2b10 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.status-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d4a017;
+}
+
+/* Close button */
+.status-close-btn {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d4a017;
+    -fx-background-color: #000000, #2a1e0a;
+    -fx-background-insets: 3 0 0 0, 0 0 3 0;
+    -fx-background-radius: 8;
+    -fx-border-color: #3d2b10;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 7 18 7 18;
+    -fx-cursor: hand;
+}
+.status-close-btn:hover {
+    -fx-background-color: #000000, #3d2e14;
+    -fx-background-insets: 4 0 0 0, 0 0 4 0;
+    -fx-translate-y: -1;
+}
+.status-close-btn:pressed {
+    -fx-background-insets: 0, 0;
+    -fx-translate-y: 3;
+}
+
+/* ── Leaderboard ───────────────────────────────────────────── */
+
+.leaderboard {
+    -fx-background-color: #2a1c0e;
+    -fx-background-radius: 10;
+    -fx-padding: 12 16 14 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 14, 0.35, 0, 5);
+}
+
+.leaderboard-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d4a017;
+    -fx-padding: 0 0 8 0;
+}
+
+.rank-1 { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ffd700; -fx-min-width: 30; }
+.rank-2 { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #c0c0c0; -fx-min-width: 30; }
+.rank-3 { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #cd7f32; -fx-min-width: 30; }
+.rank-other { -fx-font-size: 13px; -fx-text-fill: #6a5a40; -fx-min-width: 30; }
+
+.leaderboard-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e8d4a0;
+    -fx-min-width: 110;
+}
+
+.leaderboard-pp {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e8d4a0;
+    -fx-min-width: 52;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+/* ── Player Tab Pane ───────────────────────────────────────── */
+
+.player-tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 36px;
+    -fx-tab-min-width: 80px;
+}
+
+.player-tab-pane > .tab-header-area {
+    -fx-background-color: #16100a;
+    -fx-padding: 6 0 0 12;
+}
+
+.player-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #16100a;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #2a1c0e;
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 0;
+    -fx-padding: 7 16 7 16;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #3d2b10;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-underline: false;
+}
+
+.player-tab-pane > .tab-header-area > .headers-region > .tab:hover:!selected {
+    -fx-background-color: #332210;
+    -fx-cursor: hand;
+}
+
+.player-tab-pane > .tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.player-tab-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.player-tab-scroll > .viewport {
+    -fx-background-color: transparent;
+}

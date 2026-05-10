@@ -6,7 +6,10 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Manages all interactions with the remote AWS RDS leaderboard database.
@@ -16,11 +19,12 @@ import java.util.*;
  * formatted as {@code KEY=VALUE} pairs ({@code DB_USER} and {@code DB_PASSWORD}).
  */
 public class DBManager {
-    private static final String URL="jdbc:mysql://am25-leaderboard.c6b8uwgkopvm.us-east-1.rds.amazonaws.com:3306/leaderboardDB";
+    private static final String URL = "jdbc:mysql://am25-leaderboard.c6b8uwgkopvm.us-east-1.rds.amazonaws.com:3306/leaderboardDB?connectTimeout=5000&socketTimeout=10000";
     private static final String LOG_PREFIX = "[SERVER][DB]";
     private static Connection connection;
 
-    public DBManager(){}
+    public DBManager() {
+    }
 
     private static Map<String, String> loadCredentials() throws IOException {
         Map<String, String> creds = new HashMap<>();
@@ -35,8 +39,10 @@ public class DBManager {
         }
         return creds;
     }
+
     /**
      * Returns the active database connection, opening a new one if needed.
+     *
      * @return an open {@link Connection} to the leaderboard database.
      * @throws SQLException if the JDBC driver cannot establish the connection.
      * @throws IOException  if the {@code DBcred} credentials file cannot be read.
@@ -54,6 +60,7 @@ public class DBManager {
     /**
      * Closes the active database connection if one is open.
      * Should be called only at server shutdown.
+     *
      * @throws SQLException if closing the connection fails.
      */
     public static void closeConnection() throws SQLException {
@@ -69,6 +76,7 @@ public class DBManager {
      * in the {@code player} table, and records each player's score in the {@code result}
      * table. The list must contain all players ordered by final ranking (1st to last),
      * so that the correct score table is applied via {@link UtilitiesFunction#getScore}.
+     *
      * @param players all players sorted by finishing position (best first).
      * @throws SQLException if any database operation fails.
      * @throws IOException  if the credentials file cannot be read.
@@ -114,6 +122,7 @@ public class DBManager {
      * Retrieves the all-time leaderboard for games played with the given number of players,
      * ordered by cumulative score descending.
      * Each entry is formatted as {@code "N. nickname - totalScore"}.
+     *
      * @param playerCount the number of players per game to filter by (2–5).
      * @return an ordered list of leaderboard entries, empty if no data exists.
      * @throws SQLException if the query fails.
@@ -123,13 +132,13 @@ public class DBManager {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Recupero classifica per " + playerCount + " giocatori...");
         Connection conn = getConnection();
         String query = """
-            SELECT player_nick, SUM(score) AS total_score
-            FROM result
-            JOIN game ON result.game_id = game.id
-            WHERE game.player_count = ?
-            GROUP BY player_nick
-            ORDER BY total_score DESC
-            """;
+                SELECT player_nick, SUM(score) AS total_score
+                FROM result
+                JOIN game ON result.game_id = game.id
+                WHERE game.player_count = ?
+                GROUP BY player_nick
+                ORDER BY total_score DESC
+                """;
         List<String> leaderboard = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, playerCount);
@@ -147,6 +156,7 @@ public class DBManager {
     /**
      * Returns the 1-based leaderboard position of the given player for games
      * played with the specified number of players.
+     *
      * @param nickname    the player's nickname to look up.
      * @param playerCount the number of players per game to filter by (2–5).
      * @return the player's rank (1 = first), or {@code -1} if not found.

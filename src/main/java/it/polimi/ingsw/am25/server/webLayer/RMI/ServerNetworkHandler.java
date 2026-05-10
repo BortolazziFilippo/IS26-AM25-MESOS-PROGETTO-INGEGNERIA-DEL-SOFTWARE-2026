@@ -15,6 +15,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,17 +27,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
-    private final List<PlayerDTO> playerDTOS=new ArrayList<>();
+    /**
+     * Fast nickname → view lookup used by ping() without holding the global lock.
+     */
+    private final ConcurrentHashMap<String, ServerVirtualView> viewsByNickname = new ConcurrentHashMap<>();
+    private final List<PlayerDTO> playerDTOS = new ArrayList<>();
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
-    private final AtomicInteger rankRequestCount=new AtomicInteger(0);
+    private final AtomicInteger rankRequestCount = new AtomicInteger(0);
+    private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
+    private volatile Thread watchdogThread;
+
     /**
      * Initializes the RMI network handler and exports it as a remote object,
      * making it reachable by Mesos clients via the RMI registry.
+     *
      * @throws RemoteException if the RMI export fails.
      */
-    public ServerNetworkHandler() throws RemoteException{
+    public ServerNetworkHandler() throws RemoteException {
         super();
     }
 
@@ -50,15 +60,21 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * @throws IllegalStateException if a lobby is already open on this server.
      */
     @Override
-    public synchronized void createGame(PlayerDTO playerHost, int playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
+    public synchronized void createGame(PlayerDTO playerHost, int playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException {
         if (requiredPlayers > 0) {
             throw new IllegalStateException("Game already started");
         }
         this.requiredPlayers = playerNumber;
         // Create the VirtualView for the host and bind their remote interface.
-        ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, playerHost.getNickName());
+        String hostNick = playerHost.getNickName();
+        ServerVirtualView hostView = new ServerVirtualView(clientRemoteInterface, hostNick,
+                () -> notifyPlayerDisconnected(hostNick));
         waitingPlayers.add(hostView);
+        viewsByNickname.put(hostNick, hostView);
         playerDTOS.add(playerHost);
+
+        // L'host vede subito se stesso nella lobby
+        hostView.pushPlayerAdded(playerHost);
 
         logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
     }
@@ -69,16 +85,28 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      *
      * @param playerDTO             the joining player's data (nickname and totem color).
      * @param clientRemoteInterface the player's RMI stub, saved to notify them of game events.
-     * @throws GameFullException               if no lobby exists yet (no host has called {@link #createGame}).
-     * @throws GameStartedException            if the game is already running.
+     * @throws GameFullException                if no lobby exists yet (no host has called {@link #createGame}).
+     * @throws GameStartedException             if the game is already running.
      * @throws NameOrColorAlreadyTakenException if the chosen nickname or totem color is already taken by another player.
      */
     @Override
-    public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException,GameReadyToStartException,NameOrColorAlreadyTakenException{
+    public synchronized void addPlayer(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameFullException, GameReadyToStartException, NameOrColorAlreadyTakenException {
         if (requiredPlayers == 0) {
             throw new GameFullException("Nessuna partita creata!");
         }
         if (isGameStarted) {
+            // Allow a disconnected player to rejoin with the same nickname
+            ServerVirtualView disconnectedView = null;
+            for (ServerVirtualView view : waitingPlayers) {
+                if (view.getNickname().equals(playerDTO.getNickName()) && !view.isConnected()) {
+                    disconnectedView = view;
+                    break;
+                }
+            }
+            if (disconnectedView != null) {
+                handleReconnection(playerDTO.getNickName(), clientRemoteInterface);
+                return;
+            }
             throw new GameStartedException("Partita già in corso!");
         }
         if (playerDTOS.stream().anyMatch(player -> Objects.equals(player.getNickName(), playerDTO.getNickName()) || player.getColorTotem() == playerDTO.getColorTotem())) {
@@ -86,10 +114,26 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
 
         // Create the VirtualView for the new player and bind their remote interface.
-        ServerVirtualView playerView = new ServerVirtualView(clientRemoteInterface, playerDTO.getNickName());
+        String joinNick = playerDTO.getNickName();
+        ServerVirtualView playerView = new ServerVirtualView(clientRemoteInterface, joinNick,
+                () -> notifyPlayerDisconnected(joinNick));
         waitingPlayers.add(playerView);
+        viewsByNickname.put(joinNick, playerView);
         playerDTOS.add(playerDTO);
         logServerEvent("Player '" + playerDTO.getNickName() + "' joined (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
+
+        // -----------------------------------------------------------------
+        // BROADCAST DELLA LOBBY:
+        //  1) Al nuovo arrivato mandiamo TUTTI i giocatori già presenti (incluso lui),
+        //     così la sua lista parte allineata.
+        //  2) A chi era già dentro mandiamo SOLO il nuovo, come incremento.
+        // -----------------------------------------------------------------
+        for (PlayerDTO existing : playerDTOS) {
+            playerView.pushPlayerAdded(existing);
+        }
+        for (int i = 0; i < waitingPlayers.size() - 1; i++) { // -1: salta il nuovo arrivato
+            waitingPlayers.get(i).pushPlayerAdded(playerDTO);
+        }
 
         // All players are in — start the game!
         if (waitingPlayers.size() == requiredPlayers) {
@@ -97,6 +141,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             setupAndStartGame();
         }
     }
+
     /**
      * Bootstraps the Mesos game once all players have joined.
      * Instantiates the {@link Controller}, builds {@link Player} objects for every participant,
@@ -153,6 +198,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
         logServerEvent("All clients synced. The game is ready!");
         controller.controllerGameStar();
+        startWatchdog();
     }
 
     /**
@@ -167,8 +213,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
-        Player playerTemp=new Player(playerToPlace.getNickName(),playerToPlace.getColorTotem());
-        controller.placingPlayer(playerTemp,position);
+        Player playerTemp = new Player(playerToPlace.getNickName(), playerToPlace.getColorTotem());
+        controller.placingPlayer(playerTemp, position);
     }
 
     /**
@@ -186,8 +232,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void selectCardFromTopList(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        Player playerTemp=new Player(player);
-        controller.selectCardFromTopList(playerTemp,cardType,position);
+        Player playerTemp = new Player(player);
+        controller.selectCardFromTopList(playerTemp, cardType, position);
     }
 
     /**
@@ -204,8 +250,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void selectCardFromBottomList(PlayerDTO player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException, RemoteException {
-        Player playerTemp=new Player(player);
-        controller.selectCardFromBottomList(playerTemp,cardType,position);
+        Player playerTemp = new Player(player);
+        controller.selectCardFromBottomList(playerTemp, cardType, position);
     }
 
     /**
@@ -216,7 +262,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void playerDoNothing(PlayerDTO playerDTO) throws Exception {
-        Player playerTemp=new Player(playerDTO);
+        Player playerTemp = new Player(playerDTO);
         controller.playerDoNothing(playerTemp);
     }
 
@@ -255,7 +301,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public void askForRank(String playerNumber,ClientRemoteInterface clientRemoteInterface) throws RemoteException {
+    public synchronized void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         try {
             int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
             Map<Integer, List<String>> leaderboards = new HashMap<>();
@@ -263,17 +309,178 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 leaderboards.put(i, DBManager.getLeaderboard(i));
             }
             clientRemoteInterface.sendRank(leaderboards);
-            if (requiredPlayers > 0 && rankRequestCount.incrementAndGet() >= requiredPlayers) {
-                Thread shutdown = new Thread(() -> {
-                    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-                    UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
-                    System.exit(0);
-                });
-                shutdown.setDaemon(true);
-                shutdown.start();
-            }
+            rankRequestCount.incrementAndGet();
+            checkAndShutdownIfDone();
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Receives a heartbeat ping from a client and resets that player's missed-ping counter.
+     * Uses a ConcurrentHashMap lookup so it does not need the global lock.
+     *
+     * @param player the player sending the ping (identified by nickname).
+     */
+    @Override
+    public void ping(PlayerDTO player) throws RemoteException {
+        ServerVirtualView view = viewsByNickname.get(player.getNickName());
+        if (view != null) view.receivePing();
+    }
+
+    /**
+     * Called by {@link it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler}
+     * when a socket client's stream drops. Finds the virtual view matching the given proxy
+     * and triggers disconnection handling.
+     *
+     * @param proxy the {@link ClientRemoteInterface} proxy whose socket closed.
+     */
+    public synchronized void handleSocketClientDisconnection(ClientRemoteInterface proxy) {
+        String nickname = null;
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.getClientStub() == proxy) {
+                nickname = view.getNickname();
+                break;
+            }
+        }
+        if (nickname != null) {
+            notifyPlayerDisconnected(nickname);
+        }
+    }
+
+    /**
+     * Central disconnection handler. Marks the view as disconnected, broadcasts
+     * a {@code playerDisconnected} notification to all clients, then tells the
+     * controller to update the game model and advance the turn if needed.
+     *
+     * @param nickname the disconnected player's nickname.
+     */
+    public synchronized void notifyPlayerDisconnected(String nickname) {
+        if (!isGameStarted || controller == null) return;
+
+        // Find the view; guard against double-disconnection
+        ServerVirtualView disconnectedView = null;
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.getNickname().equals(nickname)) {
+                disconnectedView = view;
+                break;
+            }
+        }
+        if (disconnectedView == null || !disconnectedView.isConnected()) return;
+
+        // Stop sending notifications to the dead client
+        disconnectedView.markDisconnected();
+        logServerEvent("Player '" + nickname + "' has disconnected.");
+
+        // 1. Tell all surviving connected clients about the disconnection
+        for (ServerVirtualView view : waitingPlayers) {
+            if (view.isConnected()) {
+                view.notifyPlayerDisconnected(nickname);
+            }
+        }
+
+        // 2. Update game model and advance turn / end game if necessary
+        controller.notifyPlayerDisconnected(nickname);
+
+        // 3. This player will never call askForRank — count them as done so the
+        //    server can shut down once all remaining connected players have received their rank.
+        rankRequestCount.incrementAndGet();
+        checkAndShutdownIfDone();
+    }
+
+    /**
+     * Starts the counter-based heartbeat watchdog. Every 3 seconds each view's
+     * missed-ping counter is incremented. When a view reaches 3 consecutive missed pings
+     * (~9 seconds total) the player is declared disconnected.
+     */
+    private void startWatchdog() {
+        watchdogThread = new Thread(() -> {
+            // Grace period: give all clients time to start their ping threads
+            // before we begin counting missed pings.
+            try {
+                Thread.sleep(12000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                // Iterate over a snapshot to avoid ConcurrentModificationException
+                for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
+                    if (!view.isConnected()) continue;
+                    int missed = view.incrementMissedPings();
+                    if (missed >= 3) {
+                        logServerEvent("Player '" + view.getNickname()
+                                + "' missed " + missed + " consecutive pings — declaring disconnected.");
+                        notifyPlayerDisconnected(view.getNickname());
+                    }
+                }
+            }
+        });
+        watchdogThread.setDaemon(true);
+        watchdogThread.setName("heartbeat-watchdog");
+        watchdogThread.start();
+        logServerEvent("Heartbeat watchdog started (tick=3s, threshold=3 missed pings).");
+    }
+
+    /**
+     * Handles a player reconnecting to an in-progress game. Swaps the client stub,
+     * decrements the rank counter that was incremented at disconnect time, notifies
+     * all other clients, updates the game model, and re-syncs the full game state.
+     *
+     * @param nickname the reconnecting player's nickname.
+     * @param newStub  the new RMI stub or Socket proxy for the reconnected client.
+     */
+    private void handleReconnection(String nickname, ClientRemoteInterface newStub) {
+        ServerVirtualView view = viewsByNickname.get(nickname);
+        if (view == null || view.isConnected()) return;
+
+        view.reconnect(newStub, () -> notifyPlayerDisconnected(nickname));
+
+        // Undo the shutdown-counter increment that was applied when this player disconnected.
+        rankRequestCount.decrementAndGet();
+
+        // Notify all other connected clients that this player is back.
+        for (ServerVirtualView v : waitingPlayers) {
+            if (!v.getNickname().equals(nickname) && v.isConnected()) {
+                v.notifyPlayerReconnected(nickname);
+            }
+        }
+
+        // Update the game model so the player is back in the turn queues.
+        controller.notifyPlayerReconnected(nickname);
+
+        // Push all accumulated game state to the reconnecting client.
+        view.resyncClient();
+
+        logServerEvent("Player '" + nickname + "' has reconnected.");
+    }
+
+    /**
+     * Shuts down the server once every player (connected or disconnected) has been accounted
+     * for in {@code rankRequestCount}. Guards against multiple shutdown threads with an
+     * {@code AtomicBoolean} so only the first caller actually starts the exit sequence.
+     */
+    private void checkAndShutdownIfDone() {
+        if (requiredPlayers > 0
+                && rankRequestCount.get() >= requiredPlayers
+                && shutdownInitiated.compareAndSet(false, true)) {
+            if (watchdogThread != null) watchdogThread.interrupt();
+            Thread shutdown = new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ignored) {
+                }
+                UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
+                System.exit(0);
+            });
+            shutdown.setDaemon(true);
+            shutdown.start();
         }
     }
 

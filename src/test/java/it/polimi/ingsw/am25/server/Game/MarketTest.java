@@ -421,6 +421,62 @@ class MarketTest {
 
 
 
+    @Test
+    void testSnapshotAndSelectExtraCardFromSnapshot() throws Exception {
+        market.snapshotForExtraDraw();
+
+        int tribeBefore = host.getTribe().size();
+        int validIdx = -1;
+        for (int i = 0; i < market.getTopCardList().size(); i++) {
+            if (market.getTopCardList().get(i).getCardType() != CARD_TYPE.EVENT) {
+                validIdx = i;
+                break;
+            }
+        }
+        assertTrue(validIdx >= 0, "snapshot must contain at least one non-event card");
+
+        market.selectExtraCardFromSnapshot(validIdx, host);
+        assertEquals(tribeBefore + 1, host.getTribe().size());
+    }
+
+    @Test
+    void testSelectExtraCardFromSnapshotEmptyThrows() {
+        market.snapshotForExtraDraw();
+        market.getTopCardList().clear();
+        // clear the snapshot by calling snapshotForExtraDraw on an all-event or empty top list
+        market.getTopCardList().clear();
+        // re-snapshot with empty list
+        market.snapshotForExtraDraw();
+        assertThrows(EmptyMarketException.class, () -> market.selectExtraCardFromSnapshot(0, host));
+    }
+
+    @Test
+    void testBuyExtraBuildingFromSnapshot() throws Exception {
+        market.snapshotForExtraDraw();
+
+        assertFalse(market.getTopBuildingList().isEmpty(), "snapshot must contain buildings");
+        BuildingCard building = market.getTopBuildingList().get(0);
+        host.manageFoodAndPP(building.getFoodCost());
+
+        int buildingsBefore = host.getBuildingCards().size();
+        market.buyExtraBuildingFromSnapshot(0, host);
+        assertEquals(buildingsBefore + 1, host.getBuildingCards().size());
+    }
+
+    @Test
+    void testBuyExtraBuildingFromSnapshotNotEnoughFood() {
+        market.snapshotForExtraDraw();
+        assertThrows(NotEnoughFoodException.class, () -> market.buyExtraBuildingFromSnapshot(0, host));
+    }
+
+    @Test
+    void testBuyExtraBuildingFromSnapshotEmptyThrows() {
+        market.snapshotForExtraDraw();
+        market.getTopBuildingList().clear();
+        market.snapshotForExtraDraw();
+        assertThrows(EmptyMarketException.class, () -> market.buyExtraBuildingFromSnapshot(0, host));
+    }
+
     //commento da leggere
     //FIXME:Leggere commento e fare test
     /*QUESTO PER ORA LO LASCIO COSì PERCHè MI SA CHE C'è ERRORE IN SOLVEFINALEVENTS() DI MARKET
