@@ -2,13 +2,15 @@ package it.polimi.ingsw.am25.client.GUI;
 
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
-import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
+import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
+
 import javafx.application.Application;
-import javafx.geometry.Insets;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
 import javafx.stage.Stage;
 
 import java.io.ObjectInputStream;
@@ -25,33 +27,38 @@ public class GUIapp extends Application {
     private ServerRemoteInterface serverStub;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();
         String serverIP = args.size() >= 1 ? args.get(0) : "127.0.0.1";
-        String method = args.size() >= 2 ? args.get(1) : "RMI";
+        String method   = args.size() >= 2 ? args.get(1) : "RMI";
 
-        Label connection = new Label("Connessione a " + serverIP + " via " + method + "...");
-        VBox root = new VBox(10, connection);
-        root.setPadding(new Insets(20));
-        Scene scene = new Scene(root, 500, 200);
-        primaryStage.setTitle("IS26-AM25");
-        primaryStage.setScene(scene);
-        primaryStage.show();
         primaryStage.setOnCloseRequest(e -> System.exit(0));
 
-        //tento la connessione
-        try {
-            connectionToServer(serverIP, method);
-            connection.setText("✅ Connesso. Apro la lobby...");
-            // Apri la Lobby. Il LobbyController riusa lo stesso Stage e ne sostituisce la scena.
-            new LobbyController(serverStub, clientHandler, primaryStage).showing();
-        } catch (Exception e) {
-            e.printStackTrace();
-            connection.setText("❌ Connessione fallita ["
-                    + e.getClass().getSimpleName() + "]: " + e.getMessage());
-        }
+        // 1. Mostra lo splash screen (immagine, respiro, particelle, prompt).
+        // 2. Quando l'utente clicca, fa fade out ed esegue il Runnable qui sotto:
+        //    connessione al server + apertura della lobby.
+        MesosSplashScreen.show(primaryStage, () -> {
+            // Mentre la connessione è in corso, mostriamo una finestra di stato
+            // semplice. Se va bene la lobby la sostituirà subito.
+            Label statusLabel = new Label("Connessione a " + serverIP + " via " + method + "...");
+            VBox statusRoot = new VBox(10, statusLabel);
+            statusRoot.setPadding(new Insets(20));
+            primaryStage.setScene(new Scene(statusRoot, 500, 200));
+            primaryStage.setTitle("IS26-AM25");
+            primaryStage.setResizable(true);
+            primaryStage.show();
 
-
+            try {
+                connectionToServer(serverIP, method);
+                statusLabel.setText("✅ Connesso. Apro la lobby...");
+                // Apri la Lobby: riusa lo stesso Stage e sostituisce la scena.
+                new LobbyController(serverStub, clientHandler, primaryStage).showing();
+            } catch (Exception e) {
+                e.printStackTrace();
+                statusLabel.setText("❌ Connessione fallita ["
+                        + e.getClass().getSimpleName() + "]: " + e.getMessage());
+            }
+        });
     }
 
     private void connectionToServer(String serverIP, String method) throws Exception {
