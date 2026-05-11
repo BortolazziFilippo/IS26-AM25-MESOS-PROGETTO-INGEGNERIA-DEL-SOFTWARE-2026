@@ -96,6 +96,7 @@ public class MarketController implements GUIObserver {
     /** Snapshot of the bottom buildings captured at round-end, applied after extra draw is resolved. */
     private List<BuildingDTO> pendingBottomBuildings = null;
     private final DisconnectPopup disconnectPopup = new DisconnectPopup();
+    private it.polimi.ingsw.am25.client.GUI.EndGameController endGameController;
 
     @FXML private HBox topCardHbox;
     @FXML private HBox tileHbox;
@@ -594,11 +595,10 @@ public class MarketController implements GUIObserver {
             try {
                 javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
                         getClass().getResource("/FXML/EndGame.fxml"));
-                it.polimi.ingsw.am25.client.GUI.EndGameController ctrl =
-                        new it.polimi.ingsw.am25.client.GUI.EndGameController();
-                loader.setController(ctrl);
                 javafx.scene.Parent root = loader.load();
+                it.polimi.ingsw.am25.client.GUI.EndGameController ctrl = loader.getController();
                 ctrl.setData(w, allPlayers);
+                endGameController = ctrl;
                 javafx.stage.Stage stage = (javafx.stage.Stage) tileHbox.getScene().getWindow();
                 stage.setScene(new javafx.scene.Scene(root));
                 stage.setTitle("IS26-AM25 — Fine Partita");
@@ -606,6 +606,19 @@ public class MarketController implements GUIObserver {
                 e.printStackTrace();
             }
         });
+        try {
+            serverRemoteInterface.askForRank(String.valueOf(clientHandler.getPlayers().size()), clientHandler);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onRankReceived(java.util.Map<Integer, java.util.List<String>> leaderboards) {
+        if (endGameController == null) return;
+        int playerCount = clientHandler.getPlayers().size();
+        java.util.List<String> entries = leaderboards.get(playerCount);
+        Platform.runLater(() -> endGameController.setGlobalLeaderboard(entries));
     }
 
 
