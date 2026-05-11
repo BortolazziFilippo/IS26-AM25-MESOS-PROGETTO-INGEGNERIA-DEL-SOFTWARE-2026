@@ -87,6 +87,7 @@ public class Controller {
             }
         }
     }
+
     /**
      * Adds a player to the game lobby.
      * If the lobby is already full (game not in SETUP phase) the call is silently ignored.
@@ -199,6 +200,7 @@ public class Controller {
             advanceTurnOrRound();
         }
     }
+
     /**
      * Advances the turn to the next playing player.
      * If there are no more players in the current round, the round is advanced via
@@ -227,12 +229,12 @@ public class Controller {
      * @param player   the player who will receive the selected card.
      * @param cardType the type of card to be selected (tribe member or {@link CARD_TYPE#BUILDING}).
      * @param position the index of the card within the bottom row.
-     * @throws ActionNotAvailable        if the game is not in a resolve-action phase, it is not this player's turn,
-     *                                   or their offer tile grants no bottom-row draws.
-     * @throws IndexOutOfBoundsException if {@code position} is out of range.
-     * @throws NotEnoughFoodException    if the player lacks the food to buy a building.
+     * @throws ActionNotAvailable         if the game is not in a resolve-action phase, it is not this player's turn,
+     *                                    or their offer tile grants no bottom-row draws.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
+     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
      * @throws NotSelectableCardException if the card at that position is an event card.
-     * @throws EmptyMarketException      if the bottom row has no selectable cards.
+     * @throws EmptyMarketException       if the bottom row has no selectable cards.
      */
     public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
         if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
@@ -331,6 +333,86 @@ public class Controller {
      */
     private boolean checkIsPlayerPlayingTurn(Player player) {
         return game.getPlayerToPlay().equals(player);
+    }
+
+    // --- DISCONNECTION ---
+
+    /**
+     * Handles a player disconnection at the game-logic level.
+     * <ol>
+     *   <li>Marks the player as {@link CONNECTION_STATUS#DISCONNECTED} in the model.</li>
+     *   <li>Removes them from the placing/playing turn queues.</li>
+     *   <li>Ends the game immediately if only one (or zero) connected players remain.</li>
+     *   <li>If it was the disconnected player's turn, automatically advances to the next player.</li>
+     * </ol>
+     *
+     * @param nickname the nickname of the disconnected player.
+     */
+    public synchronized void notifyPlayerDisconnected(String nickname) {
+        if (game == null) return;
+
+        // 1. Find and mark the player as disconnected
+        Player disconnectedPlayer = game.getPlayerList().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst().orElse(null);
+        if (disconnectedPlayer == null) return;
+        disconnectedPlayer.setConnection(CONNECTION_STATUS.DISCONNECTED);
+
+        // 2. Remove from turn queues so the game never waits for them
+        game.removeFromTurnQueues(disconnectedPlayer);
+
+        // 3. Count remaining connected players
+        long connectedCount = game.getPlayerList().stream()
+                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
+                .count();
+        if (connectedCount <= 1) {
+            forceEndGame();
+            return;
+        }
+
+        // 4. If it was this player's turn, advance the game
+        GAME_PHASE phase = game.getGamePhase();
+        if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            Player toPlace = game.getPlayerToPlace();
+            if (toPlace != null && toPlace.getNickname().equals(nickname)) {
+                try {
+                    game.skipDisconnectedPlacingPlayer();
+                } catch (EndOfPlacingPhaseException e) {
+                    game.advancePlayingPhase();
+                }
+            }
+        } else if (phase == GAME_PHASE.RESOLVE_ACTION || phase == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
+            Player toPlay = game.getPlayerToPlay();
+            if (toPlay != null && toPlay.getNickname().equals(nickname)) {
+                advanceTurnOrRound();
+            }
+        }
+    }
+
+    /**
+     * Forces the game to end immediately, running end-game scoring and notifying all clients.
+     * Called when too few connected players remain to continue.
+     */
+    public void forceEndGame() {
+        if (game == null) return;
+        game.endGameIter();
+        game.checkWinner();
+    }
+
+    /**
+     * Marks a reconnected player as connected again and re-adds them to the end of
+     * the turn queues so they participate from the next turn/round.
+     *
+     * @param nickname the nickname of the reconnected player.
+     */
+    public synchronized void notifyPlayerReconnected(String nickname) {
+        if (game == null) return;
+        Player player = game.getPlayerList().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst().orElse(null);
+        if (player == null) return;
+        player.setConnection(CONNECTION_STATUS.CONNECTED);
+        game.reAddToTurnQueues(player);
     }
 
 }
