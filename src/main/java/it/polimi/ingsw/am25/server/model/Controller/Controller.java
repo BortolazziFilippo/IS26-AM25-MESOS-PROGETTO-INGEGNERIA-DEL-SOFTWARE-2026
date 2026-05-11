@@ -118,7 +118,7 @@ public class Controller {
      * Must be called after all players have joined and all observers have been linked.
      */
     public void controllerGameStar() {
-        new Thread(() -> {
+        Thread DBthread= new Thread(() -> {
             try {
                 DBManager.getConnection();
             } catch (IOException e) {
@@ -126,7 +126,10 @@ public class Controller {
             } catch (SQLException e) {
                 UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione server");
             }
-        }).start();
+
+        });
+        DBthread.setName("DB Thread");
+        DBthread.start();
         game.gameStart();
         game.notifyChanges();
     }
