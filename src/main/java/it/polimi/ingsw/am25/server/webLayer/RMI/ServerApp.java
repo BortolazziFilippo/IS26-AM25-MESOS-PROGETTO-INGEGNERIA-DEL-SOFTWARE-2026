@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.server.webLayer.RMI;
 
-import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.Socket.SocketClientHandler;
 
@@ -8,7 +7,6 @@ import java.io.IOException;
 import java.net.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.sql.SQLException;
 import java.util.Enumeration;
 
 /**
@@ -32,17 +30,6 @@ public class ServerApp {
     static void main(String[] args) {
         UtilitiesFunction.initLog();
         try {
-            Thread DBThread=new Thread(()->{
-                try{
-                    DBManager.getConnection();
-                } catch (IOException e) {
-                    UtilitiesFunction.logError(LOG_PREFIX,"Errore apertura connessione al DB");
-                } catch (SQLException e) {
-                    UtilitiesFunction.logError(LOG_PREFIX,"Errore connessione al DB");
-                }
-            });
-            DBThread.setName("DBthread");
-            DBThread.start();
             String myIp = getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", myIp);
             ServerNetworkHandler serverNetworkHandler = new ServerNetworkHandler();
@@ -50,7 +37,7 @@ public class ServerApp {
             registry.rebind("MesosServer", serverNetworkHandler);
             clearScreen();
             logServerEvent("Server started at IP " + myIp);
-            Thread server= new Thread(() -> {
+            new Thread(() -> {
                 try (ServerSocket serverSocket = new ServerSocket(6969)) {
                     logServerEvent("Socket server listening on port 6969");
                     while (true) {
@@ -62,9 +49,7 @@ public class ServerApp {
                 } catch (IOException e) {
                     UtilitiesFunction.logError(LOG_PREFIX, "Fatal socket server error: " + e.getMessage());
                 }
-            });
-            server.setName("Socket Server thread");
-            server.start();
+            }).start();
             logServerEvent("RMI server listening on port 1099");
         } catch (Exception e) {
             UtilitiesFunction.logError(LOG_PREFIX, "Critical startup error. If 'Port already in use', close existing server instances. Detail: " + e.getMessage());
