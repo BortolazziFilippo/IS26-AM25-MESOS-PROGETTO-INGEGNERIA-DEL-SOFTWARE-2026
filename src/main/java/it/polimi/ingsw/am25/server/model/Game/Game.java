@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
+import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
@@ -39,7 +40,6 @@ public class Game implements GameView, MementoManager<GameMemento> {
     private final Market market;
     private final TurnManager turnManager;
     private final Map<String, Player> players;
-    private final Player playerHost;
     private int playerNumber;
     private GAME_PHASE gamePhase;
     private Player playerToPlace;
@@ -63,10 +63,23 @@ public class Game implements GameView, MementoManager<GameMemento> {
         this.boardView = board;
         this.market = new Market(this, board);
         this.turnManager = new TurnManager(board);
-        this.playerHost = playerHost;
         this.players = new HashMap<>();
         players.put(playerHost.getNickname(), playerHost);
         notifyGameChanged();
+    }
+
+    /**
+     * constructor for loading game
+     * @param playerNumber number of players
+     */
+    public Game(int playerNumber) {
+        this.playerNumber = playerNumber;
+        this.gamePhase = GAME_PHASE.SETUP;
+        this.board = new Board(this);
+        this.boardView = board;
+        this.market = new Market(this, board);
+        this.turnManager = new TurnManager(board);
+        this.players = new HashMap<>();
     }
 
     /**
@@ -737,7 +750,6 @@ public class Game implements GameView, MementoManager<GameMemento> {
         // 1. Restore game-level state
         this.currentEra = memento.getCurrentEra();
         this.gamePhase = memento.getGamePhase();
-
         // 2. Recreate players with tribe and buildings
         this.players.clear();
         BuildingFactory buildingFactory = new BuildingFactory();
@@ -750,10 +762,8 @@ public class Game implements GameView, MementoManager<GameMemento> {
             p.restoreBuildings(buildings);
             this.players.put(p.getNickname(), p);
         }
-
         // 3. Restore market
         this.market.restoreMemento(memento.getMarket());
-
         // 4. Clear board tiles and place players on default tiles in saved order
         this.board.restoreMemento(memento.getBoard());
         List<String> ordered = memento.getBoard().getOrderedNicknamesOnDefaultTiles();
@@ -764,10 +774,8 @@ public class Game implements GameView, MementoManager<GameMemento> {
                 throw new RuntimeException("Error restoring board state", e);
             }
         }
-
         // 5. Sync turn manager with restored board order
         turnManager.updatePlacingOrder();
-
         // 6. Restore current placing/playing player references
         if (memento.getPlayerToPlaceNickname() != null) {
             this.playerToPlace = this.players.get(memento.getPlayerToPlaceNickname());

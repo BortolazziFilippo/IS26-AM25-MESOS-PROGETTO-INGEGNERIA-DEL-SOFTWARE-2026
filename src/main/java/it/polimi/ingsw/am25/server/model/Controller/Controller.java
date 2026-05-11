@@ -10,6 +10,8 @@ import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.model.persistance.GameMemento;
 import it.polimi.ingsw.am25.server.model.persistance.PersistanceLogger;
+import it.polimi.ingsw.am25.server.model.persistance.PlayerMemento;
+import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.io.IOException;
@@ -424,12 +426,44 @@ public class Controller {
         game.reAddToTurnQueues(player);
     }
 
-    public synchronized void loadGame() throws IllegalStateException {
+    public synchronized void loadGame(Player player) throws GameAlreadyLoadedException,NoGameToLoadException {
+        if(game != null){
+            throw new GameAlreadyLoadedException("Game already initialized");
+        }
+        boolean playerWasPlaying=false;
         Optional<GameMemento> gameMemento= persistanceLogger.load();
         if(gameMemento.isPresent()) {
+            for(PlayerMemento playerDTO: gameMemento.get().getPlayers()){
+                Player p = new Player(playerDTO.getNickname(), playerDTO.getTotemColor());
+                players.add(p);
+                if(p.getNickname().equals(player.getNickname())) {
+                    p.setConnection(CONNECTION_STATUS.CONNECTED);
+                    playerWasPlaying=true;
+                }else {
+                    p.setConnection(CONNECTION_STATUS.DISCONNECTED);
+                }
+            }
+            if(!playerWasPlaying){
+                throw new IllegalStateException("Nickname not found");
+            }
+            this.game= new Game(gameMemento.get().getPlayerNumber());
             game.restoreMemento(gameMemento.get());
         }else {
-            throw new IllegalStateException("Non ci sono game da caricare");
+            throw new NoGameToLoadException("No game to load");
+        }
+    }
+
+    public synchronized void reconnectLoadedPlayer(Player player) throws IllegalStateException, GameReadyToStartException {
+        if(game == null){
+            throw new IllegalStateException("Game not loaded");
+        }
+        Player playerToAdd= this.players.stream().findFirst().stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
+        if(playerToAdd == null){
+            throw new IllegalStateException("Nickname not found");
+        }
+        playerToAdd.setConnection(CONNECTION_STATUS.CONNECTED);
+        if(players.stream().allMatch(p -> p.getConnection() == CONNECTION_STATUS.CONNECTED)){
+            throw new GameReadyToStartException("Game ready to start");
         }
     }
 
