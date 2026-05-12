@@ -122,4 +122,9 @@ public class BuildingCard extends Card {
     public CardDTO toDTO() {
         return new BuildingDTO(this);
     }
+
+    @Override
+    public boolean matchesDTO(CardDTO dto) {
+        return false;
+    }
 }

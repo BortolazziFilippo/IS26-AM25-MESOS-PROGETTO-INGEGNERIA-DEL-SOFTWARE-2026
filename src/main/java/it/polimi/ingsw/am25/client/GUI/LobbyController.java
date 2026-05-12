@@ -118,8 +118,34 @@ public class LobbyController implements GUIObserver {
 
     @FXML
     private void onLoadGame() {
-        // TODO: implementare il caricamento di una partita salvata
-        label.setText("La funzione 'Carica partita' arriverà presto.");
+        PlayerDTO player = buildPlayer();
+        if (player == null) return;
+        // Prepara playerDTO e marketController PRIMA della chiamata RMI
+        // (il server può sparare gamePhaseChanged dentro la stessa chiamata).
+        playerDTO = player;
+        marketController = new MarketController(clientHandler, serverStub, playerDTO);
+        try {
+            serverStub.loadGame(player, clientHandler);
+            Thread pingThread = new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        Thread.sleep(3000);
+                        serverStub.ping(playerDTO);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (Exception ignored) {}
+                }
+            });
+            pingThread.setDaemon(true);
+            pingThread.setName("heartbeat-ping");
+            pingThread.start();
+            label.setText("Partita trovata! In attesa degli altri giocatori...");
+            loadButton.setDisable(true);
+            createButton.setDisable(true);
+            joinButton.setDisable(true);
+        } catch (Exception e) {
+            label.setText("❌ Errore: " + e.getMessage());
+        }
     }
 
     @FXML

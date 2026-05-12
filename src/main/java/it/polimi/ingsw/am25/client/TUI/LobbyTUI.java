@@ -68,12 +68,22 @@ public class LobbyTUI {
             utils.clearScreen();
             System.out.println(LOGO);
             System.out.println("[J] - Crea/Unisciti a una partita");
+            System.out.println("[L] - Carica partita salvata");
+            System.out.println("[U] - Unisciti a partita in caricamento");
             System.out.println("[C] - Visualizza classifica");
             System.out.print("Scelta: ");
             String choice = scanner.nextLine().trim().toUpperCase();
 
             if (choice.equals("C")) {
                 showLeaderboard();
+                continue;
+            } else if (choice.equals("L")) {
+                PlayerDTO result = loadGame();
+                if (result != null) return result;
+                continue;
+            } else if (choice.equals("U")) {
+                PlayerDTO result = joinLoadedGame();
+                if (result != null) return result;
                 continue;
             } else if (!choice.equals("J")) {
                 continue;
@@ -276,5 +286,117 @@ public class LobbyTUI {
             entries.forEach(e -> System.out.println("    " + e));
         }
         System.out.println();
+    }
+
+    /**
+     * Asks the user for their nickname and color, then tries to load the saved game.
+     * Blocks until the game starts (all players reconnected) or an error occurs.
+     *
+     * @return the local {@link PlayerDTO} if the game started, or {@code null} to retry.
+     */
+    private PlayerDTO loadGame() {
+        utils.clearScreen();
+        System.out.println(LOGO);
+        System.out.println("--- CARICA PARTITA SALVATA ---");
+        System.out.println("(Q per tornare al menu)");
+        System.out.print("Inserisci nome giocatore: ");
+        String nickname = scanner.nextLine().trim();
+        if (nickname.equalsIgnoreCase("q")) return null;
+        if (nickname.isEmpty()) {
+            System.err.println("\n❌ Il nickname non può essere vuoto.");
+            utils.pauseAndClear();
+            return null;
+        }
+        COLOR colorTotem = utils.bindTotemColor();
+        PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
+
+        clientHandler.connectionError = false;
+        clientHandler.isGameStarted = false;
+        clientHandler.lastErrorMessage = null;
+
+        try {
+            serverStub.loadGame(player, clientHandler);
+        } catch (Exception e) {
+            System.err.println("\n❌ " + utils.extractCleanError(e));
+            utils.pauseAndClear();
+            return null;
+        }
+
+        utils.clearScreen();
+        System.out.println("Partita trovata! In attesa degli altri giocatori...");
+        synchronized (clientHandler.gameStartLock) {
+            while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
+                try {
+                    clientHandler.gameStartLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+            }
+        }
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
+                    ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita."));
+            utils.pauseAndClear();
+            return null;
+        }
+        System.out.println("\n✅ Tutti i giocatori connessi! La partita riprende!");
+        return player;
+    }
+
+    /**
+     * Asks the user for their nickname and color, then tries to join a game being loaded.
+     * Blocks until the game starts (all players reconnected) or an error occurs.
+     *
+     * @return the local {@link PlayerDTO} if the game started, or {@code null} to retry.
+     */
+    private PlayerDTO joinLoadedGame() {
+        utils.clearScreen();
+        System.out.println(LOGO);
+        System.out.println("--- UNISCITI A PARTITA IN CARICAMENTO ---");
+        System.out.println("(Q per tornare al menu)");
+        System.out.print("Inserisci nome giocatore: ");
+        String nickname = scanner.nextLine().trim();
+        if (nickname.equalsIgnoreCase("q")) return null;
+        if (nickname.isEmpty()) {
+            System.err.println("\n❌ Il nickname non può essere vuoto.");
+            utils.pauseAndClear();
+            return null;
+        }
+        COLOR colorTotem = utils.bindTotemColor();
+        PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
+
+        clientHandler.connectionError = false;
+        clientHandler.isGameStarted = false;
+        clientHandler.lastErrorMessage = null;
+
+        try {
+            serverStub.joinGameLoaded(player, clientHandler);
+        } catch (Exception e) {
+            System.err.println("\n❌ " + utils.extractCleanError(e));
+            utils.pauseAndClear();
+            return null;
+        }
+
+        utils.clearScreen();
+        System.out.println("Richiesta inviata. In attesa degli altri giocatori...");
+        synchronized (clientHandler.gameStartLock) {
+            while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
+                try {
+                    clientHandler.gameStartLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+            }
+        }
+        if (clientHandler.connectionError) {
+            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
+                    ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita."));
+            utils.pauseAndClear();
+            return null;
+        }
+        System.out.println("\n✅ Tutti i giocatori connessi! La partita riprende!");
+        return player;
     }
 }

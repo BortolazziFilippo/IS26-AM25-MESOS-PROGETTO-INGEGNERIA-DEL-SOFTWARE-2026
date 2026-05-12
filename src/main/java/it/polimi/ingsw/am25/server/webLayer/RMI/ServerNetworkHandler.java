@@ -480,75 +480,79 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     @Override
-    public synchronized void loadGame(PlayerDTO playerDTO,ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
-        boolean error=false;
-        String errorMessage="";
-        if(controller != null) {
-            error=true;
-            errorMessage="Partita gia caricata/in corso";
-            throw new IllegalStateException(errorMessage);
+    public synchronized void loadGame(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
+        if (controller != null) {
+            throw new GameAlreadyLoadedException("Partita già caricata/in corso");
         }
-        if(error){
-            clientRemoteInterface.showErrorMessage(errorMessage);
-            return;
-        }
-        Controller controller = new Controller();
-        Player player= new Player(playerDTO);
+        Controller newController = new Controller();
+        Player player = new Player(playerDTO);
         try {
-            controller.loadGame(player);
+            newController.loadGame(player);
         } catch (NoGameToLoadException e) {
-            error=true;
-            errorMessage="Non ci sono partite da caricare";
-            throw new NoGameToLoadException(errorMessage);
-        }catch (GameAlreadyLoadedException e) {
-            error=true;
-            errorMessage="Partita gia caricata/In corso";
-            throw new GameAlreadyLoadedException(errorMessage);
-        }catch (IllegalStateException e) {
-            error=true;
-            errorMessage="Giocatore non trovato";
-            throw new RemoteException(errorMessage);
+            throw new NoGameToLoadException("Non ci sono partite da caricare");
+        } catch (GameAlreadyLoadedException e) {
+            throw new GameAlreadyLoadedException("Partita già caricata/in corso");
+        } catch (IllegalStateException e) {
+            throw new RemoteException("Nickname non trovato nella partita salvata");
         }
-        if(error){
-            clientRemoteInterface.showErrorMessage(errorMessage);
-            return;
-        }
-        ServerVirtualView clientView= new ServerVirtualView(clientRemoteInterface,player.getNickname(),()->notifyPlayerDisconnected(player.getNickname()));
-        waitingPlayers.add(clientView);
-        viewsByNickname.put(player.getNickname(),clientView);
-        playerDTOS.add(playerDTO);
 
+        // Commit the controller and set up the loaded lobby
+        this.controller = newController;
+        this.requiredPlayers = controller.getAllPlayers().size();
+        for (Player p : controller.getAllPlayers()) {
+            playerDTOS.add(new PlayerDTO(p));
+        }
+
+        String nick = player.getNickname();
+        ServerVirtualView clientView = new ServerVirtualView(clientRemoteInterface, nick,
+                () -> notifyPlayerDisconnected(nick));
+        waitingPlayers.add(clientView);
+        viewsByNickname.put(nick, clientView);
+        logServerEvent("Game loaded by '" + nick + "'. Waiting for " + (requiredPlayers - 1) + " more player(s).");
     }
 
     @Override
-    public synchronized void joinGameLoaded(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException, GameReadyToStartException {
-        boolean error=false;
-        String errorMessage="";
-        if(controller == null){
-            error=true;
-            errorMessage="Partita non ancora caricata";
-            throw new IllegalStateException(errorMessage);
+    public synchronized void joinGameLoaded(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException, GameReadyToStartException {
+        if (controller == null) {
+            throw new IllegalStateException("Nessuna partita in caricamento");
         }
-        if(error){
-            clientRemoteInterface.showErrorMessage(errorMessage);
-            return;
-        }
-        try{
-            Player player1 = new Player(player);
-            this.controller.reconnectLoadedPlayer(player1);
-        }catch (IllegalStateException e){
-            error=true;
-            errorMessage="Nicname giocatore non trovato";
-            throw new RemoteException(errorMessage);
-        }catch (GameReadyToStartException e){
-            //TODO: gestire avvio partita
-        }
-        if(error){
-            clientRemoteInterface.showErrorMessage(errorMessage);
+        Player player = new Player(playerDTO);
+        String nick = player.getNickname();
+        ServerVirtualView clientView = new ServerVirtualView(clientRemoteInterface, nick,
+                () -> notifyPlayerDisconnected(nick));
+
+        try {
+            controller.reconnectLoadedPlayer(player);
+        } catch (IllegalStateException e) {
+            throw new RemoteException("Nickname non trovato nella partita salvata");
+        } catch (GameReadyToStartException e) {
+            // All players reconnected — register last view and start
+            waitingPlayers.add(clientView);
+            viewsByNickname.put(nick, clientView);
+            isGameStarted = true;
+            startLoadedGame();
             return;
         }
 
+        // Not all players yet — just register the view
+        waitingPlayers.add(clientView);
+        viewsByNickname.put(nick, clientView);
+        logServerEvent("Player '" + nick + "' joined loaded game (" + waitingPlayers.size() + "/" + requiredPlayers + ").");
+    }
 
+    /**
+     * Bootstraps a resumed game once all expected players have reconnected.
+     * Links observers, syncs state to all clients, and starts the heartbeat watchdog.
+     */
+    private void startLoadedGame() {
+        logServerEvent("All players reconnected. Resuming loaded game...");
+        waitingPlayers.forEach(controller::linkObserver);
+        controller.crossRegisterPlayerObservers(waitingPlayers);
+        for (ServerVirtualView view : waitingPlayers) {
+            view.forceInitialPlayersSync(playerDTOS);
+        }
+        controller.resumeGame();
+        startWatchdog();
     }
 
     private void logServerEvent(String message) {

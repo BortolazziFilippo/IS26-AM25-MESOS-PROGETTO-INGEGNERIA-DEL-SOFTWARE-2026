@@ -211,4 +211,18 @@ public class ServerSocketProxy implements ServerRemoteInterface {
         ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending rank to player");
         send(new askForRankMessage(playerNumber));
     }
+
+    @Override
+    public void loadGame(PlayerDTO player, ClientRemoteInterface clientRemoteInterface)
+            throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
+        ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending loadGame request for " + player.getNickName() + ".");
+        send(new LoadGameMessage(player));
+    }
+
+    @Override
+    public void joinGameLoaded(PlayerDTO player, ClientRemoteInterface clientRemoteInterface)
+            throws RemoteException, IllegalStateException, GameReadyToStartException {
+        ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending joinGameLoaded request for " + player.getNickName() + ".");
+        send(new JoinGameLoadedMessage(player));
+    }
 }

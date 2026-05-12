@@ -5,7 +5,6 @@ import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
-import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
@@ -40,7 +39,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
     private final Market market;
     private final TurnManager turnManager;
     private final Map<String, Player> players;
-    private int playerNumber;
+    private final int playerNumber;
     private GAME_PHASE gamePhase;
     private Player playerToPlace;
     private Player playerToPlay;
@@ -681,6 +680,20 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
+     * Pushes the current era, game phase, and active turn info to all observers.
+     * Used when resuming a loaded game after all players have reconnected.
+     */
+    public void notifyCurrentState() {
+        notifyEraChanged();
+        notifyGamePhaseChanged();
+        if (playerToPlace != null) notifyPlayerToPlaceChanged();
+        if (playerToPlay != null) {
+            notifyPlayerToPlayChanged();
+            notifyActionChanged();
+        }
+    }
+
+    /**
      * Executes notify action changed.
      */
     private void notifyActionChanged() {
@@ -746,27 +759,27 @@ public class Game implements GameView, MementoManager<GameMemento> {
 
     @Override
     public void restoreMemento(GameMemento memento) {
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring game memento (era=" + memento.getCurrentEra() + ", phase=" + memento.getGamePhase() + ", players=" + memento.getPlayers().size() + ")");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring game memento (era=" + memento.currentEra() + ", phase=" + memento.gamePhase() + ", players=" + memento.players().size() + ")");
         // 1. Restore game-level state
-        this.currentEra = memento.getCurrentEra();
-        this.gamePhase = memento.getGamePhase();
+        this.currentEra = memento.currentEra();
+        this.gamePhase = memento.gamePhase();
         // 2. Recreate players with tribe and buildings
         this.players.clear();
         BuildingFactory buildingFactory = new BuildingFactory();
-        for (PlayerMemento pm : memento.getPlayers()) {
-            Player p = new Player(pm.getNickname(), pm.getTotemColor());
+        for (PlayerMemento pm : memento.players()) {
+            Player p = new Player(pm.nickname(), pm.totemColor());
             p.restoreMemento(pm);
-            List<BuildingCard> buildings = pm.getBuildingIDs().stream()
+            List<BuildingCard> buildings = pm.buildingIDs().stream()
                     .map(id -> buildingFactory.createBuildingById(id, boardView))
                     .toList();
             p.restoreBuildings(buildings);
             this.players.put(p.getNickname(), p);
         }
         // 3. Restore market
-        this.market.restoreMemento(memento.getMarket());
+        this.market.restoreMemento(memento.market());
         // 4. Clear board tiles and place players on default tiles in saved order
-        this.board.restoreMemento(memento.getBoard());
-        List<String> ordered = memento.getBoard().getOrderedNicknamesOnDefaultTiles();
+        this.board.restoreMemento(memento.board());
+        List<String> ordered = memento.board().orderedNicknamesOnDefaultTiles();
         for (int i = 0; i < ordered.size(); i++) {
             try {
                 board.placePlayerOnDefaultTile(players.get(ordered.get(i)), i);
@@ -777,11 +790,11 @@ public class Game implements GameView, MementoManager<GameMemento> {
         // 5. Sync turn manager with restored board order
         turnManager.updatePlacingOrder();
         // 6. Restore current placing/playing player references
-        if (memento.getPlayerToPlaceNickname() != null) {
-            this.playerToPlace = this.players.get(memento.getPlayerToPlaceNickname());
+        if (memento.playerToPlaceNickname() != null) {
+            this.playerToPlace = this.players.get(memento.playerToPlaceNickname());
         }
-        if (memento.getPlayerToPlayNickname() != null) {
-            this.playerToPlay = this.players.get(memento.getPlayerToPlayNickname());
+        if (memento.playerToPlayNickname() != null) {
+            this.playerToPlay = this.players.get(memento.playerToPlayNickname());
         }
     }
 }

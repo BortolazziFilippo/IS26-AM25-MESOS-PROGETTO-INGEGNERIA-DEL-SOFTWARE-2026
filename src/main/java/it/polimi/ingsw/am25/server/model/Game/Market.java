@@ -40,7 +40,7 @@ public class Market implements MementoManager<MarketMemento> {
     private final List<MarketObserver> observers = new ArrayList<>();
     private List<Card> extraDrawCardSnapshot = new ArrayList<>();
     private List<BuildingCard> extraDrawBuildingSnapshot = new ArrayList<>();
-
+    private final String LOG_PREFIX="[SERVER][MARKET]";
 
     /**
      * Initializes the market by building the deck and buildings for the given player count,
@@ -603,11 +603,11 @@ public class Market implements MementoManager<MarketMemento> {
     public void restoreMemento(MarketMemento memento) {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring market memento");
         DeckFactory deckFactory = new DeckFactory();
-        this.topCardList = deckFactory.loadDeck(memento.getTopCards());
-        this.bottomCardList = deckFactory.loadDeck(memento.getBottomCards());
-        this.deck = deckFactory.loadDeck(memento.getDeck());
-        this.topBuildingList = deckFactory.loadBuidlingDeck(memento.getTopBuildingIDs(), this.boardView);
-        this.bottomBuildingList = deckFactory.loadBuidlingDeck(memento.getBottomBuildingIDs(), this.boardView);
-        this.buildingCards = deckFactory.loadBuidlingDeck(memento.getBuildingPoolIDs(), this.boardView);
+        this.topCardList = deckFactory.loadDeck(memento.topCards());
+        this.bottomCardList = deckFactory.loadDeck(memento.bottomCards());
+        this.deck = deckFactory.loadDeck(memento.deck());
+        this.topBuildingList = deckFactory.loadBuidlingDeck(memento.topBuildingIDs(), this.boardView);
+        this.bottomBuildingList = deckFactory.loadBuidlingDeck(memento.bottomBuildingIDs(), this.boardView);
+        this.buildingCards = deckFactory.loadBuidlingDeck(memento.buildingPoolIDs(), this.boardView);
     }
 }

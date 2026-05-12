@@ -23,8 +23,8 @@ import java.util.function.Consumer;
  */
 public class Player implements MementoManager<PlayerMemento> {
     private static final String LOG_PREFIX = "[SERVER][PLAYER]";
-    private String nickname;
-    private Totem totem;
+    private final String nickname;
+    private final Totem totem;
     private int food;
     private int prestigePoint;
     private final List<Card> tribe;
@@ -503,11 +503,11 @@ public class Player implements MementoManager<PlayerMemento> {
 
     @Override
     public void restoreMemento(PlayerMemento memento) {
-        logServerEvent("Restoring memento for player '" + nickname + "' (food=" + memento.getFood() + ", pp=" + memento.getPrestigePoints() + ", tribe=" + memento.getTribe().size() + ")");
-        this.food = memento.getFood();
-        this.prestigePoint = memento.getPrestigePoints();
+        logServerEvent("Restoring memento for player '" + nickname + "' (food=" + memento.food() + ", pp=" + memento.prestigePoints() + ", tribe=" + memento.tribe().size() + ")");
+        this.food = memento.food();
+        this.prestigePoint = memento.prestigePoints();
         this.tribe.clear();
-        this.tribe.addAll(new DeckFactory().loadDeck(memento.getTribe()));
+        this.tribe.addAll(new DeckFactory().loadDeck(memento.tribe()));
     }
 
     /**

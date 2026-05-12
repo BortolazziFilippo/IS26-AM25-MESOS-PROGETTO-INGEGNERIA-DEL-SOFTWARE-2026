@@ -11,11 +11,11 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.model.persistance.GameMemento;
 import it.polimi.ingsw.am25.server.model.persistance.PersistanceLogger;
 import it.polimi.ingsw.am25.server.model.persistance.PlayerMemento;
-import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +27,7 @@ import java.util.Optional;
 public class Controller {
     PersistanceLogger persistanceLogger = new PersistanceLogger();
     private Game game;
-    private List<Player> players;
+    private final List<Player> players;
     private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
 
     /**
@@ -35,6 +35,7 @@ public class Controller {
      * The {@link Game} instance is not created here — call {@link #createGame} first.
      */
     public Controller() {
+        this.players = new ArrayList<>();
     }
 
     /**
@@ -433,8 +434,8 @@ public class Controller {
         boolean playerWasPlaying=false;
         Optional<GameMemento> gameMemento= persistanceLogger.load();
         if(gameMemento.isPresent()) {
-            for(PlayerMemento playerDTO: gameMemento.get().getPlayers()){
-                Player p = new Player(playerDTO.getNickname(), playerDTO.getTotemColor());
+            for(PlayerMemento playerDTO: gameMemento.get().players()){
+                Player p = new Player(playerDTO.nickname(), playerDTO.totemColor());
                 players.add(p);
                 if(p.getNickname().equals(player.getNickname())) {
                     p.setConnection(CONNECTION_STATUS.CONNECTED);
@@ -446,7 +447,7 @@ public class Controller {
             if(!playerWasPlaying){
                 throw new IllegalStateException("Nickname not found");
             }
-            this.game= new Game(gameMemento.get().getPlayerNumber());
+            this.game= new Game(gameMemento.get().playerNumber());
             game.restoreMemento(gameMemento.get());
         }else {
             throw new NoGameToLoadException("No game to load");
@@ -457,7 +458,7 @@ public class Controller {
         if(game == null){
             throw new IllegalStateException("Game not loaded");
         }
-        Player playerToAdd= this.players.stream().findFirst().stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
+        Player playerToAdd= this.players.stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
         if(playerToAdd == null){
             throw new IllegalStateException("Nickname not found");
         }
@@ -465,6 +466,16 @@ public class Controller {
         if(players.stream().allMatch(p -> p.getConnection() == CONNECTION_STATUS.CONNECTED)){
             throw new GameReadyToStartException("Game ready to start");
         }
+    }
+
+    /**
+     * Pushes the full game state (market, board, era, phase, current turn) to all
+     * registered observers. Called when resuming a loaded game after all players
+     * have reconnected, so every client gets an up-to-date snapshot.
+     */
+    public void resumeGame() {
+        game.notifyChanges();
+        game.notifyCurrentState();
     }
 
 }

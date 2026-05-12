@@ -48,7 +48,7 @@ public class MesosSplashScreen {
     // ---------------------------------------------------------------
     // Entry point standalone (per test; rimuovi se integri nel progetto)
     // ---------------------------------------------------------------
-    public static void main(String[] args) {
+    static void main(String[] args) {
         Application.launch(StandaloneApp.class, args);
     }
 
