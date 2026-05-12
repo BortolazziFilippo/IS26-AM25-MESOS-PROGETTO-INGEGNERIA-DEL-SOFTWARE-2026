@@ -266,6 +266,7 @@ public class LobbyTUI {
         utils.pauseAndClear();
     }
 
+
     private void printLeaderboardSection(Map<Integer, List<String>> leaderboards, int playerCount) {
         System.out.println("  Partite da " + playerCount + " giocatori:");
         List<String> entries = leaderboards.get(playerCount);

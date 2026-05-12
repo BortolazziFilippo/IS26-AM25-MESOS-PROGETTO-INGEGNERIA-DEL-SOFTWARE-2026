@@ -122,16 +122,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         playerDTOS.add(playerDTO);
         logServerEvent("Player '" + playerDTO.getNickName() + "' joined (" + waitingPlayers.size() + "/" + requiredPlayers + ")");
 
-        // -----------------------------------------------------------------
-        // BROADCAST DELLA LOBBY:
-        //  1) Al nuovo arrivato mandiamo TUTTI i giocatori già presenti (incluso lui),
-        //     così la sua lista parte allineata.
-        //  2) A chi era già dentro mandiamo SOLO il nuovo, come incremento.
-        // -----------------------------------------------------------------
+
         for (PlayerDTO existing : playerDTOS) {
             playerView.pushPlayerAdded(existing);
         }
-        for (int i = 0; i < waitingPlayers.size() - 1; i++) { // -1: salta il nuovo arrivato
+        for (int i = 0; i < waitingPlayers.size() - 1; i++) {
             waitingPlayers.get(i).pushPlayerAdded(playerDTO);
         }
 
@@ -482,6 +477,78 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             shutdown.setDaemon(true);
             shutdown.start();
         }
+    }
+
+    @Override
+    public synchronized void loadGame(PlayerDTO playerDTO,ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
+        boolean error=false;
+        String errorMessage="";
+        if(controller != null) {
+            error=true;
+            errorMessage="Partita gia caricata/in corso";
+            throw new IllegalStateException(errorMessage);
+        }
+        if(error){
+            clientRemoteInterface.showErrorMessage(errorMessage);
+            return;
+        }
+        Controller controller = new Controller();
+        Player player= new Player(playerDTO);
+        try {
+            controller.loadGame(player);
+        } catch (NoGameToLoadException e) {
+            error=true;
+            errorMessage="Non ci sono partite da caricare";
+            throw new NoGameToLoadException(errorMessage);
+        }catch (GameAlreadyLoadedException e) {
+            error=true;
+            errorMessage="Partita gia caricata/In corso";
+            throw new GameAlreadyLoadedException(errorMessage);
+        }catch (IllegalStateException e) {
+            error=true;
+            errorMessage="Giocatore non trovato";
+            throw new RemoteException(errorMessage);
+        }
+        if(error){
+            clientRemoteInterface.showErrorMessage(errorMessage);
+            return;
+        }
+        ServerVirtualView clientView= new ServerVirtualView(clientRemoteInterface,player.getNickname(),()->notifyPlayerDisconnected(player.getNickname()));
+        waitingPlayers.add(clientView);
+        viewsByNickname.put(player.getNickname(),clientView);
+        playerDTOS.add(playerDTO);
+
+    }
+
+    @Override
+    public synchronized void joinGameLoaded(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException, GameReadyToStartException {
+        boolean error=false;
+        String errorMessage="";
+        if(controller == null){
+            error=true;
+            errorMessage="Partita non ancora caricata";
+            throw new IllegalStateException(errorMessage);
+        }
+        if(error){
+            clientRemoteInterface.showErrorMessage(errorMessage);
+            return;
+        }
+        try{
+            Player player1 = new Player(player);
+            this.controller.reconnectLoadedPlayer(player1);
+        }catch (IllegalStateException e){
+            error=true;
+            errorMessage="Nicname giocatore non trovato";
+            throw new RemoteException(errorMessage);
+        }catch (GameReadyToStartException e){
+            //TODO: gestire avvio partita
+        }
+        if(error){
+            clientRemoteInterface.showErrorMessage(errorMessage);
+            return;
+        }
+
+
     }
 
     private void logServerEvent(String message) {

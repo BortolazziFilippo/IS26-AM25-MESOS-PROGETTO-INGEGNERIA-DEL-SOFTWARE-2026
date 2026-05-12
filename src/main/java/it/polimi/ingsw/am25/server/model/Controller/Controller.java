@@ -89,7 +89,7 @@ public class Controller {
     public void crossRegisterPlayerObservers(List<ServerVirtualView> views) {
         for (Player player : game.getPlayerList()) {
             for (ServerVirtualView view : views) {
-                player.addObserver(view); // addObserver is idempotent (ignores duplicates)
+                player.addObserver(view); // addObserver ignores duplicates
             }
         }
     }
@@ -426,7 +426,7 @@ public class Controller {
         game.reAddToTurnQueues(player);
     }
 
-    public synchronized void loadGame(Player player) throws GameAlreadyLoadedException,NoGameToLoadException {
+    public synchronized void loadGame(Player player) throws IllegalStateException,GameAlreadyLoadedException,NoGameToLoadException {
         if(game != null){
             throw new GameAlreadyLoadedException("Game already initialized");
         }

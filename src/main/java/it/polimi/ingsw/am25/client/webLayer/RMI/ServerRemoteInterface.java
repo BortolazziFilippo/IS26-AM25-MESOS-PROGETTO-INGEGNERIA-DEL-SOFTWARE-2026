@@ -126,4 +126,14 @@ public interface ServerRemoteInterface extends Remote {
      * @throws RemoteException if the RMI call fails.
      */
     void ping(PlayerDTO player) throws RemoteException;
+
+    /**
+     * Load a game if there is one
+     * @param player player sending the request
+     * @param clientRemoteInterface the host's RMI stub for receiving push notifications.
+     * @throws RemoteException if the RMI call fails
+     */
+    void loadGame(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException,GameAlreadyLoadedException,NoGameToLoadException;
+
+    void joinGameLoaded(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException,IllegalStateException, GameReadyToStartException;
 }
