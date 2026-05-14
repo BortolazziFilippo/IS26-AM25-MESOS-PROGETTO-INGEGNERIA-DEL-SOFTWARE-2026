@@ -159,10 +159,20 @@ public class CardDTO implements Serializable {
         return finalPrestigePoint;
     }
 
+    /**
+     * Returns the unique identifier of the builder associated with this card.
+     *
+     * @return the builder ID, or {@code 0} if the card is not of builder type.
+     */
     public int getBuilderID() {
         return builderID;
     }
 
+    /**
+     * Returns the identifier of the event associated with this event card.
+     *
+     * @return the event ID, or {@code 0} if the card is not of event type.
+     */
     public int getEventID() {
         return eventID;
     }

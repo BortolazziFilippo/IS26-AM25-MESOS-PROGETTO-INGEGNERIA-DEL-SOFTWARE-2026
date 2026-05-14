@@ -123,6 +123,13 @@ public class BuildingCard extends Card {
         return new BuildingDTO(this);
     }
 
+    /**
+     * Building cards are never restored via DTO (they are recreated by the factory using their ID),
+     * so this method always returns {@code false}.
+     *
+     * @param dto the DTO to compare against (unused).
+     * @return always {@code false}.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return false;

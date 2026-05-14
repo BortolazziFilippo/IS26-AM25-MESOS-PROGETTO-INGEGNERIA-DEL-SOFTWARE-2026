@@ -84,26 +84,55 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
 
     // --- HEARTBEAT API ---
 
+    /**
+     * Returns the nickname of the player represented by this view.
+     *
+     * @return the player's nickname.
+     */
     public String getNickname() {
         return nickname;
     }
 
+    /**
+     * Returns the RMI stub or Socket proxy used to send notifications to the client.
+     *
+     * @return the remote interface of the client associated with this view.
+     */
     public ClientRemoteInterface getClientStub() {
         return clientStub;
     }
 
+    /**
+     * Returns whether the client is currently connected to the server.
+     *
+     * @return {@code true} if the client is connected, {@code false} if it has disconnected.
+     */
     public boolean isConnected() {
         return connected;
     }
 
+    /**
+     * Records reception of a ping from the client, resetting the missed-ping counter.
+     * Called by the heartbeat watchdog to confirm that the client is still active.
+     */
     public void receivePing() {
         missedPings.set(0);
     }
 
+    /**
+     * Increments the missed-ping counter and returns the new value.
+     * Called on every watchdog tick; if it exceeds the threshold the player is declared disconnected.
+     *
+     * @return the updated number of consecutive missed pings.
+     */
     public int incrementMissedPings() {
         return missedPings.incrementAndGet();
     }
 
+    /**
+     * Marks the client as disconnected and shuts down the notification executor.
+     * After this call, any task submitted via {@link #submitTask} is silently discarded.
+     */
     public void markDisconnected() {
         connected = false;
         executor.shutdownNow();
@@ -177,16 +206,33 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Notifies the client that a player has disconnected from the game.
+     *
+     * @param disconnectedNickname the nickname of the player who disconnected.
+     */
     public void notifyPlayerDisconnected(String disconnectedNickname) {
         if (!connected) return;
         submitTask(() -> clientStub.playerDisconnected(disconnectedNickname));
     }
 
+    /**
+     * Notifies the client that a previously disconnected player has reconnected.
+     *
+     * @param reconnectedNickname the nickname of the player who reconnected.
+     */
     public void notifyPlayerReconnected(String reconnectedNickname) {
         if (!connected) return;
         submitTask(() -> clientStub.playerReconnected(reconnectedNickname));
     }
 
+    /**
+     * Updates a player's prestige-point score in the local snapshot and notifies the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.PlayerObserver}.
+     *
+     * @param nickname the nickname of the updated player.
+     * @param newPP    the new prestige-point total.
+     */
     @Override
     public void notifyPPChanged(String nickname, int newPP) {
         PlayerDTO pl = playersMap.get(nickname);
@@ -195,6 +241,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerUpdatePP(nickname, newPP));
     }
 
+    /**
+     * Updates a player's food amount in the local snapshot and notifies the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.PlayerObserver}.
+     *
+     * @param nickname the nickname of the updated player.
+     * @param newFood  the new food total.
+     */
     @Override
     public void notifyFoodChanged(String nickname, int newFood) {
         PlayerDTO pl = playersMap.get(nickname);
@@ -203,6 +256,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerUpdateFood(nickname, newFood));
     }
 
+    /**
+     * Sends this client the full list of players in the lobby/game,
+     * also updating the local snapshot map. Called at game start
+     * to ensure all clients have a consistent initial state.
+     *
+     * @param allPlayers the list of all {@link PlayerDTO} instances to synchronise on the client.
+     */
     public void forceInitialPlayersSync(List<PlayerDTO> allPlayers) {
         for (PlayerDTO player : allPlayers) {
             this.playersMap.put(player.getNickName(), player);
@@ -214,12 +274,33 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Deprecated observer callback: updates the local player snapshot without notifying the client.
+     * Superseded by {@link #notifyPPChanged} and {@link #notifyFoodChanged} for granular updates.
+     *
+     * @param nickname       the player's nickname.
+     * @param totem          the player's totem (colour).
+     * @param food           the player's current food amount.
+     * @param prestigePoint  the player's current prestige points.
+     * @param tribe          the list of tribe cards belonging to the player.
+     * @param buildingCards  the list of building cards belonging to the player.
+     */
     @Override
     @Deprecated
     public void onPlayerChanged(String nickname, Totem totem, int food, int prestigePoint, List<Card> tribe, List<BuildingCard> buildingCards) {
         playersMap.put(nickname, new PlayerDTO(nickname, food, prestigePoint, totem.color()));
     }
 
+    /**
+     * Updates the market snapshot and sends the full new configuration
+     * (top and bottom rows of cards and buildings) to the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param topCards        the cards in the top market row.
+     * @param bottomCards     the cards in the bottom market row.
+     * @param topBuildings    the buildings in the top market row.
+     * @param bottomBuildings the buildings in the bottom market row.
+     */
     @Override
     public void onMarketChanged(List<Card> topCards, List<Card> bottomCards, List<BuildingCard> topBuildings, List<BuildingCard> bottomBuildings) {
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
@@ -229,6 +310,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings, this.bottomBuildings));
     }
 
+    /**
+     * Moves the top market row to the bottom, updates the top row with the new cards,
+     * and notifies the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param topCards the new cards that make up the top market row.
+     */
     @Override
     public void onTopCardRefreshed(List<Card> topCards) {
         if (this.topCards != null) {
@@ -238,6 +326,14 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.topCardRefreshed(new ArrayList<>(this.topCards)));
     }
 
+    /**
+     * Updates the board snapshot and sends the new configuration of offer tiles
+     * and default tiles to the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.BoardObserver}.
+     *
+     * @param offerTileList   the updated offer tiles with totem positions.
+     * @param defaultTileList the updated default tiles.
+     */
     @Override
     public void onBoardChanged(List<OfferTile> offerTileList, List<DefaultTile> defaultTileList) {
         this.offerTileList = offerTileList.stream().map(OffertileDTO::new).toList();
@@ -245,23 +341,54 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.boardInitialize(this.offerTileList, this.defaultTileList));
     }
 
+    /**
+     * Notifies the client of the order in which players are on the default tile
+     * at the end of the placing phase.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.BoardObserver}.
+     *
+     * @param playerOrder the ordered list of players on the default tile.
+     */
     @Override
     public void playerToDefaultTile(List<Player> playerOrder) {
         List<PlayerDTO> order = playerOrder.stream().map(PlayerDTO::new).toList();
         submitTask(() -> clientStub.orderOnDefaultTile(order));
     }
 
+    /**
+     * Notifies the client that a player has placed their totem on an offer tile.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.BoardObserver}.
+     *
+     * @param player       the player who performed the placement.
+     * @param tilePosition the index of the chosen offer tile.
+     */
     @Override
     public void playerPlacedOnOffertile(Player player, int tilePosition) {
         submitTask(() -> clientStub.playerPlacedOnOffertile(player.getNickname(), tilePosition));
     }
 
+    /**
+     * Saves the list of winners in the local snapshot and notifies the client that the game is over.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param winners the list of winning players.
+     */
     @Override
     public void gameWinners(List<Player> winners) {
         this.winners = winners.stream().map(PlayerDTO::new).toList();
         submitTask(() -> clientStub.gameWinners(this.winners));
     }
 
+    /**
+     * Updates the era and game-phase snapshots, clears the current-turn fields,
+     * and sends the initial game state to the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param currentEra    the current era of the game.
+     * @param players       the list of all players (not used directly in this callback).
+     * @param gamePhase     the current game phase.
+     * @param playerToPlace the player who must place their totem (not used directly here).
+     * @param playerToPlay  the player who must perform their action (not used directly here).
+     */
     @Override
     public void onGameChanged(ERA currentEra, List<Player> players, GAME_PHASE gamePhase, Player playerToPlace, Player playerToPlay) {
         this.currentEra = currentEra;
@@ -271,6 +398,12 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.initializeGame(this.currentEra, this.currentGamePhase, null, null));
     }
 
+    /**
+     * Adds the player to the local snapshot map and notifies the client of the new lobby entry.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param playerAdded the player who joined the game or lobby.
+     */
     @Override
     public void onPlayerAdded(Player playerAdded) {
         PlayerDTO player = new PlayerDTO(playerAdded);
@@ -289,18 +422,37 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerAdded(player));
     }
 
+    /**
+     * Updates the current era in the local snapshot and notifies the client of the era change.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param currentEra the new game era.
+     */
     @Override
     public void onEraChanged(ERA currentEra) {
         this.currentEra = currentEra;
         submitTask(() -> clientStub.eraChanged(this.currentEra));
     }
 
+    /**
+     * Updates the game phase in the local snapshot and notifies the client of the phase change.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param gamePhase the new game phase.
+     */
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         this.currentGamePhase = gamePhase;
         submitTask(() -> clientStub.gamePhaseChanged(currentGamePhase));
     }
 
+    /**
+     * Updates the current player for the placing phase and notifies the client.
+     * Clears the action-phase player field since the two phases are mutually exclusive.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param newPlayerToPlace the player who must place their totem.
+     */
     @Override
     public void onPlayerToPlaceChanged(Player newPlayerToPlace) {
         this.playerToPlay = null;
@@ -308,6 +460,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerToPlaceChanged(new PlayerDTO(newPlayerToPlace)));
     }
 
+    /**
+     * Updates the current player for the action phase and notifies the client.
+     * Clears the placing-phase player field since the two phases are mutually exclusive.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param newPlayerToPlay the player who must perform their game action.
+     */
     @Override
     public void onPlayerToPlayChanged(Player newPlayerToPlay) {
         this.playerToPlace = null;
@@ -315,12 +474,28 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.playerToPlayChanged(new PlayerDTO(newPlayerToPlay)));
     }
 
+    /**
+     * Saves the end-of-turn market snapshot used for the extra draw.
+     * Does not immediately notify the client: the data is sent in {@link #requestExtraDraw}
+     * only to the player entitled to the additional card.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param snapshotCards     the cards available in the end-of-turn snapshot.
+     * @param snapshotBuildings the buildings available in the end-of-turn snapshot.
+     */
     @Override
     public void onExtraDrawSnapshotReady(List<Card> snapshotCards, List<BuildingCard> snapshotBuildings) {
         this.extraDrawSnapshotCards = new ArrayList<>(snapshotCards.stream().map(Card::toDTO).toList());
         this.extraDrawSnapshotBuildings = new ArrayList<>(snapshotBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
     }
 
+    /**
+     * Moves the top building row to the bottom, updates the top row with the new buildings,
+     * and notifies the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param topBuildingCards the new buildings that make up the top market row.
+     */
     @Override
     public void onTopBuildingRefreshed(List<BuildingCard> topBuildingCards) {
         if (this.topBuildings != null) {
@@ -330,6 +505,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.topBuildingRefreshed(this.topBuildings));
     }
 
+    /**
+     * Removes the card or building at the given position from the top market row
+     * in the local snapshot and notifies the client of the removal.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param position the index of the card/building removed from the top row.
+     * @param cardType the type of element removed: {@link CARD_TYPE#BUILDING} for a building,
+     *                 any other value for a tribe card.
+     */
     @Override
     public void onCardRemovedFromTop(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
@@ -341,6 +525,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Removes the card or building at the given position from the bottom market row
+     * in the local snapshot and notifies the client of the removal.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.MarketObserver}.
+     *
+     * @param position the index of the card/building removed from the bottom row.
+     * @param cardType the type of element removed: {@link CARD_TYPE#BUILDING} for a building,
+     *                 any other value for a tribe card.
+     */
     @Override
     public void onCardRemovedFromBottom(int position, CARD_TYPE cardType) {
         if (cardType == CARD_TYPE.BUILDING) {
@@ -352,6 +545,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         }
     }
 
+    /**
+     * Adds the card to the player's tribe snapshot and notifies the client.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.PlayerObserver}.
+     *
+     * @param playername the nickname of the player who received the card.
+     * @param cardAdded  the card added to the player's tribe.
+     */
     @Override
     public void notifyCardAddedToTribe(String playername, Card cardAdded) {
         CardDTO dto = cardAdded.toDTO();
@@ -359,6 +559,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.addedCardToTribe(playername, dto));
     }
 
+    /**
+     * Sends the extra-draw request to the client only if the nickname matches the player
+     * of this view. The request includes the previously saved market snapshot.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.PlayerObserver}.
+     *
+     * @param nickname the nickname of the player entitled to the extra draw.
+     */
     @Override
     public void requestExtraDraw(String nickname) {
         if (!this.nickname.equals(nickname)) return;
@@ -367,6 +574,14 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         submitTask(() -> clientStub.askExtraDraw(cards, buildings));
     }
 
+    /**
+     * Notifies the client of the change in available actions (number of draws from the top
+     * and bottom rows) based on the chosen offer tile.
+     * Observer callback from {@link it.polimi.ingsw.am25.server.model.Observers.BoardObserver}.
+     *
+     * @param drawTop    the number of cards drawable from the top market row.
+     * @param drawBottom the number of cards drawable from the bottom market row.
+     */
     @Override
     public void actionOfferTileChanged(int drawTop, int drawBottom) {
         submitTask(() -> clientStub.actionAvailableChanged(new ActionDTO(drawTop, drawBottom)));
@@ -403,6 +618,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         UtilitiesFunction.logError(LOG_PREFIX, message);
     }
 
+    /**
+     * Notifica il client che un evento è stato risolto, indicando l'ID dell'evento e il tipo.
+     * Callback dell'observer {@link it.polimi.ingsw.am25.server.model.Observers.GameObserver}.
+     *
+     * @param eventID   l'identificatore univoco dell'evento risolto.
+     * @param eventType il tipo dell'evento risolto.
+     */
     @Override
     public void eventSolved(int eventID, EVENT_TYPE eventType) {
         submitTask(() -> clientStub.eventResolved(eventID, eventType));

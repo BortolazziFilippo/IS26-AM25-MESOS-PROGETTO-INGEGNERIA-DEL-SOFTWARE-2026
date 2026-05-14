@@ -12,6 +12,9 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class BuilderDoublePP extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
+    /**
+     * Constructs a building effect that doubles the final prestige points of Builder cards.
+     */
     public BuilderDoublePP() {
     }
 

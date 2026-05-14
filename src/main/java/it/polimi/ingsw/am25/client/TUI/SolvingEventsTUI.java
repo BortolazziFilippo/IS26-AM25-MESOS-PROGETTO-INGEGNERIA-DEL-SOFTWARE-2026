@@ -7,11 +7,23 @@ public class SolvingEventsTUI {
     private final ClientVirtualView clientVirtualView;
     private final TUIUtils tuiUtils;
 
+    /**
+     * Creates the TUI screen for the event-resolution phase.
+     *
+     * @param clientVirtualView the local client view holding the game state.
+     * @param tUIUtils          the shared TUI utilities for screen management.
+     */
     public SolvingEventsTUI(ClientVirtualView clientVirtualView, TUIUtils tUIUtils) {
         this.clientVirtualView = clientVirtualView;
         this.tuiUtils = tUIUtils;
     }
 
+    /**
+     * Handles the event-resolution phase on the terminal.
+     * Blocks the current thread until the {@code SOLVING_EVENTS} phase ends,
+     * printing resolved events in real time as they arrive. When done,
+     * displays the complete list and clears it for the next phase.
+     */
     public void solveEvents() {
         // NB: NON chiamare clearResolvedEvents() qui all'inizio.
         // Tra la sveglia su turnLock e l'arrivo della TUI a questa riga, il

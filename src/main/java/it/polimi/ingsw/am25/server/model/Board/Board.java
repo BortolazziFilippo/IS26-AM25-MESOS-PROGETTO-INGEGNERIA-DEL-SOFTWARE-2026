@@ -273,6 +273,11 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
+    /**
+     * Creates a memento capturing the current order of players on default tiles.
+     *
+     * @return a {@link BoardMemento} containing the ordered list of nicknames of players on default tiles.
+     */
     @Override
     public BoardMemento createMemento() {
         logServerEvent("Creating board memento (" + getOrderedPlayerOnDefaultTile().size() + " players on default tiles)");
@@ -281,6 +286,12 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
         );
     }
 
+    /**
+     * Restores the board state from the given memento, removing all players
+     * from default tiles and offer tiles in preparation for repositioning.
+     *
+     * @param memento the {@link BoardMemento} from which to restore the board state.
+     */
     @Override
     public void restoreMemento(BoardMemento memento) {
         logServerEvent("Restoring board memento (clearing all tiles)");

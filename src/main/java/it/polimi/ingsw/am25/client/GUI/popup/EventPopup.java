@@ -27,6 +27,15 @@ public class EventPopup {
     private int totalCount = 0;
     private double savedCardFitHeight = 200;
 
+    /**
+     * Adds a resolved event to the popup, opening the window if it is not already visible
+     * or appending a new entry to the existing one.
+     * Entries are arranged in columns of at most {@code MAX_PER_COLUMN} items.
+     *
+     * @param eventID       the unique ID of the event to display.
+     * @param eventType     the type of the event (determines the image and label text).
+     * @param cardFitHeight the height in pixels to use for the event card image.
+     */
     public void addEvent(int eventID, EVENT_TYPE eventType, double cardFitHeight) {
         savedCardFitHeight = cardFitHeight;
 

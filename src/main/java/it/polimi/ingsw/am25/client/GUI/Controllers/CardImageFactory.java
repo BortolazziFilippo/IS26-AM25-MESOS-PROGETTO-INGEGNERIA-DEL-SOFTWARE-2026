@@ -15,6 +15,14 @@ public class CardImageFactory {
     private CardImageFactory() {
     }
 
+    /**
+     * Creates an {@link ImageView} for the default tile corresponding to the given
+     * player count.
+     *
+     * @param playerCount the number of players (determines which image to load).
+     * @param fitHeight   the desired image height in pixels.
+     * @return an {@link ImageView} configured with the image and preserved aspect ratio.
+     */
     public static ImageView defaultTileImageView(int playerCount, double fitHeight) {
         ImageView iv = new ImageView(new Image(CardImageFactory.class.getResourceAsStream(
                 "/images/Tiles/defaultTile/" + playerCount + "plDefTile.png")));
@@ -23,6 +31,13 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for the offer tile identified by the given character ID.
+     *
+     * @param tileID    the character identifier of the offer tile.
+     * @param fitHeight the desired image height in pixels.
+     * @return an {@link ImageView} configured with the image and preserved aspect ratio.
+     */
     public static ImageView offerTileImageView(char tileID, double fitHeight) {
         ImageView iv = new ImageView(new Image(CardImageFactory.class.getResourceAsStream(
                 "/images/Tiles/offertiles/" + tileID + "offertile.png")));
@@ -31,6 +46,14 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for a market card, selecting the correct image
+     * based on the card type and its DTO attributes.
+     *
+     * @param card      the DTO of the card to display.
+     * @param fitHeight the desired image height in pixels.
+     * @return an {@link ImageView} with the card image and the DTO set as {@code userData}.
+     */
     public static ImageView cardImageView(CardDTO card, double fitHeight) {
         String path = switch (card.getCardType()) {
             case GATHERER -> "/images/Card/gatherer/Gatherer.png";
@@ -53,6 +76,14 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for a building, selecting the correct era image
+     * (first, second, or third) based on the building ID.
+     *
+     * @param bld       the DTO of the building to display.
+     * @param fitHeight the desired image height in pixels.
+     * @return an {@link ImageView} with the building image and the DTO set as {@code userData}.
+     */
     public static ImageView buildingImageView(BuildingDTO bld, double fitHeight) {
         int id = bld.getBuildingID();
         String era = id <= 6 ? "eraOne" : id <= 13 ? "eraTwo" : "eraThree";
@@ -64,6 +95,12 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Returns the classpath resource path of the totem image for the given color.
+     *
+     * @param color the totem color.
+     * @return the absolute classpath resource path.
+     */
     public static String totemPath(COLOR color) {
         return switch (color) {
             case RED -> "/images/totems/pedine_specs_redTotem.png";
@@ -74,6 +111,13 @@ public class CardImageFactory {
         };
     }
 
+    /**
+     * Returns the partial path segment corresponding to the given event type,
+     * used when constructing the event image filename.
+     *
+     * @param type the event type.
+     * @return the type identifier string (e.g. {@code "hunt"}, {@code "painting"}).
+     */
     public static String eventTypePath(EVENT_TYPE type) {
         return switch (type) {
             case HUNT -> "hunt";

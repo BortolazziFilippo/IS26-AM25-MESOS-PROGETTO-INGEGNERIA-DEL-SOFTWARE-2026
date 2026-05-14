@@ -486,6 +486,12 @@ public class ClientSocketProxy implements ClientRemoteInterface {
         }
     }
 
+    /**
+     * Notifica il client che un evento è stato risolto, inviando l'ID e il tipo dell'evento tramite socket.
+     *
+     * @param eventID   l'identificatore univoco dell'evento risolto.
+     * @param eventType il tipo dell'evento risolto.
+     */
     @Override
     public void eventResolved(int eventID, EVENT_TYPE eventType) {
         try {
@@ -500,6 +506,12 @@ public class ClientSocketProxy implements ClientRemoteInterface {
         }
     }
 
+    /**
+     * Invia al client le classifiche per le varie configurazioni di giocatori tramite socket.
+     *
+     * @param leaderboards mappa che associa il numero di giocatori alla rispettiva lista della classifica.
+     * @throws RemoteException in caso di errore di comunicazione.
+     */
     public void sendRank(Map<Integer, List<String>> leaderboards) throws
             RemoteException {
         try {

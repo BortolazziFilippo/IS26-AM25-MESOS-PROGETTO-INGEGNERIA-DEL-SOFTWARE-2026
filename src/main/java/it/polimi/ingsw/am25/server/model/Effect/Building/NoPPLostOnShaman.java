@@ -13,6 +13,9 @@ public class NoPPLostOnShaman extends BuildingEffect {
     private int prevPP;
     private boolean flag = false;
 
+    /**
+     * Constructs a building effect that prevents the player from losing prestige points during the shamanic ritual.
+     */
     public NoPPLostOnShaman() {
 
     }

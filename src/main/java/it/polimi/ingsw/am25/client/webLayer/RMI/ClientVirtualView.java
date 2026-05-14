@@ -82,11 +82,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     /** Top building row snapshot sent with the draw-one-more request; shows round-closing buildings. */
     private List<BuildingDTO> extraDrawBuildings = new ArrayList<>();
     // ----------------------------------------------------------------------
-//  GUI integration. La TUI usa i lock; la GUI registra un osservatore qui.
-//  Le callback dal server, oltre al solito notifyAll sui lock per la TUI,
-//  chiameranno il metodo corrispondente sull'osservatore se presente.
-//  L'osservatore GUI è responsabile di passare al thread JavaFX
-//  (Platform.runLater) prima di toccare i nodi grafici.
+//  GUI integration. The TUI uses the locks; the GUI registers an observer here.
+//  Server callbacks, in addition to the usual notifyAll on the locks for the TUI,
+//  will invoke the corresponding method on the observer if one is registered.
+//  The GUI observer is responsible for switching to the JavaFX thread
+//  (Platform.runLater) before touching any scene-graph nodes.
 // ----------------------------------------------------------------------
     private final java.util.concurrent.CopyOnWriteArrayList<GUIObserver> guiObservers = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -193,8 +193,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     /**
-     * metodo getter per i vincitori
-     * @return
+     * Returns the list of winning players.
+     * @return the winners list.
      */
 
     public List<PlayerDTO> getWinners() {
@@ -717,6 +717,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     }
 
+    /**
+     * Receives the notification from the server that a game event has been resolved.
+     * Appends the description to the resolved-events list, wakes up the turn lock,
+     * and notifies GUI observers.
+     *
+     * @param eventID   the unique ID of the resolved event.
+     * @param eventType the type of the resolved event.
+     * @throws RemoteException if the RMI call fails.
+     */
     @Override
     public void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException {
         String description = "Evento #" + eventID + " (" + eventType + ") risolto";
@@ -729,6 +738,13 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onEventResolved(eventID, eventType));
     }
 
+    /**
+     * Receives the global leaderboard from the server. Stores the map, wakes up the
+     * turn lock (used by the TUI), and notifies GUI observers.
+     *
+     * @param leaderboards map from player count to the corresponding leaderboard rows.
+     * @throws RemoteException if the RMI call fails.
+     */
     @Override
     public void sendRank(Map<Integer, List<String>> leaderboards) throws
             RemoteException {
@@ -741,24 +757,42 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onRankReceived(leaderboards));
     }
 
+    /**
+     * Returns the global leaderboard received from the server, or {@code null} if not yet available.
+     *
+     * @return the map from player count to leaderboard rows, or {@code null}.
+     */
     public Map<Integer, List<String>> getLeaderboards() {
         synchronized (stateLock) {
             return leaderboards;
         }
     }
 
+    /**
+     * Clears the locally cached global leaderboard.
+     * Should be called before requesting a fresh leaderboard from the server.
+     */
     public void clearLeaderboards() {
         synchronized (stateLock) {
             this.leaderboards = null;
         }
     }
 
+    /**
+     * Returns a snapshot copy of the list of events resolved in the current phase.
+     *
+     * @return list of resolved-event descriptions (may be empty).
+     */
     public List<String> getResolvedEvents() {
         synchronized (stateLock){
             return new ArrayList<>(resolvedEvents);
         }
     }
 
+    /**
+     * Clears the resolved-events list. Should be called after the TUI has displayed
+     * the results of the {@code SOLVING_EVENTS} phase, so the next phase starts clean.
+     */
     public void clearResolvedEvents() {
         synchronized (stateLock){
             resolvedEvents.clear();
@@ -783,6 +817,14 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onPlayerDisconnected(nickname));
     }
 
+    /**
+     * Called by the server (via RMI stub or Socket proxy) when a player reconnects.
+     * Removes the player from the disconnected set, adds the nickname to the recent-reconnections
+     * queue, and notifies GUI observers.
+     *
+     * @param nickname the reconnected player's nickname.
+     * @throws RemoteException if the RMI call fails.
+     */
     @Override
     public void playerReconnected(String nickname) throws RemoteException {
         disconnectedPlayers.remove(nickname);

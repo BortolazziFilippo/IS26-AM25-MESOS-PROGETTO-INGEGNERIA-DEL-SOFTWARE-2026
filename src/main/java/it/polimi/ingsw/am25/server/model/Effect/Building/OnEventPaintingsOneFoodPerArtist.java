@@ -11,6 +11,9 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class OnEventPaintingsOneFoodPerArtist extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
+    /**
+     * Constructs a building effect that awards 1 food per Artist in the tribe during the paintings event.
+     */
     public OnEventPaintingsOneFoodPerArtist() {
     }
 

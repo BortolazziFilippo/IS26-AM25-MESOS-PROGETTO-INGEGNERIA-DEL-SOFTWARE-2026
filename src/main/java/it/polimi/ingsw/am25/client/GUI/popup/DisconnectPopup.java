@@ -13,9 +13,20 @@ public class DisconnectPopup {
     private Stage stage = null;
     private VBox box = null;
 
+    /**
+     * Shows or updates the popup by adding a disconnection notification for the given player.
+     *
+     * @param nickname the nickname of the disconnected player.
+     */
     public void addDisconnection(String nickname) {
         addEntry("Il giocatore " + nickname + " si è disconnesso", "#c0392b");
     }
+
+    /**
+     * Shows or updates the popup by adding a reconnection notification for the given player.
+     *
+     * @param nickname the nickname of the reconnected player.
+     */
     public void addReconnection(String nickname) {
         addEntry("Il giocatore " + nickname + " si è riconnesso","#027404" );
     }

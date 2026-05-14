@@ -19,6 +19,11 @@ public enum CONNECTION_STATUS {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this connection status.
+     *
+     * @return the display name of the connection status.
+     */
     @Override
     public String toString() {
         return displayName;

@@ -31,6 +31,11 @@ public enum COLOR {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this totem color.
+     *
+     * @return the display name of the color.
+     */
     @Override
     public String toString() {
         return displayName;

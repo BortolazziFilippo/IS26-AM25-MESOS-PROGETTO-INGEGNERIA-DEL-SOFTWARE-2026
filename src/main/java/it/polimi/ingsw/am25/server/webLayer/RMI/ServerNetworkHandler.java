@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RMI server-side entry point for all Mesos client actions. Manages the game lobby,
@@ -38,7 +37,6 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private Controller controller;
     private int requiredPlayers = 0;
     private boolean isGameStarted = false;
-    private final AtomicInteger rankRequestCount = new AtomicInteger(0);
     private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
     private volatile ScheduledExecutorService watchdogScheduler;
 
@@ -295,6 +293,16 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
+    /**
+     * Retrieves leaderboards from the database for all player-count configurations from 2 up to
+     * the given number, and sends them to the requesting client via {@link ClientRemoteInterface#sendRank}.
+     * If the database is unreachable for a given size, the corresponding entry is replaced with an error message.
+     *
+     * @param playerNumber          the maximum number of players for which to load the leaderboard,
+     *                              provided as a string and converted internally to an integer.
+     * @param clientRemoteInterface the RMI stub (or Socket proxy) of the client to send the leaderboards to.
+     * @throws RemoteException if an RMI communication error occurs.
+     */
     @Override
     public synchronized void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
@@ -308,8 +316,6 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             }
         }
         clientRemoteInterface.sendRank(leaderboards);
-        rankRequestCount.incrementAndGet();
-        checkAndShutdownIfDone();
     }
 
     /**
@@ -378,10 +384,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         // 2. Update game model and advance turn / end game if necessary
         controller.notifyPlayerDisconnected(nickname);
 
-        // 3. This player will never call askForRank — count them as done so the
-        //    server can shut down once all remaining connected players have received their rank.
-        rankRequestCount.incrementAndGet();
-        checkAndShutdownIfDone();
+        // 3. Se non ci sono più giocatori connessi, spegni il server.
+        if (waitingPlayers.stream().noneMatch(ServerVirtualView::isConnected)) {
+            initiateShutdown();
+        }
     }
 
     /**
@@ -426,9 +432,6 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
         view.reconnect(newStub, () -> notifyPlayerDisconnected(nickname));
 
-        // Undo the shutdown-counter increment that was applied when this player disconnected.
-        rankRequestCount.decrementAndGet();
-
         // Notify all other connected clients that this player is back.
         for (ServerVirtualView v : waitingPlayers) {
             if (!v.getNickname().equals(nickname) && v.isConnected()) {
@@ -446,21 +449,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Shuts down the server once every player (connected or disconnected) has been accounted
-     * for in {@code rankRequestCount}. Guards against multiple shutdown threads with an
-     * {@code AtomicBoolean} so only the first caller actually starts the exit sequence.
+     * Shuts down the server once all players have disconnected
+     * Guards against multiple shutdown threads with an {@code AtomicBoolean}.
      */
-    private void checkAndShutdownIfDone() {
-        if (requiredPlayers > 0
-                && rankRequestCount.get() >= requiredPlayers
-                && shutdownInitiated.compareAndSet(false, true)) {
+    private void initiateShutdown() {
+        if (shutdownInitiated.compareAndSet(false, true)) {
             if (watchdogScheduler != null) watchdogScheduler.shutdownNow();
             Thread shutdown = new Thread(() -> {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException ignored) {
                 }
-                UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client hanno ricevuto la classifica. Server in chiusura.");
+                UtilitiesFunction.logInfo(LOG_PREFIX, "Tutti i client si sono disconnessi. Server in chiusura.");
                 System.exit(0);
             });
             shutdown.setDaemon(true);
@@ -468,6 +468,17 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
+    /**
+     * Starts loading a saved game from disk. The first player to invoke this method becomes the
+     * "loader": the controller is initialised with the persisted data and their view is registered
+     * while waiting for the other players to reconnect via {@link #joinGameLoaded}.
+     *
+     * @param playerDTO             the data of the player requesting the load (nickname and totem colour).
+     * @param clientRemoteInterface the RMI stub (or Socket proxy) of the loading client.
+     * @throws RemoteException            if an RMI communication error occurs.
+     * @throws GameAlreadyLoadedException if an active controller already exists (game already in progress or loaded).
+     * @throws NoGameToLoadException      if no saved game exists to load.
+     */
     @Override
     public synchronized void loadGame(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
         if (controller != null) {
@@ -500,6 +511,18 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         logServerEvent("Game loaded by '" + nick + "'. Waiting for " + (requiredPlayers - 1) + " more player(s).");
     }
 
+    /**
+     * Allows a player to rejoin a game that is being loaded, after the first player has invoked
+     * {@link #loadGame}. When all expected players have reconnected, the game resumes automatically.
+     *
+     * @param playerDTO             the data of the reconnecting player (nickname and totem colour).
+     * @param clientRemoteInterface the RMI stub (or Socket proxy) of the reconnecting client.
+     * @throws RemoteException       if an RMI communication error occurs, or if the nickname is
+     *                               not present in the saved game.
+     * @throws IllegalStateException if no game is currently being loaded.
+     * @throws GameReadyToStartException (not propagated externally) when the last player reconnects
+     *                               and the game is started internally.
+     */
     @Override
     public synchronized void joinGameLoaded(PlayerDTO playerDTO, ClientRemoteInterface clientRemoteInterface) throws RemoteException, IllegalStateException, GameReadyToStartException {
         if (controller == null) {

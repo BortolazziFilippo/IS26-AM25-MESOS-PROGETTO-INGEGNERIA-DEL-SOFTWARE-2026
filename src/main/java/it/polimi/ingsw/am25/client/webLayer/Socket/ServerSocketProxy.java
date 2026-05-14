@@ -206,12 +206,31 @@ public class ServerSocketProxy implements ServerRemoteInterface {
         send(new CreateGameMessage(playerHost, PlayerNumber));
     }
 
+    /**
+     * Sends the global leaderboard request to the server for the given player count.
+     * The {@code clientRemoteInterface} is not serialized — the server already uses
+     * the existing socket connection to reply.
+     *
+     * @param playerNumber          the number of players in the just-finished game (as a string).
+     * @param clientRemoteInterface ignored for socket transport.
+     * @throws RemoteException if sending the message fails.
+     */
     @Override
     public void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending rank to player");
         send(new askForRankMessage(playerNumber));
     }
 
+    /**
+     * Sends a request to load a saved game to the server.
+     * The {@code clientRemoteInterface} is not serialized.
+     *
+     * @param player                the DTO of the first player initiating the load.
+     * @param clientRemoteInterface ignored for socket transport.
+     * @throws RemoteException            if sending the message fails.
+     * @throws GameAlreadyLoadedException if a game is already being loaded.
+     * @throws NoGameToLoadException      if there is no saved game to load.
+     */
     @Override
     public void loadGame(PlayerDTO player, ClientRemoteInterface clientRemoteInterface)
             throws RemoteException, GameAlreadyLoadedException, NoGameToLoadException {
@@ -219,6 +238,16 @@ public class ServerSocketProxy implements ServerRemoteInterface {
         send(new LoadGameMessage(player));
     }
 
+    /**
+     * Sends a request to join a game that is already being loaded.
+     * The {@code clientRemoteInterface} is not serialized.
+     *
+     * @param player                the DTO of the player rejoining the saved game.
+     * @param clientRemoteInterface ignored for socket transport.
+     * @throws RemoteException           if sending the message fails.
+     * @throws IllegalStateException     if the server state does not allow the operation.
+     * @throws GameReadyToStartException if the last required player has just joined.
+     */
     @Override
     public void joinGameLoaded(PlayerDTO player, ClientRemoteInterface clientRemoteInterface)
             throws RemoteException, IllegalStateException, GameReadyToStartException {

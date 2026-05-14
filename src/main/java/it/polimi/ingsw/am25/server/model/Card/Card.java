@@ -10,8 +10,6 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  * Abstract base class for all Mesos cards (tribe members, buildings, events).
  */
 public abstract class Card {
-    public Card() {
-    }
 
     /**
      * The era in which this card was introduced.

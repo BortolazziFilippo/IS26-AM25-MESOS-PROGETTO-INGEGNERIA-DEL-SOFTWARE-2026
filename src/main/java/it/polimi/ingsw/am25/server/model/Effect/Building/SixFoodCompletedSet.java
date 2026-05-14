@@ -20,6 +20,9 @@ public class SixFoodCompletedSet extends BuildingEffect {
     private List<Integer> setCard;
     private List<Card> listOldCard;
 
+    /**
+     * Constructs a building effect that awards 5 food each time the player completes a set of all six card types.
+     */
     public SixFoodCompletedSet() {
     }
 

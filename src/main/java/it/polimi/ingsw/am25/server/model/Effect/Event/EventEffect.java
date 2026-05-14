@@ -5,6 +5,5 @@ package it.polimi.ingsw.am25.server.model.Effect.Event;
  * Concrete subclasses implement the effect logic for each {@link it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE}.
  */
 public abstract class EventEffect implements EventEffectInterface {
-    public EventEffect() {
-    }
+
 }

@@ -755,6 +755,13 @@ public class Game implements GameView, MementoManager<GameMemento> {
         notifyPlayerToPlaceChanged();
     }
 
+    /**
+     * Creates a memento capturing the entire current game state: era, game phase,
+     * number of players, the current placing player, the current action player,
+     * every player's state, the market state, and the board state.
+     *
+     * @return a {@link GameMemento} representing the complete game snapshot.
+     */
     @Override
     public GameMemento createMemento() {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Creating game memento (era=" + currentEra + ", phase=" + gamePhase + ")");
@@ -771,6 +778,13 @@ public class Game implements GameView, MementoManager<GameMemento> {
 
     }
 
+    /**
+     * Restores the game from the serialised state stored in the provided memento.
+     * Recreates players with their tribe and buildings, restores the market and board,
+     * repositions players on default tiles, and realigns the turn queues.
+     *
+     * @param memento the {@link GameMemento} from which to restore the game state.
+     */
     @Override
     public void restoreMemento(GameMemento memento) {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring game memento (era=" + memento.currentEra() + ", phase=" + memento.gamePhase() + ", players=" + memento.players().size() + ")");

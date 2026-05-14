@@ -10,6 +10,9 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class TwentyFivePPEndGame extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
+    /**
+     * Constructs a building effect that awards 25 prestige points at the end of the game.
+     */
     public TwentyFivePPEndGame() {
     }
 

@@ -25,6 +25,13 @@ public class ClientLauncher {
     private static final String GREEN  = "\033[32m";
     private static final String RED    = "\033[31m";
 
+    /**
+     * Main entry point for the client. Initialises the logger, asks the user for the
+     * network protocol (RMI/Socket), the server IP address, and the UI type (GUI/TUI),
+     * then launches the chosen mode.
+     *
+     * @param args command-line arguments (not used).
+     */
     public static void main(String[] args) {
         ClientUtilitiesFunction.initLog();
         Scanner scanner = new Scanner(System.in);

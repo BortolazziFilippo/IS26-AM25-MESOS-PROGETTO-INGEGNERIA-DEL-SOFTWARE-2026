@@ -52,6 +52,11 @@ public enum INV_ICON {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this inventor icon.
+     *
+     * @return the display name of the inventor icon.
+     */
     @Override
     public String toString() {
         return displayName;

@@ -49,6 +49,12 @@ public class ArtistCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this artist card matches the provided DTO by comparing card type and era.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents an ArtistCard of the same era.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.ARTIST && dto.getEra() == this.era;

@@ -13,6 +13,12 @@ public class GUIEffects {
     private GUIEffects() {
     }
 
+    /**
+     * Creates and returns a golden {@link DropShadow} effect,
+     * used to highlight selected elements in the interface.
+     *
+     * @return a new {@link DropShadow} with gold colour, radius 25, and spread 0.4.
+     */
     public static DropShadow goldGlow() {
         DropShadow glow = new DropShadow();
         glow.setColor(Color.GOLD);
@@ -21,6 +27,12 @@ public class GUIEffects {
         return glow;
     }
 
+    /**
+     * Shows a modal error dialog with the specified message.
+     * If the message is {@code null}, the text "Errore sconosciuto" is displayed.
+     *
+     * @param message the error text to show the user.
+     */
     public static void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Errore");

@@ -23,6 +23,13 @@ public class AskExtraDrawMessage implements ServerToClientMessage {
         this.snapshotBuildings = snapshotBuildings;
     }
 
+    /**
+     * Delivers this message to the client by invoking
+     * {@link ClientRemoteInterface#askExtraDraw} with the end-of-turn market snapshot.
+     *
+     * @param clientRemoteInterface the remote interface of the client to deliver the message to.
+     * @throws Exception if an error occurs during the remote invocation.
+     */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.askExtraDraw(snapshotCards, snapshotBuildings);

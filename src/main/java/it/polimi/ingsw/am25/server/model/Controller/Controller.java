@@ -427,6 +427,17 @@ public class Controller {
         game.reAddToTurnQueues(player);
     }
 
+    /**
+     * Loads a saved game from disk and restores the game state.
+     * Players are recreated from the persisted memento; the requesting player is marked
+     * as connected while all others are marked as disconnected, waiting to reconnect.
+     *
+     * @param player the player requesting the game load.
+     * @throws IllegalStateException      if the game has already been initialised, or if the
+     *                                    player's nickname is not present in the saved game.
+     * @throws GameAlreadyLoadedException if an active game instance already exists.
+     * @throws NoGameToLoadException      if no save file exists.
+     */
     public synchronized void loadGame(Player player) throws IllegalStateException,GameAlreadyLoadedException,NoGameToLoadException {
         if(game != null){
             throw new GameAlreadyLoadedException("Game already initialized");
@@ -454,6 +465,15 @@ public class Controller {
         }
     }
 
+    /**
+     * Registers the reconnection of a player to a loaded game, marking them as connected.
+     * If all players are connected again, throws {@link GameReadyToStartException}
+     * to signal that the game can resume.
+     *
+     * @param player the player who is reconnecting.
+     * @throws IllegalStateException     if the game has not been loaded yet.
+     * @throws GameReadyToStartException if all players are now connected and the game is ready to resume.
+     */
     public synchronized void reconnectLoadedPlayer(Player player) throws IllegalStateException, GameReadyToStartException {
         if(game == null){
             throw new IllegalStateException("Game not loaded");

@@ -11,6 +11,9 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class OnEventHuntOneFoodAndOnePPPerHunter extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
+    /**
+     * Constructs a building effect that awards 1 food and 1 prestige point per Hunter in the tribe during a hunt event.
+     */
     public OnEventHuntOneFoodAndOnePPPerHunter() {
     }
 

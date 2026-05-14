@@ -122,6 +122,12 @@ public class EventCard extends Card {
         return new EventDTO(this);
     }
 
+    /**
+     * Checks whether this event card matches the provided DTO by comparing card type and event ID.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents an EventCard with the same event ID.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.EVENT && dto.getEventID() == this.eventID;

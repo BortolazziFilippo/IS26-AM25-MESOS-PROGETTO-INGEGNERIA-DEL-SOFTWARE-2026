@@ -17,6 +17,9 @@ public class SetSixCard extends BuildingEffect {
     private final int foodToGive = 5;
     private List<Card> oldCards = new ArrayList<>();
 
+    /**
+     * Constructs a building effect that awards 6 prestige points for each complete set of one card of each of the six types.
+     */
     public SetSixCard() {
     }
 

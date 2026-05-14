@@ -24,6 +24,11 @@ public enum SHAMAN_STAR {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this shaman star value.
+     *
+     * @return the display name of the star value.
+     */
     @Override
     public String toString() {
         return displayName;

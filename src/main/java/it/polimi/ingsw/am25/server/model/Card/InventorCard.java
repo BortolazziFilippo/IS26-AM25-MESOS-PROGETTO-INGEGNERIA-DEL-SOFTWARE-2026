@@ -57,6 +57,12 @@ public class InventorCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this inventor card matches the given DTO by comparing card type, era, and invention icon.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents an InventorCard with the same era and invention icon.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.INVENTOR

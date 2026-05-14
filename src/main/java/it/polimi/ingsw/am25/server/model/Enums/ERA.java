@@ -24,6 +24,11 @@ public enum ERA {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this game era.
+     *
+     * @return the display name of the era.
+     */
     @Override
     public String toString() {
         return displayName;

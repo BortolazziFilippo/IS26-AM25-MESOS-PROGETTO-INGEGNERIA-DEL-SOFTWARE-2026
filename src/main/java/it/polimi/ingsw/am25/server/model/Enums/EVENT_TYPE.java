@@ -36,6 +36,11 @@ public enum EVENT_TYPE {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this event type.
+     *
+     * @return the display name of the event type.
+     */
     @Override
     public String toString() {
         return displayName;

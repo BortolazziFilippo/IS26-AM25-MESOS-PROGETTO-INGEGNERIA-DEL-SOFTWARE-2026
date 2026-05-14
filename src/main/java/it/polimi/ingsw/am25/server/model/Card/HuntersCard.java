@@ -65,6 +65,12 @@ public class HuntersCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this hunter card matches the provided DTO by comparing card type, era, and the icon flag.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents a HuntersCard with the same era and icon flag.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.HUNTER

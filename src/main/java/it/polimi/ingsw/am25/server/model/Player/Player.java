@@ -502,6 +502,12 @@ public class Player implements MementoManager<PlayerMemento> {
         return finalPoints;
     }
 
+    /**
+     * Creates a memento capturing the current player state: nickname, totem colour,
+     * food amount, prestige points, tribe serialised as DTOs, and owned building IDs.
+     *
+     * @return a {@link PlayerMemento} representing the player snapshot.
+     */
     @Override
     public PlayerMemento createMemento() {
         logServerEvent("Creating memento for player '" + nickname + "' (food=" + food + ", pp=" + prestigePoint + ", tribe=" + tribe.size() + ", buildings=" + buildingCards.size() + ")");
@@ -515,6 +521,12 @@ public class Player implements MementoManager<PlayerMemento> {
         );
     }
 
+    /**
+     * Restores the player state from the provided memento: food, prestige points, and tribe.
+     * Buildings are restored separately via {@link #restoreBuildings(List)}.
+     *
+     * @param memento the {@link PlayerMemento} from which to restore the player state.
+     */
     @Override
     public void restoreMemento(PlayerMemento memento) {
         logServerEvent("Restoring memento for player '" + nickname + "' (food=" + memento.food() + ", pp=" + memento.prestigePoints() + ", tribe=" + memento.tribe().size() + ")");

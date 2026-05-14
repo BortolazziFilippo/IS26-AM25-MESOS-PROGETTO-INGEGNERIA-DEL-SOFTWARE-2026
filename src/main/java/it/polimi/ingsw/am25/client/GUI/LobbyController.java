@@ -46,6 +46,13 @@ public class LobbyController implements GUIObserver {
     private MarketController marketController;
     private boolean gameScreenShown = false;
 
+    /**
+     * Creates the lobby controller and registers this observer with the client view.
+     *
+     * @param serverStub    the remote server interface used to create or join a game.
+     * @param clientHandler the local client view that receives notifications from the server.
+     * @param stage         the JavaFX stage on which the lobby will be displayed.
+     */
     public LobbyController(ServerRemoteInterface serverStub, ClientVirtualView clientHandler, Stage stage) {
         this.serverStub = serverStub;
         this.clientHandler = clientHandler;
@@ -53,7 +60,7 @@ public class LobbyController implements GUIObserver {
         clientHandler.addGUIObserver(this);
     }
 
-    /** Carica l'FXML e mostra la lobby. */
+    /** Loads the FXML and displays the lobby. */
     public void showing() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/Lobby.fxml"));
@@ -68,8 +75,8 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Chiamato automaticamente da JavaFX dopo l'iniezione dei nodi.
-     * Qui finalizziamo la configurazione che richiede i nodi già pronti.
+     * Called automatically by JavaFX after FXML node injection.
+     * Finalises the configuration that requires the nodes to already be ready.
      */
     @FXML
     private void initialize() {
@@ -164,17 +171,35 @@ public class LobbyController implements GUIObserver {
 
     // --- Observer callbacks (chiamate dal thread di rete!) ---
 
+    /**
+     * Called when a new player joins the lobby.
+     * Adds the nickname and totem colour to the visible UI list.
+     *
+     * @param player the DTO of the player added to the lobby.
+     */
     @Override
     public void onPlayerAdded(PlayerDTO player) {
         Platform.runLater(() -> playerList.getItems().add(
                 player.getNickName() + " (" + player.getColorTotem() + ")"));
     }
 
+    /**
+     * Called when the server sends an error message during the lobby phase.
+     * Displays the message in the status label.
+     *
+     * @param message the error text received from the server.
+     */
     @Override
     public void onError(String message) {
         Platform.runLater(() -> label.setText("❌ " + message));
     }
 
+    /**
+     * Called when the game phase changes. If the phase is not SETUP and the game
+     * screen has not yet been shown, starts the transition to the game screen.
+     *
+     * @param gamePhase the new game phase received from the server.
+     */
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         if (gamePhase != GAME_PHASE.SETUP && !gameScreenShown) {
@@ -184,8 +209,8 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Mostra una breve schermata di transizione "La partita sta iniziando..."
-     * con effetto pulse, poi fade out e carica la schermata di gioco.
+     * Shows a brief "Game is starting..." transition screen with a pulse effect,
+     * then fades out and loads the game screen.
      */
     private void showStartingScreenThenGame() {
         // Costruzione della schermata di transizione

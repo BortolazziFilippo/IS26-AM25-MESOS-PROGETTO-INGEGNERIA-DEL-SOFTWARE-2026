@@ -40,6 +40,11 @@ public enum GAME_PHASE {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of the current game phase.
+     *
+     * @return the display name of the game phase.
+     */
     @Override
     public String toString() {
         return displayName;

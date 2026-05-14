@@ -46,9 +46,25 @@ public final class UtilitiesConstant {
      */
     public static final int FOOD_OFFERTILE_A = 3;
 
+    /**
+     * Bonus points awarded by final ranking position in a 2-player game
+     * (1st place, 2nd place).
+     */
     public static final List<Integer> SCORE_TWO_PLAYERS = new ArrayList<>(Arrays.asList(10, 5));
+    /**
+     * Bonus points awarded by final ranking position in a 3-player game
+     * (1st place, 2nd place, 3rd place).
+     */
     public static final List<Integer> SCORE_THREE_PLAYERS = new ArrayList<>(Arrays.asList(15, 8, 3));
+    /**
+     * Bonus points awarded by final ranking position in a 4-player game
+     * (1st place, 2nd place, 3rd place, 4th place).
+     */
     public static final List<Integer> SCORE_FOUR_PLAYERS = new ArrayList<>(Arrays.asList(20, 12, 6, 2));
+    /**
+     * Bonus points awarded by final ranking position in a 5-player game
+     * (1st place, 2nd place, 3rd place, 4th place, 5th place).
+     */
     public static final List<Integer> SCORE_FIVE_PLAYERS = new ArrayList<>(Arrays.asList(25, 16, 9, 4, 1));
 
     /**

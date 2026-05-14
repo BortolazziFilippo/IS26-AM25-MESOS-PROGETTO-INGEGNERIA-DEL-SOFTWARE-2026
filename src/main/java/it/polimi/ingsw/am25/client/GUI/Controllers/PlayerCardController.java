@@ -59,6 +59,16 @@ public class PlayerCardController {
     // Public API
     // =========================================================
 
+    /**
+     * Populates the player card with data from the provided DTO.
+     * Sets the totem colour, labels, connection status, turn badge, and the rows
+     * of card thumbnails for each card type present in the tribe.
+     *
+     * @param player        the DTO of the player to display.
+     * @param isMe          {@code true} if the player corresponds to the local client.
+     * @param disconnected  {@code true} if the player is currently disconnected.
+     * @param isCurrentTurn {@code true} if it is this player's turn.
+     */
     public void populate(PlayerDTO player, boolean isMe, boolean disconnected, boolean isCurrentTurn) {
         List<CardDTO> tribe = player.getCardDtoList();
 

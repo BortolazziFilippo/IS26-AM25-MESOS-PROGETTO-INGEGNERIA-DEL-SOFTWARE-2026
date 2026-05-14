@@ -9,10 +9,22 @@ import java.util.Map;
 public class SendRankMessage implements ServerToClientMessage {
     private final Map<Integer, List<String>> leaderboards;
 
+    /**
+     * Creates a message carrying the leaderboards to send to the client via socket.
+     *
+     * @param leaderboards a map associating the number of players with the corresponding leaderboard list.
+     */
     public SendRankMessage(Map<Integer, List<String>> leaderboards) {
         this.leaderboards = leaderboards;
     }
 
+    /**
+     * Delivers this message to the client by invoking
+     * {@link ClientRemoteInterface#sendRank} with the leaderboards.
+     *
+     * @param clientRemoteInterface the remote interface of the client to deliver the message to.
+     * @throws Exception if an error occurs during the remote invocation.
+     */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws
             Exception {

@@ -49,6 +49,12 @@ public class GathererCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this gatherer card matches the provided DTO by comparing card type and era.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents a GathererCard of the same era.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.GATHERER && dto.getEra() == this.era;

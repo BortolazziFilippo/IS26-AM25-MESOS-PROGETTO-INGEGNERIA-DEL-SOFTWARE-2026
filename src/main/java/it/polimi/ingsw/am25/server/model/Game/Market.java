@@ -585,6 +585,12 @@ public class Market implements MementoManager<MarketMemento> {
         notify(observer -> observer.onExtraDrawSnapshotReady(cardSnap, buildingSnap));
     }
 
+    /**
+     * Creates a memento capturing the current market state: top and bottom rows of cards
+     * and buildings, the remaining deck, and the pool of buildings not yet visible.
+     *
+     * @return a {@link MarketMemento} containing snapshots of the market lists.
+     */
     @Override
     public MarketMemento createMemento() {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Creating market memento (deck=" + deck.size() + ", top=" + topCardList.size() + ", bottom=" + bottomCardList.size() + ")");
@@ -599,6 +605,12 @@ public class Market implements MementoManager<MarketMemento> {
         );
     }
 
+    /**
+     * Restores the market state from the given memento, rebuilding all card and building lists
+     * via the {@link it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory}.
+     *
+     * @param memento the {@link MarketMemento} from which to restore the market state.
+     */
     @Override
     public void restoreMemento(MarketMemento memento) {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Restoring market memento");

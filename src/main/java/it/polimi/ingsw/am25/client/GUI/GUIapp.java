@@ -26,6 +26,13 @@ public class GUIapp extends Application {
     private ClientVirtualView clientHandler;
     private ServerRemoteInterface serverStub;
 
+    /**
+     * JavaFX entry point. Reads the server IP and connection method from the application
+     * parameters, displays the splash screen, and on user click establishes
+     * the server connection and opens the lobby on the same stage.
+     *
+     * @param primaryStage the primary JavaFX stage provided by the runtime.
+     */
     @Override
     public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();

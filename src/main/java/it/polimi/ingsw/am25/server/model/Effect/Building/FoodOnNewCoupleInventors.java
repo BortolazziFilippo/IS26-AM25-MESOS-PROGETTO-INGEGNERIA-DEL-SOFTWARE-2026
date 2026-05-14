@@ -18,6 +18,9 @@ public class FoodOnNewCoupleInventors extends BuildingEffect {
     private List<Card> beforeTurnCards = new ArrayList<>();
     private final List<InventorCard> pairsCards = new ArrayList<>();
 
+    /**
+     * Constructs a building effect that rewards the player with food for each new pair of Inventors sharing the same icon.
+     */
     public FoodOnNewCoupleInventors() {
     }
 

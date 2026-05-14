@@ -13,6 +13,9 @@ public class DoublePPOnShamanEvent extends BuildingEffect {
     private boolean flag = false;
     private int prevPP;
 
+    /**
+     * Constructs a building effect that doubles the prestige points gained during a shamanic ritual event.
+     */
     public DoublePPOnShamanEvent() {
     }
 

@@ -36,6 +36,11 @@ public class BuilderCard extends Card {
         return foodDiscount;
     }
 
+    /**
+     * Returns the unique identifier of this builder, shared by cards with the same effect.
+     *
+     * @return the unique builder ID.
+     */
     public int getBuilderID() {
         return builderID;
     }
@@ -84,6 +89,12 @@ public class BuilderCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this builder card matches the provided DTO by comparing card type, era, and builder ID.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents a BuilderCard with the same era and builder ID.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.BUILDER

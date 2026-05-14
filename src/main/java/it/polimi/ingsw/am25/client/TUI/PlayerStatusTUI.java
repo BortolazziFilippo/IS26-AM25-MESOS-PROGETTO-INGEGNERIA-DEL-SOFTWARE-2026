@@ -136,7 +136,7 @@ public class PlayerStatusTUI {
     // ==========================================================
 
     /**
-     * Cacciatori: totale + quanti con/senza icona.
+     * Hunters: total count + how many have / do not have a hunting icon.
      */
     private void printHunters(List<CardDTO> tribe) {
         List<CardDTO> hunters = byType(tribe, CARD_TYPE.HUNTER);
@@ -150,7 +150,7 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Raccoglitori: solo totale.
+     * Gatherers: total count only.
      */
     private void printGatherers(List<CardDTO> tribe) {
         List<CardDTO> list = byType(tribe, CARD_TYPE.GATHERER);
@@ -159,7 +159,7 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Artisti: solo totale.
+     * Artists: total count only.
      */
     private void printArtists(List<CardDTO> tribe) {
         List<CardDTO> list = byType(tribe, CARD_TYPE.ARTIST);
@@ -168,8 +168,8 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Sciamani: totale + dettaglio stelle per ogni carta
-     * (es. "1★  2★  1★★  3★★★").
+     * Shamans: total count + star detail for each card
+     * (e.g. "1★  2★  1★★  3★★★").
      */
     private void printShamans(List<CardDTO> tribe) {
         List<CardDTO> shamans = byType(tribe, CARD_TYPE.SHAMAN);
@@ -183,8 +183,8 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Costruttori: totale + sconto cibo cumulativo + PP a fine partita
-     * (es. "sc.2  PP5 | sc.1  PP3").
+     * Builders: total count + cumulative food discount + end-game PP per card
+     * (e.g. "sc.2  PP5 | sc.1  PP3").
      */
     private void printBuilders(List<CardDTO> tribe) {
         List<CardDTO> builders = byType(tribe, CARD_TYPE.BUILDER);
@@ -198,8 +198,8 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Inventori: totale + lista delle icone possedute (una per carta),
-     * raggruppate su righe di max 6 icone.
+     * Inventors: total count + list of invention icons owned (one per card),
+     * grouped in rows of at most 6 icons.
      */
     private void printInventors(List<CardDTO> tribe) {
         List<CardDTO> inventors = byType(tribe, CARD_TYPE.INVENTOR);
@@ -223,7 +223,7 @@ public class PlayerStatusTUI {
     }
 
     /**
-     * Edifici: uno per riga con costo, PP fissi ed effetto.
+     * Buildings: one per line with cost, fixed PP, and effect description.
      */
     private void printBuildings(List<CardDTO> tribe) {
         List<CardDTO> buildings = byType(tribe, CARD_TYPE.BUILDING);

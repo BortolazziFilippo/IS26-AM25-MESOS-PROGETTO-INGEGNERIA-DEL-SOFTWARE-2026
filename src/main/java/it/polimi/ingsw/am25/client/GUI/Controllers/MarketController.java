@@ -165,6 +165,13 @@ public class MarketController implements GUIObserver {
     @FXML
     private javafx.scene.control.SplitPane splitPane;
 
+    /**
+     * Creates a new market controller and registers this observer with the client view.
+     *
+     * @param clientHandler          the local client view that receives notifications from the server.
+     * @param serverRemoteInterface  the remote server interface used to send game actions.
+     * @param playerDTO              the local player DTO associated with this session.
+     */
     public MarketController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clientHandler = clientHandler;
         this.serverRemoteInterface = serverRemoteInterface;
@@ -307,6 +314,12 @@ public class MarketController implements GUIObserver {
     // OBSERVER
     // =========================================================
 
+    /**
+     * Called when the game phase changes. Updates the phase label
+     * and clears totems from offer tiles at the start of each placing phase.
+     *
+     * @param phase the new game phase.
+     */
     @Override
     public void onGamePhaseChanged(GAME_PHASE phase) {
         Platform.runLater(() -> {
@@ -318,6 +331,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the active player for the placing phase changes.
+     * Updates the current-player label and recalculates the interaction state.
+     *
+     * @param nickname the nickname of the player who must now place their totem.
+     */
     @Override
     public void onPlayerToPlaceChanged(String nickname) {
         Platform.runLater(() -> {
@@ -326,6 +345,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the active player for the action phase (card selection) changes.
+     * Updates the current-player label and recalculates the interaction state.
+     *
+     * @param nickname the nickname of the player who must now perform their action.
+     */
     @Override
     public void onPlayerToPlayChanged(String nickname) {
         Platform.runLater(() -> {
@@ -334,6 +359,15 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the market is initialised with the initial card lists.
+     * If the FXML component is not yet ready, the data is buffered.
+     *
+     * @param top    initial tribe cards for the top row.
+     * @param bot    initial tribe cards for the bottom row.
+     * @param topBld initial buildings for the top row.
+     * @param botBld initial buildings for the bottom row.
+     */
     @Override
     public void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
         if (topCardHbox == null) {
@@ -347,6 +381,12 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /**
+     * Called when a tribe card is removed from the top market row.
+     * Animates the removal and updates the interaction state.
+     *
+     * @param position the zero-based index of the removed card in the top row.
+     */
     @Override
     public void onTopCardRemoved(int position) {
         Platform.runLater(() -> {
@@ -360,6 +400,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when a tribe card is removed from the bottom market row.
+     * Animates the removal and updates the interaction state.
+     *
+     * @param position the zero-based index of the removed card in the bottom row.
+     */
     @Override
     public void onBottomCardRemoved(int position) {
         Platform.runLater(() -> {
@@ -372,6 +418,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when a building is removed from the top market row.
+     * Animates the removal of the corresponding node in the top HBox.
+     *
+     * @param position the zero-based index of the removed building among the top-row buildings.
+     */
     @Override
     public void onTopBuildRemoved(int position) {
         Platform.runLater(() -> {
@@ -385,6 +437,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when a building is removed from the bottom market row.
+     * Animates the removal of the corresponding node in the bottom HBox.
+     *
+     * @param position the zero-based index of the removed building among the bottom-row buildings.
+     */
     @Override
     public void onBottomBuildRemoved(int position) {
         Platform.runLater(() -> {
@@ -398,6 +456,13 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called at end of round when the top-row tribe cards are refreshed.
+     * Old cards fly downward with an animation before the new ones appear.
+     * If an extra-draw is active, the bottom-row update is deferred.
+     *
+     * @param top the new list of tribe cards for the top row.
+     */
     @Override
     public void onTopCardRefreshed(List<CardDTO> top) {
         // Snapshot the bottom list now, before any scene-graph changes
@@ -469,6 +534,13 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
+    /**
+     * Called at end of round when the top-row buildings are refreshed.
+     * Old buildings fly downward with an animation before the new ones appear.
+     * If an extra-draw is active, the bottom-row update is deferred.
+     *
+     * @param topBld the new list of buildings for the top row.
+     */
     @Override
     public void onTopBuildingRefreshed(List<BuildingDTO> topBld) {
         List<BuildingDTO> topSnap = new ArrayList<>(topBld);
@@ -534,6 +606,13 @@ public class MarketController implements GUIObserver {
         updateInteractionState();
     }
 
+    /**
+     * Called when the board is initialised with offer tiles and default tiles.
+     * Tiles are rendered only once per session; subsequent calls are ignored.
+     *
+     * @param tiles the list of offer tiles on the board.
+     * @param defs  the list of default tiles (one per player).
+     */
     @Override
     public void onBoardInitialized(List<OffertileDTO> tiles, List<DefaultTileDTO> defs) {
         if (tilesRendered) return;
@@ -545,6 +624,15 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /**
+     * Called when a player places their totem on an offer tile.
+     * Animates the totem from the default tile to the chosen offer tile, or
+     * places it directly if the source overlay is not available.
+     *
+     * @param nickname     the nickname of the player who placed the totem.
+     * @param tilePosition the zero-based position of the occupied offer tile.
+     * @param fromSlot     the slot on the default tile from which the totem originates (-1 if unavailable).
+     */
     @Override
     public void onPlayerPlacedOnOfferTile(String nickname, int tilePosition, int fromSlot) {
         Platform.runLater(() -> {
@@ -573,6 +661,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the turn order of players on the default tile changes.
+     * Redraws the totems on the default tile according to the new turn order.
+     *
+     * @param order the ordered list of players on the default tile (index = slot).
+     */
     @Override
     public void onDefaultTileOrderChanged(List<PlayerDTO> order) {
         Platform.runLater(() -> refreshDefaultTileOverlay(order));
@@ -596,6 +690,13 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /**
+     * Called when the available actions for the current player change
+     * (number of draws from the top and bottom rows).
+     *
+     * @param drawTop number of draws available from the top market row.
+     * @param drawBot number of draws available from the bottom market row.
+     */
     @Override
     public void onActionAvailableChanged(int drawTop, int drawBot) {
         Platform.runLater(() -> {
@@ -610,26 +711,54 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when a new player joins the game.
+     * Delegates to the default interface implementation.
+     *
+     * @param player the DTO of the added player.
+     */
     @Override
     public void onPlayerAdded(PlayerDTO player) {
         GUIObserver.super.onPlayerAdded(player);
     }
 
+    /**
+     * Called when the server sends an error message.
+     * Shows the error dialog on the JavaFX thread.
+     *
+     * @param message the error text received from the server.
+     */
     @Override
     public void onError(String message) {
         Platform.runLater(() -> GUIEffects.showError(message));
     }
 
+    /**
+     * Called when a player disconnects from the game.
+     * Adds a disconnection entry to the player-status popup.
+     *
+     * @param nickname the nickname of the disconnected player.
+     */
     @Override
     public void onPlayerDisconnected(String nickname) {
         Platform.runLater(() -> disconnectPopup.addDisconnection(nickname));
     }
 
+    /**
+     * Called when a player reconnects to the game.
+     * Adds a reconnection entry to the player-status popup.
+     *
+     * @param nickname the nickname of the reconnected player.
+     */
     @Override
     public void onPlayerReconnected(String nickname) {
         Platform.runLater(() -> disconnectPopup.addReconnection(nickname));
     }
 
+    /**
+     * Called when loss of connection to the server is detected.
+     * Shows an error dialog and exits the application on close.
+     */
     @Override
     public void onServerDead() {
         Platform.runLater(() -> {
@@ -645,6 +774,13 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when a player's Prestige Points change.
+     * Updates the PP label only if the player is the local one.
+     *
+     * @param n the nickname of the player whose PP changed.
+     * @param p the new Prestige Points value.
+     */
     @Override
     public void onPlayerPPChanged(String n, int p) {
         if (playerDTO.getNickName().equals(n))
@@ -653,6 +789,13 @@ public class MarketController implements GUIObserver {
             });
     }
 
+    /**
+     * Called when a player's food reserve changes.
+     * Updates the food label and recalculates interactions only for the local player.
+     *
+     * @param n the nickname of the player whose food changed.
+     * @param f the new food reserve value.
+     */
     @Override
     public void onPlayerFoodChanged(String n, int f) {
         if (playerDTO.getNickName().equals(n)) {
@@ -664,12 +807,26 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /**
+     * Called when a card is added to a player's tribe.
+     * Updates the local player's stat labels if they are the affected player.
+     *
+     * @param nickname the nickname of the player who received the card.
+     * @param card     the DTO of the card added to the tribe.
+     */
     @Override
     public void onCardAddedToTribe(String nickname, CardDTO card) {
         if (playerDTO.getNickName().equals(nickname))
             Platform.runLater(this::updatePlayerStatsLabels);
     }
 
+    /**
+     * Called when a game event is resolved.
+     * If an extra-draw is active, the notification is deferred; otherwise it appears immediately in the event popup.
+     *
+     * @param eventID   the unique ID of the resolved event.
+     * @param eventType the type of the resolved event.
+     */
     @Override
     public void onEventResolved(int eventID, EVENT_TYPE eventType) {
         Platform.runLater(() -> {
@@ -681,6 +838,13 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the server asks the local player to draw an extra card at end of round.
+     * Replaces the top row with a snapshot of the available cards and shows the extra-draw banner.
+     *
+     * @param cards     the tribe cards available for the extra selection.
+     * @param buildings the buildings available for the extra selection.
+     */
     @Override
     public void onAskExtraDraw(List<CardDTO> cards, List<BuildingDTO> buildings) {
         Platform.runLater(() -> {
@@ -700,6 +864,12 @@ public class MarketController implements GUIObserver {
         });
     }
 
+    /**
+     * Called when the game ends with the list of winners.
+     * Loads and shows the end-game screen and requests the global leaderboard from the server.
+     *
+     * @param w the list of winning players.
+     */
     @Override
     public void onWinners(List<PlayerDTO> w) {
         List<PlayerDTO> allPlayers = new java.util.ArrayList<>(clientHandler.getPlayers());
@@ -725,6 +895,12 @@ public class MarketController implements GUIObserver {
         }
     }
 
+    /**
+     * Called when the server returns the global leaderboard.
+     * Filters entries for the current player count and passes them to the end-game controller.
+     *
+     * @param leaderboards map from player count to the corresponding leaderboard rows.
+     */
     @Override
     public void onRankReceived(java.util.Map<Integer, java.util.List<String>> leaderboards) {
         if (endGameController == null) return;

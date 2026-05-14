@@ -123,6 +123,13 @@ public class TUIUtils {
         }
     }
 
+    /**
+     * Returns the ANSI escape sequence corresponding to the given totem colour.
+     * If the colour is {@code null}, the reset code is returned.
+     *
+     * @param color the player's totem colour, or {@code null}.
+     * @return the ANSI sequence for colouring terminal text.
+     */
     public String getAnsiColor(COLOR color) {
         if (color == null) return RESET;
         return switch (color) {

@@ -43,6 +43,11 @@ public enum CARD_TYPE {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the human-readable display name of this card type.
+     *
+     * @return the display name of the card type.
+     */
     @Override
     public String toString() {
         return displayName;

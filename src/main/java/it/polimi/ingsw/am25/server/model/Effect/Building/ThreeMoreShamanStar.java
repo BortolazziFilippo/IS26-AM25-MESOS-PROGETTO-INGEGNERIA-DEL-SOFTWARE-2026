@@ -16,6 +16,9 @@ public class ThreeMoreShamanStar extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private boolean flag = false;
 
+    /**
+     * Constructs a building effect that temporarily adds a 3-star Shaman card to the tribe during the shamanic ritual.
+     */
     public ThreeMoreShamanStar() {
     }
 

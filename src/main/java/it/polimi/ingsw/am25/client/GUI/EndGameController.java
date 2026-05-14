@@ -27,6 +27,11 @@ public class EndGameController {
     @FXML private TableColumn<PlayerRankEntry, Integer> foodColumn;
     @FXML private ListView<String> globalLeaderboardList;
 
+    /**
+     * Called by JavaFX after FXML node injection.
+     * Configures the column factories for the ranking table and
+     * sets the custom renderer for the global leaderboard list.
+     */
     @FXML
     public void initialize() {
         rankColumn .setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getRank()).asObject());
@@ -59,6 +64,13 @@ public class EndGameController {
         }
     }
 
+    /**
+     * Populates the end-game screen with the winners and the ranking of all players.
+     * Players are sorted by descending Prestige Points.
+     *
+     * @param winners    the list of winning players.
+     * @param allPlayers the complete list of all players used to build the ranking.
+     */
     public void setData(List<PlayerDTO> winners, List<PlayerDTO> allPlayers) {
         winnersLabel.setText(buildWinnersText(winners));
 
@@ -86,6 +98,13 @@ public class EndGameController {
         return sb.toString().trim();
     }
 
+    /**
+     * Updates the global leaderboard list with the rows received from the server.
+     * May be called from the network thread; UI update is executed via {@code Platform.runLater}.
+     *
+     * @param entries the global leaderboard rows for the current player count,
+     *                or {@code null}/empty list if unavailable.
+     */
     public void setGlobalLeaderboard(List<String> entries) {
         Platform.runLater(() -> {
             if (globalLeaderboardList == null) return;
@@ -109,6 +128,15 @@ public class EndGameController {
         private final int pp;
         private final int food;
 
+        /**
+         * Creates a new ranking entry for the end-game table.
+         *
+         * @param rank  the ranking position (1-based).
+         * @param name  the player's nickname.
+         * @param color the name of the player's totem color.
+         * @param pp    the Prestige Points earned.
+         * @param food  the final food reserve.
+         */
         public PlayerRankEntry(int rank, String name, String color, int pp, int food) {
             this.rank  = rank;
             this.name  = name;
@@ -117,10 +145,15 @@ public class EndGameController {
             this.food  = food;
         }
 
+        /** @return the ranking position (1-based). */
         public int    getRank()  { return rank;  }
+        /** @return the player's nickname. */
         public String getName()  { return name;  }
+        /** @return the name of the player's totem color. */
         public String getColor() { return color; }
+        /** @return the Prestige Points earned by the player. */
         public int    getPp()    { return pp;    }
+        /** @return the player's final food reserve. */
         public int    getFood()  { return food;  }
     }
 }

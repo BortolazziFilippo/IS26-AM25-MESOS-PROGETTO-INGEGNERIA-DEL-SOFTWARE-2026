@@ -16,6 +16,15 @@ public class EndGameTUI {
     private final PlayerDTO myPlayer;
     private final ServerRemoteInterface serverStub;
 
+    /**
+     * Creates the end-game TUI screen.
+     *
+     * @param clientVirtualView the local client view holding the game state.
+     * @param tuiUtils          the shared TUI utilities for screen and input management.
+     * @param scanner           the shared scanner for reading user input.
+     * @param myPlayer          the local player DTO (used to highlight them in the leaderboard).
+     * @param serverStub        the remote server interface used to request the global leaderboard.
+     */
     public EndGameTUI(ClientVirtualView clientVirtualView, TUIUtils tuiUtils,
                       Scanner scanner, PlayerDTO myPlayer, ServerRemoteInterface serverStub) {
         this.clientVirtualView = clientVirtualView;
@@ -25,6 +34,13 @@ public class EndGameTUI {
         this.serverStub = serverStub;
     }
 
+    /**
+     * Displays the end-game screen with the list of winners and the global leaderboard.
+     * Waits for input: pressing "I" shows all players' statuses,
+     * any other key (or ENTER) exits the screen.
+     *
+     * @param winners the list of winning players.
+     */
     public void finished(List<PlayerDTO> winners) {
         PlayerStatusTUI playerStatusTUI =
                 new PlayerStatusTUI(clientVirtualView, scanner, tuiUtils, myPlayer);

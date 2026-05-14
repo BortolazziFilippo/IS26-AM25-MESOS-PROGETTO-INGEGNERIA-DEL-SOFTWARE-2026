@@ -68,6 +68,12 @@ public class ShamanCard extends Card {
         return new CardDTO(this);
     }
 
+    /**
+     * Checks whether this shaman card matches the provided DTO by comparing card type, era, and star rating.
+     *
+     * @param dto the DTO to compare against this card.
+     * @return {@code true} if the DTO represents a ShamanCard with the same era and star rating.
+     */
     @Override
     public boolean matchesDTO(CardDTO dto) {
         return dto.getCardType() == CARD_TYPE.SHAMAN

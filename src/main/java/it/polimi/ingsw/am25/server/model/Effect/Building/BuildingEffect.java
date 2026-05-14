@@ -7,6 +7,9 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
  * that all concrete effects must implement.
  */
 public abstract class BuildingEffect implements BuildingEffectInterface {
+    /**
+     * Constructs the base class for building effects.
+     */
     public BuildingEffect() {
     }
 

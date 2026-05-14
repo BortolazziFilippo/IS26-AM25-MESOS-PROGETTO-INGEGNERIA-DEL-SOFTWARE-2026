@@ -12,6 +12,9 @@ public class PlusOneFoodOnReturnDefaultTile extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
     private BoardView boardView;
 
+    /**
+     * Constructs a building effect that awards 1 extra food when the player returns to an eligible default tile.
+     */
     public PlusOneFoodOnReturnDefaultTile() {
     }
 

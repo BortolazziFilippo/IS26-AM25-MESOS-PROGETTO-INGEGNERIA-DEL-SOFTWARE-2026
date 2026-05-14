@@ -105,6 +105,15 @@ public class DeckFactory {
         }
         return deckToReturn;
     }
+    /**
+     * Rebuilds a list of buildings from their IDs during game restore.
+     * Each ID is used to create a fully initialised {@link it.polimi.ingsw.am25.server.model.Card.BuildingCard}
+     * via the {@link it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory}.
+     *
+     * @param buildingIds list of building IDs to reconstruct.
+     * @param boardView   board view passed to the factory to wire up building effects.
+     * @return list of fully initialised {@link it.polimi.ingsw.am25.server.model.Card.BuildingCard} instances.
+     */
     public List<BuildingCard> loadBuidlingDeck(List<Integer> buildingIds, BoardView boardView) {
         List<BuildingCard> buidlingDeckToReturn = new ArrayList<>();
         BuildingFactory buildingFactory = new BuildingFactory();

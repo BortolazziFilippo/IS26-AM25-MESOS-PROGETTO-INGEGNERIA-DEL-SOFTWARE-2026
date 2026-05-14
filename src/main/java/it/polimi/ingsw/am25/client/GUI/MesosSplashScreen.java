@@ -16,21 +16,21 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 /**
- * Splash screen per il gioco MESOS — IS26-AM25.
+ * Splash screen for the MESOS board game — IS26-AM25.
  *
- * Mostra la copertina del gioco con:
- *  - effetto "respiro" (scale + brightness che pulsano lentamente)
- *  - particelle di fuoco sovrapposte (cerchi arancioni animati)
- *  - testo "Tocca per iniziare" che lampeggia
+ * Displays the game cover with:
+ *  - a "breathing" effect (scale and brightness pulsing slowly)
+ *  - overlaid fire particles (animated orange circles)
+ *  - a blinking "touch to start" prompt
  *
- * USO:
- *   Chiama SplashScreen.show(stage, onFinished) dal tuo main JavaFX.
- *   Quando il giocatore clicca, viene eseguito il Runnable onFinished
- *   (tipicamente: carica la lobby e mostra la finestra principale).
+ * USAGE:
+ *   Call {@code MesosSplashScreen.show(stage, onFinished)} from your JavaFX main.
+ *   When the player clicks, the {@code onFinished} Runnable is executed
+ *   (typically: load the lobby and show the main window).
  *
- * RISORSA RICHIESTA:
- *   Metti frontScreen.png nella cartella src/main/resources/images/
- *   (o adatta il path nel metodo loadImage()).
+ * REQUIRED RESOURCE:
+ *   Place {@code frontScreen.png} in {@code src/main/resources/images/}
+ *   (or adapt the path in {@code loadCoverImage()}).
  */
 public class MesosSplashScreen {
 
@@ -53,6 +53,12 @@ public class MesosSplashScreen {
     }
 
     public static class StandaloneApp extends Application {
+        /**
+         * Launches the standalone splash screen to test the animation in isolation.
+         * When the splash screen closes, prints a message and closes the stage.
+         *
+         * @param stage the JavaFX stage provided by the runtime.
+         */
         @Override
         public void start(Stage stage) {
             MesosSplashScreen.show(stage, () -> {
@@ -67,9 +73,12 @@ public class MesosSplashScreen {
     // ---------------------------------------------------------------
 
     /**
-     * Mostra la splash screen sul {@code stage} fornito.
-     * Quando l'utente clicca, vengono fermati tutti gli effetti
-     * e viene eseguito {@code onFinished}.
+     * Displays the splash screen on the provided {@code stage}.
+     * When the user clicks, all running animations are stopped
+     * and {@code onFinished} is executed.
+     *
+     * @param stage      the JavaFX stage on which to display the splash screen.
+     * @param onFinished the callback to run once the user dismisses the splash screen.
      */
     public static void show(Stage stage, Runnable onFinished) {
 

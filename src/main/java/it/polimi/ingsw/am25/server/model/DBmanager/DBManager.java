@@ -23,6 +23,10 @@ public class DBManager {
     private static final String LOG_PREFIX = "[SERVER][DB]";
     private static Connection connection;
 
+    /**
+     * Default constructor. An instance is not required to use this class
+     * since all methods are static.
+     */
     public DBManager() {
     }
 
