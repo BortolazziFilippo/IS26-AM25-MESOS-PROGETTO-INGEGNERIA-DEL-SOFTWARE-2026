@@ -428,6 +428,9 @@ public class Player implements MementoManager<PlayerMemento> {
         for (Card card : tribe) {
             notifyCardAdded(card);
         }
+        for (BuildingCard building : buildingCards) {
+            notifyCardAdded(building);
+        }
     }
 
     /**

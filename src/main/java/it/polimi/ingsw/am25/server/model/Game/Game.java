@@ -808,9 +808,9 @@ public class Game implements GameView, MementoManager<GameMemento> {
         turnManager.updatePlacingOrder();
         // 6. Restore current placing/playing player references
         if (memento.playerToPlaceNickname() != null) {
-            try {
-                this.playerToPlace = turnManager.getNextPlacingPlayer();
-            } catch (EndOfPlacingPhaseException ignored) {}
+            this.playerToPlace = this.players.get(memento.playerToPlaceNickname());
+            // Remove from queue so the next getNextPlacingPlayer() call correctly advances to the following player
+            turnManager.getPlacingOrder().removeIf(p -> p.getNickname().equals(memento.playerToPlaceNickname()));
         }
         if (memento.playerToPlayNickname() != null) {
             this.playerToPlay = this.players.get(memento.playerToPlayNickname());

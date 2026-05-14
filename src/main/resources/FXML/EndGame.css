@@ -1,5 +1,8 @@
+/* === EndGame — tema MESOS === */
+
 .root {
-    -fx-background-color: #1c1c2e;
+    -fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);
+    -fx-font-family: "Georgia", "Times New Roman", serif;
 }
 
 .anchor-pane,
@@ -11,143 +14,146 @@
 
 /* Titolo */
 .title-label {
-    -fx-text-fill: #f5c518;
-    -fx-effect: dropshadow(gaussian, rgba(245,197,24,0.5), 16, 0.4, 0, 0);
+    -fx-text-fill: #f5dfa0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.65), 16, 0.5, 0, 2);
 }
 
 /* Box vincitore */
 .winner-box {
-    -fx-background-color: #2a2a45;
-    -fx-background-radius: 16;
-    -fx-border-color: #f5c518;
-    -fx-border-radius: 16;
-    -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(245,197,24,0.3), 20, 0.3, 0, 0);
+    -fx-background-color: rgba(34, 22, 14, 0.85);
+    -fx-background-radius: 12;
+    -fx-border-color: #6b4a2a;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 18, 0.3, 0, 4);
 }
 
 .trophy-label {
-    -fx-text-fill: #f5c518;
+    -fx-text-fill: #d4a017;
 }
 
 .winner-label {
-    -fx-text-fill: #ffffff;
-    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.2), 8, 0.2, 0, 0);
+    -fx-text-fill: #f5dfa0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.35), 10, 0.3, 0, 1);
 }
 
-/* Titolo sezione classifica */
+/* Titoli sezione */
 .section-label {
-    -fx-text-fill: #a0a0c0;
+    -fx-text-fill: #c9a66b;
+    -fx-font-style: italic;
     -fx-padding: 10 0 0 0;
 }
 
-/* Tabella */
+/* Tabella classifica */
 .ranking-table {
     -fx-background-color: transparent;
     -fx-table-cell-border-color: transparent;
-    -fx-border-color: #3a3a5c;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
+    -fx-border-color: #6b4a2a;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-control-inner-background: #160e07;
 }
 
 .ranking-table .column-header-background {
-    -fx-background-color: #2e2e4a;
-    -fx-background-radius: 10 10 0 0;
+    -fx-background-color: #2a1a10;
+    -fx-background-radius: 8 8 0 0;
 }
 
 .ranking-table .column-header,
 .ranking-table .filler {
     -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .ranking-table .column-header .label {
-    -fx-text-fill: #a0a0c0;
+    -fx-text-fill: #c9a66b;
     -fx-font-weight: bold;
     -fx-font-size: 13px;
     -fx-alignment: CENTER;
 }
 
 .ranking-table .table-row-cell {
-    -fx-background-color: #252538;
-    -fx-text-fill: #e0e0e0;
+    -fx-background-color: #160e07;
+    -fx-text-fill: #f5dfa0;
     -fx-font-size: 14px;
+    -fx-border-color: transparent transparent #2a1a10 transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
 .ranking-table .table-row-cell:odd {
-    -fx-background-color: #1e1e30;
+    -fx-background-color: #1e1208;
 }
 
 .ranking-table .table-row-cell:selected {
-    -fx-background-color: #3a3a70;
+    -fx-background-color: rgba(255, 136, 0, 0.25);
 }
 
 .ranking-table .table-cell {
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: #f5dfa0;
     -fx-alignment: CENTER;
 }
 
 /* Classifica globale */
 .global-list {
-    -fx-background-color: #1e1e30;
-    -fx-border-color: #3a3a5c;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
+    -fx-background-color: rgba(20, 12, 8, 0.85);
+    -fx-border-color: #6b4a2a;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-control-inner-background: transparent;
 }
 
 .global-list .list-cell {
-    -fx-background-color: #252538;
-    -fx-text-fill: #e0e0e0;
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5dfa0;
     -fx-font-size: 14px;
-    -fx-padding: 6 12 6 12;
+    -fx-padding: 6 14 6 14;
 }
 
-.global-list .list-cell:odd {
-    -fx-background-color: #1e1e30;
+.global-list .list-cell:filled:hover {
+    -fx-background-color: rgba(255, 136, 0, 0.18);
 }
 
-.global-list .list-cell:selected {
-    -fx-background-color: #3a3a70;
+.global-list .list-cell:filled:selected {
+    -fx-background-color: rgba(255, 136, 0, 0.35);
 }
 
 .global-list .cell-gold {
-    -fx-background-color: #3a2e00;
-    -fx-text-fill: #f5c518;
+    -fx-text-fill: #ffd700;
     -fx-font-weight: bold;
-    -fx-font-size: 15px;
 }
 
 .global-list .cell-silver {
-    -fx-background-color: #2a2a2a;
     -fx-text-fill: #c0c0c0;
     -fx-font-weight: bold;
-    -fx-font-size: 15px;
 }
 
 .global-list .cell-bronze {
-    -fx-background-color: #2a1800;
     -fx-text-fill: #cd7f32;
     -fx-font-weight: bold;
-    -fx-font-size: 15px;
 }
 
 /* Bottone esci */
 .exit-button {
+    -fx-background-color: linear-gradient(to bottom, #d97a2a, #a04a14);
+    -fx-text-fill: #fff5d8;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1a1a1a;
+    -fx-padding: 10 28 10 28;
+    -fx-background-radius: 8;
+    -fx-border-color: #ffaa44;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.2;
     -fx-cursor: hand;
-    -fx-background-radius: 10;
-    -fx-background-color: #000000, #f5c518;
-    -fx-background-insets: 4 0 0 0, 0 0 4 0;
-    -fx-padding: 10 24 10 24;
-    -fx-translate-y: 0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.45), 10, 0.3, 0, 2);
 }
 
 .exit-button:hover {
-    -fx-background-insets: 5 0 0 0, 0 0 5 0;
-    -fx-translate-y: -1;
+    -fx-background-color: linear-gradient(to bottom, #ff9530, #c25a18);
+    -fx-effect: dropshadow(gaussian, rgba(255, 140, 0, 0.75), 14, 0.5, 0, 3);
 }
 
 .exit-button:pressed {
-    -fx-background-insets: 0, 0;
-    -fx-translate-y: 4;
+    -fx-background-color: linear-gradient(to bottom, #a04a14, #7a3210);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 0, 0.25), 6, 0.2, 0, 1);
+    -fx-translate-y: 2;
 }
