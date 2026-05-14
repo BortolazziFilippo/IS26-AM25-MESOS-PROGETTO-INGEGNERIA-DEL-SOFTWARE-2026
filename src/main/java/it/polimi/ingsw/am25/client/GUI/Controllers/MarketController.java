@@ -125,6 +125,7 @@ public class MarketController implements GUIObserver {
      */
     private List<BuildingDTO> pendingBottomBuildings = null;
     private final DisconnectPopup disconnectPopup = new DisconnectPopup();
+    private it.polimi.ingsw.am25.client.GUI.EndGameController endGameController;
 
     @FXML
     private HBox topCardHbox;
@@ -698,10 +699,37 @@ public class MarketController implements GUIObserver {
 
     @Override
     public void onWinners(List<PlayerDTO> w) {
-        GUIObserver.super.onWinners(w);
-        //TODO: add winner screen and leaderboard from database (DANIELE)
-        //      The leaderboard should also be accessible from the lobby
+        List<PlayerDTO> allPlayers = new java.util.ArrayList<>(clientHandler.getPlayers());
+        Platform.runLater(() -> {
+            try {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                        getClass().getResource("/FXML/EndGame.fxml"));
+                javafx.scene.Parent root = loader.load();
+                it.polimi.ingsw.am25.client.GUI.EndGameController ctrl = loader.getController();
+                ctrl.setData(w, allPlayers);
+                endGameController = ctrl;
+                javafx.stage.Stage stage = (javafx.stage.Stage) tileHbox.getScene().getWindow();
+                stage.setScene(new javafx.scene.Scene(root));
+                stage.setTitle("IS26-AM25 — Fine Partita");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            serverRemoteInterface.askForRank(String.valueOf(clientHandler.getPlayers().size()), clientHandler);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    @Override
+    public void onRankReceived(java.util.Map<Integer, java.util.List<String>> leaderboards) {
+        if (endGameController == null) return;
+        int playerCount = clientHandler.getPlayers().size();
+        java.util.List<String> entries = leaderboards.get(playerCount);
+        Platform.runLater(() -> endGameController.setGlobalLeaderboard(entries));
+    }
+
 
     // =========================================================
     // RENDER

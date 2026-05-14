@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface GUIObserver {
     default void onGamePhaseChanged(GAME_PHASE phase) {
@@ -80,6 +81,9 @@ public interface GUIObserver {
     }
 
     default void onServerDead() {
+    }
+
+    default void onRankReceived(Map<Integer, List<String>> leaderboards) {
     }
 
 }

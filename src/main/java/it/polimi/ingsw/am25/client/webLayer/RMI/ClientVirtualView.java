@@ -738,6 +738,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onRankReceived(leaderboards));
     }
 
     public Map<Integer, List<String>> getLeaderboards() {
