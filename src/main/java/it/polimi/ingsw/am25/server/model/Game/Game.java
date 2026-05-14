@@ -680,6 +680,16 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
+     * Re-fires notifyCardAddedToTribe for every card in every player's tribe.
+     * Used when resuming a saved game so all clients receive the full tribe state.
+     */
+    public void notifyAllPlayerTribes() {
+        for (Player player : players.values()) {
+            player.notifyCurrentTribe();
+        }
+    }
+
+    /**
      * Pushes the current era, game phase, and active turn info to all observers.
      * Used when resuming a loaded game after all players have reconnected.
      */
@@ -689,7 +699,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
         if (playerToPlace != null) notifyPlayerToPlaceChanged();
         if (playerToPlay != null) {
             notifyPlayerToPlayChanged();
-            notifyActionChanged();
+            if (offertilePlayerIsOn != null) notifyActionChanged();
         }
     }
 
@@ -787,11 +797,16 @@ public class Game implements GameView, MementoManager<GameMemento> {
                 throw new RuntimeException("Error restoring board state", e);
             }
         }
-        // 5. Sync turn manager with restored board order
+        // 5. Sync turn manager with restored board order.
+        //    Mirror the getNextPlacingPlayer() call in gameStart() so the queue is
+        //    already advanced past the first placer — otherwise placePlayer() would
+        //    return that same player a second time.
         turnManager.updatePlacingOrder();
         // 6. Restore current placing/playing player references
         if (memento.playerToPlaceNickname() != null) {
-            this.playerToPlace = this.players.get(memento.playerToPlaceNickname());
+            try {
+                this.playerToPlace = turnManager.getNextPlacingPlayer();
+            } catch (EndOfPlacingPhaseException ignored) {}
         }
         if (memento.playerToPlayNickname() != null) {
             this.playerToPlay = this.players.get(memento.playerToPlayNickname());

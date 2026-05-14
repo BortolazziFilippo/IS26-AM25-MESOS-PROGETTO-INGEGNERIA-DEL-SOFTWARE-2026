@@ -420,6 +420,17 @@ public class Player implements MementoManager<PlayerMemento> {
     }
 
     /**
+     * Re-fires notifyCardAddedToTribe for every card currently in this player's tribe.
+     * Used when resuming a saved game so observers that registered after the cards were
+     * originally drawn can still receive the full tribe state.
+     */
+    public void notifyCurrentTribe() {
+        for (Card card : tribe) {
+            notifyCardAdded(card);
+        }
+    }
+
+    /**
      * Executes format card for log.
      *
      * @param card parameter card.

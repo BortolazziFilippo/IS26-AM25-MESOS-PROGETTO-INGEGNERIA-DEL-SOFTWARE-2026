@@ -186,6 +186,7 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
         List<OfferTile> offertileSnapshot = List.copyOf(offerTiles);
         List<DefaultTile> defaultTileSnapshot = List.copyOf(defaultTiles);
         notify(boardObserver -> boardObserver.onBoardChanged(offertileSnapshot, defaultTileSnapshot));
+        notifyPlayerToDefaultTile();
     }
 
     /**

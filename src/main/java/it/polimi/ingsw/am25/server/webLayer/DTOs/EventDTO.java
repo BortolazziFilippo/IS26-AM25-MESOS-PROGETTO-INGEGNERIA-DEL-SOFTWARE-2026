@@ -15,7 +15,6 @@ import java.io.Serializable;
 public class EventDTO extends CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final int eventID;
     private final EVENT_TYPE eventType;
 
     /**
@@ -24,8 +23,7 @@ public class EventDTO extends CardDTO implements Serializable {
      * @param eventType the category of event (hunt, sustenance, etc.).
      */
     public EventDTO(int eventID, ERA era, EVENT_TYPE eventType) {
-        super(era, CARD_TYPE.EVENT);
-        this.eventID = eventID;
+        super(era, eventID ,CARD_TYPE.EVENT);
         this.eventType = eventType;
     }
 

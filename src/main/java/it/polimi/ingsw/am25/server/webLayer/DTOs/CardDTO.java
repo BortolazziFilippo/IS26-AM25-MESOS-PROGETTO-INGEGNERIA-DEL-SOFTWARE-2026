@@ -24,7 +24,7 @@ public class CardDTO implements Serializable {
     private int finalPrestigePoint;
     private boolean hasIcon;
     private int builderID;
-    private int eventID;
+    protected int eventID;
 
     /**
      * Constructs a CardDTO from an {@link ArtistCard}.
@@ -47,6 +47,16 @@ public class CardDTO implements Serializable {
         this.cardType = cardType;
     }
 
+    /**
+     * Constructs a CardDTO from {@link EventCard}
+     *
+     * @param era      the era this card belongs to.
+     * @param cardType the type of this card.
+     */
+    public CardDTO(ERA era, int eventID,CARD_TYPE cardType) {
+        this.era = era;
+        this.cardType = cardType;
+    }
     /**
      * Constructs a CardDTO from a {@link GathererCard}.
      *

@@ -221,8 +221,8 @@ public class Controller {
             game.goNextPlayingPlayer();
         } catch (EndOfPlayingPhaseException e) {
             try {
-                persistanceLogger.save(game.createMemento());
                 game.nextRoundIter();
+                persistanceLogger.save(game.createMemento());
             } catch (EndGameException ex) {
                 game.endGameIter();
                 game.checkWinner();
@@ -475,6 +475,7 @@ public class Controller {
      */
     public void resumeGame() {
         game.notifyChanges();
+        game.notifyAllPlayerTribes();
         game.notifyCurrentState();
     }
 
