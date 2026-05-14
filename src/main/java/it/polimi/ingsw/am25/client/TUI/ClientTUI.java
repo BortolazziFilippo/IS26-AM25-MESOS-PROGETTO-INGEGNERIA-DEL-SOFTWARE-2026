@@ -8,6 +8,9 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main TUI orchestrator. Manages the lobby loop, the game loop,
@@ -57,29 +60,26 @@ public class ClientTUI {
 
         // ==========================================================
         // 2. PING THREAD
-        // myPlayer is now known — start sending heartbeats every 3 s.
+        // myPlayer is now known — start sending heartbeats every 1 s.
         // ==========================================================
         final PlayerDTO pingPlayer = myPlayer;
-        Thread pingThread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
-                try {
-                    serverStub.ping(pingPlayer);
-                } catch (Exception e) {
-                    // Server unreachable — wake up the TUI so it can exit cleanly.
-                    clientHandler.handleServerDeath();
-                    return;
-                }
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "heartbeat-ping");
+            t.setDaemon(true);
+            return t;
         });
-        pingThread.setDaemon(true);
-        pingThread.setName("heartbeat-ping");
-        pingThread.start();
+        scheduler.scheduleAtFixedRate(() -> {
+            if (clientHandler.isServerDead()) {
+                scheduler.shutdownNow();
+                return;
+            }
+            try {
+                serverStub.ping(pingPlayer);
+            } catch (Exception e) {
+                clientHandler.handleServerDeath();
+                scheduler.shutdownNow();
+            }
+        }, 0, 1, TimeUnit.SECONDS);
 
         // ==========================================================
         // 3. GAME LOOP

@@ -45,3 +45,4 @@ client.log
 DBcred
 *.deb
 /saves
+.md

@@ -21,6 +21,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class LobbyController implements GUIObserver {
 
     private final Stage stage;
@@ -83,6 +87,19 @@ public class LobbyController implements GUIObserver {
         return new PlayerDTO(nickname, 0, 0, colorBox.getValue());
     }
 
+    private void startHeartbeat() {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "Heartbeat Thread");
+            t.setDaemon(true);
+            return t;
+        });
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                serverStub.ping(playerDTO);
+            } catch (Exception ignored) {}
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
     @FXML
     private void onCreateGame() {
         PlayerDTO player = buildPlayer();
@@ -95,19 +112,7 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.createGame(player, spinner.getValue(), clientHandler);
-            Thread pingThread = new Thread(() -> {
-                while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        Thread.sleep(3000);
-                        serverStub.ping(playerDTO);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } catch (Exception ignored) {}
-                }
-            });
-            pingThread.setDaemon(true);
-            pingThread.setName("heartbeat-ping");
-            pingThread.start();
+            startHeartbeat();
             label.setText("Partita creata. In attesa di altri giocatori...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -126,19 +131,7 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.loadGame(player, clientHandler);
-            Thread pingThread = new Thread(() -> {
-                while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        Thread.sleep(3000);
-                        serverStub.ping(playerDTO);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } catch (Exception ignored) {}
-                }
-            });
-            pingThread.setDaemon(true);
-            pingThread.setName("heartbeat-ping");
-            pingThread.start();
+            startHeartbeat();
             label.setText("Partita trovata! In attesa degli altri giocatori...");
             loadButton.setDisable(true);
             createButton.setDisable(true);
@@ -160,19 +153,7 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.addPlayer(player, clientHandler);
-            Thread pingThread = new Thread(() -> {
-                while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        Thread.sleep(3000);
-                        serverStub.ping(playerDTO);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } catch (Exception ignored) {}
-                }
-            });
-            pingThread.setDaemon(true);
-            pingThread.setName("heartbeat-ping");
-            pingThread.start();
+            startHeartbeat();
             label.setText("Unito alla lobby. In attesa che inizi...");
             createButton.setDisable(true);
             joinButton.setDisable(true);

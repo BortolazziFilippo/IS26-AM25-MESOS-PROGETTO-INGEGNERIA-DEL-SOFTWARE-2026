@@ -16,6 +16,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,7 +40,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private boolean isGameStarted = false;
     private final AtomicInteger rankRequestCount = new AtomicInteger(0);
     private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
-    private volatile Thread watchdogThread;
+    private volatile ScheduledExecutorService watchdogScheduler;
 
     /**
      * Initializes the RMI network handler and exports it as a remote object,
@@ -72,10 +75,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         waitingPlayers.add(hostView);
         viewsByNickname.put(hostNick, hostView);
         playerDTOS.add(playerHost);
-
-        // L'host vede subito se stesso nella lobby
         hostView.pushPlayerAdded(playerHost);
-
         logServerEvent("Game created by '" + playerHost.getNickName() + "' for " + playerNumber + " players");
     }
 
@@ -297,18 +297,19 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
     @Override
     public synchronized void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
-        try {
-            int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
-            Map<Integer, List<String>> leaderboards = new HashMap<>();
-            for (int i = 2; i <= number; i++) {
+        int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
+        Map<Integer, List<String>> leaderboards = new HashMap<>();
+        for (int i = 2; i <= number; i++) {
+            try {
                 leaderboards.put(i, DBManager.getLeaderboard(i));
+            } catch (SQLException | IOException e) {
+                logServerEvent("DB non raggiungibile per classifica " + i + " giocatori: " + e.getMessage());
+                leaderboards.put(i, List.of("Classifica non disponibile"));
             }
-            clientRemoteInterface.sendRank(leaderboards);
-            rankRequestCount.incrementAndGet();
-            checkAndShutdownIfDone();
-        } catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
         }
+        clientRemoteInterface.sendRank(leaderboards);
+        rankRequestCount.incrementAndGet();
+        checkAndShutdownIfDone();
     }
 
     /**
@@ -384,43 +385,31 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Starts the counter-based heartbeat watchdog. Every 3 seconds each view's
+     * Starts the counter-based heartbeat watchdog. Every second each view's
      * missed-ping counter is incremented. When a view reaches 3 consecutive missed pings
-     * (~9 seconds total) the player is declared disconnected.
+     * (~3 seconds total) the player is declared disconnected.
      */
     private void startWatchdog() {
-        watchdogThread = new Thread(() -> {
-            // Grace period: give all clients time to start their ping threads
-            // before we begin counting missed pings.
-            try {
-                Thread.sleep(12000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-                // Iterate over a snapshot to avoid ConcurrentModificationException
-                for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
-                    if (!view.isConnected()) continue;
-                    int missed = view.incrementMissedPings();
-                    if (missed >= 3) {
-                        logServerEvent("Player '" + view.getNickname()
-                                + "' missed " + missed + " consecutive pings — declaring disconnected.");
-                        notifyPlayerDisconnected(view.getNickname());
-                    }
-                }
-            }
+        watchdogScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "heartbeat-watchdog");
+            t.setDaemon(true);
+            return t;
         });
-        watchdogThread.setDaemon(true);
-        watchdogThread.setName("heartbeat-watchdog");
-        watchdogThread.start();
-        logServerEvent("Heartbeat watchdog started (tick=3s, threshold=3 missed pings).");
+        // Grace period of 4s before first tick, then every 1s.
+        watchdogScheduler.scheduleAtFixedRate(this::watchdogTick, 4, 1, TimeUnit.SECONDS);
+        logServerEvent("Heartbeat watchdog started (tick=1s, threshold=3 missed pings).");
+    }
+
+    private void watchdogTick() {
+        for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
+            if (!view.isConnected()) continue;
+            int missed = view.incrementMissedPings();
+            if (missed >= 3) {
+                logServerEvent("Player '" + view.getNickname()
+                        + "' missed " + missed + " consecutive pings — declaring disconnected.");
+                notifyPlayerDisconnected(view.getNickname());
+            }
+        }
     }
 
     /**
@@ -465,7 +454,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         if (requiredPlayers > 0
                 && rankRequestCount.get() >= requiredPlayers
                 && shutdownInitiated.compareAndSet(false, true)) {
-            if (watchdogThread != null) watchdogThread.interrupt();
+            if (watchdogScheduler != null) watchdogScheduler.shutdownNow();
             Thread shutdown = new Thread(() -> {
                 try {
                     Thread.sleep(2000);

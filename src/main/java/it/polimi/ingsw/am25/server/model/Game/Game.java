@@ -265,14 +265,18 @@ public class Game implements GameView, MementoManager<GameMemento> {
             winningPlayers = new ArrayList<>();
             winningPlayers.add(topWinner);
         }
-        //thread for writing winners on DB
-        try {
-            DBManager.logMatch(winners);
-        } catch (IOException e) {
-            UtilitiesFunction.logError(LOG_PREFIX + "Errore lettura file credenziali database");
-        } catch (SQLException e) {
-            UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione con database");
-        }
+        Thread dbThread = new Thread(() -> {
+            try {
+                DBManager.logMatch(winners);
+            } catch (IOException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Errore lettura file credenziali database");
+            } catch (SQLException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Errore comunicazione con database");
+            }
+        });
+        dbThread.setDaemon(true);
+        dbThread.setName("db-log-match");
+        dbThread.start();
         this.notifyWinners(winningPlayers);
         return winningPlayers;
 

@@ -32,6 +32,9 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MarketController implements GUIObserver {
 
@@ -183,31 +186,7 @@ public class MarketController implements GUIObserver {
         headerHBox.heightProperty().addListener((obs, old, newH) ->
                 AnchorPane.setTopAnchor(splitPane, newH.doubleValue()));
 
-        // Send heartbeat pings to the server every 3 s so the watchdog doesn't
-        // declare this GUI client disconnected (the TUI does the same in ClientTUI).
-        Thread pingThread = new Thread(() -> {
-            int failedPings = 0;
-            while (!Thread.currentThread().isInterrupted() && !clientHandler.isServerDead()) {
-                try {
-                    serverRemoteInterface.ping(playerDTO);
-                    failedPings = 0;
-                } catch (Exception e) {
-                    if (++failedPings >= 3) {
-                        clientHandler.handleServerDeath();
-                        return;
-                    }
-                }
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        });
-        pingThread.setDaemon(true);
-        pingThread.setName("gui-heartbeat-ping");
-        pingThread.start();
+        startHeartbeat();
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
         if (skipTurnButton != null) skipTurnButton.setDisable(true);
@@ -1355,5 +1334,29 @@ public class MarketController implements GUIObserver {
             if (onFinish != null) onFinish.run();
         });
         tt.play();
+    }
+
+    private void startHeartbeat() {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "gui-heartbeat-ping");
+            t.setDaemon(true);
+            return t;
+        });
+        final int[] failedPings = {0};
+        scheduler.scheduleAtFixedRate(() -> {
+            if (clientHandler.isServerDead()) {
+                scheduler.shutdownNow();
+                return;
+            }
+            try {
+                serverRemoteInterface.ping(playerDTO);
+                failedPings[0] = 0;
+            } catch (Exception e) {
+                if (++failedPings[0] >= 3) {
+                    clientHandler.handleServerDeath();
+                    scheduler.shutdownNow();
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
     }
 }
