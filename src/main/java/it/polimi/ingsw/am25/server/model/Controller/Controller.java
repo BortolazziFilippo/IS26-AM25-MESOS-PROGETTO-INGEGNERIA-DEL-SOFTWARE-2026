@@ -334,7 +334,7 @@ public class Controller {
      * @return whether it is this player's placing turn
      */
     private boolean checkIsPlayerPlacingTurn(Player player) {
-        return game.getPlayerToPlace().equals(player);
+        return game.getPlayerToPlace().getNickname().equals(player.getNickname());
     }
 
     /**
@@ -344,7 +344,7 @@ public class Controller {
      * @return whether it is this player's playing turn
      */
     private boolean checkIsPlayerPlayingTurn(Player player) {
-        return game.getPlayerToPlay().equals(player);
+        return game.getPlayerToPlay().getNickname().equals(player.getNickname());
     }
 
     // --- DISCONNECTION ---

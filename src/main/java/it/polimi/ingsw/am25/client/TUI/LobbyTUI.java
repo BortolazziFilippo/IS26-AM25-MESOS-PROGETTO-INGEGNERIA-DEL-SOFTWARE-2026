@@ -304,8 +304,7 @@ public class LobbyTUI {
             utils.pauseAndClear();
             return null;
         }
-        COLOR colorTotem = utils.bindTotemColor();
-        PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
+        PlayerDTO player = new PlayerDTO(nickname, 0, 0, null);
 
         clientHandler.connectionError = false;
         clientHandler.isGameStarted = false;
@@ -360,8 +359,7 @@ public class LobbyTUI {
             utils.pauseAndClear();
             return null;
         }
-        COLOR colorTotem = utils.bindTotemColor();
-        PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
+        PlayerDTO player = new PlayerDTO(nickname, 0, 0, null);
 
         clientHandler.connectionError = false;
         clientHandler.isGameStarted = false;
