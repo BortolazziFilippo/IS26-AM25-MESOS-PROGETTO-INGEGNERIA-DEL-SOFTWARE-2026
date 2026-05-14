@@ -144,12 +144,13 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
             List<DefaultTileDTO> defs = new ArrayList<>(defaultTileList);
             submitTask(() -> clientStub.boardInitialize(board, defs));
         }
-        // 3. Market (top cards + bottom cards + top buildings)
+        // 3. Market (top cards + bottom cards + top buildings + bottom buildings)
         if (topCards != null) {
             List<CardDTO> top = new ArrayList<>(topCards);
             List<CardDTO> bot = bottomCards != null ? new ArrayList<>(bottomCards) : new ArrayList<>();
             List<BuildingDTO> bld = topBuildings != null ? new ArrayList<>(topBuildings) : new ArrayList<>();
-            submitTask(() -> clientStub.initializeMarket(top, bot, bld));
+            List<BuildingDTO> botBld = bottomBuildings != null ? new ArrayList<>(bottomBuildings) : new ArrayList<>();
+            submitTask(() -> clientStub.initializeMarket(top, bot, bld, botBld));
         }
         // 4. Updated food / PP for every player
         for (PlayerDTO dto : players) {
@@ -224,7 +225,8 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         this.topCards = new ArrayList<>(topCards.stream().map(Card::toDTO).toList());
         this.bottomCards = new ArrayList<>(bottomCards.stream().map(Card::toDTO).toList());
         this.topBuildings = new ArrayList<>(topBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
-        submitTask(() -> clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings));
+        this.bottomBuildings = new ArrayList<>(bottomBuildings.stream().map(b -> (BuildingDTO) b.toDTO()).toList());
+        submitTask(() -> clientStub.initializeMarket(this.topCards, this.bottomCards, this.topBuildings, this.bottomBuildings));
     }
 
     @Override

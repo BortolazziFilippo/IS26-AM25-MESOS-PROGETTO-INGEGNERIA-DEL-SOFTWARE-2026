@@ -299,10 +299,10 @@ public class ClientSocketProxy implements ClientRemoteInterface {
      * @param topBuildings top row of buildings.
      */
     @Override
-    public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) throws RemoteException {
+    public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings, List<BuildingDTO> bottomBuildings) throws RemoteException {
         try {
             synchronized (out) {
-                out.writeObject(new InitializeMarketMessage(topCards, bottomCards, topBuildings));
+                out.writeObject(new InitializeMarketMessage(topCards, bottomCards, topBuildings, bottomBuildings));
                 out.flush();
                 out.reset();
             }

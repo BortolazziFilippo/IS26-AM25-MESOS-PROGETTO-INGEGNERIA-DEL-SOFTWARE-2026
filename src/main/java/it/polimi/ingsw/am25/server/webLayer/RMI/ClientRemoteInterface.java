@@ -92,10 +92,11 @@ public interface ClientRemoteInterface extends Remote {
      *
      * @param topCards     the initial top card row.
      * @param bottomCards  the initial bottom card row.
-     * @param topBuildings the initial top building row.
+     * @param topBuildings    the initial top building row.
+     * @param bottomBuildings the initial bottom building row.
      * @throws RemoteException if the RMI call fails.
      */
-    void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) throws RemoteException;
+    void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings, List<BuildingDTO> bottomBuildings) throws RemoteException;
 
     /**
      * Notifies the client that a card was removed from the top market row.

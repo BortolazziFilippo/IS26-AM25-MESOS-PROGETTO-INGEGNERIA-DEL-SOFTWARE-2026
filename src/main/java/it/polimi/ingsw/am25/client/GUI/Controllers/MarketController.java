@@ -42,6 +42,7 @@ public class MarketController implements GUIObserver {
     private volatile List<CardDTO> pendingTopTribeCard;
     private volatile List<BuildingDTO> pendingTopBuildingCard;
     private volatile List<CardDTO> pendingBottomTribeCard;
+    private volatile List<BuildingDTO> pendingBottomBuildingCard;
     private volatile List<DefaultTileDTO> pendingDefs;
     private volatile List<OffertileDTO> pendingOffertiles;
 
@@ -197,10 +198,11 @@ public class MarketController implements GUIObserver {
             pendingDefs = null;
         }
         if (pendingTopTribeCard != null) {
-            renderCards(pendingTopTribeCard, pendingBottomTribeCard, pendingTopBuildingCard);
+            renderCards(pendingTopTribeCard, pendingBottomTribeCard, pendingTopBuildingCard, pendingBottomBuildingCard);
             pendingTopTribeCard = null;
             pendingBottomTribeCard = null;
             pendingTopBuildingCard = null;
+            pendingBottomBuildingCard = null;
         }
         updatePlayerStatsLabels();
         if (foodLabel != null) foodLabel.setText("Cibo: " + playerDTO.getFood());
@@ -333,14 +335,15 @@ public class MarketController implements GUIObserver {
     }
 
     @Override
-    public void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
+    public void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
         if (topCardHbox == null) {
             // FXML not ready yet — buffer the data for initialize()
             this.pendingTopTribeCard = top;
             this.pendingBottomTribeCard = bot;
             this.pendingTopBuildingCard = topBld;
+            this.pendingBottomBuildingCard = botBld;
         } else {
-            Platform.runLater(() -> renderCards(top, bot, topBld));
+            Platform.runLater(() -> renderCards(top, bot, topBld, botBld));
         }
     }
 
@@ -738,7 +741,7 @@ public class MarketController implements GUIObserver {
     /**
      * Populates both card rows from scratch (called on market initialization).
      */
-    private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
+    private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
         topCardHbox.getChildren().clear();
         bottomCardHbox.getChildren().clear();
         selectedCardView = null;
@@ -750,6 +753,10 @@ public class MarketController implements GUIObserver {
 
         bottomTribeCount = bot.size();
         for (CardDTO card : bot) bottomCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
+        if (botBld != null) {
+            for (BuildingDTO bld : botBld)
+                bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+        }
 
         updateInteractionState();
     }

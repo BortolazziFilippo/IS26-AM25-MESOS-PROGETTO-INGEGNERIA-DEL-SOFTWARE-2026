@@ -283,14 +283,14 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
      * @param topBuildings parameter topBuildings.
      */
     @Override
-    public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) throws RemoteException {
-        // Ensure that lists are mutable
+    public void initializeMarket(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings, List<BuildingDTO> bottomBuildings) throws RemoteException {
         synchronized (stateLock){
             this.topCards = new ArrayList<>(topCards);
             this.bottomCards = new ArrayList<>(bottomCards);
             this.topBuildings = new ArrayList<>(topBuildings);
+            this.bottomBuildings = bottomBuildings != null ? new ArrayList<>(bottomBuildings) : new ArrayList<>();
         }
-        updateObservers(obs -> obs.onMarketInitialized(topCards, bottomCards, topBuildings));
+        updateObservers(obs -> obs.onMarketInitialized(topCards, bottomCards, topBuildings, this.bottomBuildings));
     }
 
     /**

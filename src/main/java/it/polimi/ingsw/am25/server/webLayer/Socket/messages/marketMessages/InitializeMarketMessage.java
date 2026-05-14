@@ -14,18 +14,21 @@ public class InitializeMarketMessage implements ServerToClientMessage {
     private final List<CardDTO> topCards;
     private final List<CardDTO> bottomCards;
     private final List<BuildingDTO> topBuildings;
+    private final List<BuildingDTO> bottomBuildings;
 
     /**
      * Creates a message carrying the initial market state.
      *
-     * @param topCards     top row of cards.
-     * @param bottomCards  bottom row of cards.
-     * @param topBuildings top row of buildings.
+     * @param topCards        top row of cards.
+     * @param bottomCards     bottom row of cards.
+     * @param topBuildings    top row of buildings.
+     * @param bottomBuildings bottom row of buildings.
      */
-    public InitializeMarketMessage(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings) {
+    public InitializeMarketMessage(List<CardDTO> topCards, List<CardDTO> bottomCards, List<BuildingDTO> topBuildings, List<BuildingDTO> bottomBuildings) {
         this.topCards = topCards;
         this.bottomCards = bottomCards;
         this.topBuildings = topBuildings;
+        this.bottomBuildings = bottomBuildings;
     }
 
     /**
@@ -33,6 +36,6 @@ public class InitializeMarketMessage implements ServerToClientMessage {
      */
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
-        clientRemoteInterface.initializeMarket(topCards, bottomCards, topBuildings);
+        clientRemoteInterface.initializeMarket(topCards, bottomCards, topBuildings, bottomBuildings);
     }
 }

@@ -29,7 +29,7 @@ public interface GUIObserver {
     default void onPlayerFoodChanged(String nickname, int newFood) {
     }
 
-    default void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld) {
+    default void onMarketInitialized(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
     }
 
     default void onTopCardRemoved(int position) {
