@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.TUI;
 
+import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
@@ -79,7 +80,7 @@ public class ClientTUI {
                 clientHandler.handleServerDeath();
                 scheduler.shutdownNow();
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, ClientUtilitiesFunction.HEARTBEAT_INTERVAL_S, TimeUnit.SECONDS);
 
         // ==========================================================
         // 3. GAME LOOP

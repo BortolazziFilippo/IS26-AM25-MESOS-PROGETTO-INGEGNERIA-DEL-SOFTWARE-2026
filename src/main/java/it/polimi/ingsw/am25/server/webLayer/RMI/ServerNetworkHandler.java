@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
@@ -401,16 +402,19 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             t.setDaemon(true);
             return t;
         });
-        // Grace period of 4s before first tick, then every 1s.
-        watchdogScheduler.scheduleAtFixedRate(this::watchdogTick, 4, 1, TimeUnit.SECONDS);
-        logServerEvent("Heartbeat watchdog started (tick=1s, threshold=3 missed pings).");
+        watchdogScheduler.scheduleAtFixedRate(this::watchdogTick,
+                UtilitiesConstant.HEARTBEAT_WATCHDOG_INITIAL_DELAY_S,
+                UtilitiesConstant.HEARTBEAT_WATCHDOG_INTERVAL_S,
+                TimeUnit.SECONDS);
+        logServerEvent("Heartbeat watchdog started (tick=" + UtilitiesConstant.HEARTBEAT_WATCHDOG_INTERVAL_S
+                + "s, threshold=" + UtilitiesConstant.HEARTBEAT_MISSED_PING_THRESHOLD + " missed pings).");
     }
 
     private void watchdogTick() {
         for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
             if (!view.isConnected()) continue;
             int missed = view.incrementMissedPings();
-            if (missed >= 3) {
+            if (missed >= UtilitiesConstant.HEARTBEAT_MISSED_PING_THRESHOLD) {
                 logServerEvent("Player '" + view.getNickname()
                         + "' missed " + missed + " consecutive pings — declaring disconnected.");
                 notifyPlayerDisconnected(view.getNickname());

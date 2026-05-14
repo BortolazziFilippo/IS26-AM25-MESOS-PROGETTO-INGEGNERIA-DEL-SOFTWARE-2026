@@ -832,6 +832,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onPlayerReconnected(nickname));
     }
 
+    @Override
+    public void pong() throws RemoteException {
+        // no-op: receiving this message is enough to reset the socket read timeout
+    }
+
 
     /**
      * Returns {@code true} if the given player is known to have disconnected.

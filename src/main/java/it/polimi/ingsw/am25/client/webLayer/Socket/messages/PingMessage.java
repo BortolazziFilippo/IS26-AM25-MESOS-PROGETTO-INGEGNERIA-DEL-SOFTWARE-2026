@@ -28,5 +28,6 @@ public class PingMessage implements ClientToServerMessage {
     @Override
     public void execute(ServerRemoteInterface serverRemoteInterface, ClientRemoteInterface clientRemoteInterface) throws Exception {
         serverRemoteInterface.ping(player);
+        clientRemoteInterface.pong();
     }
 }

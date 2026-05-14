@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.GUI;
 
+import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
@@ -77,6 +78,7 @@ public class GUIapp extends Application {
             serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
         } else if (method.equals("SOCKET")) {
             Socket socket = new Socket(serverIP, 6969);
+            socket.setSoTimeout(ClientUtilitiesFunction.SOCKET_TIMEOUT_MS);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             serverStub = new ServerSocketProxy(out, clientHandler);

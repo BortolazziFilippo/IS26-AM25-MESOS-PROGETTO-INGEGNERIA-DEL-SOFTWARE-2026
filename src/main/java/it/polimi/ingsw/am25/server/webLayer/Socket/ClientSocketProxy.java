@@ -12,6 +12,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.messages.boardMessaes.OrderOn
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.boardMessaes.PlayerPlacedOnOffertileMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.drawOneMoreCard.AskExtraDrawMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages.*;
+import it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages.PongMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.marketMessages.*;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.AddedCardToTribeMessage;
 import it.polimi.ingsw.am25.server.webLayer.Socket.messages.playerMessage.PlayerDisconnectedMessage;
@@ -541,6 +542,22 @@ public class ClientSocketProxy implements ClientRemoteInterface {
             }
         } catch (java.io.IOException e) {
             UtilitiesFunction.logError(LOG_PREFIX, "Error sending playerReconnected for '" + nickname + "'");
+        }
+    }
+
+    /**
+     * Sends a heartbeat pong response to the client.
+     */
+    @Override
+    public void pong() throws RemoteException {
+        try {
+            synchronized (out) {
+                out.writeObject(new PongMessage());
+                out.flush();
+                out.reset();
+            }
+        } catch (java.io.IOException e) {
+            UtilitiesFunction.logError(LOG_PREFIX, "Error sending pong to client");
         }
     }
 

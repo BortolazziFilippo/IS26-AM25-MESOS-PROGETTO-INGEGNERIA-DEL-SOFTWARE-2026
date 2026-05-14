@@ -15,6 +15,10 @@ public interface ClientUtilitiesFunction {
     /**
      * Log tag prepended to all messages written by this utility.
      */
+    int SOCKET_TIMEOUT_MS = 1000;
+    int HEARTBEAT_INTERVAL_S = 1;
+    int HEARTBEAT_MISSED_PONG_THRESHOLD = 3;
+
     String LOG_PREFIX = "[CLIENT][UTILS]";
     /**
      * Path of the client log file.

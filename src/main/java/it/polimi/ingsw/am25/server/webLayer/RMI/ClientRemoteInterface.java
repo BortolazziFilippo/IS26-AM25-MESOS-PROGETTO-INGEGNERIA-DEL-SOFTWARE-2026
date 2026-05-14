@@ -245,4 +245,12 @@ public interface ClientRemoteInterface extends Remote {
      */
     void playerReconnected(String nickname) throws RemoteException;
 
+    /**
+     * Heartbeat response sent by the server after every ping.
+     * Guarantees traffic on the socket so the client's read timeout does not fire on idle connections.
+     *
+     * @throws RemoteException if the RMI call fails.
+     */
+    void pong() throws RemoteException;
+
 }

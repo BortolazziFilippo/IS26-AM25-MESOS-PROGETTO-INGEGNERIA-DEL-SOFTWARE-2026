@@ -107,6 +107,7 @@ public class ClientLauncher {
                 serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
             } else {
                 Socket socket = new Socket(serverIp, 6969);
+                socket.setSoTimeout(ClientUtilitiesFunction.SOCKET_TIMEOUT_MS);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream in   = new ObjectInputStream(socket.getInputStream());
                 serverStub = new ServerSocketProxy(out, clientHandler);
