@@ -1,0 +1,126 @@
+package it.polimi.ingsw.am25.client.GUI;
+
+import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public class EndGameController {
+
+    @FXML private Label winnersLabel;
+    @FXML private TableView<PlayerRankEntry> rankingTable;
+    @FXML private TableColumn<PlayerRankEntry, Integer> rankColumn;
+    @FXML private TableColumn<PlayerRankEntry, String>  nameColumn;
+    @FXML private TableColumn<PlayerRankEntry, String>  colorColumn;
+    @FXML private TableColumn<PlayerRankEntry, Integer> ppColumn;
+    @FXML private TableColumn<PlayerRankEntry, Integer> foodColumn;
+    @FXML private ListView<String> globalLeaderboardList;
+
+    @FXML
+    public void initialize() {
+        rankColumn .setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getRank()).asObject());
+        nameColumn .setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getName()));
+        colorColumn.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getColor()));
+        ppColumn   .setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getPp()).asObject());
+        foodColumn .setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().getFood()).asObject());
+        rankingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        if (globalLeaderboardList != null) {
+            globalLeaderboardList.setItems(FXCollections.observableArrayList("Caricamento classifica globale..."));
+            globalLeaderboardList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                        getStyleClass().removeAll("cell-gold", "cell-silver", "cell-bronze");
+                    } else {
+                        setText(item);
+                        setAlignment(javafx.geometry.Pos.CENTER);
+                        getStyleClass().removeAll("cell-gold", "cell-silver", "cell-bronze");
+                        int idx = getIndex();
+                        if      (idx == 0) getStyleClass().add("cell-gold");
+                        else if (idx == 1) getStyleClass().add("cell-silver");
+                        else if (idx == 2) getStyleClass().add("cell-bronze");
+                    }
+                }
+            });
+        }
+    }
+
+    public void setData(List<PlayerDTO> winners, List<PlayerDTO> allPlayers) {
+        winnersLabel.setText(buildWinnersText(winners));
+
+        List<PlayerDTO> sorted = new ArrayList<>(allPlayers);
+        sorted.sort(Comparator.comparingInt(PlayerDTO::getPrestigePoint).reversed());
+
+        ObservableList<PlayerRankEntry> entries = FXCollections.observableArrayList();
+        for (int i = 0; i < sorted.size(); i++) {
+            PlayerDTO p = sorted.get(i);
+            String colorName = p.getColorTotem() != null ? p.getColorTotem().toString() : "-";
+            entries.add(new PlayerRankEntry(i + 1, p.getNickName(), colorName,
+                    p.getPrestigePoint(), p.getFood()));
+        }
+        rankingTable.setItems(entries);
+    }
+
+    private String buildWinnersText(List<PlayerDTO> winners) {
+        if (winners == null || winners.isEmpty()) return "Nessun vincitore.";
+        if (winners.size() == 1)
+            return "Vincitore: " + winners.get(0).getNickName()
+                    + "  (" + winners.get(0).getPrestigePoint() + " PP)";
+        StringBuilder sb = new StringBuilder("Vincitori: ");
+        for (PlayerDTO p : winners)
+            sb.append(p.getNickName()).append(" (").append(p.getPrestigePoint()).append(" PP)  ");
+        return sb.toString().trim();
+    }
+
+    public void setGlobalLeaderboard(List<String> entries) {
+        Platform.runLater(() -> {
+            if (globalLeaderboardList == null) return;
+            if (entries == null || entries.isEmpty()) {
+                globalLeaderboardList.setItems(FXCollections.observableArrayList("Nessun dato disponibile."));
+            } else {
+                globalLeaderboardList.setItems(FXCollections.observableArrayList(entries));
+            }
+        });
+    }
+
+    @FXML
+    private void handleClose() {
+        Platform.exit();
+    }
+
+    public static class PlayerRankEntry {
+        private final int rank;
+        private final String name;
+        private final String color;
+        private final int pp;
+        private final int food;
+
+        public PlayerRankEntry(int rank, String name, String color, int pp, int food) {
+            this.rank  = rank;
+            this.name  = name;
+            this.color = color;
+            this.pp    = pp;
+            this.food  = food;
+        }
+
+        public int    getRank()  { return rank;  }
+        public String getName()  { return name;  }
+        public String getColor() { return color; }
+        public int    getPp()    { return pp;    }
+        public int    getFood()  { return food;  }
+    }
+}
