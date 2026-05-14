@@ -27,7 +27,7 @@ public class ServerApp {
      *
      * @param args parameter args.
      */
-    static void main(String[] args) {
+    public static void main(String[] args) {
         UtilitiesFunction.initLog();
         try {
             String myIp = getLocalIPv4();
