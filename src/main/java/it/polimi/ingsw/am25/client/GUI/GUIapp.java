@@ -74,6 +74,7 @@ public class GUIapp extends Application {
         if (method.equals("RMI")) {
             String IP = it.polimi.ingsw.am25.client.ClientApp.getLocalIPv4();
             System.setProperty("java.rmi.server.hostname", IP);
+            System.setProperty("sun.rmi.transport.tcp.responseTimeout", String.valueOf(ClientUtilitiesFunction.RMI_RESPONSE_TIMEOUT_MS));
             Registry registry = LocateRegistry.getRegistry(serverIP, 1099);
             serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
         } else if (method.equals("SOCKET")) {

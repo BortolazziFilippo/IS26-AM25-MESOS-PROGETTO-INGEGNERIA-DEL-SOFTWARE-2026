@@ -103,6 +103,7 @@ public class ClientLauncher {
             if (method.equals("RMI")) {
                 String myIp = ClientApp.getLocalIPv4();
                 System.setProperty("java.rmi.server.hostname", myIp);
+                System.setProperty("sun.rmi.transport.tcp.responseTimeout", String.valueOf(ClientUtilitiesFunction.RMI_RESPONSE_TIMEOUT_MS));
                 Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
                 serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
             } else {

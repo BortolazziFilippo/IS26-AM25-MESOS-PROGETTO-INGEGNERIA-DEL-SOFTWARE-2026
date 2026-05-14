@@ -18,6 +18,7 @@ public interface ClientUtilitiesFunction {
     int SOCKET_TIMEOUT_MS = 1000;
     int HEARTBEAT_INTERVAL_S = 1;
     int HEARTBEAT_MISSED_PONG_THRESHOLD = 3;
+    int RMI_RESPONSE_TIMEOUT_MS = 1000;
 
     String LOG_PREFIX = "[CLIENT][UTILS]";
     /**

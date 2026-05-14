@@ -57,6 +57,7 @@ public class ClientApp {
             if (method.equalsIgnoreCase("RMI")) {
                 String myIp = getLocalIPv4();
                 System.setProperty("java.rmi.server.hostname", myIp);
+                System.setProperty("sun.rmi.transport.tcp.responseTimeout", String.valueOf(ClientUtilitiesFunction.RMI_RESPONSE_TIMEOUT_MS));
                 ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Tentativo di connessione al Server [" + serverIp + "] dal Client [" + myIp + "]...");
                 Registry registry = LocateRegistry.getRegistry(serverIp, 1099);
                 serverStub = (ServerRemoteInterface) registry.lookup("MesosServer");
