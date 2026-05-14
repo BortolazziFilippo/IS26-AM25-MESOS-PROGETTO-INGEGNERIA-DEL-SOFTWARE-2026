@@ -1549,6 +1549,7 @@ public class MarketController implements GUIObserver {
     }
 
     private void startHeartbeat() {
+        clientHandler.heartbeatActive = true;
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "gui-heartbeat-ping");
             t.setDaemon(true);

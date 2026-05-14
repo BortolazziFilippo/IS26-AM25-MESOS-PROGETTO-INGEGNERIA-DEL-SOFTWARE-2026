@@ -64,6 +64,7 @@ public class ClientTUI {
         // myPlayer is now known — start sending heartbeats every 1 s.
         // ==========================================================
         final PlayerDTO pingPlayer = myPlayer;
+        clientHandler.heartbeatActive = true;
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "heartbeat-ping");
             t.setDaemon(true);

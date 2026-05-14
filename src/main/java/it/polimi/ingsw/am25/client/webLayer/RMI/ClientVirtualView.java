@@ -123,6 +123,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     private final Queue<String> recentReconnections = new ConcurrentLinkedQueue<>();
     /** {@code true} when the server has been detected as unreachable. */
     public volatile boolean serverDead = false;
+    /** {@code true} once the heartbeat scheduler has started; enables pong-timeout counting in ServerListener. */
+    public volatile boolean heartbeatActive = false;
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.

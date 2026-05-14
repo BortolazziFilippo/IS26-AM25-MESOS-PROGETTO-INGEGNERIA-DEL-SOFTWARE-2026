@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
+import it.polimi.ingsw.am25.server.webLayer.Socket.ClientSocketProxy;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 import it.polimi.ingsw.am25.server.webLayer.ServerVirtualView;
 
@@ -373,6 +374,9 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
         // Stop sending notifications to the dead client
         disconnectedView.markDisconnected();
+        if (disconnectedView.getClientStub() instanceof ClientSocketProxy proxy) {
+            proxy.closeConnection();
+        }
         logServerEvent("Player '" + nickname + "' has disconnected.");
 
         // 1. Tell all surviving connected clients about the disconnection

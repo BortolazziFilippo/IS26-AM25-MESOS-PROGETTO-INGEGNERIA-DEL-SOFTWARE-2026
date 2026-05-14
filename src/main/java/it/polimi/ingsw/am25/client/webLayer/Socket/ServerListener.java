@@ -54,7 +54,7 @@ public class ServerListener extends Thread {
                 message = (ServerToClientMessage) in.readObject();
                 missedPongs = 0; // any message resets the counter
             } catch (SocketTimeoutException e) {
-                if (++missedPongs >= ClientUtilitiesFunction.HEARTBEAT_MISSED_PONG_THRESHOLD) {
+                if (clientHandler.heartbeatActive && ++missedPongs >= ClientUtilitiesFunction.HEARTBEAT_MISSED_PONG_THRESHOLD) {
                     System.err.println(LOG_PREFIX + " Server non risponde da " + missedPongs + " timeout consecutivi — connessione persa.");
                     clientHandler.handleServerDeath();
                     return;
