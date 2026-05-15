@@ -95,15 +95,24 @@ public class LobbyController implements GUIObserver {
     }
 
     private void startHeartbeat() {
+        clientHandler.heartbeatActive = true;
+        clientHandler.startPongWatchdog();
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "Heartbeat Thread");
             t.setDaemon(true);
             return t;
         });
         scheduler.scheduleAtFixedRate(() -> {
+            if (clientHandler.isServerDead()) {
+                scheduler.shutdownNow();
+                return;
+            }
             try {
                 serverStub.ping(playerDTO);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                clientHandler.handleServerDeath();
+                scheduler.shutdownNow();
+            }
         }, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -119,7 +128,6 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.createGame(player, spinner.getValue(), clientHandler);
-            startHeartbeat();
             label.setText("Partita creata. In attesa di altri giocatori...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -138,7 +146,6 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.loadGame(player, clientHandler);
-            startHeartbeat();
             label.setText("Partita trovata! In attesa degli altri giocatori...");
             loadButton.setDisable(true);
             createButton.setDisable(true);
@@ -160,7 +167,6 @@ public class LobbyController implements GUIObserver {
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.addPlayer(player, clientHandler);
-            startHeartbeat();
             label.setText("Unito alla lobby. In attesa che inizi...");
             createButton.setDisable(true);
             joinButton.setDisable(true);
@@ -204,6 +210,7 @@ public class LobbyController implements GUIObserver {
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         if (gamePhase != GAME_PHASE.SETUP && !gameScreenShown) {
             gameScreenShown = true;
+            startHeartbeat();
             Platform.runLater(() -> showStartingScreenThenGame());
         }
     }

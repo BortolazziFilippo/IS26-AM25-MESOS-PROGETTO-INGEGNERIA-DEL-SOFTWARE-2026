@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.server.webLayer;
 
+import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
 import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
@@ -127,6 +128,15 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
      */
     public int incrementMissedPings() {
         return missedPings.incrementAndGet();
+    }
+
+    /**
+     * Sends a keepalive pong to the client. Called by the server watchdog every tick
+     * so the client's {@link PongWatchdog} can
+     * detect server death if pongs stop arriving.
+     */
+    public void sendPong() {
+        submitTask(() -> clientStub.pong());
     }
 
     /**

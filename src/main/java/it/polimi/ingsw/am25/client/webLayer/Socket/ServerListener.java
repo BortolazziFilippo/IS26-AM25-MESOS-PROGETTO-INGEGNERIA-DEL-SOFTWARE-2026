@@ -1,6 +1,5 @@
 package it.polimi.ingsw.am25.client.webLayer.Socket;
 
-import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
@@ -45,21 +44,15 @@ public class ServerListener extends Thread {
      */
     @Override
     public void run() {
-        int missedPongs = 0;
         while (!Thread.currentThread().isInterrupted()) {
             ServerToClientMessage message;
 
             // --- Read phase ---
             try {
                 message = (ServerToClientMessage) in.readObject();
-                missedPongs = 0; // any message resets the counter
+                clientHandler.recordActivity(); // any message proves the server is alive
             } catch (SocketTimeoutException e) {
-                if (clientHandler.heartbeatActive && ++missedPongs >= ClientUtilitiesFunction.HEARTBEAT_MISSED_PONG_THRESHOLD) {
-                    System.err.println(LOG_PREFIX + " Server non risponde da " + missedPongs + " timeout consecutivi — connessione persa.");
-                    clientHandler.handleServerDeath();
-                    return;
-                }
-                continue;
+                continue; // PongWatchdog handles silence detection
             } catch (IOException | ClassNotFoundException e) {
                 System.err.println(LOG_PREFIX + " Connessione persa col Server: " + e.getMessage());
                 clientHandler.handleServerDeath();

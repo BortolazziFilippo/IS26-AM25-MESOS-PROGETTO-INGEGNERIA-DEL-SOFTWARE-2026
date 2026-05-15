@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.client.TUI;
 
 import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
+import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
@@ -61,10 +62,19 @@ public class ClientTUI {
 
         // ==========================================================
         // 2. PING THREAD
-        // myPlayer is now known — start sending heartbeats every 1 s.
+        // Aspetta che la partita inizi (gamePhase != null), poi avvia
+        // heartbeat e PongWatchdog in sincronia con il server.
         // ==========================================================
+        synchronized (clientHandler.turnLock) {
+            while (clientHandler.getGamePhase() == null && !clientHandler.isServerDead()) {
+                try { clientHandler.turnLock.wait(300); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            }
+        }
+
         final PlayerDTO pingPlayer = myPlayer;
         clientHandler.heartbeatActive = true;
+        clientHandler.startPongWatchdog();
+
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "heartbeat-ping");
             t.setDaemon(true);
@@ -81,7 +91,7 @@ public class ClientTUI {
                 clientHandler.handleServerDeath();
                 scheduler.shutdownNow();
             }
-        }, 0, ClientUtilitiesFunction.HEARTBEAT_INTERVAL_S, TimeUnit.SECONDS);
+        }, 0, PongWatchdog.INTERVAL_S, TimeUnit.SECONDS);
 
         // ==========================================================
         // 3. GAME LOOP

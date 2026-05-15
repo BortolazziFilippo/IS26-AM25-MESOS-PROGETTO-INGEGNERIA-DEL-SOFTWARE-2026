@@ -67,13 +67,6 @@ public final class UtilitiesConstant {
      */
     public static final List<Integer> SCORE_FIVE_PLAYERS = new ArrayList<>(Arrays.asList(25, 16, 9, 4, 1));
 
-    /** Seconds between each heartbeat watchdog tick. */
-    public static final int HEARTBEAT_WATCHDOG_INTERVAL_S = 1;
-    /** Grace period in seconds before the first watchdog tick after startup. */
-    public static final int HEARTBEAT_WATCHDOG_INITIAL_DELAY_S = 4;
-    /** Number of consecutive missed pings before a player is declared disconnected. */
-    public static final int HEARTBEAT_MISSED_PING_THRESHOLD = 3;
-
     /**
      * Utility class — not instantiable.
      */

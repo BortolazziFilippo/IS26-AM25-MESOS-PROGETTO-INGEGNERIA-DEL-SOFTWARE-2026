@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.client.GUI.Controllers;
 
 import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
+import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.client.GUI.popup.DisconnectPopup;
 import it.polimi.ingsw.am25.client.GUI.popup.EventPopup;
@@ -1549,7 +1550,6 @@ public class MarketController implements GUIObserver {
     }
 
     private void startHeartbeat() {
-        clientHandler.heartbeatActive = true;
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "gui-heartbeat-ping");
             t.setDaemon(true);
@@ -1570,6 +1570,6 @@ public class MarketController implements GUIObserver {
                     scheduler.shutdownNow();
                 }
             }
-        }, 0, ClientUtilitiesFunction.HEARTBEAT_INTERVAL_S, TimeUnit.SECONDS);
+        }, 0, PongWatchdog.INTERVAL_S, TimeUnit.SECONDS);
     }
 }

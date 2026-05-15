@@ -6,7 +6,6 @@ import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
-import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ClientSocketProxy;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
@@ -30,6 +29,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ServerNetworkHandler extends UnicastRemoteObject implements ServerRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
+    private static final int HEARTBEAT_WATCHDOG_INTERVAL_S = 1;
+    private static final int HEARTBEAT_WATCHDOG_INITIAL_DELAY_S = 4;
+    private static final int HEARTBEAT_MISSED_PING_THRESHOLD = 3;
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
     /**
      * Fast nickname → view lookup used by ping() without holding the global lock.
@@ -192,8 +194,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             view.forceInitialPlayersSync(this.playerDTOS);
         }
         logServerEvent("All clients synced. The game is ready!");
-        controller.controllerGameStar();
         startWatchdog();
+        controller.controllerGameStar();
     }
 
     /**
@@ -401,24 +403,37 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      * (~3 seconds total) the player is declared disconnected.
      */
     private void startWatchdog() {
+        if (watchdogScheduler != null) return;
         watchdogScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "heartbeat-watchdog");
             t.setDaemon(true);
             return t;
         });
-        watchdogScheduler.scheduleAtFixedRate(this::watchdogTick,
-                UtilitiesConstant.HEARTBEAT_WATCHDOG_INITIAL_DELAY_S,
-                UtilitiesConstant.HEARTBEAT_WATCHDOG_INTERVAL_S,
+        // Pong sending starts immediately so clients can feed their PongWatchdog right away.
+        watchdogScheduler.scheduleAtFixedRate(this::sendPongs,
+                HEARTBEAT_WATCHDOG_INTERVAL_S,
+                HEARTBEAT_WATCHDOG_INTERVAL_S,
                 TimeUnit.SECONDS);
-        logServerEvent("Heartbeat watchdog started (tick=" + UtilitiesConstant.HEARTBEAT_WATCHDOG_INTERVAL_S
-                + "s, threshold=" + UtilitiesConstant.HEARTBEAT_MISSED_PING_THRESHOLD + " missed pings).");
+        // Ping checking uses a grace period to let clients start pinging first.
+        watchdogScheduler.scheduleAtFixedRate(this::checkMissedPings,
+                HEARTBEAT_WATCHDOG_INITIAL_DELAY_S,
+                HEARTBEAT_WATCHDOG_INTERVAL_S,
+                TimeUnit.SECONDS);
+        logServerEvent("Heartbeat watchdog started (tick=" + HEARTBEAT_WATCHDOG_INTERVAL_S
+                + "s, threshold=" + HEARTBEAT_MISSED_PING_THRESHOLD + " missed pings).");
     }
 
-    private void watchdogTick() {
+    private void sendPongs() {
+        for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
+            if (view.isConnected()) view.sendPong();
+        }
+    }
+
+    private void checkMissedPings() {
         for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
             if (!view.isConnected()) continue;
             int missed = view.incrementMissedPings();
-            if (missed >= UtilitiesConstant.HEARTBEAT_MISSED_PING_THRESHOLD) {
+            if (missed >= HEARTBEAT_MISSED_PING_THRESHOLD) {
                 logServerEvent("Player '" + view.getNickname()
                         + "' missed " + missed + " consecutive pings — declaring disconnected.");
                 notifyPlayerDisconnected(view.getNickname());
@@ -571,8 +586,8 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         for (ServerVirtualView view : waitingPlayers) {
             view.forceInitialPlayersSync(playerDTOS);
         }
-        controller.resumeGame();
         startWatchdog();
+        controller.resumeGame();
     }
 
     private void logServerEvent(String message) {

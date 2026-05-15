@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.client.webLayer.RMI;
 
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
+import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
@@ -13,7 +14,6 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -125,6 +125,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public volatile boolean serverDead = false;
     /** {@code true} once the heartbeat scheduler has started; enables pong-timeout counting in ServerListener. */
     public volatile boolean heartbeatActive = false;
+    private final PongWatchdog pongWatchdog = new PongWatchdog();
 
     /**
      * Creates a new client virtual view and exports it as an RMI remote object.
@@ -836,7 +837,31 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 
     @Override
     public void pong() throws RemoteException {
-        // no-op: receiving this message is enough to reset the socket read timeout
+        pongWatchdog.recordActivity();
+    }
+
+    /**
+     * Records that the server is still alive. Called by {@code ServerListener} on every
+     * received message so that any server activity (not just pong) resets the watchdog.
+     */
+    public void recordActivity() {
+        pongWatchdog.recordActivity();
+    }
+
+    /**
+     * Starts the pong watchdog. Must be called once the heartbeat is active.
+     * Triggers {@link #handleServerDeath()} automatically if the server goes silent
+     * for longer than {@link it.polimi.ingsw.am25.client.webLayer.PongWatchdog#THRESHOLD_MS}.
+     */
+    public void startPongWatchdog() {
+        pongWatchdog.start(this::handleServerDeath);
+    }
+
+    /**
+     * Stops the pong watchdog (e.g. on clean shutdown or intentional disconnection).
+     */
+    public void stopPongWatchdog() {
+        pongWatchdog.stop();
     }
 
 
