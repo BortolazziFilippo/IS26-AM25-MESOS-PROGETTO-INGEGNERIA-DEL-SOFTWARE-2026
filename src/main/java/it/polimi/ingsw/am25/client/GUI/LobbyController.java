@@ -5,6 +5,7 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
+import it.polimi.ingsw.am25.server.model.Utilities.Exception.GameFullException;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.PlayerDTO;
 
 import javafx.animation.Animation;
@@ -13,19 +14,28 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class LobbyController implements GUIObserver {
+
+    private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
 
     private final Stage stage;
     private final ServerRemoteInterface serverStub;
@@ -34,10 +44,10 @@ public class LobbyController implements GUIObserver {
     // ---- Nodi iniettati dall'FXML (i nomi DEVONO corrispondere agli fx:id) ----
     @FXML private TextField nicknameField;
     @FXML private ComboBox<COLOR> colorBox;
-    @FXML private Spinner<Integer> spinner;
-    @FXML private Button createButton;
-    @FXML private Button joinButton;
+    @FXML private Button enterButton;
     @FXML private Button loadButton;
+    @FXML private Button joinLoadedButton;
+    @FXML private Button rankButton;
     @FXML private Label label;
     @FXML private ListView<String> playerList;
 
@@ -45,6 +55,9 @@ public class LobbyController implements GUIObserver {
     private PlayerDTO playerDTO;
     private MarketController marketController;
     private boolean gameScreenShown = false;
+
+    /** Cache delle immagini totem (caricate una volta sola). */
+    private final Map<COLOR, Image> totemImages = new EnumMap<>(COLOR.class);
 
     public LobbyController(ServerRemoteInterface serverStub, ClientVirtualView clientHandler, Stage stage) {
         this.serverStub = serverStub;
@@ -73,9 +86,71 @@ public class LobbyController implements GUIObserver {
      */
     @FXML
     private void initialize() {
+        // Preload delle immagini totem
+        for (COLOR c : COLOR.values()) {
+            Image img = loadTotemImage(c);
+            if (img != null) totemImages.put(c, img);
+        }
+
         colorBox.getItems().setAll(COLOR.values());
         colorBox.setValue(COLOR.RED);
-        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 5, 2));
+
+        // Voci della tendina con immagine totem + nome del colore
+        colorBox.setCellFactory(lv -> new ListCell<COLOR>() {
+            private final ImageView iv = new ImageView();
+            {
+                iv.setFitWidth(28);
+                iv.setFitHeight(28);
+                iv.setPreserveRatio(true);
+            }
+            @Override
+            protected void updateItem(COLOR item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item.name());
+                    Image img = totemImages.get(item);
+                    iv.setImage(img);
+                    setGraphic(img != null ? iv : null);
+                }
+            }
+        });
+
+        // Cella selezionata mostrata nel bottone del ComboBox
+        colorBox.setButtonCell(new ListCell<COLOR>() {
+            private final ImageView iv = new ImageView();
+            {
+                iv.setFitWidth(24);
+                iv.setFitHeight(24);
+                iv.setPreserveRatio(true);
+            }
+            @Override
+            protected void updateItem(COLOR item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item.name());
+                    Image img = totemImages.get(item);
+                    iv.setImage(img);
+                    setGraphic(img != null ? iv : null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Carica l'immagine del totem per il colore indicato.
+     * Path: /images/totems/pedine_specs_&lt;color&gt;Totem.png (lowercase).
+     * Restituisce null se l'immagine non esiste.
+     */
+    private Image loadTotemImage(COLOR color) {
+        String path = "/images/totems/pedine_specs_" + color.name().toLowerCase() + "Totem.png";
+        InputStream stream = getClass().getResourceAsStream(path);
+        return stream != null ? new Image(stream) : null;
     }
 
     private PlayerDTO buildPlayer() {
@@ -100,66 +175,113 @@ public class LobbyController implements GUIObserver {
         }, 0, 1, TimeUnit.SECONDS);
     }
 
+    /**
+     * Bottone unico "Crea partita / Unisciti":
+     *  - tenta addPlayer;
+     *  - se il server risponde "Nessuna partita creata!" apre un dialog che chiede
+     *    il numero di giocatori e chiama createGame;
+     *  - se durante la creazione un altro client ha già creato la lobby
+     *    (IllegalStateException), ritenta automaticamente addPlayer.
+     */
     @FXML
-    private void onCreateGame() {
+    private void onEnter() {
         PlayerDTO player = buildPlayer();
         if (player == null) return;
-        // IMPORTANTE: prepara playerDTO e marketController PRIMA della chiamata RMI.
-        // Quando l'ultimo giocatore si unisce, il server (dentro la stessa chiamata)
-        // fa partire la partita e spara gamePhaseChanged(PLACING_PHASE) al volo:
-        // se marketController è ancora null, onGamePhaseChanged crasha.
-        playerDTO = player;
-        marketController = new MarketController(clientHandler, serverStub, playerDTO);
-        try {
-            serverStub.createGame(player, spinner.getValue(), clientHandler);
-            startHeartbeat();
-            label.setText("Partita creata. In attesa di altri giocatori...");
-            createButton.setDisable(true);
-            joinButton.setDisable(true);
-        } catch (Exception e) {
-            label.setText("❌ Errore durante la creazione: " + e.getMessage());
-        }
+        tryEnterLobby(player);
     }
 
-    @FXML
-    private void onLoadGame() {
-        PlayerDTO player = buildPlayer();
-        if (player == null) return;
-        // Prepara playerDTO e marketController PRIMA della chiamata RMI
-        // (il server può sparare gamePhaseChanged dentro la stessa chiamata).
-        playerDTO = player;
-        marketController = new MarketController(clientHandler, serverStub, playerDTO);
-        try {
-            serverStub.loadGame(player, clientHandler);
-            startHeartbeat();
-            label.setText("Partita trovata! In attesa degli altri giocatori...");
-            loadButton.setDisable(true);
-            createButton.setDisable(true);
-            joinButton.setDisable(true);
-        } catch (Exception e) {
-            label.setText("❌ Errore: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void onJoinGame() {
-        PlayerDTO player = buildPlayer();
-        if (player == null) return;
-        // IMPORTANTE: prepara playerDTO e marketController PRIMA della chiamata RMI.
-        // Per il giocatore che fa partire la partita (cioè quello che riempie la
-        // lobby), il server fa scattare gamePhaseChanged dentro la stessa chiamata,
-        // e onGamePhaseChanged ha bisogno che marketController esista già.
+    private void tryEnterLobby(PlayerDTO player) {
+        // Prepara playerDTO e marketController PRIMA della chiamata RMI:
+        // se siamo l'ultimo che riempie la lobby, il server fa scattare
+        // gamePhaseChanged dentro la stessa chiamata e onGamePhaseChanged
+        // ha bisogno che marketController esista già.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         try {
             serverStub.addPlayer(player, clientHandler);
             startHeartbeat();
             label.setText("Unito alla lobby. In attesa che inizi...");
-            createButton.setDisable(true);
-            joinButton.setDisable(true);
-        } catch (Exception e) {
-            label.setText("❌ Errore durante l'unione alla lobby: " + e.getMessage());
+            disableLobbyButtons();
+        } catch (GameFullException ex) {
+            if (NO_LOBBY_MESSAGE.equals(ex.getMessage())) {
+                askCreateGame(player);
+            } else {
+                label.setText("❌ " + ex.getMessage());
+            }
+        } catch (Exception ex) {
+            label.setText("❌ " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
         }
+    }
+
+    /** Dialog modale che chiede il numero di giocatori e crea la partita. */
+    private void askCreateGame(PlayerDTO player) {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Crea partita");
+        dialog.setHeaderText("Nessuna partita aperta.\nVuoi crearne una nuova?");
+
+        Spinner<Integer> sp = new Spinner<>(2, 5, 2);
+        sp.setEditable(false);
+        sp.setPrefWidth(100);
+        VBox content = new VBox(10, new Label("Numero di giocatori:"), sp);
+        content.setPadding(new Insets(10));
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType creaBT = new ButtonType("Crea partita", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(creaBT, ButtonType.CANCEL);
+        dialog.setResultConverter(bt -> bt == creaBT ? sp.getValue() : null);
+
+        Optional<Integer> res = dialog.showAndWait();
+        if (res.isEmpty()) {
+            label.setText("Creazione annullata.");
+            return;
+        }
+
+        try {
+            serverStub.createGame(player, res.get(), clientHandler);
+            startHeartbeat();
+            label.setText("Partita creata. In attesa di altri giocatori...");
+            disableLobbyButtons();
+        } catch (IllegalStateException ex) {
+            // Race: qualcuno ha creato la lobby nel frattempo. Ritentiamo addPlayer.
+            label.setText("Una lobby è apparsa nel frattempo, ti unisco...");
+            tryEnterLobby(player);
+        } catch (Exception ex) {
+            label.setText("❌ Errore creazione: " + ex.getMessage());
+        }
+    }
+
+    private void disableLobbyButtons() {
+        enterButton.setDisable(true);
+        loadButton.setDisable(true);
+        joinLoadedButton.setDisable(true);
+    }
+
+    @FXML
+    private void onLoadGame() {
+        PlayerDTO player = buildPlayer();
+        if (player == null) return;
+        playerDTO = player;
+        marketController = new MarketController(clientHandler, serverStub, playerDTO);
+        try {
+            serverStub.loadGame(player, clientHandler);
+            startHeartbeat();
+            label.setText("Partita trovata! In attesa degli altri giocatori...");
+            disableLobbyButtons();
+        } catch (Exception e) {
+            label.setText("❌ Errore: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onJoinLoadedGame() {
+        // TODO: implementare l'unione a una partita caricata
+        label.setText("La funzione 'Unisciti a partita caricata' arriverà presto.");
+    }
+
+    @FXML
+    private void onShowRank() {
+        // TODO: implementare la visualizzazione della classifica
+        label.setText("La funzione 'Classifica' arriverà presto.");
     }
 
     // --- Observer callbacks (chiamate dal thread di rete!) ---
@@ -188,7 +310,6 @@ public class LobbyController implements GUIObserver {
      * con effetto pulse, poi fade out e carica la schermata di gioco.
      */
     private void showStartingScreenThenGame() {
-        // Costruzione della schermata di transizione
         Label title = new Label("MESOS");
         title.setStyle(
             "-fx-font-family: 'Georgia'; -fx-font-size: 64px; -fx-font-weight: bold; "
@@ -206,13 +327,11 @@ public class LobbyController implements GUIObserver {
         box.setAlignment(Pos.CENTER);
         box.setStyle("-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);");
 
-        // Mantiene le dimensioni correnti dello stage
         double w = stage.getWidth()  > 0 ? stage.getWidth()  : 720;
         double h = stage.getHeight() > 0 ? stage.getHeight() : 600;
         stage.setScene(new Scene(box, w, h));
         stage.setTitle("MESOS — La partita inizia");
 
-        // Effetto pulse sul sottotitolo
         FadeTransition pulse = new FadeTransition(Duration.millis(700), subtitle);
         pulse.setFromValue(0.3);
         pulse.setToValue(1.0);
@@ -220,7 +339,6 @@ public class LobbyController implements GUIObserver {
         pulse.setCycleCount(Animation.INDEFINITE);
         pulse.play();
 
-        // Dopo 2.5 secondi, fade out e poi carica la game scene
         PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
         pause.setOnFinished(e -> {
             pulse.stop();
