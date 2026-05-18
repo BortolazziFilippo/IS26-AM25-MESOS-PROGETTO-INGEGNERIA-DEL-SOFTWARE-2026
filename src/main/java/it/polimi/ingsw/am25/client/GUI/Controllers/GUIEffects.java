@@ -4,7 +4,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
+import javax.imageio.ImageIO;
+import java.awt.Taskbar;
+import java.net.URL;
 
 public class GUIEffects {
 
@@ -19,6 +25,27 @@ public class GUIEffects {
      *
      * @return a new {@link DropShadow} with gold colour, radius 25, and spread 0.4.
      */
+    /** Sets the application icon on the given stage and on the OS taskbar. */
+    public static void applyIcon(Stage stage) {
+        URL url = GUIEffects.class.getResource("/images/frontScreen.png");
+        if (url == null) return;
+
+        stage.getIcons().add(new Image(url.toExternalForm()));
+
+        // AWT Taskbar API — used on macOS/Windows (not needed on Linux where .desktop handles it)
+        if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) {
+            try {
+                if (Taskbar.isTaskbarSupported()) {
+                    Taskbar tb = Taskbar.getTaskbar();
+                    if (tb.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                        final java.awt.Image img = ImageIO.read(url);
+                        java.awt.EventQueue.invokeLater(() -> tb.setIconImage(img));
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     public static DropShadow goldGlow() {
         DropShadow glow = new DropShadow();
         glow.setColor(Color.GOLD);

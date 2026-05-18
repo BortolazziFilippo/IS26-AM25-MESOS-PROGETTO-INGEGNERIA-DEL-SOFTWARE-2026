@@ -6,6 +6,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import it.polimi.ingsw.am25.client.GUI.Controllers.GUIEffects;
 import javafx.stage.Stage;
 
 public class DisconnectPopup {
@@ -37,6 +38,7 @@ public class DisconnectPopup {
             box.setPadding(new Insets(20));
 
             stage = new Stage();
+            GUIEffects.applyIcon(stage);
             stage.setTitle("Stato giocatori");
             Scene scene = new Scene(box);
             scene.getStylesheets().add(getClass().getResource("/FXML/Market.css").toExternalForm());

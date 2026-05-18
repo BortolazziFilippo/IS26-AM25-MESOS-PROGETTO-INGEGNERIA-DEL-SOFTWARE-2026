@@ -128,9 +128,12 @@ public class ServerSocketProxy implements ServerRemoteInterface {
      */
     @Override
     public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
+        // Extra-draw cards come from the end-of-round snapshot. After endOfRoundMarketActions()
+        // old top cards shift to the bottom list, so the server sends bottomCardRemoved /
+        // bottomBuildRemoved (not top) when the selected card is removed from the live market.
         int prevCount = (cardType == CARD_TYPE.BUILDING)
-                ? clientHandler.getTopBuildingSize()
-                : clientHandler.getTopCardSize();
+                ? clientHandler.getBottomBuildingSize()
+                : clientHandler.getBottomCardSize();
 
         ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending selectExtraCard request for " + player.getNickName() + ", type " + cardType + ", position " + position + ".");
         send(new SelectExtraCardMessage(player, cardType, position));
@@ -139,8 +142,8 @@ public class ServerSocketProxy implements ServerRemoteInterface {
         synchronized (clientHandler.turnLock) {
             while (!clientHandler.connectionError) {
                 int currentCount = (cardType == CARD_TYPE.BUILDING)
-                        ? clientHandler.getTopBuildingSize()
-                        : clientHandler.getTopCardSize();
+                        ? clientHandler.getBottomBuildingSize()
+                        : clientHandler.getBottomCardSize();
                 if (currentCount < prevCount) break; // card removed = success
                 try {
                     clientHandler.turnLock.wait();

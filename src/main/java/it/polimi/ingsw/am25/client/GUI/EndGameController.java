@@ -118,7 +118,7 @@ public class EndGameController {
 
     @FXML
     private void handleClose() {
-        Platform.exit();
+        System.exit(0);
     }
 
     public static class PlayerRankEntry {

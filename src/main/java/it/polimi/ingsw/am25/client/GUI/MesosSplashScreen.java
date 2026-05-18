@@ -1,5 +1,6 @@
 package it.polimi.ingsw.am25.client.GUI;
 
+import it.polimi.ingsw.am25.client.GUI.Controllers.GUIEffects;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -125,6 +126,7 @@ public class MesosSplashScreen {
         stage.setTitle("MESOS — IS26-AM25");
         stage.initStyle(StageStyle.DECORATED);
         stage.setResizable(false);
+        GUIEffects.applyIcon(stage);
         stage.show();
 
         // =============================================================

@@ -378,7 +378,9 @@ public class Controller {
                 .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
                 .count();
         if (connectedCount <= 1) {
-            forceEndGame();
+            if (game.getGamePhase() != GAME_PHASE.END_GAME) {
+                forceEndGame();
+            }
             return;
         }
 
@@ -399,6 +401,13 @@ public class Controller {
                 advanceTurnOrRound();
             }
         }
+    }
+
+    /**
+     * Returns {@code true} if the game has reached the {@link GAME_PHASE#END_GAME} phase.
+     */
+    public boolean isGameOver() {
+        return game != null && game.getGamePhase() == GAME_PHASE.END_GAME;
     }
 
     /**
@@ -481,6 +490,9 @@ public class Controller {
         Player playerToAdd= this.players.stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
         if(playerToAdd == null){
             throw new IllegalStateException("Nickname not found");
+        }
+        if(playerToAdd.getConnection() == CONNECTION_STATUS.CONNECTED){
+            throw new IllegalStateException("Player already connected");
         }
         playerToAdd.setConnection(CONNECTION_STATUS.CONNECTED);
         if(players.stream().allMatch(p -> p.getConnection() == CONNECTION_STATUS.CONNECTED)){

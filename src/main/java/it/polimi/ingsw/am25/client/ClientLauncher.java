@@ -12,6 +12,9 @@ import javafx.application.Application;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
@@ -47,10 +50,40 @@ public class ClientLauncher {
         System.out.println();
 
         if (view.equals("GUI")) {
+            System.setProperty("javafx.application.name", "GUIapp");
+            installDesktopEntry();
             Application.launch(GUIapp.class, ip, protocol);
         } else {
             launchTUI(ip, protocol);
         }
+    }
+
+    /** Writes ~/.local/share/applications/am25.desktop so GNOME dock shows frontScreen.png. */
+    private static void installDesktopEntry() {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) return;
+        try {
+            Path pixmapsDir = Path.of(System.getProperty("user.home"), ".local", "share", "pixmaps");
+            Path appDir     = Path.of(System.getProperty("user.home"), ".local", "share", "applications");
+            Files.createDirectories(pixmapsDir);
+            Files.createDirectories(appDir);
+
+            Path iconDest = pixmapsDir.resolve("am25.png");
+            try (var in = ClientLauncher.class.getResourceAsStream("/images/frontScreen.png")) {
+                if (in != null) Files.copy(in, iconDest, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            String desktop = "[Desktop Entry]\n"
+                    + "Type=Application\n"
+                    + "Name=MESOS\n"
+                    + "Icon=" + iconDest.toAbsolutePath() + "\n"
+                    + "StartupWMClass=it.polimi.ingsw.am25.client.GUI.GUIapp\n"
+                    + "Terminal=false\n"
+                    + "Categories=Game;\n";
+            Files.writeString(appDir.resolve("am25.desktop"), desktop);
+
+            new ProcessBuilder("update-desktop-database", appDir.toString())
+                    .start().waitFor();
+        } catch (Exception ignored) {}
     }
 
     private static void printBanner() {

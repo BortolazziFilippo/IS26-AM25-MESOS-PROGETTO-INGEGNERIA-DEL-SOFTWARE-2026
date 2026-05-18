@@ -1,6 +1,7 @@
 package it.polimi.ingsw.am25.client.GUI.popup;
 
 import it.polimi.ingsw.am25.client.GUI.Controllers.CardImageFactory;
+import it.polimi.ingsw.am25.client.GUI.Controllers.GUIEffects;
 import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -80,6 +81,7 @@ public class EventPopup {
             scene.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> stage.close());
 
             stage = new Stage();
+            GUIEffects.applyIcon(stage);
             stage.setTitle("Eventi risolti");
             stage.setScene(scene);
             stage.setOnHidden(e -> {

@@ -6,6 +6,7 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerSocketProxy;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ServerListener;
 
+import it.polimi.ingsw.am25.client.GUI.Controllers.GUIEffects;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -41,6 +42,7 @@ public class GUIapp extends Application {
         String method   = args.size() >= 2 ? args.get(1) : "RMI";
 
         primaryStage.setOnCloseRequest(e -> System.exit(0));
+        GUIEffects.applyIcon(primaryStage);
 
         // 1. Mostra lo splash screen (immagine, respiro, particelle, prompt).
         // 2. Quando l'utente clicca, fa fade out ed esegue il Runnable qui sotto:

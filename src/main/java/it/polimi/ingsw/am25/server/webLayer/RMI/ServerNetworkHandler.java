@@ -434,6 +434,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
             if (!view.isConnected()) continue;
             int missed = view.incrementMissedPings();
             if (missed >= HEARTBEAT_MISSED_PING_THRESHOLD) {
+                // After the game ends, don't kick clients for missed pings: the
+                // EndGame screen may cause a brief pause in ping sending. Physical
+                // disconnects are detected via socket IOException / RMI RemoteException.
+                if (controller != null && controller.isGameOver()) continue;
                 logServerEvent("Player '" + view.getNickname()
                         + "' missed " + missed + " consecutive pings — declaring disconnected.");
                 notifyPlayerDisconnected(view.getNickname());
@@ -559,6 +563,9 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         try {
             controller.reconnectLoadedPlayer(player);
         } catch (IllegalStateException e) {
+            if (e.getMessage() != null && e.getMessage().equals("Player already connected")) {
+                throw new RemoteException("Nickname già connesso alla partita");
+            }
             throw new RemoteException("Nickname non trovato nella partita salvata");
         } catch (GameReadyToStartException e) {
             // All players reconnected — register last view and start

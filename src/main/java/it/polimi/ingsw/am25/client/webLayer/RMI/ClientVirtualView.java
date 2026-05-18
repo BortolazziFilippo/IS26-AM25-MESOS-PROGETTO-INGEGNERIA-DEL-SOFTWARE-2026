@@ -352,6 +352,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (stateLock){
             this.bottomCards.remove(position);
         }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
+        }
         updateObservers(obs -> obs.onBottomCardRemoved(position));
     }
 
@@ -363,6 +366,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public void bottomBuildRemoved(int position) throws RemoteException {
         synchronized (stateLock){
             this.bottomBuildings.remove(position);
+        }
+        synchronized (turnLock) {
+            turnLock.notifyAll();
         }
         updateObservers(obs -> obs.onBottomBuildRemoved(position));
     }

@@ -303,6 +303,7 @@ public class MarketController implements GUIObserver {
             Parent root = loader.load();
 
             Stage stage = new Stage();
+            GUIEffects.applyIcon(stage);
             stage.setTitle("Stato dei giocatori");
             stage.setScene(new Scene(root));
             stage.setOnHidden(e -> controller.unregister());
