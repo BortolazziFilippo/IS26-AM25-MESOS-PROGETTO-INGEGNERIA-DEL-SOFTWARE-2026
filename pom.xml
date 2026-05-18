@@ -131,6 +131,14 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <forceCreation>true</forceCreation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
@@ -169,17 +177,26 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.3</version>
                 <executions>
+                    <!-- server-jar PRIMA: legge il thin JAR prima che il client-shade lo sovrascriva -->
                     <execution>
+                        <id>server-jar</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>server</shadedClassifierName>
+                            <outputFile>${project.build.directory}/am25-Server-${project.version}.jar</outputFile>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.openjfx:*</exclude>
+                                </excludes>
+                            </artifactSet>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>it.polimi.ingsw.am25.client.ClientLauncher</mainClass>
+                                    <mainClass>it.polimi.ingsw.am25.server.webLayer.RMI.ServerApp</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
@@ -196,20 +213,20 @@
                             </filters>
                         </configuration>
                     </execution>
+                    <!-- client-shade DOPO: scrive il fat JAR direttamente su outputFile -->
                     <execution>
-                        <id>server-jar</id>
+                        <id>client-jar</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>server</shadedClassifierName>
-                            <outputFile>${project.build.directory}/am25-Server-${project.version}.jar</outputFile>
+                            <outputFile>${project.build.directory}/am25-Client-${project.version}.jar</outputFile>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>it.polimi.ingsw.am25.server.webLayer.RMI.ServerApp</mainClass>
+                                    <mainClass>it.polimi.ingsw.am25.client.ClientLauncher</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
@@ -221,9 +238,6 @@
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
                                         <exclude>module-info.class</exclude>
-                                        <!-- il server non usa JavaFX -->
-                                        <exclude>com/sun/javafx/**</exclude>
-                                        <exclude>javafx/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
