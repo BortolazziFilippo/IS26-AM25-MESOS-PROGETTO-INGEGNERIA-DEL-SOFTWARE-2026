@@ -15,7 +15,7 @@ public class PongWatchdog {
     /** Interval between consecutive server pings/pongs, in seconds. */
     public static final int INTERVAL_S = 1;
     /** Number of consecutive missed pongs before the server is declared dead. */
-    public static final int MISSED_PONG_THRESHOLD = 8;
+    public static final int MISSED_PONG_THRESHOLD = 5;
     /** Silence duration in milliseconds after which the server is declared dead. */
     public static final long THRESHOLD_MS = (long) MISSED_PONG_THRESHOLD * INTERVAL_S * 1000L;
 
