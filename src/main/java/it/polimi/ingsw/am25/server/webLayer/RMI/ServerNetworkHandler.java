@@ -31,7 +31,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private static final int HEARTBEAT_WATCHDOG_INTERVAL_S = 1;
     private static final int HEARTBEAT_WATCHDOG_INITIAL_DELAY_S = 4;
-    private static final int HEARTBEAT_MISSED_PING_THRESHOLD = 3;
+    private static final int HEARTBEAT_MISSED_PING_THRESHOLD = 8;
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
     /**
      * Fast nickname → view lookup used by ping() without holding the global lock.
