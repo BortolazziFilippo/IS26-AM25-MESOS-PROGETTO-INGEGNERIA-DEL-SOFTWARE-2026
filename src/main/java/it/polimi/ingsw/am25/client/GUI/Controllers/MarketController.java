@@ -380,7 +380,12 @@ public class MarketController implements GUIObserver {
             this.pendingTopBuildingCard = topBld;
             this.pendingBottomBuildingCard = botBld;
         } else {
-            Platform.runLater(() -> renderCards(top, bot, topBld, botBld));
+            // Pre-build ImageViews on the calling thread to keep the FX thread free from I/O
+            List<ImageView> topViews = top.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+            List<ImageView> topBldViews = topBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
+            List<ImageView> botViews = bot.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+            List<ImageView> botBldViews = botBld != null ? botBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList() : List.of();
+            Platform.runLater(() -> renderCardViews(topViews, botViews, topBldViews, botBldViews));
         }
     }
 
@@ -470,6 +475,9 @@ public class MarketController implements GUIObserver {
     public void onTopCardRefreshed(List<CardDTO> top) {
         // Snapshot the bottom list now, before any scene-graph changes
         List<CardDTO> bottomSnap = new ArrayList<>(clientHandler.getBottomCards());
+        // Pre-build ImageViews on the calling thread to keep the FX thread free from I/O
+        List<ImageView> topViews = top.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+        List<ImageView> botViews = bottomSnap.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
@@ -480,7 +488,7 @@ public class MarketController implements GUIObserver {
             }
             javafx.scene.Scene scene = topCardHbox.getScene();
             if (scene == null) {
-                doTopCardRefresh(top, bottomSnap);
+                doTopCardRefreshViews(topViews, botViews);
                 return;
             }
             Pane root = (Pane) scene.getRoot();
@@ -491,11 +499,11 @@ public class MarketController implements GUIObserver {
                     .toList();
             List<ImageView> floaters = snapshotFloaters(root, topTribeNodes);
 
-            // Replace top tribe cards with the new list
+            // Replace top tribe cards with the pre-built views
             topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             topTribeCount = 0;
-            for (int i = 0; i < top.size(); i++) {
-                topCardHbox.getChildren().add(i, CardImageFactory.cardImageView(top.get(i), cardFitHeight));
+            for (ImageView iv : topViews) {
+                topCardHbox.getChildren().add(topTribeCount, iv);
                 topTribeCount++;
             }
             // Clear old bottom tribe cards; the new ones are added after the fly animation
@@ -505,15 +513,12 @@ public class MarketController implements GUIObserver {
             for (int i = 0; i < topTribeCount; i++) fadeInNode(topCardHbox.getChildren().get(i));
 
             flyToBottomThenFadeIn(root, floaters, () -> {
-                List<ImageView> nodes = new ArrayList<>();
-                for (int i = 0; i < bottomSnap.size(); i++) {
-                    ImageView iv = CardImageFactory.cardImageView(bottomSnap.get(i), cardFitHeight);
-                    bottomCardHbox.getChildren().add(i, iv);
-                    nodes.add(iv);
+                for (int i = 0; i < botViews.size(); i++) {
+                    bottomCardHbox.getChildren().add(i, botViews.get(i));
                 }
-                bottomTribeCount = bottomSnap.size();
+                bottomTribeCount = botViews.size();
                 updateInteractionState();
-                nodes.forEach(this::fadeInNode);
+                botViews.forEach(this::fadeInNode);
             });
         });
     }
@@ -521,17 +526,17 @@ public class MarketController implements GUIObserver {
     /**
      * Fallback for when the scene is not yet attached: replaces both rows without animations.
      */
-    private void doTopCardRefresh(List<CardDTO> top, List<CardDTO> bottomSnap) {
+    private void doTopCardRefreshViews(List<ImageView> topViews, List<ImageView> botViews) {
         topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         topTribeCount = 0;
-        for (int i = 0; i < top.size(); i++) {
-            topCardHbox.getChildren().add(i, CardImageFactory.cardImageView(top.get(i), cardFitHeight));
+        for (ImageView iv : topViews) {
+            topCardHbox.getChildren().add(topTribeCount, iv);
             topTribeCount++;
         }
         bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
         bottomTribeCount = 0;
-        for (int i = 0; i < bottomSnap.size(); i++) {
-            bottomCardHbox.getChildren().add(i, CardImageFactory.cardImageView(bottomSnap.get(i), cardFitHeight));
+        for (int i = 0; i < botViews.size(); i++) {
+            bottomCardHbox.getChildren().add(i, botViews.get(i));
             bottomTribeCount++;
         }
         updateInteractionState();
@@ -546,8 +551,10 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onTopBuildingRefreshed(List<BuildingDTO> topBld) {
-        List<BuildingDTO> topSnap = new ArrayList<>(topBld);
         List<BuildingDTO> botSnap = new ArrayList<>(clientHandler.getBottomBuildings());
+        // Pre-build ImageViews on the calling thread to keep the FX thread free from I/O
+        List<ImageView> topBldViews = topBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
+        List<ImageView> botBldViews = botSnap.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
         Platform.runLater(() -> {
             if (topCardHbox == null) return;
             clearCardSelection();
@@ -557,7 +564,7 @@ public class MarketController implements GUIObserver {
             }
             javafx.scene.Scene scene = topCardHbox.getScene();
             if (scene == null) {
-                doTopBuildingRefresh(topSnap, botSnap);
+                doTopBuildingRefreshViews(topBldViews, botBldViews);
                 return;
             }
             Pane root = (Pane) scene.getRoot();
@@ -568,11 +575,10 @@ public class MarketController implements GUIObserver {
                     .toList();
             List<ImageView> floaters = snapshotFloaters(root, topBldNodes);
 
-            // Replace top buildings
+            // Replace top buildings with pre-built views
             if (topCardHbox.getChildren().size() > topTribeCount)
                 topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
-            for (BuildingDTO bld : topSnap)
-                topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+            topCardHbox.getChildren().addAll(topBldViews);
 
             // Clear old bottom buildings; the new ones are added after the fly animation
             if (bottomCardHbox.getChildren().size() > bottomTribeCount)
@@ -582,14 +588,9 @@ public class MarketController implements GUIObserver {
                 fadeInNode(topCardHbox.getChildren().get(i));
 
             flyToBottomThenFadeIn(root, floaters, () -> {
-                List<ImageView> nodes = new ArrayList<>();
-                for (BuildingDTO bld : botSnap) {
-                    ImageView iv = CardImageFactory.buildingImageView(bld, cardFitHeight);
-                    bottomCardHbox.getChildren().add(iv);
-                    nodes.add(iv);
-                }
+                bottomCardHbox.getChildren().addAll(botBldViews);
                 updateInteractionState();
-                nodes.forEach(this::fadeInNode);
+                botBldViews.forEach(this::fadeInNode);
             });
         });
     }
@@ -597,15 +598,13 @@ public class MarketController implements GUIObserver {
     /**
      * Fallback for when the scene is not yet attached: replaces both rows without animations.
      */
-    private void doTopBuildingRefresh(List<BuildingDTO> topSnapshot, List<BuildingDTO> bottomSnapshot) {
+    private void doTopBuildingRefreshViews(List<ImageView> topBldViews, List<ImageView> botBldViews) {
         if (topCardHbox.getChildren().size() > topTribeCount)
             topCardHbox.getChildren().remove(topTribeCount, topCardHbox.getChildren().size());
-        for (BuildingDTO bld : topSnapshot)
-            topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+        topCardHbox.getChildren().addAll(topBldViews);
         if (bottomCardHbox.getChildren().size() > bottomTribeCount)
             bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
-        for (BuildingDTO bld : bottomSnapshot)
-            bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
+        bottomCardHbox.getChildren().addAll(botBldViews);
         updateInteractionState();
     }
 
@@ -850,18 +849,16 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onAskExtraDraw(List<CardDTO> cards, List<BuildingDTO> buildings) {
+        // Pre-build ImageViews on the calling thread to keep the FX thread free from I/O
+        List<ImageView> cardViews = cards.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+        List<ImageView> bldViews = buildings.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
         Platform.runLater(() -> {
             clearCardSelection();
             extraDrawActive = true;
             topCardHbox.getChildren().clear();
-            extraDrawTribeCount = 0;
-            for (CardDTO card : cards) {
-                topCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
-                extraDrawTribeCount++;
-            }
-            for (BuildingDTO bld : buildings) {
-                topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
-            }
+            extraDrawTribeCount = cardViews.size();
+            topCardHbox.getChildren().addAll(cardViews);
+            topCardHbox.getChildren().addAll(bldViews);
             updateInteractionState();
             showExtraDrawPopup();
         });
@@ -918,26 +915,29 @@ public class MarketController implements GUIObserver {
     // =========================================================
 
     /**
-     * Populates both card rows from scratch (called on market initialization).
+     * Populates both card rows from scratch using pre-built ImageViews (called on market initialization).
      */
-    private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
+    private void renderCardViews(List<ImageView> topViews, List<ImageView> botViews,
+                                 List<ImageView> topBldViews, List<ImageView> botBldViews) {
         topCardHbox.getChildren().clear();
         bottomCardHbox.getChildren().clear();
         selectedCardView = null;
-
-        topTribeCount = top.size();
-        for (CardDTO card : top) topCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
-        for (BuildingDTO bld : topBld)
-            topCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
-
-        bottomTribeCount = bot.size();
-        for (CardDTO card : bot) bottomCardHbox.getChildren().add(CardImageFactory.cardImageView(card, cardFitHeight));
-        if (botBld != null) {
-            for (BuildingDTO bld : botBld)
-                bottomCardHbox.getChildren().add(CardImageFactory.buildingImageView(bld, cardFitHeight));
-        }
-
+        topTribeCount = topViews.size();
+        topCardHbox.getChildren().addAll(topViews);
+        topCardHbox.getChildren().addAll(topBldViews);
+        bottomTribeCount = botViews.size();
+        bottomCardHbox.getChildren().addAll(botViews);
+        bottomCardHbox.getChildren().addAll(botBldViews);
         updateInteractionState();
+    }
+
+    /** Called from initialize() when data was buffered before FXML was ready (already on FX thread; cache keeps it fast). */
+    private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
+        List<ImageView> topViews = top.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+        List<ImageView> topBldViews = topBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
+        List<ImageView> botViews = bot.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
+        List<ImageView> botBldViews = botBld != null ? botBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList() : List.of();
+        renderCardViews(topViews, botViews, topBldViews, botBldViews);
     }
 
     /**
@@ -1365,7 +1365,7 @@ public class MarketController implements GUIObserver {
      */
     private void placeTotemOnOverlay(Pane overlay, String nickname, double xFrac, double yFrac, double tileW) {
         COLOR color = colorOf(nickname);
-        Image totemImg = new Image(getClass().getResourceAsStream(CardImageFactory.totemPath(color)));
+        Image totemImg = CardImageFactory.totemImage(color);
         double totemH = cardFitHeight * 0.20;
         double totemW = totemH * totemImg.getWidth() / totemImg.getHeight();
         ImageView iv = new ImageView(totemImg);
@@ -1527,7 +1527,7 @@ public class MarketController implements GUIObserver {
         Point2D srcRoot = root.sceneToLocal(srcScene);
         Point2D dstRoot = root.sceneToLocal(dstScene);
 
-        Image totemImg = new Image(getClass().getResourceAsStream(CardImageFactory.totemPath(color)));
+        Image totemImg = CardImageFactory.totemImage(color);
         double totemH = cardFitHeight * 0.20;
         double totemW = totemH * totemImg.getWidth() / totemImg.getHeight();
         ImageView iv = new ImageView(totemImg);

@@ -310,16 +310,26 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     @Override
     public synchronized void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException {
         int number = UtilitiesFunction.stringToIntegerBinder(playerNumber);
-        Map<Integer, List<String>> leaderboards = new HashMap<>();
-        for (int i = 2; i <= number; i++) {
-            try {
-                leaderboards.put(i, DBManager.getLeaderboard(i));
-            } catch (SQLException | IOException e) {
-                logServerEvent("DB non raggiungibile per classifica " + i + " giocatori: " + e.getMessage());
-                leaderboards.put(i, List.of("Classifica non disponibile"));
+        // Run DB work on a separate thread so this method returns immediately,
+        // avoiding RMI response timeouts when the DB connection is being established.
+        Thread rankThread = new Thread(() -> {
+            Map<Integer, List<String>> leaderboards = new HashMap<>();
+            for (int i = 2; i <= number; i++) {
+                try {
+                    leaderboards.put(i, DBManager.getLeaderboard(i));
+                } catch (SQLException | IOException e) {
+                    logServerEvent("DB non raggiungibile per classifica " + i + " giocatori: " + e.getMessage());
+                    leaderboards.put(i, List.of("Classifica non disponibile"));
+                }
             }
-        }
-        clientRemoteInterface.sendRank(leaderboards);
+            try {
+                clientRemoteInterface.sendRank(leaderboards);
+            } catch (RemoteException e) {
+                logServerEvent("Errore nell'invio della classifica al client: " + e.getMessage());
+            }
+        }, "rank-fetcher");
+        rankThread.setDaemon(true);
+        rankThread.start();
     }
 
     /**
