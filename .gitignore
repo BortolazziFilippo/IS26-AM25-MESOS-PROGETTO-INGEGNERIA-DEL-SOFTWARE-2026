@@ -40,8 +40,12 @@ build/
 
 .idea
 target
-server.log
-client.log
+*.log
 DBcred
 *.deb
 /saves
+### Docker file ###
+Dockerfile.client
+Dockerfile.server
+docker-compose.yml
+am25.iml

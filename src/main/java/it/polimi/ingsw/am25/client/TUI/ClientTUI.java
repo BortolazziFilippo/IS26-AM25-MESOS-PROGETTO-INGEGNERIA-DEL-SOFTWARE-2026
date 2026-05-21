@@ -179,6 +179,8 @@ public class ClientTUI {
             System.out.print("\nScelta: ");
             String move = scanner.nextLine().trim();
 
+            if (clientHandler.isServerDead()) continue;
+
             if (move.equalsIgnoreCase("i")) {
                 playerStatusTUI.printAllPlayersStatus();
                 continue;
@@ -271,14 +273,17 @@ public class ClientTUI {
             List<String> dcWhileWaiting = clientHandler.drainRecentDisconnections();
             List<String> rcWhileWaiting = clientHandler.drainRecentReconnections();
             if (!dcWhileWaiting.isEmpty() || !rcWhileWaiting.isEmpty()) {
-                System.out.println();
+                utils.clearScreen();
                 for (String dc : dcWhileWaiting) {
                     System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso.");
                 }
                 for (String rc : rcWhileWaiting) {
                     System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso.");
                 }
-                if (!isMyTurn()) printWaitingScreen();
+                if (!isMyTurn()) {
+                    utils.pauseAndClear();
+                    printWaitingScreen();
+                }
             }
 
             // Check for pending keyboard input without blocking.

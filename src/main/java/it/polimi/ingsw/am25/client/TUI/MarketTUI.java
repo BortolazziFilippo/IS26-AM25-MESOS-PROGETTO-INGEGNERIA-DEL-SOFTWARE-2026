@@ -66,6 +66,7 @@ public class MarketTUI {
             System.out.print("\nScelta: ");
 
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return;
             if (input.equalsIgnoreCase("q")) {
                 System.out.println("\nAzione annullata.");
                 utils.pauseAndClear();
@@ -110,6 +111,7 @@ public class MarketTUI {
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getTopCardSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return false;
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
@@ -176,6 +178,7 @@ public class MarketTUI {
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getTopBuildingSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return false;
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
@@ -244,6 +247,7 @@ public class MarketTUI {
             System.out.print("\nScelta: ");
 
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return;
             if (input.equalsIgnoreCase("q")) {
                 System.out.println("\nAzione annullata.");
                 utils.pauseAndClear();
@@ -288,6 +292,7 @@ public class MarketTUI {
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getBottomCardSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return false;
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
                 System.out.println("--- PESCA CARTA (SOTTO) ---");
@@ -353,6 +358,7 @@ public class MarketTUI {
             System.out.print("\nInserisci la posizione della carta (1 a "
                     + clientHandler.getBottomBuildingSize() + ") oppure 'q' per tornare indietro, 'b' per board: ");
             String input = scanner.nextLine();
+            if (clientHandler.isServerDead()) return false;
 
             if (input.equalsIgnoreCase("q")) {
                 utils.clearScreen();
@@ -468,6 +474,7 @@ public class MarketTUI {
             System.out.println("[0] - Salta (non pescare)");
             System.out.print("Scelta: ");
             String scelta = scanner.nextLine();
+            if (clientHandler.isServerDead()) return;
 
             if (scelta.equals("0")) {
                 try {
@@ -501,6 +508,7 @@ public class MarketTUI {
             System.out.print("\nInserisci la posizione della carta (1 a " + maxLimit
                     + ") oppure 'q' per cambiare mazzo: ");
             String inputPos = scanner.nextLine();
+            if (clientHandler.isServerDead()) return;
 
             if (inputPos.equalsIgnoreCase("q")) {
                 utils.clearScreen();

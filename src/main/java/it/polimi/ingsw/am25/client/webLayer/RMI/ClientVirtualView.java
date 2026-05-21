@@ -89,6 +89,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 //  (Platform.runLater) before touching any scene-graph nodes.
 // ----------------------------------------------------------------------
     private final java.util.concurrent.CopyOnWriteArrayList<GUIObserver> guiObservers = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final java.util.concurrent.ExecutorService observerExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "gui-observer");
+        t.setDaemon(true);
+        return t;
+    });
 
     public void addGUIObserver(GUIObserver observer) {
         guiObservers.add(observer);
@@ -99,13 +104,15 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     }
 
     private void updateObservers(java.util.function.Consumer<GUIObserver> action) {
-        for (GUIObserver observer : guiObservers) {
-            try {
-                action.accept(observer);
-            } catch (Throwable t) {
-                System.out.println("[GUI observer error] " + t.getMessage());
+        observerExecutor.submit(() -> {
+            for (GUIObserver observer : guiObservers) {
+                try {
+                    action.accept(observer);
+                } catch (Throwable t) {
+                    System.out.println("[GUI observer error] " + t.getMessage());
+                }
             }
-        }
+        });
     }
 
     // --- DISCONNECTION TRACKING ---
@@ -233,6 +240,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     @Override
     public void gamePhaseChanged(GAME_PHASE gamePhase) throws RemoteException {
         this.currentGamePhase=gamePhase;
+        this.playerToPlace = null;
+        this.playerToPlay = null;
         if (gamePhase == GAME_PHASE.PLACING_PHASE || gamePhase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
             offerTileOccupants.clear();
         }

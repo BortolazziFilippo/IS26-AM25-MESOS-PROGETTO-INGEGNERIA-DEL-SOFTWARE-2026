@@ -105,6 +105,8 @@ public class PlacementTUI {
             System.out.print("Scelta: ");
             String input = scanner.nextLine().trim();
 
+            if (clientHandler.isServerDead()) return -1;
+
             if (input.equalsIgnoreCase("q")) return -1;
 
             if (input.equalsIgnoreCase("i")) {

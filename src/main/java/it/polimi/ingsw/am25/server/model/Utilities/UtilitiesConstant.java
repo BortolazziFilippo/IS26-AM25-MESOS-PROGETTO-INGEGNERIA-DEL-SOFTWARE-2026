@@ -68,6 +68,18 @@ public final class UtilitiesConstant {
     public static final List<Integer> SCORE_FIVE_PLAYERS = new ArrayList<>(Arrays.asList(25, 16, 9, 4, 1));
 
     /**
+     * Maximum number of times a server-to-client notification is retried before
+     * the player is declared disconnected. Covers both RMI callbacks and Socket proxies.
+     */
+    public static final int NETWORK_CALLBACK_MAX_RETRIES = 3;
+
+    /**
+     * Milliseconds to wait between consecutive retry attempts for a failed
+     * server-to-client notification, giving transient network issues time to resolve.
+     */
+    public static final int NETWORK_CALLBACK_RETRY_DELAY_MS = 250;
+
+    /**
      * Utility class — not instantiable.
      */
     private UtilitiesConstant() {

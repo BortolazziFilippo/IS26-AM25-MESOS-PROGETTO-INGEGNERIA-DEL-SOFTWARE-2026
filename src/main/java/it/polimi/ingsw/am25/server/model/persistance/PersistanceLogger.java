@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
@@ -36,9 +37,11 @@ public class PersistanceLogger {
      * @param memento the game snapshot to save.
      */
     public void save(GameMemento memento){
+        Path tmp = SAVE_PATH.resolveSibling("game_save.tmp");
         try {
             Files.createDirectories(SAVE_PATH.getParent());
-            Files.writeString(SAVE_PATH,new Gson().toJson(memento));
+            Files.writeString(tmp, new Gson().toJson(memento));
+            Files.move(tmp, SAVE_PATH, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             UtilitiesFunction.logInfo(LOG_PREFIX,"Game state saved to " + SAVE_PATH);
         } catch (IOException e) {
             UtilitiesFunction.logError(LOG_PREFIX,"Failed to save game");

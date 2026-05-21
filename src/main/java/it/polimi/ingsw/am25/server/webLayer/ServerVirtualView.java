@@ -15,6 +15,7 @@ import it.polimi.ingsw.am25.server.model.Observers.MarketObserver;
 import it.polimi.ingsw.am25.server.model.Observers.PlayerObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Player.Totem;
+import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 import it.polimi.ingsw.am25.server.webLayer.DTOs.*;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
@@ -607,11 +608,27 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
         if (!connected) return;
         try {
             executor.submit(() -> {
-                try {
-                    task.run();
-                } catch (RemoteException e) {
-                    logServerError("RMI error for '" + nickname + "': " + e.getMessage() + " — triggering disconnection.");
-                    disconnectCallback.run();
+                int attempt = 0;
+                while (true) {
+                    try {
+                        task.run();
+                        return;
+                    } catch (RemoteException e) {
+                        attempt++;
+                        if (attempt > UtilitiesConstant.NETWORK_CALLBACK_MAX_RETRIES) {
+                            logServerError("RMI error for '" + nickname + "' after " + attempt + " attempts: " + e.getMessage() + " — triggering disconnection.");
+                            disconnectCallback.run();
+                            return;
+                        }
+                        logServerError("RMI error for '" + nickname + "' (attempt " + attempt + "/" + UtilitiesConstant.NETWORK_CALLBACK_MAX_RETRIES + "): " + e.getMessage() + " — retrying...");
+                        try {
+                            Thread.sleep(UtilitiesConstant.NETWORK_CALLBACK_RETRY_DELAY_MS);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            disconnectCallback.run();
+                            return;
+                        }
+                    }
                 }
             });
         } catch (java.util.concurrent.RejectedExecutionException ignored) {

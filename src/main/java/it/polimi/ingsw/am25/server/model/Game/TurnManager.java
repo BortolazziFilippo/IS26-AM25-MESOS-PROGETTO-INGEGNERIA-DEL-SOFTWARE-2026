@@ -91,7 +91,9 @@ public class TurnManager {
     public void reAddPlayer(Player player) {
         boolean inPlacing = placingOrder.stream().anyMatch(p -> p.getNickname().equals(player.getNickname()));
         boolean inPlaying = playingOrder.stream().anyMatch(p -> p.getNickname().equals(player.getNickname()));
-        if (!inPlacing) placingOrder.add(player);
+        boolean alreadyPlaced = boardView.getOrderedPlayerOnOfferTile().stream()
+                .anyMatch(p -> p.getNickname().equals(player.getNickname()));
+        if (!inPlacing && !alreadyPlaced) placingOrder.add(player);
         if (!inPlaying) playingOrder.add(player);
     }
 
