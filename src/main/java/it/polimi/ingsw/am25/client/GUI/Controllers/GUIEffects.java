@@ -30,7 +30,9 @@ public class GUIEffects {
         URL url = GUIEffects.class.getResource("/images/frontScreen.png");
         if (url == null) return;
 
-        stage.getIcons().add(new Image(url.toExternalForm()));
+        for (int size : new int[]{16, 32, 64, 256}) {
+            stage.getIcons().add(new Image(url.toExternalForm(), size, size, true, true));
+        }
 
         // AWT Taskbar API — used on macOS/Windows (not needed on Linux where .desktop handles it)
         if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) {
