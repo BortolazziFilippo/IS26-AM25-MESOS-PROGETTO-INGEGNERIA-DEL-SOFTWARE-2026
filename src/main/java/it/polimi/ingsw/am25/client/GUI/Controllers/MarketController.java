@@ -108,6 +108,10 @@ public class MarketController implements GUIObserver {
      */
     private boolean extraDrawActive = false;
     /**
+     * True while a server response is pending; prevents re-submitting an action before confirmation arrives.
+     */
+    private boolean pendingRequest = false;
+    /**
      * Number of tribe cards in the extra draw snapshot currently shown in the top row.
      */
     private int extraDrawTribeCount = 0;
@@ -227,28 +231,34 @@ public class MarketController implements GUIObserver {
      */
     @FXML
     private void handleSelectCard() {
-        if (selectedCardView == null) return;
+        if (selectedCardView == null || pendingRequest) return;
         try {
             CardDTO dto = (CardDTO) selectedCardView.getUserData();
             CARD_TYPE type = dto.getCardType();
             if (extraDrawActive) {
                 int idx = topCardHbox.getChildren().indexOf(selectedCardView);
                 int pos = idx < extraDrawTribeCount ? idx : idx - extraDrawTribeCount;
+                pendingRequest = true;
                 serverRemoteInterface.selectExtraCard(playerDTO, type, pos);
+                pendingRequest = false;
                 clearCardSelection();
                 clearExtraDraw();
             } else if (topCardHbox.getChildren().contains(selectedCardView)) {
                 int idx = topCardHbox.getChildren().indexOf(selectedCardView);
                 int pos = idx < topTribeCount ? idx : idx - topTribeCount;
+                pendingRequest = true;
                 serverRemoteInterface.selectCardFromTopList(playerDTO, type, pos);
                 clearCardSelection();
             } else {
                 int idx = bottomCardHbox.getChildren().indexOf(selectedCardView);
                 int pos = idx < bottomTribeCount ? idx : idx - bottomTribeCount;
+                pendingRequest = true;
                 serverRemoteInterface.selectCardFromBottomList(playerDTO, type, pos);
                 clearCardSelection();
             }
         } catch (Exception e) {
+            pendingRequest = false;
+            updateInteractionState();
             GUIEffects.showError(e.getMessage());
         }
     }
@@ -258,17 +268,14 @@ public class MarketController implements GUIObserver {
      */
     @FXML
     private void handlePlaceTotem() {
-        if (selectedTilePosition == -1) return;
+        if (selectedTilePosition == -1 || pendingRequest) return;
         try {
-            serverRemoteInterface.placingPlayer(playerDTO, selectedTilePosition);
-            if (selectedTilePane != null) {
-                selectedTilePane.setEffect(null);
-                selectedTilePane = null;
-            }
-            selectedTilePosition = -1;
+            pendingRequest = true;
             placeTotemButton.setDisable(true);
-            updateInteractionState();
+            serverRemoteInterface.placingPlayer(playerDTO, selectedTilePosition);
         } catch (Exception e) {
+            pendingRequest = false;
+            updateInteractionState();
             GUIEffects.showError(e.getMessage());
         }
     }
@@ -278,14 +285,19 @@ public class MarketController implements GUIObserver {
      */
     @FXML
     private void handleSkipTurn() {
+        if (pendingRequest) return;
         try {
+            pendingRequest = true;
             if (extraDrawActive) {
                 serverRemoteInterface.skipExtraDraw(playerDTO);
+                pendingRequest = false;
                 clearExtraDraw();
             } else {
                 serverRemoteInterface.playerDoNothing(playerDTO);
             }
         } catch (Exception e) {
+            pendingRequest = false;
+            updateInteractionState();
             GUIEffects.showError(e.getMessage());
         }
     }
@@ -346,6 +358,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onPlayerToPlaceChanged(String nickname) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
             if (playerDTO.getNickName().equals(nickname)) showTurnNotification();
             requestInteractionUpdate();
@@ -361,6 +374,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onPlayerToPlayChanged(String nickname) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
             if (playerDTO.getNickName().equals(nickname)) showTurnNotification();
             requestInteractionUpdate();
@@ -403,6 +417,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onTopCardRemoved(int position) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (topCardHbox == null || position >= topTribeCount) return;
             Node node = topCardHbox.getChildren().get(position);
             if (node == selectedCardView) clearCardSelection();
@@ -422,6 +437,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onBottomCardRemoved(int position) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (bottomCardHbox == null || position >= bottomTribeCount) return;
             Node node = bottomCardHbox.getChildren().get(position);
             if (node == selectedCardView) clearCardSelection();
@@ -440,6 +456,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onTopBuildRemoved(int position) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (topCardHbox == null) return;
             int idx = topTribeCount + position;
             if (idx >= topCardHbox.getChildren().size()) return;
@@ -459,6 +476,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onBottomBuildRemoved(int position) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (bottomCardHbox == null) return;
             int idx = bottomTribeCount + position;
             if (idx >= bottomCardHbox.getChildren().size()) return;
@@ -707,6 +725,7 @@ public class MarketController implements GUIObserver {
     @Override
     public void onActionAvailableChanged(int drawTop, int drawBot) {
         Platform.runLater(() -> {
+            pendingRequest = false;
             if (isMyPlayingTurn()) {
                 if (drawTopLabel != null) drawTopLabel.setText("Pesca da sopra: " + drawTop);
                 if (drawBotLabel != null) drawBotLabel.setText("Pesca da sotto: " + drawBot);
@@ -737,7 +756,11 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onError(String message) {
-        Platform.runLater(() -> GUIEffects.showError(message));
+        Platform.runLater(() -> {
+            pendingRequest = false;
+            updateInteractionState();
+            GUIEffects.showError(message);
+        });
     }
 
     /**
@@ -1105,13 +1128,13 @@ public class MarketController implements GUIObserver {
         applyCardRowState(bottomCardHbox, !extraDrawActive && myPlaying && clientHandler.getDrawBot() > 0);
         if (!myPlaying && !extraDrawActive) clearCardSelection();
 
-        placeTotemButton.setDisable(!myPlacing || selectedTilePosition == -1);
-        selectCardButton.setDisable((!myPlaying && !extraDrawActive) || selectedCardView == null);
+        placeTotemButton.setDisable(!myPlacing || selectedTilePosition == -1 || pendingRequest);
+        selectCardButton.setDisable((!myPlaying && !extraDrawActive) || selectedCardView == null || pendingRequest);
         if (extraDrawActive) {
-            skipTurnButton.setDisable(false);
+            skipTurnButton.setDisable(pendingRequest);
         } else {
             boolean hasActions = clientHandler.getDrawTop() > 0 || clientHandler.getDrawBot() > 0;
-            skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard());
+            skipTurnButton.setDisable(!myPlaying || !hasActions || hasSelectableTribeCard() || pendingRequest);
         }
     }
 
