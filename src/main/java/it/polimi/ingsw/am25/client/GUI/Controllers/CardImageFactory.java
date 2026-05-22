@@ -85,6 +85,28 @@ public class CardImageFactory {
         };
     }
 
+    public static Image eventImage(int eventID, EVENT_TYPE eventType) {
+        return cached("/images/Card/events/" + eventID + eventTypePath(eventType) + "Event.png");
+    }
+
+    public static void preloadEventImages() {
+        String[] paths = {
+            "/images/Card/events/1huntEvent.png",
+            "/images/Card/events/2sustenanceEvent.png",
+            "/images/Card/events/3ShamanEvent.png",
+            "/images/Card/events/4paintingEvent.png",
+            "/images/Card/events/5huntEvent.png",
+            "/images/Card/events/6sustenanceEvent.png",
+            "/images/Card/events/7ShamanEvent.png",
+            "/images/Card/events/8paintingEvent.png",
+            "/images/Card/events/9huntEvent.png",
+            "/images/Card/events/10paintingEvent.png",
+            "/images/Card/events/11sustenanceEvent.png",
+            "/images/Card/events/12ShamanEvent.png"
+        };
+        for (String p : paths) cached(p);
+    }
+
     public static String eventTypePath(EVENT_TYPE type) {
         return switch (type) {
             case HUNT -> "hunt";

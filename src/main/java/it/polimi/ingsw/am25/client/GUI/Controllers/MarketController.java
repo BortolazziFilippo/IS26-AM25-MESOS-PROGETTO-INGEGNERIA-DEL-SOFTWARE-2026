@@ -197,6 +197,9 @@ public class MarketController implements GUIObserver {
         headerHBox.heightProperty().addListener((obs, old, newH) ->
                 AnchorPane.setTopAnchor(splitPane, newH.doubleValue()));
 
+        Thread preloader = new Thread(CardImageFactory::preloadEventImages, "event-image-preloader");
+        preloader.setDaemon(true);
+        preloader.start();
         startHeartbeat();
         if (placeTotemButton != null) placeTotemButton.setDisable(true);
         if (selectCardButton != null) selectCardButton.setDisable(true);
@@ -330,7 +333,7 @@ public class MarketController implements GUIObserver {
             if (phase == GAME_PHASE.PLACING_PHASE || phase == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
                 offerTileOverlays.values().forEach(p -> p.getChildren().clear());
             }
-            updateInteractionState();
+            requestInteractionUpdate();
         });
     }
 
@@ -344,7 +347,8 @@ public class MarketController implements GUIObserver {
     public void onPlayerToPlaceChanged(String nickname) {
         Platform.runLater(() -> {
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
-            updateInteractionState();
+            if (playerDTO.getNickName().equals(nickname)) showTurnNotification();
+            requestInteractionUpdate();
         });
     }
 
@@ -358,7 +362,8 @@ public class MarketController implements GUIObserver {
     public void onPlayerToPlayChanged(String nickname) {
         Platform.runLater(() -> {
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
-            updateInteractionState();
+            if (playerDTO.getNickName().equals(nickname)) showTurnNotification();
+            requestInteractionUpdate();
         });
     }
 
@@ -404,7 +409,7 @@ public class MarketController implements GUIObserver {
             topTribeCount--;
             // Mark as non-interactive immediately; the node is removed after the animation
             node.setMouseTransparent(true);
-            animateRemove(node, topCardHbox, this::updateInteractionState);
+            animateRemove(node, topCardHbox, this::requestInteractionUpdate);
         });
     }
 
@@ -422,7 +427,7 @@ public class MarketController implements GUIObserver {
             if (node == selectedCardView) clearCardSelection();
             bottomTribeCount--;
             node.setMouseTransparent(true);
-            animateRemove(node, bottomCardHbox, this::updateInteractionState);
+            animateRemove(node, bottomCardHbox, this::requestInteractionUpdate);
         });
     }
 
@@ -509,7 +514,7 @@ public class MarketController implements GUIObserver {
             // Clear old bottom tribe cards; the new ones are added after the fly animation
             bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
             bottomTribeCount = 0;
-            updateInteractionState();
+            requestInteractionUpdate();
             for (int i = 0; i < topTribeCount; i++) fadeInNode(topCardHbox.getChildren().get(i));
 
             flyToBottomThenFadeIn(root, floaters, () -> {
@@ -517,7 +522,7 @@ public class MarketController implements GUIObserver {
                     bottomCardHbox.getChildren().add(i, botViews.get(i));
                 }
                 bottomTribeCount = botViews.size();
-                updateInteractionState();
+                requestInteractionUpdate();
                 botViews.forEach(this::fadeInNode);
             });
         });
@@ -539,7 +544,7 @@ public class MarketController implements GUIObserver {
             bottomCardHbox.getChildren().add(i, botViews.get(i));
             bottomTribeCount++;
         }
-        updateInteractionState();
+        requestInteractionUpdate();
     }
 
     /**
@@ -583,13 +588,13 @@ public class MarketController implements GUIObserver {
             // Clear old bottom buildings; the new ones are added after the fly animation
             if (bottomCardHbox.getChildren().size() > bottomTribeCount)
                 bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
-            updateInteractionState();
+            requestInteractionUpdate();
             for (int i = topTribeCount; i < topCardHbox.getChildren().size(); i++)
                 fadeInNode(topCardHbox.getChildren().get(i));
 
             flyToBottomThenFadeIn(root, floaters, () -> {
                 bottomCardHbox.getChildren().addAll(botBldViews);
-                updateInteractionState();
+                requestInteractionUpdate();
                 botBldViews.forEach(this::fadeInNode);
             });
         });
@@ -605,7 +610,7 @@ public class MarketController implements GUIObserver {
         if (bottomCardHbox.getChildren().size() > bottomTribeCount)
             bottomCardHbox.getChildren().remove(bottomTribeCount, bottomCardHbox.getChildren().size());
         bottomCardHbox.getChildren().addAll(botBldViews);
-        updateInteractionState();
+        requestInteractionUpdate();
     }
 
     /**
@@ -706,10 +711,10 @@ public class MarketController implements GUIObserver {
                 if (drawTopLabel != null) drawTopLabel.setText("Pesca da sopra: " + drawTop);
                 if (drawBotLabel != null) drawBotLabel.setText("Pesca da sotto: " + drawBot);
             } else {
-                drawTopLabel.setText("Pesca da sopra: -");
-                drawBotLabel.setText("Pesca da sotto: -");
+                if (drawTopLabel != null) drawTopLabel.setText("Pesca da sopra: -");
+                if (drawBotLabel != null) drawBotLabel.setText("Pesca da sotto: -");
             }
-            updateInteractionState();
+            requestInteractionUpdate();
         });
     }
 
@@ -743,7 +748,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onPlayerDisconnected(String nickname) {
-        Platform.runLater(() -> disconnectPopup.addDisconnection(nickname));
+        Platform.runLater(() -> disconnectPopup.addDisconnection(nickname, getSceneRoot()));
     }
 
     /**
@@ -754,7 +759,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onPlayerReconnected(String nickname) {
-        Platform.runLater(() -> disconnectPopup.addReconnection(nickname));
+        Platform.runLater(() -> disconnectPopup.addReconnection(nickname, getSceneRoot()));
     }
 
     /**
@@ -764,15 +769,55 @@ public class MarketController implements GUIObserver {
     @Override
     public void onServerDead() {
         Platform.runLater(() -> {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle("Errore di connessione");
-            alert.setHeaderText(null);
-            alert.setContentText("Connessione al server persa");
-            alert.getDialogPane().getStylesheets().add(
-                    getClass().getResource("/FXML/Lobby.css").toExternalForm());
-            alert.setOnHidden(e -> System.exit(0));
-            alert.show();
+            Pane root = getSceneRoot();
+            if (root == null) { System.exit(0); return; }
+
+            javafx.scene.control.Label title = new javafx.scene.control.Label("CONNESSIONE PERSA");
+            title.setStyle(
+                    "-fx-font-size: 30px; -fx-font-weight: bold;" +
+                    "-fx-text-fill: #e74c3c; -fx-padding: 0 0 8 0;");
+
+            javafx.scene.layout.Region divider = new javafx.scene.layout.Region();
+            divider.setPrefHeight(2);
+            divider.setStyle("-fx-background-color: #e74c3c;");
+
+            javafx.scene.control.Label body = new javafx.scene.control.Label(
+                    "La connessione al server è stata persa.");
+            body.setStyle("-fx-font-size: 16px; -fx-text-fill: #bdc3c7;");
+
+            javafx.scene.control.Label hint = new javafx.scene.control.Label(
+                    "Clicca o premi ESC per uscire");
+            hint.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d;");
+
+            javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(
+                    14, title, divider, body, hint);
+            content.setAlignment(javafx.geometry.Pos.CENTER);
+            content.setPadding(new javafx.geometry.Insets(32, 48, 32, 48));
+            content.setStyle(
+                    "-fx-background-color: #0e0e1a;" +
+                    "-fx-background-radius: 10;");
+
+            javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane(content);
+            overlay.setStyle("-fx-background-color: rgba(5,0,0,0.88);");
+            overlay.setAlignment(javafx.geometry.Pos.CENTER);
+            overlay.setPickOnBounds(true);
+
+            if (root instanceof javafx.scene.layout.AnchorPane) {
+                javafx.scene.layout.AnchorPane.setTopAnchor(overlay, 0.0);
+                javafx.scene.layout.AnchorPane.setBottomAnchor(overlay, 0.0);
+                javafx.scene.layout.AnchorPane.setLeftAnchor(overlay, 0.0);
+                javafx.scene.layout.AnchorPane.setRightAnchor(overlay, 0.0);
+            } else {
+                overlay.prefWidthProperty().bind(root.widthProperty());
+                overlay.prefHeightProperty().bind(root.heightProperty());
+            }
+
+            overlay.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_CLICKED, e -> System.exit(0));
+            root.getScene().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
+                if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) System.exit(0);
+            });
+
+            root.getChildren().add(overlay);
         });
     }
 
@@ -804,7 +849,7 @@ public class MarketController implements GUIObserver {
             playerDTO.setFood(f);
             Platform.runLater(() -> {
                 if (foodLabel != null) foodLabel.setText("Cibo: " + f);
-                updateInteractionState();
+                requestInteractionUpdate();
             });
         }
     }
@@ -832,12 +877,21 @@ public class MarketController implements GUIObserver {
     @Override
     public void onEventResolved(int eventID, EVENT_TYPE eventType) {
         Platform.runLater(() -> {
+            Pane root = getSceneRoot();
+            if (root == null) return;
             if (extraDrawActive) {
-                deferredUiActions.add(() -> eventPopup.addEvent(eventID, eventType, cardFitHeight));
+                deferredUiActions.add(() -> eventPopup.addEvent(eventID, eventType, cardFitHeight, root));
             } else {
-                eventPopup.addEvent(eventID, eventType, cardFitHeight);
+                eventPopup.addEvent(eventID, eventType, cardFitHeight, root);
             }
         });
+    }
+
+    private Pane getSceneRoot() {
+        if (tileHbox == null) return null;
+        Scene scene = tileHbox.getScene();
+        if (scene == null) return null;
+        return (Pane) scene.getRoot();
     }
 
     /**
@@ -859,7 +913,7 @@ public class MarketController implements GUIObserver {
             extraDrawTribeCount = cardViews.size();
             topCardHbox.getChildren().addAll(cardViews);
             topCardHbox.getChildren().addAll(bldViews);
-            updateInteractionState();
+            requestInteractionUpdate();
             showExtraDrawPopup();
         });
     }
@@ -928,7 +982,7 @@ public class MarketController implements GUIObserver {
         bottomTribeCount = botViews.size();
         bottomCardHbox.getChildren().addAll(botViews);
         bottomCardHbox.getChildren().addAll(botBldViews);
-        updateInteractionState();
+        requestInteractionUpdate();
     }
 
     /** Called from initialize() when data was buffered before FXML was ready (already on FX thread; cache keeps it fast). */
@@ -976,7 +1030,7 @@ public class MarketController implements GUIObserver {
         }
         List<PlayerDTO> initialOrder = clientHandler.getDefaultTileOrder();
         if (!initialOrder.isEmpty()) refreshDefaultTileOverlay(initialOrder);
-        updateInteractionState();
+        requestInteractionUpdate();
     }
 
     // =========================================================
@@ -1009,6 +1063,18 @@ public class MarketController implements GUIObserver {
      * Central method that recalculates the enabled/disabled and visual state of every
      * interactive element (tiles, cards, buttons) based on the current game phase and turn.
      */
+    private boolean interactionUpdatePending = false;
+
+    private void requestInteractionUpdate() {
+        if (!interactionUpdatePending) {
+            interactionUpdatePending = true;
+            Platform.runLater(() -> {
+                interactionUpdatePending = false;
+                updateInteractionState();
+            });
+        }
+    }
+
     private void updateInteractionState() {
         if (placeTotemButton == null || tileHbox == null) return;
 
@@ -1077,7 +1143,7 @@ public class MarketController implements GUIObserver {
         int stars = totalShamanStars();
         if (builderDiscountLabel != null) builderDiscountLabel.setText("Sconto Costruttori: " + discount);
         if (shamanStarLabel != null) shamanStarLabel.setText("Stelle sciamano: " + stars);
-        updateInteractionState();
+        requestInteractionUpdate();
     }
 
     /**
@@ -1548,6 +1614,63 @@ public class MarketController implements GUIObserver {
             if (onFinish != null) onFinish.run();
         });
         tt.play();
+    }
+
+    private void showTurnNotification() {
+        Pane root = getSceneRoot();
+        if (root == null) return;
+
+        Label lbl = new Label("È il tuo turno!");
+        lbl.setStyle(
+                "-fx-font-size: 22px; -fx-font-weight: bold;" +
+                "-fx-text-fill: #1a0e00;" +
+                "-fx-padding: 14 36 14 36;");
+
+        javafx.scene.layout.StackPane box = new javafx.scene.layout.StackPane(lbl);
+        box.setStyle(
+                "-fx-background-color: rgba(205,155,20,0.92);" +
+                "-fx-background-radius: 8;" +
+                "-fx-effect: dropshadow(gaussian,rgba(0,0,0,0.4),10,0,0,2);");
+        box.setMaxSize(javafx.scene.layout.Region.USE_PREF_SIZE, javafx.scene.layout.Region.USE_PREF_SIZE);
+        box.setMouseTransparent(true);
+
+        javafx.scene.layout.StackPane container = new javafx.scene.layout.StackPane(box);
+        container.setAlignment(javafx.geometry.Pos.CENTER);
+        container.setMouseTransparent(true);
+        container.setOpacity(0);
+
+        if (root instanceof AnchorPane) {
+            AnchorPane.setTopAnchor(container, 0.0);
+            AnchorPane.setBottomAnchor(container, 0.0);
+            AnchorPane.setLeftAnchor(container, 0.0);
+            AnchorPane.setRightAnchor(container, 0.0);
+        } else {
+            container.prefWidthProperty().bind(root.widthProperty());
+            container.prefHeightProperty().bind(root.heightProperty());
+        }
+        root.getChildren().add(container);
+
+        javafx.animation.ScaleTransition scaleIn =
+                new javafx.animation.ScaleTransition(Duration.millis(220), box);
+        scaleIn.setFromX(0.65); scaleIn.setFromY(0.65);
+        scaleIn.setToX(1.0);   scaleIn.setToY(1.0);
+        scaleIn.setInterpolator(Interpolator.EASE_OUT);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(220), container);
+        fadeIn.setFromValue(0); fadeIn.setToValue(1);
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(450), container);
+        fadeOut.setFromValue(1); fadeOut.setToValue(0);
+        fadeOut.setDelay(Duration.millis(1600));
+        fadeOut.setOnFinished(e -> {
+            container.prefWidthProperty().unbind();
+            container.prefHeightProperty().unbind();
+            root.getChildren().remove(container);
+        });
+
+        scaleIn.play();
+        fadeIn.play();
+        fadeIn.setOnFinished(e -> fadeOut.play());
     }
 
     private void startHeartbeat() {
