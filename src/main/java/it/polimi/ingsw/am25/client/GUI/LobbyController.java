@@ -25,8 +25,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import javafx.scene.layout.Region;
+
 import java.io.InputStream;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -36,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class LobbyController implements GUIObserver {
 
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
+    private static final String GAME_ALREADY_STARTED_MESSAGE = "Game already started";
 
     private final Stage stage;
     private final ServerRemoteInterface serverStub;
@@ -55,6 +59,22 @@ public class LobbyController implements GUIObserver {
     private PlayerDTO playerDTO;
     private MarketController marketController;
     private boolean gameScreenShown = false;
+
+    /**
+     * Azione di lobby attualmente in corso. Serve a interpretare correttamente
+     * gli errori che, con il trasporto Socket, arrivano in modo asincrono
+     * (su onError) invece che come eccezione sincrona (come avviene con RMI).
+     */
+    private enum PendingAction { NONE, JOINING, CREATING, LOADING }
+    private PendingAction pendingAction = PendingAction.NONE;
+
+    /** True dopo il primo avvio dell'heartbeat, per non avviarlo due volte. */
+    private boolean heartbeatStarted = false;
+
+    /** Dialog della classifica attualmente aperto, null se nessuno. */
+    private Dialog<Void> rankDialog;
+    /** Contenitore dentro al dialog dove inserire i dati ricevuti. */
+    private VBox rankContentBox;
 
     /** Cache delle immagini totem (caricate una volta sola). */
     private final Map<COLOR, Image> totemImages = new EnumMap<>(COLOR.class);
@@ -163,6 +183,8 @@ public class LobbyController implements GUIObserver {
     }
 
     private void startHeartbeat() {
+        if (heartbeatStarted) return;
+        heartbeatStarted = true;
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "Heartbeat Thread");
             t.setDaemon(true);
@@ -197,20 +219,45 @@ public class LobbyController implements GUIObserver {
         // ha bisogno che marketController esista già.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
+        pendingAction = PendingAction.JOINING;
         try {
             serverStub.addPlayer(player, clientHandler);
+            // Nessuna eccezione. Con RMI significa "richiesta accettata"; con Socket
+            // significa solo "messaggio inviato": l'esito vero arriverà comunque
+            // dopo, su onGamePhaseChanged (successo) o su onError (fallimento).
             startHeartbeat();
-            label.setText("Unito alla lobby. In attesa che inizi...");
+            label.setText("Richiesta inviata. In attesa che la partita inizi...");
             disableLobbyButtons();
         } catch (GameFullException ex) {
-            if (NO_LOBBY_MESSAGE.equals(ex.getMessage())) {
-                askCreateGame(player);
-            } else {
-                label.setText("❌ " + ex.getMessage());
-            }
+            // RMI: il server ha risposto subito con un errore.
+            handleLobbyError(ex.getMessage());
         } catch (Exception ex) {
-            label.setText("❌ " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+            handleLobbyError(ex.getMessage() != null ? ex.getMessage()
+                    : ex.getClass().getSimpleName());
         }
+    }
+
+    /**
+     * Punto unico di gestione degli esiti negativi della lobby.
+     * Viene invocato sia dal catch sincrono (RMI) sia dalla callback onError
+     * (Socket, dove gli errori arrivano in modo asincrono).
+     */
+    private void handleLobbyError(String message) {
+        if (pendingAction == PendingAction.JOINING && NO_LOBBY_MESSAGE.equals(message)) {
+            // Nessuna lobby aperta: proponiamo all'utente di crearne una.
+            askCreateGame(playerDTO);
+            return;
+        }
+        if (pendingAction == PendingAction.CREATING && GAME_ALREADY_STARTED_MESSAGE.equals(message)) {
+            // Race condition: un altro client ha creato la lobby nel frattempo.
+            label.setText("Una lobby è apparsa nel frattempo, ti unisco...");
+            tryEnterLobby(playerDTO);
+            return;
+        }
+        // Errore generico: lo mostriamo e riabilitiamo i pulsanti.
+        pendingAction = PendingAction.NONE;
+        label.setText("❌ " + message);
+        enableLobbyButtons();
     }
 
     /** Dialog modale che chiede il numero di giocatori e crea la partita. */
@@ -232,21 +279,27 @@ public class LobbyController implements GUIObserver {
 
         Optional<Integer> res = dialog.showAndWait();
         if (res.isEmpty()) {
+            // Annullato: ripristiniamo stato e pulsanti.
+            pendingAction = PendingAction.NONE;
             label.setText("Creazione annullata.");
+            enableLobbyButtons();
             return;
         }
 
+        pendingAction = PendingAction.CREATING;
         try {
             serverStub.createGame(player, res.get(), clientHandler);
+            // Come per addPlayer: nessuna eccezione non garantisce il successo
+            // con Socket; l'eventuale errore arriverà su onError.
             startHeartbeat();
-            label.setText("Partita creata. In attesa di altri giocatori...");
+            label.setText("Richiesta inviata. In attesa di altri giocatori...");
             disableLobbyButtons();
         } catch (IllegalStateException ex) {
-            // Race: qualcuno ha creato la lobby nel frattempo. Ritentiamo addPlayer.
-            label.setText("Una lobby è apparsa nel frattempo, ti unisco...");
-            tryEnterLobby(player);
+            // RMI: race condition, un altro client ha creato la lobby nel frattempo.
+            handleLobbyError(GAME_ALREADY_STARTED_MESSAGE);
         } catch (Exception ex) {
-            label.setText("❌ Errore creazione: " + ex.getMessage());
+            handleLobbyError(ex.getMessage() != null ? ex.getMessage()
+                    : ex.getClass().getSimpleName());
         }
     }
 
@@ -256,32 +309,124 @@ public class LobbyController implements GUIObserver {
         joinLoadedButton.setDisable(true);
     }
 
+    private void enableLobbyButtons() {
+        enterButton.setDisable(false);
+        loadButton.setDisable(false);
+        joinLoadedButton.setDisable(false);
+    }
+
     @FXML
     private void onLoadGame() {
         PlayerDTO player = buildPlayer();
         if (player == null) return;
+        // marketController va creato PRIMA della chiamata: con un caricamento la
+        // partita può riprendere dentro la stessa chiamata e onGamePhaseChanged
+        // ha bisogno che marketController esista già.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
+        pendingAction = PendingAction.LOADING;
         try {
             serverStub.loadGame(player, clientHandler);
+            // Con RMI "nessuna eccezione" = partita caricata; con Socket = solo
+            // messaggio inviato, l'eventuale errore arriverà su onError.
             startHeartbeat();
-            label.setText("Partita trovata! In attesa degli altri giocatori...");
+            label.setText("Richiesta inviata. In attesa degli altri giocatori...");
             disableLobbyButtons();
         } catch (Exception e) {
-            label.setText("❌ Errore: " + e.getMessage());
+            handleLobbyError(e.getMessage() != null ? e.getMessage()
+                    : e.getClass().getSimpleName());
+        }
+    }
+
+    /**
+     * Bottone "Unisciti a una partita caricata": il giocatore si riconnette a
+     * una partita salvata che un altro client ha già caricato dal disco.
+     * Gemello di onLoadGame ma chiama joinGameLoaded invece di loadGame.
+     */
+    @FXML
+    private void onJoinLoadedGame() {
+        PlayerDTO player = buildPlayer();
+        if (player == null) return;
+        // Come per onLoadGame: marketController pronto prima della chiamata,
+        // perché con l'ultimo giocatore che si riconnette la partita riprende
+        // dentro la stessa chiamata.
+        playerDTO = player;
+        marketController = new MarketController(clientHandler, serverStub, playerDTO);
+        pendingAction = PendingAction.LOADING;
+        try {
+            serverStub.joinGameLoaded(player, clientHandler);
+            startHeartbeat();
+            label.setText("Richiesta inviata. In attesa degli altri giocatori...");
+            disableLobbyButtons();
+        } catch (Exception e) {
+            handleLobbyError(e.getMessage() != null ? e.getMessage()
+                    : e.getClass().getSimpleName());
         }
     }
 
     @FXML
-    private void onJoinLoadedGame() {
-        // TODO: implementare l'unione a una partita caricata
-        label.setText("La funzione 'Unisciti a partita caricata' arriverà presto.");
+    private void onShowRank() {
+        // 1. Reset di eventuali dati vecchi
+        clientHandler.clearLeaderboards();
+
+        // 2. Costruisco un dialog con stato "Caricamento..."
+        rankContentBox = new VBox(8);
+        rankContentBox.setPadding(new Insets(8, 4, 8, 4));
+        ProgressIndicator spinner = new ProgressIndicator();
+        spinner.setPrefSize(32, 32);
+        Label loading = new Label("Caricamento classifica...");
+        rankContentBox.getChildren().addAll(spinner, loading);
+
+        ScrollPane scroll = new ScrollPane(rankContentBox);
+        scroll.setFitToWidth(true);
+        scroll.setPrefViewportHeight(360);
+        scroll.setPrefViewportWidth(380);
+
+        rankDialog = new Dialog<>();
+        rankDialog.setTitle("🏆 Classifica");
+        rankDialog.setHeaderText("Migliori giocatori per dimensione della partita");
+        rankDialog.getDialogPane().setContent(scroll);
+        rankDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        rankDialog.setOnHidden(e -> {
+            rankDialog = null;
+            rankContentBox = null;
+        });
+
+        // 3. Mando la richiesta al server (la risposta arriverà su onRankReceived)
+        try {
+            serverStub.askForRank("5", clientHandler);
+        } catch (Exception e) {
+            rankContentBox.getChildren().clear();
+            rankContentBox.getChildren().add(new Label("❌ Errore di rete: " + e.getMessage()));
+        }
+
+        // 4. Mostro il dialog (non bloccante, useremo onRankReceived per riempirlo)
+        rankDialog.show();
     }
 
-    @FXML
-    private void onShowRank() {
-        // TODO: implementare la visualizzazione della classifica
-        label.setText("La funzione 'Classifica' arriverà presto.");
+    /**
+     * Renderizza una sezione della classifica (header + entries) dentro il content
+     * del dialog. Una "sezione" è "Partite da N giocatori".
+     */
+    private void renderRankSection(int playerCount, List<String> entries) {
+        Label header = new Label("Partite da " + playerCount + " giocatori");
+        header.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 0 2 0;");
+        rankContentBox.getChildren().add(header);
+
+        if (entries == null || entries.isEmpty()) {
+            Label empty = new Label("  Nessun dato disponibile.");
+            empty.setStyle("-fx-font-style: italic; -fx-text-fill: #888;");
+            rankContentBox.getChildren().add(empty);
+        } else {
+            // Le voci arrivano dal DB già numerate ("1. Nick - punteggio"),
+            // quindi NON aggiungiamo un'altra numerazione.
+            for (String entry : entries) {
+                rankContentBox.getChildren().add(new Label("  " + entry));
+            }
+        }
+        Region spacer = new Region();
+        spacer.setPrefHeight(4);
+        rankContentBox.getChildren().add(spacer);
     }
 
     // --- Observer callbacks (chiamate dal thread di rete!) ---
@@ -294,15 +439,50 @@ public class LobbyController implements GUIObserver {
 
     @Override
     public void onError(String message) {
-        Platform.runLater(() -> label.setText("❌ " + message));
+        Platform.runLater(() -> {
+            if (pendingAction != PendingAction.NONE) {
+                // Errore relativo a un'azione di lobby in corso: con il trasporto
+                // Socket gli esiti negativi arrivano qui invece che come eccezione.
+                handleLobbyError(message);
+            } else {
+                label.setText("❌ " + message);
+            }
+        });
     }
 
     @Override
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         if (gamePhase != GAME_PHASE.SETUP && !gameScreenShown) {
             gameScreenShown = true;
+            pendingAction = PendingAction.NONE;
             Platform.runLater(() -> showStartingScreenThenGame());
         }
+    }
+
+    /**
+     * Chiamato dal thread di rete quando il server risponde con la classifica.
+     * Riempie il dialog aperto da onShowRank con le quattro sezioni
+     * (partite da 2, 3, 4 e 5 giocatori).
+     */
+    @Override
+    public void onRankReceived(Map<Integer, List<String>> leaderboards) {
+        Platform.runLater(() -> {
+            // Il dialog potrebbe essere già stato chiuso dall'utente.
+            if (rankContentBox == null) return;
+
+            rankContentBox.getChildren().clear();
+
+            if (leaderboards == null || leaderboards.isEmpty()) {
+                Label empty = new Label("Nessun dato di classifica disponibile.");
+                empty.setStyle("-fx-font-style: italic; -fx-text-fill: #888;");
+                rankContentBox.getChildren().add(empty);
+                return;
+            }
+
+            for (int playerCount = 2; playerCount <= 5; playerCount++) {
+                renderRankSection(playerCount, leaderboards.get(playerCount));
+            }
+        });
     }
 
     /**

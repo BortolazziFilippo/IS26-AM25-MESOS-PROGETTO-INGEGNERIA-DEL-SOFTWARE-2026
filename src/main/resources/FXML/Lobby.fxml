@@ -54,7 +54,7 @@
                 <HBox spacing="14.0" alignment="CENTER_RIGHT">
                     <children>
                         <Button fx:id="loadButton"       text="Carica partita"        onAction="#onLoadGame"/>
-                        <Button fx:id="joinLoadedButton" text="Unisciti a caricata"   onAction="#onJoinLoadedGame"/>
+                        <Button fx:id="joinLoadedButton" text="Unisciti a una partita caricata"   onAction="#onJoinLoadedGame"/>
                         <Button fx:id="rankButton"       text="Visualizza classifica" onAction="#onShowRank"/>
                     </children>
                 </HBox>

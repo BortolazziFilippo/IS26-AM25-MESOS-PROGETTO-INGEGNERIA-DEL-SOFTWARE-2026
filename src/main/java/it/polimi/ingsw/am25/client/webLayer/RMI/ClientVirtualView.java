@@ -575,6 +575,9 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        // Avvisa anche gli observer della GUI: con il trasporto Socket gli errori
+        // arrivano qui in modo asincrono e altrimenti non raggiungerebbero la GUI.
+        updateObservers(obs -> obs.onError(message));
     }
     /**
      * Returns top card size.
@@ -738,6 +741,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        updateObservers(obs -> obs.onRankReceived(leaderboards));
     }
 
     public Map<Integer, List<String>> getLeaderboards() {
