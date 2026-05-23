@@ -79,8 +79,6 @@
                 </VBox>
                 <!-- pushes buttons to the right -->
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="tribeVisualizerButton" mnemonicParsing="false"
-                        onAction="#showThisPlayerTribe" prefHeight="48.0" text="Visualizza tribù"/>
                 <Button fx:id="playerStatusButton" mnemonicParsing="false"
                         onAction="#showPlayerStatus" prefHeight="48.0" text="Stato giocatori"/>
             </children>

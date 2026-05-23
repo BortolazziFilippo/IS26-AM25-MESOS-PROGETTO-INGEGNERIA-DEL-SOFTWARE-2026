@@ -27,10 +27,10 @@
         </VBox>
 
         <!-- Pannello del form -->
-        <VBox styleClass="panel" spacing="14.0">
+        <VBox styleClass="panel" spacing="12.0">
             <children>
 
-                <!-- Riga 1: nickname + colore -->
+                <!-- Nickname + colore -->
                 <HBox spacing="14.0" alignment="CENTER_LEFT">
                     <children>
                         <Label styleClass="field-label" text="Nickname:"/>
@@ -41,21 +41,37 @@
                     </children>
                 </HBox>
 
-                <!-- Riga 2: pulsante unico "Crea partita / Unisciti" -->
-                <HBox spacing="14.0" alignment="CENTER_RIGHT">
+                <!-- Sezione: Nuova partita -->
+                <Label styleClass="section-divider" text="Nuova partita" maxWidth="Infinity"/>
+                <Button fx:id="enterButton"
+                        text="Crea partita / Unisciti"
+                        onAction="#onEnter"
+                        maxWidth="Infinity"/>
+
+                <!-- Sezione: Partita salvata -->
+                <Label styleClass="section-divider" text="Partita salvata" maxWidth="Infinity"/>
+                <HBox spacing="14.0">
                     <children>
-                        <Button fx:id="enterButton"
-                                text="Crea partita / Unisciti"
-                                onAction="#onEnter"/>
+                        <Button fx:id="loadButton"
+                                text="Carica partita"
+                                onAction="#onLoadGame"
+                                maxWidth="Infinity"
+                                HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="joinLoadedButton"
+                                text="Unisciti a caricata"
+                                onAction="#onJoinLoadedGame"
+                                maxWidth="Infinity"
+                                HBox.hgrow="ALWAYS"/>
                     </children>
                 </HBox>
 
-                <!-- Riga 3: altre azioni -->
-                <HBox spacing="14.0" alignment="CENTER_RIGHT">
+                <!-- Classifica (secondario, in fondo a destra) -->
+                <HBox alignment="CENTER_RIGHT">
                     <children>
-                        <Button fx:id="loadButton"       text="Carica partita"        onAction="#onLoadGame"/>
-                        <Button fx:id="joinLoadedButton" text="Unisciti a una partita caricata"   onAction="#onJoinLoadedGame"/>
-                        <Button fx:id="rankButton"       text="Visualizza classifica" onAction="#onShowRank"/>
+                        <Button fx:id="rankButton"
+                                text="Classifica"
+                                onAction="#onShowRank"
+                                styleClass="button-secondary"/>
                     </children>
                 </HBox>
 
@@ -63,7 +79,7 @@
         </VBox>
 
         <!-- Lista giocatori -->
-        <Label styleClass="section-title" text="🔥 Giocatori in lobby"/>
+        <Label styleClass="section-title" text="Giocatori in lobby"/>
         <ListView fx:id="playerList" prefHeight="200.0" VBox.vgrow="ALWAYS"/>
 
         <!-- Status / errori -->

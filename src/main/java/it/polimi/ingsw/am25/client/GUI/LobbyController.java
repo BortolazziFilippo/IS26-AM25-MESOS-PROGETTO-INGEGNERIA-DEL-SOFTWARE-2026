@@ -73,8 +73,8 @@ public class LobbyController implements GUIObserver {
 
     /** Dialog della classifica attualmente aperto, null se nessuno. */
     private Dialog<Void> rankDialog;
-    /** Contenitore dentro al dialog dove inserire i dati ricevuti. */
-    private VBox rankContentBox;
+    /** VBox per ogni numero di giocatori (2-5) dentro il TabPane della classifica. */
+    private Map<Integer, VBox> rankTabBoxes;
 
     /** Cache delle immagini totem (caricate una volta sola). */
     private final Map<COLOR, Image> totemImages = new EnumMap<>(COLOR.class);
@@ -236,6 +236,10 @@ public class LobbyController implements GUIObserver {
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         pendingAction = PendingAction.JOINING;
+        // Reset error state before each attempt so stale flags from a previous
+        // lobby error do not interfere with the new request (mirrors TUI behaviour).
+        clientHandler.connectionError = false;
+        clientHandler.lastErrorMessage = null;
         try {
             serverStub.addPlayer(player, clientHandler);
             // Nessuna eccezione. Con RMI significa "richiesta accettata"; con Socket
@@ -280,17 +284,39 @@ public class LobbyController implements GUIObserver {
     private void askCreateGame(PlayerDTO player) {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Crea partita");
-        dialog.setHeaderText("Nessuna partita aperta.\nVuoi crearne una nuova?");
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/FXML/Lobby.css").toExternalForm());
+        dialogPane.getStyleClass().add("root");
+        dialogPane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);" +
+            "-fx-border-color: #6b4a2a; -fx-border-width: 1.5;"
+        );
+
+        Label headerLabel = new Label("Sei il primo giocatore!\nScegli quanti partecipanti:");
+        headerLabel.setStyle(
+            "-fx-font-family: 'Georgia'; -fx-font-size: 17px; -fx-font-weight: bold;" +
+            "-fx-text-fill: #f5dfa0; -fx-padding: 10 4 10 4; -fx-alignment: center;"
+        );
+        headerLabel.setMaxWidth(Double.MAX_VALUE);
+        headerLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        headerLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        dialogPane.setHeader(headerLabel);
 
         Spinner<Integer> sp = new Spinner<>(2, 5, 2);
         sp.setEditable(false);
-        sp.setPrefWidth(100);
-        VBox content = new VBox(10, new Label("Numero di giocatori:"), sp);
-        content.setPadding(new Insets(10));
-        dialog.getDialogPane().setContent(content);
+        sp.setPrefWidth(110);
+        Label numLabel = new Label("Numero di giocatori:");
+        numLabel.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #e8c98b;");
+        numLabel.setMaxWidth(Double.MAX_VALUE);
+        numLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        VBox content = new VBox(12, numLabel, sp);
+        content.setPadding(new Insets(14));
+        content.setAlignment(javafx.geometry.Pos.CENTER);
+        dialogPane.setContent(content);
 
         ButtonType creaBT = new ButtonType("Crea partita", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(creaBT, ButtonType.CANCEL);
+        dialogPane.getButtonTypes().addAll(creaBT, ButtonType.CANCEL);
         dialog.setResultConverter(bt -> bt == creaBT ? sp.getValue() : null);
 
         Optional<Integer> res = dialog.showAndWait();
@@ -303,6 +329,10 @@ public class LobbyController implements GUIObserver {
         }
 
         pendingAction = PendingAction.CREATING;
+        // Reset error state before createGame so the stale NO_LOBBY flag does not
+        // break turn-blocking operations (selectExtraCard etc.) during the game phase.
+        clientHandler.connectionError = false;
+        clientHandler.lastErrorMessage = null;
         try {
             serverStub.createGame(player, res.get(), clientHandler);
             // Come per addPlayer: nessuna eccezione non garantisce il successo
@@ -385,35 +415,69 @@ public class LobbyController implements GUIObserver {
         // 1. Reset di eventuali dati vecchi
         clientHandler.clearLeaderboards();
 
-        // 2. Costruisco un dialog con stato "Caricamento..."
-        rankContentBox = new VBox(8);
-        rankContentBox.setPadding(new Insets(8, 4, 8, 4));
-        ProgressIndicator spinner = new ProgressIndicator();
-        spinner.setPrefSize(32, 32);
-        Label loading = new Label("Caricamento classifica...");
-        rankContentBox.getChildren().addAll(spinner, loading);
+        // 2. Costruisco un TabPane con un tab per numero di giocatori
+        rankTabBoxes = new java.util.HashMap<>();
+        javafx.scene.control.TabPane tabPane = new javafx.scene.control.TabPane();
+        tabPane.setTabClosingPolicy(javafx.scene.control.TabPane.TabClosingPolicy.UNAVAILABLE);
+        tabPane.getStyleClass().add("rank-tabs");
 
-        ScrollPane scroll = new ScrollPane(rankContentBox);
-        scroll.setFitToWidth(true);
-        scroll.setPrefViewportHeight(360);
-        scroll.setPrefViewportWidth(380);
+        for (int n = 2; n <= 5; n++) {
+            VBox tabBox = new VBox(3);
+            tabBox.setPadding(new Insets(10, 10, 10, 10));
+            tabBox.setStyle("-fx-background-color: transparent;");
+            ProgressIndicator tabSpinner = new ProgressIndicator();
+            tabSpinner.setPrefSize(24, 24);
+            Label tabLoading = new Label("Caricamento...");
+            tabLoading.setStyle("-fx-text-fill: #c9a66b; -fx-font-style: italic;");
+            tabBox.getChildren().addAll(tabSpinner, tabLoading);
+            rankTabBoxes.put(n, tabBox);
+
+            ScrollPane tabScroll = new ScrollPane(tabBox);
+            tabScroll.setFitToWidth(true);
+            tabScroll.setPrefViewportHeight(360);
+            tabScroll.setStyle("-fx-background: #0d0805; -fx-background-color: #0d0805; -fx-border-color: transparent;");
+
+            javafx.scene.control.Tab tab = new javafx.scene.control.Tab(n + " giocatori");
+            tab.setContent(tabScroll);
+            tabPane.getTabs().add(tab);
+        }
 
         rankDialog = new Dialog<>();
-        rankDialog.setTitle("🏆 Classifica");
-        rankDialog.setHeaderText("Migliori giocatori per dimensione della partita");
-        rankDialog.getDialogPane().setContent(scroll);
-        rankDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        rankDialog.setTitle("Classifica");
+
+        DialogPane dialogPane = rankDialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/FXML/Lobby.css").toExternalForm());
+        dialogPane.getStyleClass().add("root");
+        dialogPane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);" +
+            "-fx-border-color: #6b4a2a; -fx-border-width: 1.5;"
+        );
+        Label headerLabel = new Label("Classifica giocatori");
+        headerLabel.setStyle(
+            "-fx-font-family: 'Georgia'; -fx-font-size: 14px; -fx-font-weight: bold;" +
+            "-fx-text-fill: #f5dfa0; -fx-padding: 8 4 8 4;"
+        );
+        dialogPane.setHeader(headerLabel);
+        dialogPane.setContent(tabPane);
+        dialogPane.getButtonTypes().add(ButtonType.CLOSE);
+        dialogPane.setPrefWidth(520);
+        dialogPane.setPrefHeight(460);
         rankDialog.setOnHidden(e -> {
             rankDialog = null;
-            rankContentBox = null;
+            rankTabBoxes = null;
         });
 
         // 3. Mando la richiesta al server (la risposta arriverà su onRankReceived)
         try {
             serverStub.askForRank("5", clientHandler);
         } catch (Exception e) {
-            rankContentBox.getChildren().clear();
-            rankContentBox.getChildren().add(new Label("❌ Errore di rete: " + e.getMessage()));
+            VBox firstTab = rankTabBoxes.get(2);
+            if (firstTab != null) {
+                firstTab.getChildren().clear();
+                Label err = new Label("Errore di rete: " + e.getMessage());
+                err.setStyle("-fx-text-fill: #ff6644;");
+                firstTab.getChildren().add(err);
+            }
         }
 
         // 4. Mostro il dialog (non bloccante, useremo onRankReceived per riempirlo)
@@ -425,24 +489,28 @@ public class LobbyController implements GUIObserver {
      * del dialog. Una "sezione" è "Partite da N giocatori".
      */
     private void renderRankSection(int playerCount, List<String> entries) {
-        Label header = new Label("Partite da " + playerCount + " giocatori");
-        header.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 6 0 2 0;");
-        rankContentBox.getChildren().add(header);
+        VBox target = rankTabBoxes.get(playerCount);
+        if (target == null) return;
+        target.getChildren().clear();
 
         if (entries == null || entries.isEmpty()) {
-            Label empty = new Label("  Nessun dato disponibile.");
-            empty.setStyle("-fx-font-style: italic; -fx-text-fill: #888;");
-            rankContentBox.getChildren().add(empty);
-        } else {
-            // Le voci arrivano dal DB già numerate ("1. Nick - punteggio"),
-            // quindi NON aggiungiamo un'altra numerazione.
-            for (String entry : entries) {
-                rankContentBox.getChildren().add(new Label("  " + entry));
-            }
+            Label empty = new Label("Nessun dato disponibile.");
+            empty.setStyle("-fx-font-style: italic; -fx-text-fill: #7a6a55; -fx-padding: 8;");
+            target.getChildren().add(empty);
+            return;
         }
-        Region spacer = new Region();
-        spacer.setPrefHeight(4);
-        rankContentBox.getChildren().add(spacer);
+
+        // Le voci arrivano dal DB già numerate ("1. Nick - punteggio").
+        for (int i = 0; i < entries.size(); i++) {
+            Label entryLabel = new Label(entries.get(i));
+            String bg = (i % 2 == 0) ? "transparent" : "rgba(50,30,10,0.6)";
+            entryLabel.setStyle(
+                "-fx-text-fill: #f5dfa0; -fx-padding: 5 8 5 8;" +
+                "-fx-background-color: " + bg + ";"
+            );
+            entryLabel.setMaxWidth(Double.MAX_VALUE);
+            target.getChildren().add(entryLabel);
+        }
     }
 
     // --- Observer callbacks (chiamate dal thread di rete!) ---
@@ -502,20 +570,10 @@ public class LobbyController implements GUIObserver {
     @Override
     public void onRankReceived(Map<Integer, List<String>> leaderboards) {
         Platform.runLater(() -> {
-            // Il dialog potrebbe essere già stato chiuso dall'utente.
-            if (rankContentBox == null) return;
-
-            rankContentBox.getChildren().clear();
-
-            if (leaderboards == null || leaderboards.isEmpty()) {
-                Label empty = new Label("Nessun dato di classifica disponibile.");
-                empty.setStyle("-fx-font-style: italic; -fx-text-fill: #888;");
-                rankContentBox.getChildren().add(empty);
-                return;
-            }
-
+            if (rankTabBoxes == null) return;
             for (int playerCount = 2; playerCount <= 5; playerCount++) {
-                renderRankSection(playerCount, leaderboards.get(playerCount));
+                renderRankSection(playerCount,
+                        leaderboards != null ? leaderboards.get(playerCount) : null);
             }
         });
     }

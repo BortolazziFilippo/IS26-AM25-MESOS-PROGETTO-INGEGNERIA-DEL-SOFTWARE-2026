@@ -86,6 +86,40 @@
     -fx-opacity: 0.7;
 }
 
+/* --- Label separatore sezioni dentro il panel --- */
+.section-divider {
+    -fx-text-fill: #c9a66b;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+    -fx-padding: 4 0 2 0;
+    -fx-border-color: transparent transparent #6b4a2a transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* --- Bottone secondario (Classifica) --- */
+.button-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c9a66b;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-padding: 5 14 5 14;
+    -fx-border-color: #6b4a2a;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+.button-secondary:hover {
+    -fx-text-fill: #f5dfa0;
+    -fx-border-color: #ff8800;
+    -fx-effect: dropshadow(gaussian, rgba(255, 136, 0, 0.3), 6, 0.3, 0, 0);
+}
+.button-secondary:disabled {
+    -fx-opacity: 0.4;
+    -fx-effect: none;
+}
+
 /* --- Sezione lista giocatori --- */
 .section-title {
     -fx-font-size: 16px;
@@ -120,4 +154,42 @@
     -fx-font-size: 14px;
     -fx-font-style: italic;
     -fx-padding: 6 0 0 0;
+}
+
+/* --- Dialog classifica (TabPane) --- */
+.rank-tabs {
+    -fx-background-color: #0d0805;
+}
+.rank-tabs .tab-header-area {
+    -fx-background-color: #1a0f08;
+    -fx-padding: 4 4 0 4;
+}
+.rank-tabs .tab-header-background {
+    -fx-background-color: #1a0f08;
+}
+.rank-tabs .tab {
+    -fx-background-color: #2a1a10;
+    -fx-background-radius: 6 6 0 0;
+    -fx-padding: 5 14 5 14;
+    -fx-border-color: #6b4a2a;
+    -fx-border-radius: 6 6 0 0;
+    -fx-border-width: 1 1 0 1;
+}
+.rank-tabs .tab:selected {
+    -fx-background-color: #d97a2a;
+    -fx-border-color: #ffaa44;
+}
+.rank-tabs .tab .tab-label {
+    -fx-text-fill: #c9a66b;
+    -fx-font-size: 13px;
+    -fx-font-family: "Georgia";
+}
+.rank-tabs .tab:selected .tab-label {
+    -fx-text-fill: #fff5d8;
+    -fx-font-weight: bold;
+}
+.rank-tabs .tab-content-area {
+    -fx-background-color: #0d0805;
+    -fx-border-color: #6b4a2a;
+    -fx-border-width: 1 0 0 0;
 }

@@ -147,8 +147,6 @@ public class MarketController implements GUIObserver {
     @FXML
     private Button skipTurnButton;
     @FXML
-    private Button tribeVisualizerButton;
-    @FXML
     private Button playerStatusButton;
     @FXML
     private Label phaseLabel;
@@ -300,11 +298,6 @@ public class MarketController implements GUIObserver {
             updateInteractionState();
             GUIEffects.showError(e.getMessage());
         }
-    }
-
-    @FXML
-    private void showThisPlayerTribe() {
-        //TODO show the local player's tribe (ROBERT)
     }
 
     @FXML
@@ -756,6 +749,9 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onError(String message) {
+        // Ignore lobby-phase errors (no game created, colour taken, etc.):
+        // the game screen is not visible yet and LobbyController already handles them.
+        if (!clientHandler.isGameStarted) return;
         Platform.runLater(() -> {
             pendingRequest = false;
             updateInteractionState();
