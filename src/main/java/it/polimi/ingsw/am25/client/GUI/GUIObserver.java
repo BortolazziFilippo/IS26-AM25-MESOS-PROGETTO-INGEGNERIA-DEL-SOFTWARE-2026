@@ -83,6 +83,7 @@ public interface GUIObserver {
     default void onServerDead() {
     }
 
+    /** Chiamato quando il server invia la classifica richiesta con askForRank. */
     default void onRankReceived(Map<Integer, List<String>> leaderboards) {
     }
 

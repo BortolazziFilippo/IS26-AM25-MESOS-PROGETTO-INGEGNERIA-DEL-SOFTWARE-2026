@@ -5,7 +5,6 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -38,19 +37,25 @@
                         <TextField fx:id="nicknameField" prefWidth="180" promptText="il tuo nome"/>
                         <Region prefWidth="20"/>
                         <Label styleClass="field-label" text="Colore:"/>
-                        <ComboBox fx:id="colorBox" prefWidth="130"/>
+                        <ComboBox fx:id="colorBox" prefWidth="170"/>
                     </children>
                 </HBox>
 
-                <!-- Riga 2: numero giocatori + bottoni -->
-                <HBox spacing="14.0" alignment="CENTER_LEFT">
+                <!-- Riga 2: pulsante unico "Crea partita / Unisciti" -->
+                <HBox spacing="14.0" alignment="CENTER_RIGHT">
                     <children>
-                        <Label styleClass="field-label" text="# giocatori:"/>
-                        <Spinner fx:id="spinner" prefWidth="90"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="createButton" text="Crea partita" onAction="#onCreateGame"/>
-                        <Button fx:id="joinButton"   text="Unisciti"     onAction="#onJoinGame"/>
-                        <Button fx:id="loadButton"   text="Carica partita" onAction="#onLoadGame"/>
+                        <Button fx:id="enterButton"
+                                text="Crea partita / Unisciti"
+                                onAction="#onEnter"/>
+                    </children>
+                </HBox>
+
+                <!-- Riga 3: altre azioni -->
+                <HBox spacing="14.0" alignment="CENTER_RIGHT">
+                    <children>
+                        <Button fx:id="loadButton"       text="Carica partita"        onAction="#onLoadGame"/>
+                        <Button fx:id="joinLoadedButton" text="Unisciti a una partita caricata"   onAction="#onJoinLoadedGame"/>
+                        <Button fx:id="rankButton"       text="Visualizza classifica" onAction="#onShowRank"/>
                     </children>
                 </HBox>
 

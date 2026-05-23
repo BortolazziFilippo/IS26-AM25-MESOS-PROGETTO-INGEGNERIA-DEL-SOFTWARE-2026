@@ -593,6 +593,8 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         synchronized (turnLock) {
             turnLock.notifyAll();
         }
+        // Avvisa anche gli observer della GUI: con il trasporto Socket gli errori
+        // arrivano qui in modo asincrono e altrimenti non raggiungerebbero la GUI.
         updateObservers(obs -> obs.onError(message));
     }
     /**
