@@ -193,7 +193,6 @@ public class LobbyController implements GUIObserver {
         if (heartbeatStarted) return;
         heartbeatStarted = true;
         clientHandler.heartbeatActive = true;
-        clientHandler.startPongWatchdog();
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "Heartbeat Thread");
             t.setDaemon(true);
@@ -556,6 +555,7 @@ public class LobbyController implements GUIObserver {
     public void onGamePhaseChanged(GAME_PHASE gamePhase) {
         if (gamePhase != GAME_PHASE.SETUP && !gameScreenShown) {
             gameScreenShown = true;
+            clientHandler.startPongWatchdog();
             startHeartbeat();
             pendingAction = PendingAction.NONE;
             Platform.runLater(() -> showStartingScreenThenGame());
