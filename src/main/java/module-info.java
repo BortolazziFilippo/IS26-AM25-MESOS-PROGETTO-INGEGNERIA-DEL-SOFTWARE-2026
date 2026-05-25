@@ -18,7 +18,6 @@ module it.polimi.ingsw.am25 {
     opens it.polimi.ingsw.am25.server.model.Player to com.google.gson;
     opens it.polimi.ingsw.am25.server.model.Card to com.google.gson;
     opens it.polimi.ingsw.am25.server.model.persistance to com.google.gson;
-    opens it.polimi.ingsw.am25 to javafx.fxml;
     opens it.polimi.ingsw.am25.client.GUI to javafx.graphics, javafx.fxml;
     opens it.polimi.ingsw.am25.client.GUI.Controllers to javafx.fxml;
     exports it.polimi.ingsw.am25.client.TUI;

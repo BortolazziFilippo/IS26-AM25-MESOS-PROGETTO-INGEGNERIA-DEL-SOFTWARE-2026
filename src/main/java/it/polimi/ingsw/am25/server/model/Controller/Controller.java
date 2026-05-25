@@ -152,9 +152,7 @@ public class Controller {
      * @throws IndexOutOfBoundsException if {@code position} is out of range.
      */
     public void placingPlayer(Player playerToPlace, int position) throws IndexOutOfBoundsException, TileOccupiedException {
-        if (game.getGamePhase() != GAME_PHASE.PLACING_PHASE && game.getGamePhase() != GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
-            throw new ActionNotAvailable("Cannot place a totem outside of the placing phase");
-        }
+        requirePlacingPhase();
         if (!checkIsPlayerPlacingTurn(playerToPlace)) {
             throw new ActionNotAvailable("It is not " + playerToPlace.getNickname() + "'s turn to place");
         }
@@ -186,9 +184,7 @@ public class Controller {
      * @throws EmptyMarketException       if the top row has no selectable cards.
      */
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
-            throw new ActionNotAvailable("Cannot select a card outside of the resolve-action phase");
-        }
+        requireResolveActionPhase();
         if (!checkIsPlayerPlayingTurn(player)) {
             throw new ActionNotAvailable("It is not " + player.getNickname() + "'s turn to play");
         }
@@ -249,9 +245,7 @@ public class Controller {
      * @throws EmptyMarketException       if the bottom row has no selectable cards.
      */
     public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
-            throw new ActionNotAvailable("Cannot select a card outside of the resolve-action phase");
-        }
+        requireResolveActionPhase();
         if (!checkIsPlayerPlayingTurn(player)) {
             throw new ActionNotAvailable("It is not " + player.getNickname() + "'s turn to play");
         }
@@ -289,9 +283,7 @@ public class Controller {
      * @throws Exception If the player attempts to pass but still has playable actions available.
      */
     public void playerDoNothing(Player player) throws Exception {
-        if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
-            throw new ActionNotAvailable("Cannot skip a turn outside of the resolve-action phase");
-        }
+        requireResolveActionPhase();
         if (!checkIsPlayerPlayingTurn(player)) {
             throw new ActionNotAvailable("It is not " + player.getNickname() + "'s turn to play");
         }
@@ -318,9 +310,10 @@ public class Controller {
     }
 
     /**
-     * Lets the player skip the extra draw granted by the draw-one-more building effect
-     * without picking any card. Only allowed when there is no drawable card in the top
-     * market row; if a card is available the player must draw it.
+     * Called when the player declines the extra draw granted by the draw-one-more building effect.
+     * This is intentionally a no-op: {@code askExtraDraw} is sent fire-and-forget by the server,
+     * which does not block waiting for the player's response. The game has already advanced by the
+     * time this method is called, so no further action is needed.
      *
      * @param player the player declining the extra draw.
      */
@@ -347,6 +340,42 @@ public class Controller {
         return game.getPlayerToPlay().getNickname().equals(player.getNickname());
     }
 
+    /**
+     * Throws {@link ActionNotAvailable} if the game is not currently in a placing phase
+     * ({@link GAME_PHASE#PLACING_PHASE} or {@link GAME_PHASE#LAST_ROUND_PLACING_PHASE}).
+     *
+     * @throws ActionNotAvailable if the current phase is not a placing phase.
+     */
+    private void requirePlacingPhase() {
+        if (game.getGamePhase() != GAME_PHASE.PLACING_PHASE && game.getGamePhase() != GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
+            throw new ActionNotAvailable("Cannot place a totem outside of the placing phase");
+        }
+    }
+
+    /**
+     * Throws {@link ActionNotAvailable} if the game is not currently in a resolve-action phase
+     * ({@link GAME_PHASE#RESOLVE_ACTION} or {@link GAME_PHASE#LAST_ROUND_RESOLVE_ACTION}).
+     *
+     * @throws ActionNotAvailable if the current phase is not a resolve-action phase.
+     */
+    private void requireResolveActionPhase() {
+        if (game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION && game.getGamePhase() != GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
+            throw new ActionNotAvailable("Cannot perform this action outside of the resolve-action phase");
+        }
+    }
+
+    /**
+     * Looks up a player in the game by nickname.
+     *
+     * @param nickname the nickname to search for.
+     * @return the matching {@link Player}, or {@code null} if not found.
+     */
+    private Player findPlayerByNickname(String nickname) {
+        return game.getPlayerList().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst().orElse(null);
+    }
+
     // --- DISCONNECTION ---
 
     /**
@@ -364,9 +393,7 @@ public class Controller {
         if (game == null) return;
 
         // 1. Find and mark the player as disconnected
-        Player disconnectedPlayer = game.getPlayerList().stream()
-                .filter(p -> p.getNickname().equals(nickname))
-                .findFirst().orElse(null);
+        Player disconnectedPlayer = findPlayerByNickname(nickname);
         if (disconnectedPlayer == null) return;
         disconnectedPlayer.setConnection(CONNECTION_STATUS.DISCONNECTED);
 
@@ -428,9 +455,7 @@ public class Controller {
      */
     public synchronized void notifyPlayerReconnected(String nickname) {
         if (game == null) return;
-        Player player = game.getPlayerList().stream()
-                .filter(p -> p.getNickname().equals(nickname))
-                .findFirst().orElse(null);
+        Player player = findPlayerByNickname(nickname);
         if (player == null) return;
         player.setConnection(CONNECTION_STATUS.CONNECTED);
         game.reAddToTurnQueues(player);

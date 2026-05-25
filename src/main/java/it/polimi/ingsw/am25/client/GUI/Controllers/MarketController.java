@@ -1,10 +1,9 @@
 package it.polimi.ingsw.am25.client.GUI.Controllers;
 
-import it.polimi.ingsw.am25.client.Utilities.ClientUtilitiesFunction;
-import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.client.GUI.GUIObserver;
 import it.polimi.ingsw.am25.client.GUI.popup.DisconnectPopup;
 import it.polimi.ingsw.am25.client.GUI.popup.EventPopup;
+import it.polimi.ingsw.am25.client.webLayer.PongWatchdog;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
@@ -24,6 +23,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -167,14 +167,14 @@ public class MarketController implements GUIObserver {
     @FXML
     private HBox headerHBox;
     @FXML
-    private javafx.scene.control.SplitPane splitPane;
+    private SplitPane splitPane;
 
     /**
      * Creates a new market controller and registers this observer with the client view.
      *
-     * @param clientHandler          the local client view that receives notifications from the server.
-     * @param serverRemoteInterface  the remote server interface used to send game actions.
-     * @param playerDTO              the local player DTO associated with this session.
+     * @param clientHandler         the local client view that receives notifications from the server.
+     * @param serverRemoteInterface the remote server interface used to send game actions.
+     * @param playerDTO             the local player DTO associated with this session.
      */
     public MarketController(ClientVirtualView clientHandler, ServerRemoteInterface serverRemoteInterface, PlayerDTO playerDTO) {
         this.clientHandler = clientHandler;
@@ -350,12 +350,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onPlayerToPlaceChanged(String nickname) {
-        Platform.runLater(() -> {
-            pendingRequest = false;
-            if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
-            if (playerDTO.getNickName().equals(nickname)) showTurnNotification();
-            requestInteractionUpdate();
-        });
+        handlePlayerTurnChanged(nickname);
     }
 
     /**
@@ -366,6 +361,11 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onPlayerToPlayChanged(String nickname) {
+        handlePlayerTurnChanged(nickname);
+    }
+
+    /** Updates the current-player label and recalculates interaction state. */
+    private void handlePlayerTurnChanged(String nickname) {
         Platform.runLater(() -> {
             pendingRequest = false;
             if (currentPlayerLabel != null) currentPlayerLabel.setText("Giocatore di turno: " + nickname);
@@ -375,7 +375,7 @@ public class MarketController implements GUIObserver {
     }
 
     /**
-     * Called when the market is initialised with the initial card lists.
+     * Called when the market is initialized with the initial card lists.
      * If the FXML component is not yet ready, the data is buffered.
      *
      * @param top    initial tribe cards for the top row.
@@ -409,16 +409,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onTopCardRemoved(int position) {
-        Platform.runLater(() -> {
-            pendingRequest = false;
-            if (topCardHbox == null || position >= topTribeCount) return;
-            Node node = topCardHbox.getChildren().get(position);
-            if (node == selectedCardView) clearCardSelection();
-            topTribeCount--;
-            // Mark as non-interactive immediately; the node is removed after the animation
-            node.setMouseTransparent(true);
-            animateRemove(node, topCardHbox, this::requestInteractionUpdate);
-        });
+        Platform.runLater(() -> doRemoveCardFromRow(topCardHbox, position, true));
     }
 
     /**
@@ -429,15 +420,20 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onBottomCardRemoved(int position) {
-        Platform.runLater(() -> {
-            pendingRequest = false;
-            if (bottomCardHbox == null || position >= bottomTribeCount) return;
-            Node node = bottomCardHbox.getChildren().get(position);
-            if (node == selectedCardView) clearCardSelection();
-            bottomTribeCount--;
-            node.setMouseTransparent(true);
-            animateRemove(node, bottomCardHbox, this::requestInteractionUpdate);
-        });
+        Platform.runLater(() -> doRemoveCardFromRow(bottomCardHbox, position, false));
+    }
+
+    /** Inner logic shared by {@link #onTopCardRemoved} and {@link #onBottomCardRemoved}. Must run on FX thread. */
+    private void doRemoveCardFromRow(HBox row, int position, boolean isTop) {
+        pendingRequest = false;
+        int count = isTop ? topTribeCount : bottomTribeCount;
+        if (row == null || position >= count) return;
+        Node node = row.getChildren().get(position);
+        if (node == selectedCardView) clearCardSelection();
+        if (isTop) topTribeCount--; else bottomTribeCount--;
+        // Mark as non-interactive immediately; the node is removed after the animation
+        node.setMouseTransparent(true);
+        animateRemove(node, row, this::requestInteractionUpdate);
     }
 
     /**
@@ -448,16 +444,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onTopBuildRemoved(int position) {
-        Platform.runLater(() -> {
-            pendingRequest = false;
-            if (topCardHbox == null) return;
-            int idx = topTribeCount + position;
-            if (idx >= topCardHbox.getChildren().size()) return;
-            Node node = topCardHbox.getChildren().get(idx);
-            if (node == selectedCardView) clearCardSelection();
-            node.setMouseTransparent(true);
-            animateRemove(node, topCardHbox, null);
-        });
+        Platform.runLater(() -> doRemoveBuildingFromRow(topCardHbox, topTribeCount, position));
     }
 
     /**
@@ -468,16 +455,19 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onBottomBuildRemoved(int position) {
-        Platform.runLater(() -> {
-            pendingRequest = false;
-            if (bottomCardHbox == null) return;
-            int idx = bottomTribeCount + position;
-            if (idx >= bottomCardHbox.getChildren().size()) return;
-            Node node = bottomCardHbox.getChildren().get(idx);
-            if (node == selectedCardView) clearCardSelection();
-            node.setMouseTransparent(true);
-            animateRemove(node, bottomCardHbox, null);
-        });
+        Platform.runLater(() -> doRemoveBuildingFromRow(bottomCardHbox, bottomTribeCount, position));
+    }
+
+    /** Inner logic shared by {@link #onTopBuildRemoved} and {@link #onBottomBuildRemoved}. Must run on FX thread. */
+    private void doRemoveBuildingFromRow(HBox row, int tribeCount, int position) {
+        pendingRequest = false;
+        if (row == null) return;
+        int idx = tribeCount + position;
+        if (idx >= row.getChildren().size()) return;
+        Node node = row.getChildren().get(idx);
+        if (node == selectedCardView) clearCardSelection();
+        node.setMouseTransparent(true);
+        animateRemove(node, row, null);
     }
 
     /**
@@ -511,19 +501,19 @@ public class MarketController implements GUIObserver {
 
             // Collect all visible tribe cards (no buildings, no already-fading nodes)
             List<Node> topTribeNodes = topCardHbox.getChildren().stream()
-                    .filter(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO))
+                    .filter(MarketController::isTribeCard)
                     .toList();
             List<ImageView> floaters = snapshotFloaters(root, topTribeNodes);
 
             // Replace top tribe cards with the pre-built views
-            topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
+            topCardHbox.getChildren().removeIf(MarketController::isTribeCard);
             topTribeCount = 0;
             for (ImageView iv : topViews) {
                 topCardHbox.getChildren().add(topTribeCount, iv);
                 topTribeCount++;
             }
             // Clear old bottom tribe cards; the new ones are added after the fly animation
-            bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
+            bottomCardHbox.getChildren().removeIf(MarketController::isTribeCard);
             bottomTribeCount = 0;
             requestInteractionUpdate();
             for (int i = 0; i < topTribeCount; i++) fadeInNode(topCardHbox.getChildren().get(i));
@@ -543,13 +533,13 @@ public class MarketController implements GUIObserver {
      * Fallback for when the scene is not yet attached: replaces both rows without animations.
      */
     private void doTopCardRefreshViews(List<ImageView> topViews, List<ImageView> botViews) {
-        topCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
+        topCardHbox.getChildren().removeIf(MarketController::isTribeCard);
         topTribeCount = 0;
         for (ImageView iv : topViews) {
             topCardHbox.getChildren().add(topTribeCount, iv);
             topTribeCount++;
         }
-        bottomCardHbox.getChildren().removeIf(n -> n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO));
+        bottomCardHbox.getChildren().removeIf(MarketController::isTribeCard);
         bottomTribeCount = 0;
         for (int i = 0; i < botViews.size(); i++) {
             bottomCardHbox.getChildren().add(i, botViews.get(i));
@@ -625,7 +615,7 @@ public class MarketController implements GUIObserver {
     }
 
     /**
-     * Called when the board is initialised with offer tiles and default tiles.
+     * Called when the board is initialized with offer tiles and default tiles.
      * Tiles are rendered only once per session; subsequent calls are ignored.
      *
      * @param tiles the list of offer tiles on the board.
@@ -749,7 +739,7 @@ public class MarketController implements GUIObserver {
      */
     @Override
     public void onError(String message) {
-        // Ignore lobby-phase errors (no game created, colour taken, etc.):
+        // Ignore lobby-phase errors (no game created, color taken, etc.):
         // the game screen is not visible yet and LobbyController already handles them.
         if (!clientHandler.isGameStarted) return;
         Platform.runLater(() -> {
@@ -789,12 +779,15 @@ public class MarketController implements GUIObserver {
     public void onServerDead() {
         Platform.runLater(() -> {
             Pane root = getSceneRoot();
-            if (root == null) { System.exit(0); return; }
+            if (root == null) {
+                System.exit(0);
+                return;
+            }
 
             javafx.scene.control.Label title = new javafx.scene.control.Label("CONNESSIONE PERSA");
             title.setStyle(
                     "-fx-font-size: 30px; -fx-font-weight: bold;" +
-                    "-fx-text-fill: #e74c3c; -fx-padding: 0 0 8 0;");
+                            "-fx-text-fill: #e74c3c; -fx-padding: 0 0 8 0;");
 
             javafx.scene.layout.Region divider = new javafx.scene.layout.Region();
             divider.setPrefHeight(2);
@@ -814,19 +807,16 @@ public class MarketController implements GUIObserver {
             content.setPadding(new javafx.geometry.Insets(32, 48, 32, 48));
             content.setStyle(
                     "-fx-background-color: #0e0e1a;" +
-                    "-fx-background-radius: 10;");
+                            "-fx-background-radius: 10;");
 
             javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane(content);
             overlay.setStyle("-fx-background-color: rgba(5,0,0,0.88);");
             overlay.setAlignment(javafx.geometry.Pos.CENTER);
             overlay.setPickOnBounds(true);
 
-            if (root instanceof javafx.scene.layout.AnchorPane) {
-                javafx.scene.layout.AnchorPane.setTopAnchor(overlay, 0.0);
-                javafx.scene.layout.AnchorPane.setBottomAnchor(overlay, 0.0);
-                javafx.scene.layout.AnchorPane.setLeftAnchor(overlay, 0.0);
-                javafx.scene.layout.AnchorPane.setRightAnchor(overlay, 0.0);
-            } else {
+            if (root instanceof javafx.scene.layout.AnchorPane)
+                GUIEffects.stretchToFill(overlay);
+            else {
                 overlay.prefWidthProperty().bind(root.widthProperty());
                 overlay.prefHeightProperty().bind(root.heightProperty());
             }
@@ -1004,7 +994,9 @@ public class MarketController implements GUIObserver {
         requestInteractionUpdate();
     }
 
-    /** Called from initialize() when data was buffered before FXML was ready (already on FX thread; cache keeps it fast). */
+    /**
+     * Called from initialize() when data was buffered before FXML was ready (already on FX thread; cache keeps it fast).
+     */
     private void renderCards(List<CardDTO> top, List<CardDTO> bot, List<BuildingDTO> topBld, List<BuildingDTO> botBld) {
         List<ImageView> topViews = top.stream().map(c -> CardImageFactory.cardImageView(c, cardFitHeight)).toList();
         List<ImageView> topBldViews = topBld.stream().map(b -> CardImageFactory.buildingImageView(b, cardFitHeight)).toList();
@@ -1050,6 +1042,11 @@ public class MarketController implements GUIObserver {
         List<PlayerDTO> initialOrder = clientHandler.getDefaultTileOrder();
         if (!initialOrder.isEmpty()) refreshDefaultTileOverlay(initialOrder);
         requestInteractionUpdate();
+    }
+
+    /** Returns true for tribe-card nodes (CardDTO but not BuildingDTO). Used as a method-reference predicate. */
+    private static boolean isTribeCard(Node n) {
+        return n.getUserData() instanceof CardDTO && !(n.getUserData() instanceof BuildingDTO);
     }
 
     // =========================================================
@@ -1165,13 +1162,18 @@ public class MarketController implements GUIObserver {
         requestInteractionUpdate();
     }
 
+    /** Returns the local player's DTO from the live player list, if present. */
+    private Optional<PlayerDTO> findLocalPlayer() {
+        return clientHandler.getPlayers().stream()
+                .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
+                .findFirst();
+    }
+
     /**
      * Sums the star values of all shaman cards in the local player's tribe.
      */
     private int totalShamanStars() {
-        return clientHandler.getPlayers().stream()
-                .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
-                .findFirst()
+        return findLocalPlayer()
                 .map(p -> p.getCardDtoList().stream()
                         .filter(c -> c.getCardType() == CARD_TYPE.SHAMAN)
                         .mapToInt(c -> switch (c.getStarNumber()) {
@@ -1187,9 +1189,7 @@ public class MarketController implements GUIObserver {
      * Sums the food-discount values of all builder cards in the local player's tribe.
      */
     private int totalBuilderDiscount() {
-        return clientHandler.getPlayers().stream()
-                .filter(p -> p.getNickName().equals(playerDTO.getNickName()))
-                .findFirst()
+        return findLocalPlayer()
                 .map(p -> p.getCardDtoList().stream()
                         .filter(c -> c.getCardType() == CARD_TYPE.BUILDER)
                         .mapToInt(CardDTO::getFoodDiscount)
@@ -1298,8 +1298,7 @@ public class MarketController implements GUIObserver {
                     animateTotem(offerSlotScene(old), offerSlotScene(position), myColor, () -> {
                         previewAnimating = false;
                         newOverlay.getChildren().clear();
-                        placeTotemOnOverlay(newOverlay, playerDTO.getNickName(),
-                                OFFER_TOTEM_X, OFFER_TOTEM_Y, offerTileWidths.getOrDefault(position, cardFitHeight));
+                        placeMyTotemPreview(newOverlay, position);
                     });
                 }
             } else {
@@ -1312,8 +1311,7 @@ public class MarketController implements GUIObserver {
                     animateTotem(src, offerSlotScene(position), myColor, () -> {
                         previewAnimating = false;
                         newOverlay.getChildren().clear();
-                        placeTotemOnOverlay(newOverlay, playerDTO.getNickName(),
-                                OFFER_TOTEM_X, OFFER_TOTEM_Y, offerTileWidths.getOrDefault(position, cardFitHeight));
+                        placeMyTotemPreview(newOverlay, position);
                     });
                 }
             }
@@ -1443,6 +1441,15 @@ public class MarketController implements GUIObserver {
     // =========================================================
     // TOTEM
     // =========================================================
+
+    /**
+     * Places the local player's totem preview on the given offer-tile overlay
+     * using the standard offer-tile anchor fractions.
+     */
+    private void placeMyTotemPreview(Pane overlay, int position) {
+        placeTotemOnOverlay(overlay, playerDTO.getNickName(),
+                OFFER_TOTEM_X, OFFER_TOTEM_Y, offerTileWidths.getOrDefault(position, cardFitHeight));
+    }
 
     /**
      * Places a totem image on the given overlay pane at the position specified
@@ -1642,14 +1649,14 @@ public class MarketController implements GUIObserver {
         Label lbl = new Label("È il tuo turno!");
         lbl.setStyle(
                 "-fx-font-size: 22px; -fx-font-weight: bold;" +
-                "-fx-text-fill: #1a0e00;" +
-                "-fx-padding: 14 36 14 36;");
+                        "-fx-text-fill: #1a0e00;" +
+                        "-fx-padding: 14 36 14 36;");
 
         javafx.scene.layout.StackPane box = new javafx.scene.layout.StackPane(lbl);
         box.setStyle(
                 "-fx-background-color: rgba(205,155,20,0.92);" +
-                "-fx-background-radius: 8;" +
-                "-fx-effect: dropshadow(gaussian,rgba(0,0,0,0.4),10,0,0,2);");
+                        "-fx-background-radius: 8;" +
+                        "-fx-effect: dropshadow(gaussian,rgba(0,0,0,0.4),10,0,0,2);");
         box.setMaxSize(javafx.scene.layout.Region.USE_PREF_SIZE, javafx.scene.layout.Region.USE_PREF_SIZE);
         box.setMouseTransparent(true);
 
@@ -1658,12 +1665,9 @@ public class MarketController implements GUIObserver {
         container.setMouseTransparent(true);
         container.setOpacity(0);
 
-        if (root instanceof AnchorPane) {
-            AnchorPane.setTopAnchor(container, 0.0);
-            AnchorPane.setBottomAnchor(container, 0.0);
-            AnchorPane.setLeftAnchor(container, 0.0);
-            AnchorPane.setRightAnchor(container, 0.0);
-        } else {
+        if (root instanceof AnchorPane)
+            GUIEffects.stretchToFill(container);
+        else {
             container.prefWidthProperty().bind(root.widthProperty());
             container.prefHeightProperty().bind(root.heightProperty());
         }
@@ -1671,15 +1675,19 @@ public class MarketController implements GUIObserver {
 
         javafx.animation.ScaleTransition scaleIn =
                 new javafx.animation.ScaleTransition(Duration.millis(220), box);
-        scaleIn.setFromX(0.65); scaleIn.setFromY(0.65);
-        scaleIn.setToX(1.0);   scaleIn.setToY(1.0);
+        scaleIn.setFromX(0.65);
+        scaleIn.setFromY(0.65);
+        scaleIn.setToX(1.0);
+        scaleIn.setToY(1.0);
         scaleIn.setInterpolator(Interpolator.EASE_OUT);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(220), container);
-        fadeIn.setFromValue(0); fadeIn.setToValue(1);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
 
         FadeTransition fadeOut = new FadeTransition(Duration.millis(450), container);
-        fadeOut.setFromValue(1); fadeOut.setToValue(0);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
         fadeOut.setDelay(Duration.millis(1600));
         fadeOut.setOnFinished(e -> {
             container.prefWidthProperty().unbind();

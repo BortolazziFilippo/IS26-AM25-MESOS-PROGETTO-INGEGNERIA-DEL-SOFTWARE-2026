@@ -3,17 +3,17 @@ package it.polimi.ingsw.am25.server.model.Game;
 import it.polimi.ingsw.am25.server.model.Board.Board;
 import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Board.OfferTile;
+import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
 import it.polimi.ingsw.am25.server.model.DBmanager.DBManager;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.ERA;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
+import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.server.model.Observers.GameObserver;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.*;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
-import it.polimi.ingsw.am25.server.model.Card.BuildingCard;
-import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
 import it.polimi.ingsw.am25.server.model.persistance.GameMemento;
 import it.polimi.ingsw.am25.server.model.persistance.MementoManager;
 import it.polimi.ingsw.am25.server.model.persistance.PlayerMemento;
@@ -33,18 +33,18 @@ import java.util.stream.Collectors;
  */
 public class Game implements GameView, MementoManager<GameMemento> {
     private static final String LOG_PREFIX = "[SERVER][GAME]";
-    private ERA currentEra = ERA.ERA_I;
     private final Board board;
     private final BoardView boardView;
     private final Market market;
     private final TurnManager turnManager;
     private final Map<String, Player> players;
     private final int playerNumber;
+    private final List<GameObserver> observers = new ArrayList<>();
+    private ERA currentEra = ERA.ERA_I;
     private GAME_PHASE gamePhase;
     private Player playerToPlace;
     private Player playerToPlay;
     private OfferTile offertilePlayerIsOn;
-    private final List<GameObserver> observers = new ArrayList<>();
 
     /**
      * default constructor of game, this method when called creates the deck and the buildings by launching the factories.
@@ -69,6 +69,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
 
     /**
      * constructor for loading game
+     *
      * @param playerNumber number of players
      */
     public Game(int playerNumber) {
@@ -118,20 +119,15 @@ public class Game implements GameView, MementoManager<GameMemento> {
         }
         List<Integer> random = UtilitiesFunction.shuffledFromYToXExclusive(0, playerNumber);
         int counter = 1;
-        for (Player player : players.values().stream().toList()) {
+        for (Player player : players.values()) {
             try {
                 board.placePlayerOnDefaultTile(player, random.getFirst());
-                switch (counter) {
-                    case 1:
-                        player.manageFoodAndPP(+2);
-                        break;
-                    case 2, 3:
-                        player.manageFoodAndPP(+3);
-                        break;
-                    case 4, 5:
-                        player.manageFoodAndPP(+4);
-                        break;
-                }
+                int food = switch (counter) {
+                    case 1 -> 2;
+                    case 2, 3 -> 3;
+                    default -> 4;  // case 4, 5
+                };
+                player.manageFoodAndPP(food);
                 counter++;
             } catch (TileOccupiedException e) {
                 throw new RuntimeException(getClass() + " Errore gamestart placePlayer");
@@ -244,26 +240,18 @@ public class Game implements GameView, MementoManager<GameMemento> {
             throw new IllegalStateException("No players found");
         }
 
-        List<Player> winners = players.values().stream()
-                .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player::getFood).reversed())
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<Player> winners = players.values().stream().sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player::getFood).reversed()).collect(Collectors.toCollection(ArrayList::new));
 
         Player topWinner = winners.get(0);
 
+        boolean ppTied = topWinner.getPrestigePoint() == winners.get(1).getPrestigePoint();
+        boolean foodTied = topWinner.getFood() == winners.get(1).getFood();
+
         List<Player> winningPlayers;
-        if (winners.get(0).getPrestigePoint() == winners.get(1).getPrestigePoint()) {
-            if (winners.get(0).getFood() == winners.get(1).getFood()) {
-                winningPlayers = winners.stream()
-                        .filter(player -> player.getPrestigePoint() == topWinner.getPrestigePoint()
-                                && player.getFood() == topWinner.getFood())
-                        .collect(Collectors.toCollection(ArrayList::new));
-            } else {
-                winningPlayers = new ArrayList<>();
-                winningPlayers.add(topWinner);
-            }
+        if (ppTied && foodTied) {
+            winningPlayers = winners.stream().filter(p -> p.getPrestigePoint() == topWinner.getPrestigePoint() && p.getFood() == topWinner.getFood()).collect(Collectors.toCollection(ArrayList::new));
         } else {
-            winningPlayers = new ArrayList<>();
-            winningPlayers.add(topWinner);
+            winningPlayers = new ArrayList<>(List.of(topWinner));
         }
         Thread dbThread = new Thread(() -> {
             try {
@@ -315,7 +303,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
                 logServerEvent("Deck exhausted. Advancing to LAST_ROUND_PLACING_PHASE");
             }
 
-            // 5. Now ask the player regardless of the previous try/catch!
+            // 7. Now ask the player regardless of the previous try/catch!
             try {
                 this.playerToPlace = turnManager.getNextPlacingPlayer();
                 logServerEvent("Round ended. Advancing to " + this.gamePhase);
@@ -357,19 +345,36 @@ public class Game implements GameView, MementoManager<GameMemento> {
      * @throws NoMoreActionToDo           if the player has no remaining actions after this selection
      */
     public void selectGenericCardTopLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
+        selectGenericCard(toBuyCardType, position, player, (p, pos) -> market.buyBuildingTopList(pos, p), (p, pos) -> market.selectCardFromTopList(pos, p), "top list", () -> offertilePlayerIsOn.getActionAvailable().subtractOneTopAction());
+    }
+
+    /**
+     * Shared implementation for top- and bottom-list card selection.
+     * Resolves the player, dispatches to the correct market method based on card type,
+     * logs the event, subtracts the appropriate action, and throws {@link NoMoreActionToDo}
+     * when all remaining actions are exhausted.
+     *
+     * @param cardType       the type of card to select.
+     * @param position       index in the market row.
+     * @param player         the acting player (looked up by nickname).
+     * @param buyBuilding    market method to call when buying a building.
+     * @param selectCard     market method to call for a tribe card.
+     * @param rowLabel       "top list" or "bottom list" — used for the log message.
+     * @param subtractAction action to decrement the correct counter on the offer tile.
+     */
+    private void selectGenericCard(CARD_TYPE cardType, int position, Player player, MarketAction buyBuilding, MarketAction selectCard, String rowLabel, Runnable subtractAction) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
         Player player1 = players.get(player.getNickname());
-        switch (toBuyCardType) {
-            case BUILDING -> market.buyBuildingTopList(position, player1);
+        switch (cardType) {
+            case BUILDING -> buyBuilding.execute(player1, position);
             case EVENT -> throw new NotSelectableCardException("cannot select an event");
-            default -> market.selectCardFromTopList(position, player1);
+            default -> selectCard.execute(player1, position);
         }
-        logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from top list at position " + position);
-        offertilePlayerIsOn.getActionAvailable().subtractOneTopAction();
+        logServerEvent("Player '" + player1.getNickname() + "' selected a " + cardType + " card from " + rowLabel + " at position " + position);
+        subtractAction.run();
         notifyActionChanged();
         if (offertilePlayerIsOn.getActionAvailable().getDrawFromBottom() == 0 && offertilePlayerIsOn.getActionAvailable().getDrawTop() == 0) {
             throw new NoMoreActionToDo();
         }
-
     }
 
     /**
@@ -384,8 +389,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
      * @throws NotEnoughFoodException     if the player cannot afford a building
      * @throws EmptyMarketException       if the top row has no selectable cards
      */
-    public void selectExtraCardFromTopList(CARD_TYPE cardType, int position, Player player)
-            throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
+    public void selectExtraCardFromTopList(CARD_TYPE cardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException {
         Player player1 = players.get(player.getNickname());
         switch (cardType) {
             case BUILDING -> market.buyExtraBuildingFromSnapshot(position, player1);
@@ -405,11 +409,9 @@ public class Game implements GameView, MementoManager<GameMemento> {
 
         // 1. Is the Market blocked?
         // (allMatch returns 'true' if the list only contains EVENT cards OR if the list is completely empty)
-        boolean isTopBlocked = market.getTopCardList().stream()
-                .allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
+        boolean isTopBlocked = market.getTopCardList().stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
 
-        boolean isBottomBlocked = market.getBottomCardList().stream()
-                .allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
+        boolean isBottomBlocked = market.getBottomCardList().stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT);
 
         // 2. Does the player have the necessary actions from their current OfferTile?
         boolean hasTopAction = offertilePlayerIsOn.getActionAvailable().getDrawTop() > 0;
@@ -436,18 +438,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
      * @throws NotSelectableCardException if the player tries to select an event card
      */
     public void selectGenericCardBottomLists(CARD_TYPE toBuyCardType, int position, Player player) throws IndexOutOfBoundsException, NotSelectableCardException, NotEnoughFoodException, EmptyMarketException, NoMoreActionToDo {
-        Player player1 = players.get(player.getNickname());
-        switch (toBuyCardType) {
-            case BUILDING -> market.buyBuildingBottomList(position, player1);
-            case EVENT -> throw new NotSelectableCardException("cannot select an event");
-            default -> market.selectCardFromBottomList(position, player1);
-        }
-        logServerEvent("Player '" + player1.getNickname() + "' selected a " + toBuyCardType + " card from bottom list at position " + position);
-        offertilePlayerIsOn.getActionAvailable().subtractOneBotAction();
-        notifyActionChanged();
-        if (offertilePlayerIsOn.getActionAvailable().getDrawFromBottom() == 0 && offertilePlayerIsOn.getActionAvailable().getDrawTop() == 0) {
-            throw new NoMoreActionToDo();
-        }
+        selectGenericCard(toBuyCardType, position, player, (p, pos) -> market.buyBuildingBottomList(pos, p), (p, pos) -> market.selectCardFromBottomList(pos, p), "bottom list", () -> offertilePlayerIsOn.getActionAvailable().subtractOneBotAction());
     }
 
     /**
@@ -544,28 +535,22 @@ public class Game implements GameView, MementoManager<GameMemento> {
      */
     private void notifyGameChanged() {
         List<Player> playersSnapshot = List.copyOf(this.players.values());
-        notify(observer -> observer.onGameChanged(
-                this.currentEra,
-                playersSnapshot,
-                this.gamePhase,
-                this.playerToPlace,
-                this.playerToPlay
-        ));
+        notify(observer -> observer.onGameChanged(this.currentEra, playersSnapshot, this.gamePhase, this.playerToPlace, this.playerToPlay));
     }
 
     /**
-     * this method notifies the winners
+     * Notifies all observers of the final winners list.
      *
-     * @param winners list of winners
+     * @param winners list of winning players.
      */
     private void notifyWinners(List<Player> winners) {
         notify(observer -> observer.gameWinners(winners));
     }
 
     /**
-     * method to notify that  {@code player} has been added
+     * Notifies all observers that a player has been added to the lobby.
      *
-     * @param player player to add
+     * @param player the player who joined.
      */
     private void notifyPlayerAdded(Player player) {
         notify(observer -> observer.onPlayerAdded(player));
@@ -573,28 +558,28 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
-     * Executes notify era changed.
+     * Notifies all observers that the era has changed.
      */
     private void notifyEraChanged() {
         notify(observer -> observer.onEraChanged(this.currentEra));
     }
 
     /**
-     * Executes notify game phase changed.
+     * Notifies all observers that the game phase has changed.
      */
     private void notifyGamePhaseChanged() {
         notify(observer -> observer.onGamePhaseChanged(gamePhase));
     }
 
     /**
-     * Executes notify player to place changed.
+     * Notifies all observers that the current placing player has changed.
      */
     private void notifyPlayerToPlaceChanged() {
         notify(observer -> observer.onPlayerToPlaceChanged(playerToPlace));
     }
 
     /**
-     * Executes notify player to play changed.
+     * Notifies all observers that the current playing player has changed.
      */
     private void notifyPlayerToPlayChanged() {
         notify(observer -> observer.onPlayerToPlayChanged(playerToPlay));
@@ -659,9 +644,10 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
-     * Executes link observer.
+     * Registers a {@link ServerVirtualView} as an observer of the game, board, and market,
+     * so it receives all state-change notifications.
      *
-     * @param vv parameter vv.
+     * @param vv the virtual view to register.
      */
     public void linkObserver(ServerVirtualView vv) {
         this.addObserver(vv);
@@ -676,7 +662,8 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
-     * Executes notify changes.
+     * Re-fires the full market and board state to all observers.
+     * Used when resuming a loaded game so every client gets an up-to-date snapshot.
      */
     public void notifyChanges() {
         this.market.notifyMarketChanged();
@@ -708,22 +695,20 @@ public class Game implements GameView, MementoManager<GameMemento> {
     }
 
     /**
-     * Executes notify action changed.
+     * Notifies all observers of the current playing player's remaining draw actions.
      */
     private void notifyActionChanged() {
         notify(o -> o.actionOfferTileChanged(this.offertilePlayerIsOn.getActionAvailable().getDrawTop(), this.offertilePlayerIsOn.getActionAvailable().getDrawFromBottom()));
     }
 
     /**
-     * Executes log server event.
+     * Logs an informational server event with the game log prefix.
      *
-     * @param message parameter message.
+     * @param message the message to log.
      */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
-
-    // --- DISCONNECTION SUPPORT ---
 
     /**
      * Removes the given player from both the placing and playing turn queues immediately.
@@ -734,6 +719,8 @@ public class Game implements GameView, MementoManager<GameMemento> {
     public void removeFromTurnQueues(Player player) {
         turnManager.removePlayer(player);
     }
+
+    // --- DISCONNECTION SUPPORT ---
 
     /**
      * Re-adds a reconnected player to the end of both turn queues.
@@ -765,16 +752,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
     @Override
     public GameMemento createMemento() {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Creating game memento (era=" + currentEra + ", phase=" + gamePhase + ")");
-        return new GameMemento(
-                this.currentEra,
-                this.gamePhase,
-                this.playerNumber,
-                this.playerToPlace != null ? this.playerToPlace.getNickname() : null,
-                this.playerToPlay != null ? this.playerToPlay.getNickname() : null,
-                this.players.values().stream().map(Player::createMemento).toList(),
-                this.market.createMemento(),
-                this.board.createMemento()
-        );
+        return new GameMemento(this.currentEra, this.gamePhase, this.playerNumber, this.playerToPlace != null ? this.playerToPlace.getNickname() : null, this.playerToPlay != null ? this.playerToPlay.getNickname() : null, this.players.values().stream().map(Player::createMemento).toList(), this.market.createMemento(), this.board.createMemento());
 
     }
 
@@ -797,9 +775,7 @@ public class Game implements GameView, MementoManager<GameMemento> {
         for (PlayerMemento pm : memento.players()) {
             Player p = new Player(pm.nickname(), pm.totemColor());
             p.restoreMemento(pm);
-            List<BuildingCard> buildings = pm.buildingIDs().stream()
-                    .map(id -> buildingFactory.createBuildingById(id, boardView))
-                    .toList();
+            List<BuildingCard> buildings = pm.buildingIDs().stream().map(id -> buildingFactory.createBuildingById(id, boardView)).toList();
             p.restoreBuildings(buildings);
             this.players.put(p.getNickname(), p);
         }
@@ -829,5 +805,14 @@ public class Game implements GameView, MementoManager<GameMemento> {
         if (memento.playerToPlayNickname() != null) {
             this.playerToPlay = this.players.get(memento.playerToPlayNickname());
         }
+    }
+
+    /**
+     * Functional interface for a market action that takes a player and a position and
+     * may throw any of the checked exceptions raised by the market methods.
+     */
+    @FunctionalInterface
+    private interface MarketAction {
+        void execute(Player player, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException;
     }
 }

@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 
 public class GameController implements GUIObserver {
     private final Stage stage;
-    private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
     private final PlayerDTO playerDTO;
 
@@ -34,7 +33,6 @@ public class GameController implements GUIObserver {
     public GameController(Stage stage, ServerRemoteInterface serverStub,
                           ClientVirtualView clientHandler, PlayerDTO playerDTO) {
         this.stage = stage;
-        this.serverStub = serverStub;
         this.clientHandler = clientHandler;
         this.playerDTO = playerDTO;
         clientHandler.addGUIObserver(this);

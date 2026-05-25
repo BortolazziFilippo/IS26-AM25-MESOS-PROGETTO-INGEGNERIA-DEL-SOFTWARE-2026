@@ -156,6 +156,91 @@
     -fx-padding: 6 0 0 0;
 }
 
+/* --- Dialog border (create / rank dialogs) --- */
+.dialog-border {
+    -fx-border-color: #6b4a2a;
+    -fx-border-width: 1.5;
+}
+
+/* --- Dialog header label (create game) --- */
+.dialog-header {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f5dfa0;
+    -fx-padding: 10 4 10 4;
+    -fx-alignment: center;
+}
+
+/* --- Dialog field label (player count) --- */
+.dialog-field-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e8c98b;
+}
+
+/* --- Rank dialog header --- */
+.rank-dialog-header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f5dfa0;
+    -fx-padding: 8 4 8 4;
+}
+
+/* --- Rank tab content box --- */
+.rank-tab-box {
+    -fx-background-color: transparent;
+}
+
+/* --- Rank loading label --- */
+.rank-loading {
+    -fx-text-fill: #c9a66b;
+    -fx-font-style: italic;
+}
+
+/* --- Rank scroll pane --- */
+.rank-scroll {
+    -fx-background: #0d0805;
+    -fx-background-color: #0d0805;
+    -fx-border-color: transparent;
+}
+
+/* --- Rank entry rows --- */
+.rank-entry {
+    -fx-text-fill: #f5dfa0;
+    -fx-padding: 5 8 5 8;
+}
+.rank-entry-even {
+    -fx-background-color: transparent;
+}
+.rank-entry-odd {
+    -fx-background-color: rgba(50, 30, 10, 0.6);
+}
+
+/* --- Rank network error --- */
+.rank-error {
+    -fx-text-fill: #ff6644;
+}
+
+/* --- Rank empty state --- */
+.rank-empty {
+    -fx-font-style: italic;
+    -fx-text-fill: #7a6a55;
+    -fx-padding: 8;
+}
+
+/* --- Starting screen --- */
+.starting-title {
+    -fx-font-size: 64px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f5dfa0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.7), 18, 0.5, 0, 3);
+}
+.starting-subtitle {
+    -fx-font-size: 24px;
+    -fx-font-style: italic;
+    -fx-text-fill: #c9a66b;
+}
+
 /* --- Dialog classifica (TabPane) --- */
 .rank-tabs {
     -fx-background-color: #0d0805;

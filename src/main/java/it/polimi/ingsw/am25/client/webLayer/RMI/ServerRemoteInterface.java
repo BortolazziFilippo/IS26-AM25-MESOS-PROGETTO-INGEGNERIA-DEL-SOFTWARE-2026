@@ -135,5 +135,18 @@ public interface ServerRemoteInterface extends Remote {
      */
     void loadGame(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException,GameAlreadyLoadedException,NoGameToLoadException;
 
+    /**
+     * Joins an already-loaded game session as a reconnecting player.
+     * Called after {@link #loadGame} has restored the saved match; each player
+     * that was in the original game must call this to re-register their RMI stub
+     * before the server can resume.
+     *
+     * @param player                the reconnecting player's data (nickname must match the saved game).
+     * @param clientRemoteInterface the player's RMI stub for receiving push notifications.
+     * @throws RemoteException           if the RMI call fails.
+     * @throws IllegalStateException     if no loaded game is waiting for players, or the nickname
+     *                                   does not belong to the saved match.
+     * @throws GameReadyToStartException if this player is the last one needed to resume the game.
+     */
     void joinGameLoaded(PlayerDTO player,ClientRemoteInterface clientRemoteInterface) throws RemoteException,IllegalStateException, GameReadyToStartException;
 }

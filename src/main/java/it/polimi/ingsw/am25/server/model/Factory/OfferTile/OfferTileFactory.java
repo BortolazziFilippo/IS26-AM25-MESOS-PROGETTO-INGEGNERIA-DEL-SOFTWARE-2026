@@ -6,9 +6,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,37 +22,29 @@ public class OfferTileFactory {
     }
 
     /**
-     * Executes offertile builder.
+     * Builds the list of offer tiles for the given player count by loading the
+     * correct JSON resource.
      *
-     * @param playerNumber parameter playerNumber.
-     * @return the result of the operation.
+     * @param playerNumber the number of players in the game (2–5).
+     * @return list of {@link OfferTile}s in slot order.
      */
     public List<OfferTile> offertileBuilder(int playerNumber) {
-        InputStream inputStream = null;
-        switch (playerNumber) {
-            case 2:
-                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/TwoPlayerOfferTile.json");
-                break;
-            case 3:
-                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/ThreePlayerOfferTile.json");
-                break;
-            case 4:
-                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FourPlayerOfferTile.json");
-                break;
-            case 5:
-                inputStream = OfferTileFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerOfferTile.json");
-                break;
-            default:
+        String jsonFile = switch (playerNumber) {
+            case 2 -> "/Board/json/Tiles/TwoPlayerOfferTile.json";
+            case 3 -> "/Board/json/Tiles/ThreePlayerOfferTile.json";
+            case 4 -> "/Board/json/Tiles/FourPlayerOfferTile.json";
+            case 5 -> "/Board/json/Tiles/FivePlayerOfferTile.json";
+            default -> {
                 logServerError("Invalid player number: " + playerNumber);
-        }
+                yield null;
+            }
+        };
+        InputStream inputStream = OfferTileFactory.class.getResourceAsStream(jsonFile);
         if (inputStream == null) {
             throw new RuntimeException(getClass() + " errore apertura file");
         }
-        Reader reader = new InputStreamReader(inputStream);
-        Gson gson = new Gson();
-        OfferTile[] offerTiles = gson.fromJson(reader, OfferTile[].class);
-
-        return new ArrayList<>(Arrays.stream(offerTiles).toList());
+        OfferTile[] offerTiles = new Gson().fromJson(new InputStreamReader(inputStream), OfferTile[].class);
+        return new ArrayList<>(List.of(offerTiles));
     }
 
     /**

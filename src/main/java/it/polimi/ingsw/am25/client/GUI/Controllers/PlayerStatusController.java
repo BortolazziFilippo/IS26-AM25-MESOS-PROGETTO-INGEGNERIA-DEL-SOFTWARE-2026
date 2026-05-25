@@ -141,7 +141,7 @@ public class PlayerStatusController implements GUIObserver {
                 .sorted(Comparator.comparingInt(PlayerDTO::getPrestigePoint).reversed())
                 .toList();
 
-        int maxPP = sorted.isEmpty() ? 1 : Math.max(1, sorted.get(0).getPrestigePoint());
+        int maxPP = sorted.isEmpty() ? 1 : Math.max(1, sorted.getFirst().getPrestigePoint());
 
         for (int i = 0; i < sorted.size(); i++) {
             box.getChildren().add(buildRankRow(sorted.get(i), i + 1, maxPP));

@@ -207,7 +207,7 @@ public class PlayerStatusTUI {
 
         List<INV_ICON> icons = inventors.stream()
                 .map(CardDTO::getInvIcon)
-                .collect(Collectors.toList());
+                .toList();
 
         System.out.printf("  %-15s %2d%n", "Inventori:", inventors.size());
 
@@ -279,16 +279,12 @@ public class PlayerStatusTUI {
      * Numeric value of a shaman star.
      */
     private int shamanStarValue(SHAMAN_STAR star) {
-        switch (star) {
-            case ONE:
-                return 1;
-            case TWO:
-                return 2;
-            case THREE:
-                return 3;
-            default:
-                return 0;
-        }
+        return switch (star) {
+            case ONE -> 1;
+            case TWO -> 2;
+            case THREE -> 3;
+            default -> 0;
+        };
     }
 
     /**
@@ -296,16 +292,12 @@ public class PlayerStatusTUI {
      */
     private String shamanStarLabel(SHAMAN_STAR star) {
         if (star == null) return "?";
-        switch (star) {
-            case ONE:
-                return "1*";
-            case TWO:
-                return "2**";
-            case THREE:
-                return "3***";
-            default:
-                return star.name();
-        }
+        return switch (star) {
+            case ONE -> "1*";
+            case TWO -> "2**";
+            case THREE -> "3***";
+            default -> star.name();
+        };
     }
 
     /**

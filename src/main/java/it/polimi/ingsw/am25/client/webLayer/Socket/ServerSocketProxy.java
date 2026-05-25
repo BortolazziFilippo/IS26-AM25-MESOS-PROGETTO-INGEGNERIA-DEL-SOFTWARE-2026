@@ -128,11 +128,12 @@ public class ServerSocketProxy implements ServerRemoteInterface {
      */
     @Override
     public void selectExtraCard(PlayerDTO player, CARD_TYPE cardType, int position) throws RemoteException, IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        // Extra-draw cards come from the end-of-round snapshot. After endOfRoundMarketActions()
-        // old top cards shift to the bottom list, so the server sends bottomCardRemoved /
-        // bottomBuildRemoved (not top) when the selected card is removed from the live market.
+        // Buildings are always in topBuildingList during Era III (the only era where
+        // DrawOneMoreCard can trigger): era-change building rotation never occurs in Era III,
+        // so the server sends topBuildRemoved, not bottomBuildRemoved.
+        // Tribe cards always shift top→bottom after endOfRoundMarketActions, so bottomCardSize is correct.
         int prevCount = (cardType == CARD_TYPE.BUILDING)
-                ? clientHandler.getBottomBuildingSize()
+                ? clientHandler.getTopBuildingSize()
                 : clientHandler.getBottomCardSize();
 
         ClientUtilitiesFunction.logInfo(LOG_PREFIX, "Sending selectExtraCard request for " + player.getNickName() + ", type " + cardType + ", position " + position + ".");
@@ -142,7 +143,7 @@ public class ServerSocketProxy implements ServerRemoteInterface {
         synchronized (clientHandler.turnLock) {
             while (!clientHandler.connectionError) {
                 int currentCount = (cardType == CARD_TYPE.BUILDING)
-                        ? clientHandler.getBottomBuildingSize()
+                        ? clientHandler.getTopBuildingSize()
                         : clientHandler.getBottomCardSize();
                 if (currentCount < prevCount) break; // card removed = success
                 try {

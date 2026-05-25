@@ -10,7 +10,6 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
  */
 public class DrawOneMoreCard extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
-    private final boolean turnFinished = false; /* flag to signal the end of a round; the corresponding game-layer method still needs to be reviewed */
 
     public DrawOneMoreCard() {
     }

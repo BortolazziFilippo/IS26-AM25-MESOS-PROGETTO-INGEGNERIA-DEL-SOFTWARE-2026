@@ -90,8 +90,8 @@ public class EndGameController {
     private String buildWinnersText(List<PlayerDTO> winners) {
         if (winners == null || winners.isEmpty()) return "Nessun vincitore.";
         if (winners.size() == 1)
-            return "Vincitore: " + winners.get(0).getNickName()
-                    + "  (" + winners.get(0).getPrestigePoint() + " PP)";
+            return "Vincitore: " + winners.getFirst().getNickName()
+                    + "  (" + winners.getFirst().getPrestigePoint() + " PP)";
         StringBuilder sb = new StringBuilder("Vincitori: ");
         for (PlayerDTO p : winners)
             sb.append(p.getNickName()).append(" (").append(p.getPrestigePoint()).append(" PP)  ");

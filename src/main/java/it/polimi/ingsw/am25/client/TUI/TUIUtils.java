@@ -13,27 +13,27 @@ public class TUIUtils {
     private final Scanner scanner;
 
     /**
-     * ANSI reset sequence — restores the default terminal colour.
+     * ANSI reset sequence — restores the default terminal color.
      */
     public static final String RESET = "\033[0m";
     /**
-     * ANSI bold-red colour sequence.
+     * ANSI bold-red color sequence.
      */
     public static final String RED = "\033[31;49;1m";
     /**
-     * ANSI bold-green colour sequence.
+     * ANSI bold-green color sequence.
      */
     public static final String GREEN = "\033[32;49;1m";
     /**
-     * ANSI bold-yellow colour sequence.
+     * ANSI bold-yellow color sequence.
      */
     public static final String YELLOW = "\033[33;49;1m";
     /**
-     * ANSI bold-blue colour sequence.
+     * ANSI bold-blue color sequence.
      */
     public static final String BLUE = "\033[34;49;1m";
     /**
-     * ANSI bold-purple colour sequence.
+     * ANSI bold-purple color sequence.
      */
     public static final String PURPLE = "\033[35;49;1m";
 
@@ -124,11 +124,11 @@ public class TUIUtils {
     }
 
     /**
-     * Returns the ANSI escape sequence corresponding to the given totem colour.
-     * If the colour is {@code null}, the reset code is returned.
+     * Returns the ANSI escape sequence corresponding to the given totem color.
+     * If the color is {@code null}, the reset code is returned.
      *
-     * @param color the player's totem colour, or {@code null}.
-     * @return the ANSI sequence for colouring terminal text.
+     * @param color the player's totem color, or {@code null}.
+     * @return the ANSI sequence for coloring terminal text.
      */
     public String getAnsiColor(COLOR color) {
         if (color == null) return RESET;

@@ -94,7 +94,7 @@ public class PlacementTUI {
     /**
      * Reads and validates the tile index from user input.
      *
-     * @return the 0-based tile index, or -1 if the user cancelled.
+     * @return the 0-based tile index, or -1 if the user canceled.
      */
     private int getPlacingIndex() {
         while (true) {

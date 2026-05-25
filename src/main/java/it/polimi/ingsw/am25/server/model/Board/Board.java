@@ -25,7 +25,6 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
     private static final String LOG_PREFIX = "[SERVER][BOARD]";
     private final List<OfferTile> offerTiles;
     private final List<DefaultTile> defaultTiles;
-    private final GameView gameView;
     private final List<BoardObserver> observers = new ArrayList<>();
 
     /**
@@ -34,7 +33,6 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
      * @param gameView parameter gameView.
      */
     public Board(GameView gameView) {
-        this.gameView = gameView;
         defaultTiles = new DefaultTileFactory().buildDefaultTiles(gameView.getPlayerNumber());
         offerTiles = new OfferTileFactory().offertileBuilder(gameView.getPlayerNumber());
     }
@@ -45,24 +43,51 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
      * according to the food-per-slot value of their assigned default tile.
      */
     public void returnOnDefaultTiles() {
-        // 1. Players who placed this round: collect from offer tiles.
-        List<Player> offerPlayers = new ArrayList<>(
-                this.offerTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
+        List<Player> offerPlayers          = collectOfferTilePlayers();
+        List<Player> disconnectedOnDefault = liftDisconnectedFromDefaultTiles();
+        int front = fillDefaultTilesFromFront(offerPlayers);
+        packDisconnectedAtBack(disconnectedOnDefault, front);
+        notifyPlayerToDefaultTile();
+    }
 
-        // 2. Disconnected players still on default tiles (never placed): lift them out temporarily
-        //    so we can re-insert them at the back without being overwritten.
-        List<Player> disconnectedOnDefault = new ArrayList<>(
-                this.defaultTiles.stream()
-                        .filter(t -> t.isOccupied() && t.getPlayerOn().getConnection() == CONNECTION_STATUS.DISCONNECTED)
-                        .map(Tile::getPlayerOn).toList());
-        disconnectedOnDefault.forEach(p ->
-                this.defaultTiles.stream()
-                        .filter(t -> t.isOccupied() && t.getPlayerOn().equals(p))
-                        .forEach(Tile::removePlayer));
+    /**
+     * Collects and returns the players currently on offer tiles (those who placed this round).
+     *
+     * @return list of players on occupied offer tiles, in tile order.
+     */
+    private List<Player> collectOfferTilePlayers() {
+        return new ArrayList<>(offerTiles.stream()
+                .filter(Tile::isOccupied)
+                .map(Tile::getPlayerOn)
+                .toList());
+    }
 
-        // 3. Fill default tiles from the front with offer-tile players (award food as usual).
-        //    Skip any tile already occupied (e.g. a player who reconnected mid-round and
-        //    never left their default tile slot).
+    /**
+     * Removes all disconnected players from default tiles and returns them.
+     * They will be re-inserted at the back of the default tile order after
+     * the connected players have been placed.
+     *
+     * @return list of players that were lifted out.
+     */
+    private List<Player> liftDisconnectedFromDefaultTiles() {
+        List<Player> disconnected = new ArrayList<>(defaultTiles.stream()
+                .filter(t -> t.isOccupied() && t.getPlayerOn().getConnection() == CONNECTION_STATUS.DISCONNECTED)
+                .map(Tile::getPlayerOn)
+                .toList());
+        disconnected.forEach(p -> defaultTiles.stream()
+                .filter(t -> t.isOccupied() && t.getPlayerOn().equals(p))
+                .forEach(Tile::removePlayer));
+        return disconnected;
+    }
+
+    /**
+     * Places offer-tile players onto default tiles from the front, awarding food for each slot.
+     * Skips tiles that are already occupied (e.g. a player who reconnected mid-round).
+     *
+     * @param offerPlayers players to place, in priority order.
+     * @return the index of the first free slot after the last placed player.
+     */
+    private int fillDefaultTilesFromFront(List<Player> offerPlayers) {
         int front = 0;
         for (Player p : offerPlayers) {
             while (front < defaultTiles.size() && defaultTiles.get(front).isOccupied()) front++;
@@ -71,13 +96,25 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
             p.manageFoodAndPP(defaultTiles.get(front).getFoodPerSlotPosition());
             logServerEvent("Moved player '" + p.getNickname() + "' to default tile " + front
                     + " and applied food delta " + defaultTiles.get(front).getFoodPerSlotPosition());
-            this.offerTiles.stream().filter(t -> t.isOccupied() && t.getPlayerOn().equals(p)).forEach(Tile::removePlayer);
+            offerTiles.stream()
+                    .filter(t -> t.isOccupied() && t.getPlayerOn().equals(p))
+                    .forEach(Tile::removePlayer);
             front++;
         }
+        return front;
+    }
 
-        // 4. Pack disconnected players at the back (no food — they didn't participate this round).
+    /**
+     * Places disconnected players at the back of the default tiles (no food awarded —
+     * they did not participate this round).
+     *
+     * @param disconnected players to pack at the back.
+     * @param front        index of the first slot already occupied by connected players;
+     *                     disconnected players are placed only in slots at or beyond this index.
+     */
+    private void packDisconnectedAtBack(List<Player> disconnected, int front) {
         int back = defaultTiles.size() - 1;
-        for (Player p : disconnectedOnDefault) {
+        for (Player p : disconnected) {
             while (back >= front && defaultTiles.get(back).isOccupied()) back--;
             if (back >= front) {
                 defaultTiles.get(back).placePlayer(p);
@@ -85,8 +122,25 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
                 back--;
             }
         }
+    }
 
-        notifyPlayerToDefaultTile();
+    /**
+     * Validates that {@code tilePosition} is a legal index into {@code tiles} and that
+     * the tile at that position is not already occupied.
+     *
+     * @param tiles        the tile list to check against
+     * @param tilePosition the requested index
+     * @throws IndexOutOfBoundsException if {@code tilePosition} is outside {@code [0, tiles.size())}
+     * @throws TileOccupiedException     if the tile at {@code tilePosition} is already occupied
+     */
+    private void validateTileAccess(List<? extends Tile> tiles, int tilePosition)
+            throws IndexOutOfBoundsException, TileOccupiedException {
+        if (tilePosition < 0 || tilePosition >= tiles.size()) {
+            throw new IndexOutOfBoundsException(getClass() + " TilePosition " + tilePosition + " not valid");
+        }
+        if (tiles.get(tilePosition).isOccupied()) {
+            throw new TileOccupiedException(getClass() + " tile is already occupied");
+        }
     }
 
     /**
@@ -98,17 +152,10 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
      * @throws TileOccupiedException     if the target tile is already occupied
      */
     public void placePlayerOnDefaultTile(Player player, int tilePosition) throws IndexOutOfBoundsException, TileOccupiedException {
-
-        if (tilePosition < defaultTiles.size() && tilePosition >= 0) {
-            if (defaultTiles.get(tilePosition).isOccupied()) {
-                throw new TileOccupiedException(getClass() + " tile is already occupied");
-            }
-            defaultTiles.get(tilePosition).placePlayer(player);
-            logServerEvent("Placed player '" + player.getNickname() + "' on default tile position " + tilePosition);
-            notifyPlayerToDefaultTile();
-        } else {
-            throw new IndexOutOfBoundsException(getClass() + " TilePosition not valid");
-        }
+        validateTileAccess(defaultTiles, tilePosition);
+        defaultTiles.get(tilePosition).placePlayer(player);
+        logServerEvent("Placed player '" + player.getNickname() + "' on default tile position " + tilePosition);
+        notifyPlayerToDefaultTile();
     }
 
     /**
@@ -120,19 +167,13 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
      * @throws IndexOutOfBoundsException if {@code tilePosition} is outside valid bounds
      */
     public void placePlayerOnOffertile(Player player, int tilePosition) throws IndexOutOfBoundsException, TileOccupiedException {
-        if (tilePosition >= 0 && tilePosition < offerTiles.size()) {
-            if (!offerTiles.get(tilePosition).isOccupied()) {
-                offerTiles.get(tilePosition).placePlayer(player);
-                defaultTiles.stream().filter(defaultTile -> Objects.equals(player, defaultTile.getPlayerOn())).forEach(Tile::removePlayer);
-                logServerEvent("Placed player '" + player.getNickname() + "' on offer tile position " + tilePosition);
-                notifyPlayerToOfferTile(player, tilePosition);
-            } else {
-                throw new TileOccupiedException(getClass() + "Selected tile is occupied");
-            }
-        } else {
-            throw new IndexOutOfBoundsException(getClass() + " TilePosition " + tilePosition + " Not Valid");
-        }
-
+        validateTileAccess(offerTiles, tilePosition);
+        offerTiles.get(tilePosition).placePlayer(player);
+        defaultTiles.stream()
+                .filter(t -> Objects.equals(player, t.getPlayerOn()))
+                .forEach(Tile::removePlayer);
+        logServerEvent("Placed player '" + player.getNickname() + "' on offer tile position " + tilePosition);
+        notifyPlayerToOfferTile(player, tilePosition);
     }
 
     /**
@@ -209,25 +250,36 @@ public class Board implements BoardView, MementoManager<BoardMemento> {
 
 
     /**
-     * Returns ordered player on offer tile.
+     * Returns the players currently occupying the given tile list, in tile order.
      *
-     * @return the result of the operation.
+     * @param tiles the tile list to scan
+     * @return mutable list of players on occupied tiles
+     */
+    private List<Player> getOccupants(List<? extends Tile> tiles) {
+        return new ArrayList<>(tiles.stream()
+                .filter(Tile::isOccupied)
+                .map(Tile::getPlayerOn)
+                .toList());
+    }
+
+    /**
+     * Returns the players currently on offer tiles, in tile order.
+     *
+     * @return ordered list of players on offer tiles.
      */
     @Override
     public List<Player> getOrderedPlayerOnOfferTile() {
-        return new ArrayList<>(offerTiles.stream().filter(OfferTile::isOccupied).map(Tile::getPlayerOn).toList());
+        return getOccupants(offerTiles);
     }
-
 
     /**
      * Returns the players currently on default tiles, in tile order.
      *
-     * @return ordered list of players on default tiles
+     * @return ordered list of players on default tiles.
      */
     @Override
     public List<Player> getOrderedPlayerOnDefaultTile() {
-        return new ArrayList<>(defaultTiles.stream().filter(Tile::isOccupied).map(Tile::getPlayerOn).toList());
-
+        return getOccupants(defaultTiles);
     }
 
     /**

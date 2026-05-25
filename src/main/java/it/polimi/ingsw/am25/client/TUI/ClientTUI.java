@@ -62,8 +62,8 @@ public class ClientTUI {
 
         // ==========================================================
         // 2. PING THREAD
-        // Aspetta che la partita inizi (gamePhase != null), poi avvia
-        // heartbeat e PongWatchdog in sincronia con il server.
+        // Wait for the game to start (gamePhase != null), then start
+        // heartbeat and PongWatchdog in sync with the server.
         // ==========================================================
         synchronized (clientHandler.turnLock) {
             while (clientHandler.getGamePhase() == null && !clientHandler.isServerDead()) {
@@ -124,13 +124,13 @@ public class ClientTUI {
                 utils.pauseAndClear();
             }
 
-            // Recupera SOLVING_EVENTS perso: può accadere quando passTurn() esce
-            // dal suo wait loop su gamePhaseChanged(SOLVING_EVENTS) e, prima che
-            // il thread TUI arrivi a waitForMyTurn(), l'executor ha già consegnato
-            // tutti gli eventResolved + gamePhaseChanged(PLACING_PHASE). In quel
-            // caso lo switch qui sotto vedrebbe PLACING_PHASE e salterebbe
-            // SOLVING_EVENTS. Gli eventResolved sono garantiti nella lista perché
-            // l'executor li invia in ordine FIFO, tutti prima di PLACING_PHASE.
+            // Recover a missed SOLVING_EVENTS phase: this can happen when passTurn() exits
+            // its wait loop on gamePhaseChanged(SOLVING_EVENTS) and, before the TUI thread
+            // reaches waitForMyTurn(), the executor has already delivered all eventResolved
+            // notifications + gamePhaseChanged(PLACING_PHASE). In that case the switch below
+            // would see PLACING_PHASE and skip SOLVING_EVENTS entirely.
+            // The eventResolved list is guaranteed to be populated in FIFO order,
+            // all entries arriving before PLACING_PHASE.
             if (!clientHandler.getResolvedEvents().isEmpty()) {
                 new SolvingEventsTUI(clientHandler, utils).solveEvents();
                 continue;
@@ -167,7 +167,7 @@ public class ClientTUI {
                     break;
                 case SOLVING_EVENTS:
                     new SolvingEventsTUI(clientHandler, utils).solveEvents();
-                    continue; // salta il corpo del while e ricomincia da capo e invoca waitForMyTurns
+                    continue; // skip the rest of the loop body and re-enter from the top, invoking waitForMyTurn
                 case END_GAME:
                     new EndGameTUI(clientHandler, utils, scanner, myPlayer, serverStub).finished(clientHandler.getWinners());
                     return;

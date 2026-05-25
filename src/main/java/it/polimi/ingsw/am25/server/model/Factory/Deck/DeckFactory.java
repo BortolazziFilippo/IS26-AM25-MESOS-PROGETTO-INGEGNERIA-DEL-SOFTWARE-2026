@@ -1,11 +1,9 @@
 package it.polimi.ingsw.am25.server.model.Factory.Deck;
 
 import com.google.gson.Gson;
-import it.polimi.ingsw.am25.server.model.Board.Board;
 import it.polimi.ingsw.am25.server.model.Board.BoardView;
 import it.polimi.ingsw.am25.server.model.Card.*;
 import it.polimi.ingsw.am25.server.model.Factory.Building.BuildingFactory;
-import it.polimi.ingsw.am25.server.model.Factory.DefaultTile.DefaultTileFactory;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Factory.Event.EventFactory;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
@@ -13,7 +11,6 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,47 +29,35 @@ public class DeckFactory {
     }
 
     /**
-     * This method is used to create the deck of card and event
+     * Builds the card deck for the given player count by loading the correct JSON resource
+     * and merging in the era event cards.
      *
-     * @param playerNumber number of player
-     * @return return a List with the right amount of card and event, grouped by type
+     * @param playerNumber the number of players in the game (2–5).
+     * @return list of {@link Card}s ready to be shuffled into the game deck.
      */
     public List<Card> createDeck(int playerNumber) {
-        List<Card> cardToReturn = new ArrayList<>();
-        InputStream inputStream = null;
-        switch (playerNumber) {
-            case 2:
-                inputStream = DefaultTileFactory.class.getResourceAsStream("/CardResources/json/TwoPlayersCard.json");
-                break;
-            case 3:
-                inputStream = DefaultTileFactory.class.getResourceAsStream("/CardResources/json/ThreePlayersCard.json");
-                break;
-            case 4:
-                inputStream = DefaultTileFactory.class.getResourceAsStream("/CardResources/json/FourPlayersCard.json");
-                break;
-            case 5:
-                inputStream = DefaultTileFactory.class.getResourceAsStream("/CardResources/json/FivePlayersCard.json");
-                break;
-            default:
+        String jsonFile = switch (playerNumber) {
+            case 2 -> "/CardResources/json/TwoPlayersCard.json";
+            case 3 -> "/CardResources/json/ThreePlayersCard.json";
+            case 4 -> "/CardResources/json/FourPlayersCard.json";
+            case 5 -> "/CardResources/json/FivePlayersCard.json";
+            default -> {
                 logServerError("Invalid player number: " + playerNumber);
-
-        }
+                yield null;
+            }
+        };
+        InputStream inputStream = DeckFactory.class.getResourceAsStream(jsonFile);
         if (inputStream == null) {
             throw new RuntimeException(getClass() + ": errore apertura file");
         }
-        Reader reader = new InputStreamReader(inputStream);
-        Gson gson = new Gson();
-        CardDTO[] cardDTOS = gson.fromJson(reader, CardDTO[].class);
+        CardDTO[] cardDTOS = new Gson().fromJson(new InputStreamReader(inputStream), CardDTO[].class);
 
-
+        List<Card> cardToReturn = new ArrayList<>();
         for (CardDTO temp : cardDTOS) {
-            cardToReturn.add(cardBinder(temp ));
+            cardToReturn.add(cardBinder(temp));
         }
-
-        List<EventCard> listEventToMerge = new EventFactory().createEvent();
-        cardToReturn.addAll(listEventToMerge);
+        cardToReturn.addAll(new EventFactory().createEvent());
         return cardToReturn;
-
     }
     private Card cardBinder(CardDTO cardDTO) {
         return switch (cardDTO.getCardType()) {
@@ -114,13 +99,13 @@ public class DeckFactory {
      * @param boardView   board view passed to the factory to wire up building effects.
      * @return list of fully initialised {@link it.polimi.ingsw.am25.server.model.Card.BuildingCard} instances.
      */
-    public List<BuildingCard> loadBuidlingDeck(List<Integer> buildingIds, BoardView boardView) {
-        List<BuildingCard> buidlingDeckToReturn = new ArrayList<>();
+    public List<BuildingCard> loadBuildingDeck(List<Integer> buildingIds, BoardView boardView) {
+        List<BuildingCard> buildingDeckToReturn = new ArrayList<>();
         BuildingFactory buildingFactory = new BuildingFactory();
         for (Integer temp : buildingIds) {
-            buidlingDeckToReturn.add(buildingFactory.createBuildingById(temp, boardView));
+            buildingDeckToReturn.add(buildingFactory.createBuildingById(temp, boardView));
         }
-        return buidlingDeckToReturn;
+        return buildingDeckToReturn;
     }
     /**
      * Executes log server error.

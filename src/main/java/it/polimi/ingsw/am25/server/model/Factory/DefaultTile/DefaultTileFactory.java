@@ -2,14 +2,11 @@ package it.polimi.ingsw.am25.server.model.Factory.DefaultTile;
 
 import com.google.gson.Gson;
 import it.polimi.ingsw.am25.server.model.Board.DefaultTile;
-import it.polimi.ingsw.am25.server.model.Factory.Deck.DeckFactory;
 import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,37 +23,29 @@ public class DefaultTileFactory {
     }
 
     /**
-     * Executes build default tiles.
+     * Builds the list of default tiles for the given player count by loading the
+     * correct JSON resource.
      *
-     * @param playerNumber parameter playerNumber.
-     * @return the result of the operation.
+     * @param playerNumber the number of players in the game (2–5).
+     * @return list of {@link DefaultTile}s in slot order.
      */
     public List<DefaultTile> buildDefaultTiles(int playerNumber) {
-        InputStream inputStream = null;
-        switch (playerNumber) {
-            case 2:
-                inputStream = DeckFactory.class.getResourceAsStream("/Board/json/Tiles/TwoPlayerDefaultTile.json");
-                break;
-            case 3:
-                inputStream = DeckFactory.class.getResourceAsStream("/Board/json/Tiles/ThreePlayerDefaultTile.json");
-                break;
-            case 4:
-                inputStream = DeckFactory.class.getResourceAsStream("/Board/json/Tiles/FourPlayerDefaultTile.json");
-                break;
-            case 5:
-                inputStream = DeckFactory.class.getResourceAsStream("/Board/json/Tiles/FivePlayerDefaultTile.json");
-                break;
-            default:
+        String jsonFile = switch (playerNumber) {
+            case 2 -> "/Board/json/Tiles/TwoPlayerDefaultTile.json";
+            case 3 -> "/Board/json/Tiles/ThreePlayerDefaultTile.json";
+            case 4 -> "/Board/json/Tiles/FourPlayerDefaultTile.json";
+            case 5 -> "/Board/json/Tiles/FivePlayerDefaultTile.json";
+            default -> {
                 logServerError("Invalid player number: " + playerNumber);
-        }
+                yield null;
+            }
+        };
+        InputStream inputStream = DefaultTileFactory.class.getResourceAsStream(jsonFile);
         if (inputStream == null) {
             throw new RuntimeException(getClass() + " errore apertura file");
         }
-        Reader reader = new InputStreamReader(inputStream);
-        Gson gson = new Gson();
-        DefaultTile[] defaultTiles = gson.fromJson(reader, DefaultTile[].class);
-        return new ArrayList<>(Arrays.stream(defaultTiles).toList());
-
+        DefaultTile[] defaultTiles = new Gson().fromJson(new InputStreamReader(inputStream), DefaultTile[].class);
+        return new ArrayList<>(List.of(defaultTiles));
     }
 
     /**

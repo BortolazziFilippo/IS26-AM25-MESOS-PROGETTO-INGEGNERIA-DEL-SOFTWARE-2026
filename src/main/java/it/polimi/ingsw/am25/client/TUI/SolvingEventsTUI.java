@@ -25,10 +25,6 @@ public class SolvingEventsTUI {
      * displays the complete list and clears it for the next phase.
      */
     public void solveEvents() {
-        // NB: NON chiamare clearResolvedEvents() qui all'inizio.
-        // Tra la sveglia su turnLock e l'arrivo della TUI a questa riga, il
-        // server (single-thread executor) puo' aver gia' inviato tutti gli
-        // eventResolved della fase: cancellandoli ora li perderemmo.
 
         tuiUtils.clearScreen();
         System.out.println("⚙️  --- RISOLUZIONE EVENTI ---");
@@ -38,7 +34,7 @@ public class SolvingEventsTUI {
         synchronized (clientVirtualView.turnLock) {
             while (clientVirtualView.getGamePhase() == GAME_PHASE.SOLVING_EVENTS) {
                 System.out.println("Eventi risolti finora: ");
-                clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event));
+                clientVirtualView.getResolvedEvents().forEach(System.out::println);
                 System.out.println();
                 System.out.println(" ⏳ Risoluzione in corso... ");
                 try {
@@ -50,16 +46,9 @@ public class SolvingEventsTUI {
             }
         }
 
-        // Stampa finale: copre due casi che il while da solo perde
-        //  1) la fase e' gia' cambiata quando arriviamo qui (loop mai eseguito)
-        //  2) un eventResolved e' arrivato insieme al cambio di fase
-        //     (la wait esce ma non rifa' la stampa prima del controllo while)
         tuiUtils.clearScreen();
         System.out.println("✅ Gli eventi sono stati risolti:");
-        clientVirtualView.getResolvedEvents().forEach(event -> System.out.println(event));
-
-        // Puliamo ORA, dopo che l'utente ha avuto modo di vederli, cosi'
-        // la prossima fase SOLVING_EVENTS partira' da una lista vuota.
+        clientVirtualView.getResolvedEvents().forEach(System.out::println);
         clientVirtualView.clearResolvedEvents();
 
         tuiUtils.pauseAndClear();

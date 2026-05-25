@@ -40,7 +40,7 @@ public class Market implements MementoManager<MarketMemento> {
     private final List<MarketObserver> observers = new ArrayList<>();
     private List<Card> extraDrawCardSnapshot = new ArrayList<>();
     private List<BuildingCard> extraDrawBuildingSnapshot = new ArrayList<>();
-    private final String LOG_PREFIX="[SERVER][MARKET]";
+    private static final String LOG_PREFIX = "[SERVER][MARKET]";
 
     /**
      * Initializes the market by building the deck and buildings for the given player count,
@@ -152,13 +152,13 @@ public class Market implements MementoManager<MarketMemento> {
         int bottomPos = bottomCardList.indexOf(selected);
         if (bottomPos >= 0) {
             bottomCardList.remove(bottomPos);
-            notifyCardRemovedFromBottom(bottomPos, CARD_TYPE.ARTIST);
+            notifyCardRemovedFromBottom(bottomPos, selected.getCardType());
         } else {
             // endOfRoundMarketActions not yet executed (edge case): card still in top list
             int topPos = topCardList.indexOf(selected);
             if (topPos >= 0) {
                 topCardList.remove(topPos);
-                notifyCardRemoveFromTop(topPos, CARD_TYPE.ARTIST);
+                notifyCardRemoveFromTop(topPos, selected.getCardType());
             }
         }
     }
@@ -249,9 +249,8 @@ public class Market implements MementoManager<MarketMemento> {
                 throw new DeckFinishedException();
             }
             //Extract the first card from the deck end add it to the top card list and then remove it from the deck
-            cardToAdd = deck.get(0);
+            cardToAdd = deck.removeFirst();
             topCardList.add(cardToAdd);
-            deck.remove(0);
         }
         if (cardToAdd != null) {
             //check if the last drawn card is from a different ERA, if so it launches a ChangedEraException notifying the caller
@@ -321,7 +320,7 @@ public class Market implements MementoManager<MarketMemento> {
             throw new NotSelectableCardException("Cannot Select EventCard");
         }
         this.topCardList.remove(position);
-        notifyCardRemoveFromTop(position, CARD_TYPE.ARTIST);
+        notifyCardRemoveFromTop(position, selectedCard.getCardType());
     }
 
     /**
@@ -378,8 +377,7 @@ public class Market implements MementoManager<MarketMemento> {
             throw new NotSelectableCardException("Cannot select EventCard");
         }
         this.bottomCardList.remove(position);
-
-        notifyCardRemovedFromBottom(position, CARD_TYPE.ARTIST);
+        notifyCardRemovedFromBottom(position, selectedCard.getCardType());
     }
 
     /**
@@ -408,9 +406,6 @@ public class Market implements MementoManager<MarketMemento> {
 
         notifyCardRemovedFromBottom(position, CARD_TYPE.BUILDING);
     }
-    //the logic does not enforce that this is called at end-of-turn; it is assumed to only be called then,
-    //but even if called mid-turn it is safe since it only returns a bool and does not actually resolve events
-
     /**
      * Subscribes an observer to receive market change notifications.
      *
@@ -438,7 +433,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * this method is used to update all the subscribed observer
+     * Notifies all subscribed observers of the current full market state.
      */
     public void notifyMarketChanged() {
         List<Card> topCardsSnapshot = List.copyOf(topCardList);
@@ -454,7 +449,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * at the end of the round a new top set card is created
+     * Notifies all observers that the top card row has been refreshed.
      */
     private void notifyTopCardRefreshed() {
         List<Card> topCardsSnapshot = List.copyOf(topCardList);
@@ -462,7 +457,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * Executes notify top building refreshed.
+     * Notifies all observers that the top building row has been refreshed.
      */
     private void notifyTopBuildingRefreshed() {
         List<BuildingCard> topBuildingSnapshot = List.copyOf(topBuildingList);
@@ -470,20 +465,20 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * Executes notify card remove from top.
+     * Notifies all observers that a card was removed from the top market row.
      *
-     * @param position parameter position.
-     * @param card     parameter card.
+     * @param position zero-based index of the removed card.
+     * @param card     type of the removed card.
      */
     private void notifyCardRemoveFromTop(int position, CARD_TYPE card) {
         notify(observer -> observer.onCardRemovedFromTop(position, card));
     }
 
     /**
-     * Executes notify card removed from bottom.
+     * Notifies all observers that a card was removed from the bottom market row.
      *
-     * @param position parameter position.
-     * @param card     parameter card.
+     * @param position zero-based index of the removed card.
+     * @param card     type of the removed card.
      */
     private void notifyCardRemovedFromBottom(int position, CARD_TYPE card) {
         notify(observer -> observer.onCardRemovedFromBottom(position, card));
@@ -511,9 +506,8 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * this method, if there are Events in the bottomCardList, it solves them.
-     * First it order them by event Type (Sustenance are the last events to be solved), in case of two events from two different ERAS
-     * the oldest one(the one with the "least ERA") must be done first
+     * Resolves all event cards in the bottom row, if any.
+     * Events are sorted by type (Sustenance last), then by ERA (oldest first).
      */
     private void solveEvents() {
         List<EventCard> eventToBeSolved = this.bottomCardList.stream().filter(card -> card.getCardType() == CARD_TYPE.EVENT).map(EventCard.class::cast).collect(Collectors.toCollection(ArrayList::new));
@@ -528,7 +522,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * this method first shuffles the deck then order it by era and at the end appends the two final events
+     * Shuffles the deck, sorts it by ERA, then appends the two final event cards at the end.
      */
     private void organizeDeck() {
         EventCard finalShamanEventCard = (EventCard) this.deck.getLast();
@@ -542,7 +536,8 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * this method initialize the bottom list with the right amount o cards
+     * Populates the bottom card row with the correct number of cards for the player count.
+     * Event cards encountered during initialization are deferred to the top row instead.
      */
     private void initializeBottomList() {
         int numberOfCard = UtilitiesFunction.bindCorrectNumberOfBottomListCard(gameView.getPlayerNumber());
@@ -560,7 +555,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     /**
-     * this method initialize the top card list and the top building list
+     * Populates the top card row and the top building row for the start of the game.
      */
     private void initializeBothTopList() {
         int numberOfCard = UtilitiesFunction.bindCorrectNumberOfTopListCard(gameView.getPlayerNumber());
@@ -574,9 +569,7 @@ public class Market implements MementoManager<MarketMemento> {
     }
 
     private void notifyResolvedEvent(int eventID, EVENT_TYPE eventType) {
-        for (MarketObserver observer : observers) {
-            observer.eventSolved(eventID, eventType);
-        }
+        notify(observer -> observer.eventSolved(eventID, eventType));
     }
 
     private void notifyExtraDrawSnapshotReady() {
@@ -618,8 +611,8 @@ public class Market implements MementoManager<MarketMemento> {
         this.topCardList = deckFactory.loadDeck(memento.topCards());
         this.bottomCardList = deckFactory.loadDeck(memento.bottomCards());
         this.deck = deckFactory.loadDeck(memento.deck());
-        this.topBuildingList = deckFactory.loadBuidlingDeck(memento.topBuildingIDs(), this.boardView);
-        this.bottomBuildingList = deckFactory.loadBuidlingDeck(memento.bottomBuildingIDs(), this.boardView);
-        this.buildingCards = deckFactory.loadBuidlingDeck(memento.buildingPoolIDs(), this.boardView);
+        this.topBuildingList = deckFactory.loadBuildingDeck(memento.topBuildingIDs(), this.boardView);
+        this.bottomBuildingList = deckFactory.loadBuildingDeck(memento.bottomBuildingIDs(), this.boardView);
+        this.buildingCards = deckFactory.loadBuildingDeck(memento.buildingPoolIDs(), this.boardView);
     }
 }

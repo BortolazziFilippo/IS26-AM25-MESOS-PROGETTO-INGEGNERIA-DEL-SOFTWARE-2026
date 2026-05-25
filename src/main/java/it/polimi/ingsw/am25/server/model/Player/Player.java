@@ -34,9 +34,9 @@ public class Player implements MementoManager<PlayerMemento> {
 
 
     /**
-     * Returns nickname.
+     * Returns the player's nickname.
      *
-     * @return the result of the operation.
+     * @return nickname.
      */
     public String getNickname() {
         return nickname;
@@ -65,12 +65,7 @@ public class Player implements MementoManager<PlayerMemento> {
      * @param virtualView observer to bind
      */
     public Player(String nickname, COLOR color, ServerVirtualView virtualView) {
-        this.nickname = nickname;
-        this.food = 0;
-        this.prestigePoint = 0;
-        this.tribe = new ArrayList<>();
-        this.buildingCards = new ArrayList<>();
-        this.totem = new Totem(color);
+        this(nickname, color);
         addObserver(virtualView);
         notifyPlayerChanged();
     }
@@ -98,17 +93,10 @@ public class Player implements MementoManager<PlayerMemento> {
      */
     public void manageFoodAndPP(int foodAmount) {
         int previousFood = this.food;
-        if (foodAmount < 0) {
-            if ((this.food + foodAmount) < 0) {
-                this.food += foodAmount;
-                int temp = this.food * 2;
-                managePP(temp);
-                this.food = 0;
-            } else {
-                this.food += foodAmount;
-            }
-        } else {
-            this.food += foodAmount;
+        this.food += foodAmount;
+        if (this.food < 0) {
+            managePP(this.food * 2);
+            this.food = 0;
         }
         logServerEvent(
                 "Updated food for player '" + nickname + "': " + previousFood + " -> " + this.food +
@@ -125,22 +113,17 @@ public class Player implements MementoManager<PlayerMemento> {
      */
     public void tryBuyBuilding(BuildingCard selectedBuildingCard) throws NotEnoughFoodException {
         int originalCost = selectedBuildingCard.getFoodCost();
-        int cost = originalCost - this.getBuilderDiscount();
-        if (cost < 0) {
-            cost = 0;
-        }
+        int cost = Math.max(0, originalCost - this.getBuilderDiscount());
         if (this.food - cost < 0) {
             throw new NotEnoughFoodException();
-        } else {
-            this.food -= cost;
-            selectedBuildingCard.addCardToPlayer(this);
-            logServerEvent(
-                    "Player '" + nickname + "' bought building #" + selectedBuildingCard.getBuildingID() +
-                            " (cost " + originalCost + ", discounted to " + cost + ")"
-            );
-            notifyFoodChanged();
         }
-
+        this.food -= cost;
+        selectedBuildingCard.addCardToPlayer(this);
+        logServerEvent(
+                "Player '" + nickname + "' bought building #" + selectedBuildingCard.getBuildingID() +
+                        " (cost " + originalCost + ", discounted to " + cost + ")"
+        );
+        notifyFoodChanged();
     }
 
     /**
@@ -236,13 +219,10 @@ public class Player implements MementoManager<PlayerMemento> {
      * @return the sum of star values for all Shaman cards.
      */
     public int getShamanStarTotal() {
-        int countStar = 0;
-        for (Card card : this.tribe) {
-            if (card.getCardType() == CARD_TYPE.SHAMAN) {
-                countStar = countStar + ((ShamanCard) card).getStarNumber();
-            }
-        }
-        return countStar;
+        return tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.SHAMAN)
+                .mapToInt(card -> ((ShamanCard) card).getStarNumber())
+                .sum();
     }
 
     /**
@@ -251,12 +231,11 @@ public class Player implements MementoManager<PlayerMemento> {
      * @return the sum of food discounts across all Builder cards.
      */
     public int getBuilderDiscount() {
-
-        return this.tribe.stream().
-                filter(card -> card.getCardType() == CARD_TYPE.BUILDER).
-                map(card -> (BuilderCard) card).
-                mapToInt(BuilderCard::getFoodDiscount).
-                sum();
+        return this.tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.BUILDER)
+                .map(BuilderCard.class::cast)
+                .mapToInt(BuilderCard::getFoodDiscount)
+                .sum();
     }
 
     /**
@@ -265,10 +244,9 @@ public class Player implements MementoManager<PlayerMemento> {
      * @return the total food discount from Gatherer cards.
      */
     public int getGatherDiscount() {
-
-        return (int) this.tribe.stream().
-                filter(card -> card.getCardType() == CARD_TYPE.GATHERER).
-                count() * 3;
+        return (int) this.tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.GATHERER)
+                .count() * 3;
     }
 
     /**
@@ -277,9 +255,9 @@ public class Player implements MementoManager<PlayerMemento> {
      * @return the hunter count.
      */
     public int getHunterNumber() {
-        return (int) tribe.stream().
-                filter(card -> card.getCardType() == CARD_TYPE.HUNTER).
-                count();
+        return (int) tribe.stream()
+                .filter(card -> card.getCardType() == CARD_TYPE.HUNTER)
+                .count();
     }
 
     /**
@@ -324,18 +302,18 @@ public class Player implements MementoManager<PlayerMemento> {
     }
 
     /**
-     * Returns an unmodifiable view of all villager cards in the player's tribe.
+     * Returns all cards in the player's tribe.
      *
-     * @return the tribe card list
+     * @return the tribe card list.
      */
     public List<Card> getTribe() {
         return tribe;
     }
 
     /**
-     * Returns totem.
+     * Returns the player's totem.
      *
-     * @return the result of the operation.
+     * @return totem.
      */
     public Totem getTotem() {
         return totem;
@@ -363,9 +341,9 @@ public class Player implements MementoManager<PlayerMemento> {
     }
 
     /**
-     * Returns observers.
+     * Returns the list of subscribed observers.
      *
-     * @return the result of the operation.
+     * @return observer list.
      */
     public List<PlayerObserver> getObservers() {
         return this.observers;
@@ -380,10 +358,6 @@ public class Player implements MementoManager<PlayerMemento> {
         observers.remove(observerToRemove);
     }
 
-    /**
-     * Notifies all subscribed observers with a snapshot of the current player state.
-     */
-
     private void notify(Consumer<PlayerObserver> action) {
         for (PlayerObserver observer : observers) {
             action.accept(observer);
@@ -396,25 +370,14 @@ public class Player implements MementoManager<PlayerMemento> {
         notify(o -> o.onPlayerChanged(this.nickname, this.totem, this.food, this.prestigePoint, tribeSnapshot, buildingSnapshot));
     }
 
-    /**
-     * Executes notify food changed.
-     */
     private void notifyFoodChanged() {
         notify(o -> o.notifyFoodChanged(this.nickname, food));
     }
 
-    /**
-     * Executes notify ppchanged.
-     */
     private void notifyPPChanged() {
         notify(o -> o.notifyPPChanged(this.nickname, prestigePoint));
     }
 
-    /**
-     * Executes notify card added.
-     *
-     * @param cardAdded parameter cardAdded.
-     */
     private void notifyCardAdded(Card cardAdded) {
         notify(o -> o.notifyCardAddedToTribe(this.nickname, cardAdded));
     }
@@ -433,12 +396,6 @@ public class Player implements MementoManager<PlayerMemento> {
         }
     }
 
-    /**
-     * Executes format card for log.
-     *
-     * @param card parameter card.
-     * @return the result of the operation.
-     */
     private String formatCardForLog(Card card) {
         if (card instanceof BuildingCard buildingCard) {
             return "building #" + buildingCard.getBuildingID();
@@ -446,20 +403,12 @@ public class Player implements MementoManager<PlayerMemento> {
         return card.getCardType() + " card (" + card.getEra() + ")";
     }
 
-    /**
-     * Executes log server event.
-     *
-     * @param message parameter message.
-     */
     private void logServerEvent(String message) {
         UtilitiesFunction.logInfo(LOG_PREFIX, message);
     }
 
     /**
-     * Executes equals.
-     *
-     * @param o parameter o.
-     * @return the result of the operation.
+     * Two players are equal if they share the same nickname and totem.
      */
     @Override
     public boolean equals(Object o) {
@@ -468,38 +417,33 @@ public class Player implements MementoManager<PlayerMemento> {
     }
 
     /**
-     * method for building Card draw one more card
+     * Requests an extra card draw on behalf of this player (triggered by a building effect).
      */
     public void requestExtraDraw() {
-        for (PlayerObserver observer : observers) {
-            observer.requestExtraDraw(this.nickname);
-        }
+        notify(observer -> observer.requestExtraDraw(this.nickname));
     }
 
     /**
-     * Executes checkpoints.
+     * Computes the end-game prestige points earned from tribe cards:
+     * artists (every 2 = 10 PP), builders (fixed PP per card), and inventors
+     * (count × number of distinct inventor icons).
      *
-     * @return the result of the operation.
+     * @return total end-game prestige points from tribe cards.
      */
     public int checkpoints() {
-        int finalPoints = 0;
-        long artistPoints = 0;
-        int builderPoints = 0;
-        long inventorPoints = 0;
-        artistPoints = getArtistNumber();
-        finalPoints = (int) (artistPoints / 2) * 10;
+        int artistPoints = (getArtistNumber() / 2) * 10;
 
-        builderPoints = this.tribe.stream()
+        int builderPoints = this.tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.BUILDER)
                 .mapToInt(card -> ((BuilderCard) card).getFinalPrestigePoint())
                 .sum();
 
-        inventorPoints = this.tribe.stream()
+        long inventorCount = this.tribe.stream()
                 .filter(card -> card.getCardType() == CARD_TYPE.INVENTOR)
                 .count();
-        inventorPoints = inventorPoints * getNumberOfDifferentInventorIcon();
-        finalPoints = finalPoints + (int) inventorPoints + builderPoints;
-        return finalPoints;
+        int inventorPoints = (int) (inventorCount * getNumberOfDifferentInventorIcon());
+
+        return artistPoints + builderPoints + inventorPoints;
     }
 
     /**

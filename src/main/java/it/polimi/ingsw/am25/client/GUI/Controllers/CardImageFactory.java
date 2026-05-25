@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CardImageFactory {
@@ -22,7 +23,7 @@ public class CardImageFactory {
 
     private static Image cached(String path) {
         return IMAGE_CACHE.computeIfAbsent(path,
-                p -> new Image(CardImageFactory.class.getResourceAsStream(p)));
+                p -> new Image(Objects.requireNonNull(CardImageFactory.class.getResourceAsStream(p))));
     }
 
     public static ImageView defaultTileImageView(int playerCount, double fitHeight) {
@@ -109,7 +110,6 @@ public class CardImageFactory {
 
     public static String eventTypePath(EVENT_TYPE type) {
         return switch (type) {
-            case HUNT -> "hunt";
             case PAINTINGS -> "painting";
             case SHAMANIC_RIT -> "Shaman";
             case SUSTENANCE -> "sustenance";

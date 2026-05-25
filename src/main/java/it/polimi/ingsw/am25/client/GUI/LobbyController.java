@@ -40,12 +40,14 @@ public class LobbyController implements GUIObserver {
 
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
     private static final String GAME_ALREADY_STARTED_MESSAGE = "Game already started";
+    private static final String CSS = LobbyController.class
+            .getResource("/FXML/Lobby.css").toExternalForm();
 
     private final Stage stage;
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
 
-    // ---- Nodi iniettati dall'FXML (i nomi DEVONO corrispondere agli fx:id) ----
+    // ---- Nodes injected by FXML (names MUST match the fx:id attributes) ----
     @FXML private TextField nicknameField;
     @FXML private ComboBox<COLOR> colorBox;
     @FXML private Button enterButton;
@@ -55,28 +57,28 @@ public class LobbyController implements GUIObserver {
     @FXML private Label label;
     @FXML private ListView<String> playerList;
 
-    // ---- Stato di sessione ----
+    // ---- Session state ----
     private PlayerDTO playerDTO;
     private MarketController marketController;
     private boolean gameScreenShown = false;
 
     /**
-     * Azione di lobby attualmente in corso. Serve a interpretare correttamente
-     * gli errori che, con il trasporto Socket, arrivano in modo asincrono
-     * (su onError) invece che come eccezione sincrona (come avviene con RMI).
+     * Lobby action currently in progress. Used to correctly interpret errors
+     * that, with the Socket transport, arrive asynchronously (via onError)
+     * instead of as a synchronous exception (as happens with RMI).
      */
     private enum PendingAction { NONE, JOINING, CREATING, LOADING }
     private PendingAction pendingAction = PendingAction.NONE;
 
-    /** True dopo il primo avvio dell'heartbeat, per non avviarlo due volte. */
+    /** True after the first heartbeat start, to prevent starting it twice. */
     private boolean heartbeatStarted = false;
 
-    /** Dialog della classifica attualmente aperto, null se nessuno. */
+    /** Currently open leaderboard dialog, null if none. */
     private Dialog<Void> rankDialog;
-    /** VBox per ogni numero di giocatori (2-5) dentro il TabPane della classifica. */
+    /** VBox for each player count (2–5) inside the leaderboard TabPane. */
     private Map<Integer, VBox> rankTabBoxes;
 
-    /** Cache delle immagini totem (caricate una volta sola). */
+    /** Cache of totem images (loaded once). */
     private final Map<COLOR, Image> totemImages = new EnumMap<>(COLOR.class);
 
     /**
@@ -109,11 +111,10 @@ public class LobbyController implements GUIObserver {
 
     /**
      * Called automatically by JavaFX after FXML node injection.
-     * Finalises the configuration that requires the nodes to already be ready.
+     * Finalizes the configuration that requires the nodes to already be ready.
      */
     @FXML
     private void initialize() {
-        // Preload delle immagini totem
         for (COLOR c : COLOR.values()) {
             Image img = loadTotemImage(c);
             if (img != null) totemImages.put(c, img);
@@ -121,8 +122,6 @@ public class LobbyController implements GUIObserver {
 
         colorBox.getItems().setAll(COLOR.values());
         colorBox.setValue(COLOR.RED);
-
-        // Voci della tendina con immagine totem + nome del colore
         colorBox.setCellFactory(lv -> new ListCell<COLOR>() {
             private final ImageView iv = new ImageView();
             {
@@ -145,7 +144,6 @@ public class LobbyController implements GUIObserver {
             }
         });
 
-        // Cella selezionata mostrata nel bottone del ComboBox
         colorBox.setButtonCell(new ListCell<COLOR>() {
             private final ImageView iv = new ImageView();
             {
@@ -170,9 +168,9 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Carica l'immagine del totem per il colore indicato.
+     * Loads the totem image for the given color.
      * Path: /images/totems/pedine_specs_&lt;color&gt;Totem.png (lowercase).
-     * Restituisce null se l'immagine non esiste.
+     * Returns null if the image resource does not exist.
      */
     private Image loadTotemImage(COLOR color) {
         String path = "/images/totems/pedine_specs_" + color.name().toLowerCase() + "Totem.png";
@@ -183,7 +181,7 @@ public class LobbyController implements GUIObserver {
     private PlayerDTO buildPlayer() {
         String nickname = nicknameField.getText().trim();
         if (nickname.isEmpty()) {
-            label.setText("⚠ Nickname obbligatorio");
+            label.setText("Nickname obbligatorio");
             return null;
         }
         return new PlayerDTO(nickname, 0, 0, colorBox.getValue());
@@ -213,12 +211,12 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Bottone unico "Crea partita / Unisciti":
-     *  - tenta addPlayer;
-     *  - se il server risponde "Nessuna partita creata!" apre un dialog che chiede
-     *    il numero di giocatori e chiama createGame;
-     *  - se durante la creazione un altro client ha già creato la lobby
-     *    (IllegalStateException), ritenta automaticamente addPlayer.
+     * Single "Create game / Join" button handler:
+     *  - attempts addPlayer;
+     *  - if the server replies with NO_LOBBY_MESSAGE, opens a dialog asking
+     *    for the player count and calls createGame;
+     *  - if during creation another client has already created the lobby
+     *    (IllegalStateException), automatically retries addPlayer.
      */
     @FXML
     private void onEnter() {
@@ -228,10 +226,10 @@ public class LobbyController implements GUIObserver {
     }
 
     private void tryEnterLobby(PlayerDTO player) {
-        // Prepara playerDTO e marketController PRIMA della chiamata RMI:
-        // se siamo l'ultimo che riempie la lobby, il server fa scattare
-        // gamePhaseChanged dentro la stessa chiamata e onGamePhaseChanged
-        // ha bisogno che marketController esista già.
+        // Set up playerDTO and marketController BEFORE the RMI call:
+        // if we are the last player to fill the lobby, the server fires
+        // gamePhaseChanged within the same call and onGamePhaseChanged
+        // needs marketController to already exist.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         pendingAction = PendingAction.JOINING;
@@ -241,14 +239,14 @@ public class LobbyController implements GUIObserver {
         clientHandler.lastErrorMessage = null;
         try {
             serverStub.addPlayer(player, clientHandler);
-            // Nessuna eccezione. Con RMI significa "richiesta accettata"; con Socket
-            // significa solo "messaggio inviato": l'esito vero arriverà comunque
-            // dopo, su onGamePhaseChanged (successo) o su onError (fallimento).
+            // No exception. With RMI this means "request accepted"; with Socket
+            // it only means "message sent": the actual outcome will arrive later
+            // via onGamePhaseChanged (success) or onError (failure).
             startHeartbeat();
             label.setText("Richiesta inviata. In attesa che la partita inizi...");
             disableLobbyButtons();
         } catch (GameFullException ex) {
-            // RMI: il server ha risposto subito con un errore.
+            // RMI: the server responded immediately with an error.
             handleLobbyError(ex.getMessage());
         } catch (Exception ex) {
             handleLobbyError(ex.getMessage() != null ? ex.getMessage()
@@ -257,46 +255,39 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Punto unico di gestione degli esiti negativi della lobby.
-     * Viene invocato sia dal catch sincrono (RMI) sia dalla callback onError
-     * (Socket, dove gli errori arrivano in modo asincrono).
+     * Single error-handling entry point for lobby failures.
+     * Invoked both from the synchronous catch (RMI) and from the onError callback
+     * (Socket, where errors arrive asynchronously).
      */
     private void handleLobbyError(String message) {
         if (pendingAction == PendingAction.JOINING && NO_LOBBY_MESSAGE.equals(message)) {
-            // Nessuna lobby aperta: proponiamo all'utente di crearne una.
+            // No open lobby: offer the user to create one.
             askCreateGame(playerDTO);
             return;
         }
         if (pendingAction == PendingAction.CREATING && GAME_ALREADY_STARTED_MESSAGE.equals(message)) {
-            // Race condition: un altro client ha creato la lobby nel frattempo.
+            // Race condition: another client created the lobby in the meantime.
             label.setText("Una lobby è apparsa nel frattempo, ti unisco...");
             tryEnterLobby(playerDTO);
             return;
         }
-        // Errore generico: lo mostriamo e riabilitiamo i pulsanti.
+        // Generic error: show it and re-enable the buttons.
         pendingAction = PendingAction.NONE;
-        label.setText("❌ " + message);
+        label.setText("Errore: " + message);
         enableLobbyButtons();
     }
 
-    /** Dialog modale che chiede il numero di giocatori e crea la partita. */
+    /** Modal dialog that asks for the player count and creates the game. */
     private void askCreateGame(PlayerDTO player) {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Crea partita");
 
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/FXML/Lobby.css").toExternalForm());
-        dialogPane.getStyleClass().add("root");
-        dialogPane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);" +
-            "-fx-border-color: #6b4a2a; -fx-border-width: 1.5;"
-        );
+        dialogPane.getStylesheets().add(CSS);
+        dialogPane.getStyleClass().addAll("root", "dialog-border");
 
         Label headerLabel = new Label("Sei il primo giocatore!\nScegli quanti partecipanti:");
-        headerLabel.setStyle(
-            "-fx-font-family: 'Georgia'; -fx-font-size: 17px; -fx-font-weight: bold;" +
-            "-fx-text-fill: #f5dfa0; -fx-padding: 10 4 10 4; -fx-alignment: center;"
-        );
+        headerLabel.getStyleClass().add("dialog-header");
         headerLabel.setMaxWidth(Double.MAX_VALUE);
         headerLabel.setAlignment(javafx.geometry.Pos.CENTER);
         headerLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
@@ -306,7 +297,7 @@ public class LobbyController implements GUIObserver {
         sp.setEditable(false);
         sp.setPrefWidth(110);
         Label numLabel = new Label("Numero di giocatori:");
-        numLabel.setStyle("-fx-font-family: 'Georgia'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #e8c98b;");
+        numLabel.getStyleClass().add("dialog-field-label");
         numLabel.setMaxWidth(Double.MAX_VALUE);
         numLabel.setAlignment(javafx.geometry.Pos.CENTER);
         VBox content = new VBox(12, numLabel, sp);
@@ -320,7 +311,7 @@ public class LobbyController implements GUIObserver {
 
         Optional<Integer> res = dialog.showAndWait();
         if (res.isEmpty()) {
-            // Annullato: ripristiniamo stato e pulsanti.
+            // Cancelled: restore state and re-enable buttons.
             pendingAction = PendingAction.NONE;
             label.setText("Creazione annullata.");
             enableLobbyButtons();
@@ -334,13 +325,13 @@ public class LobbyController implements GUIObserver {
         clientHandler.lastErrorMessage = null;
         try {
             serverStub.createGame(player, res.get(), clientHandler);
-            // Come per addPlayer: nessuna eccezione non garantisce il successo
-            // con Socket; l'eventuale errore arriverà su onError.
+            // As with addPlayer: no exception does not guarantee success with Socket;
+            // any error will arrive via onError.
             startHeartbeat();
             label.setText("Richiesta inviata. In attesa di altri giocatori...");
             disableLobbyButtons();
         } catch (IllegalStateException ex) {
-            // RMI: race condition, un altro client ha creato la lobby nel frattempo.
+            // RMI: race condition, another client created the lobby in the meantime.
             handleLobbyError(GAME_ALREADY_STARTED_MESSAGE);
         } catch (Exception ex) {
             handleLobbyError(ex.getMessage() != null ? ex.getMessage()
@@ -364,16 +355,16 @@ public class LobbyController implements GUIObserver {
     private void onLoadGame() {
         PlayerDTO player = buildPlayer();
         if (player == null) return;
-        // marketController va creato PRIMA della chiamata: con un caricamento la
-        // partita può riprendere dentro la stessa chiamata e onGamePhaseChanged
-        // ha bisogno che marketController esista già.
+        // marketController must be created BEFORE the call: when loading, the game
+        // may resume within the same call and onGamePhaseChanged needs marketController
+        // to already exist.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         pendingAction = PendingAction.LOADING;
         try {
             serverStub.loadGame(player, clientHandler);
-            // Con RMI "nessuna eccezione" = partita caricata; con Socket = solo
-            // messaggio inviato, l'eventuale errore arriverà su onError.
+            // With RMI "no exception" = game loaded; with Socket = message sent only,
+            // any error will arrive via onError.
             startHeartbeat();
             label.setText("Richiesta inviata. In attesa degli altri giocatori...");
             disableLobbyButtons();
@@ -384,17 +375,17 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Bottone "Unisciti a una partita caricata": il giocatore si riconnette a
-     * una partita salvata che un altro client ha già caricato dal disco.
-     * Gemello di onLoadGame ma chiama joinGameLoaded invece di loadGame.
+     * "Join a loaded game" button: the player reconnects to a saved game
+     * that another client has already loaded from disk.
+     * Twin of onLoadGame but calls joinGameLoaded instead of loadGame.
      */
     @FXML
     private void onJoinLoadedGame() {
         PlayerDTO player = buildPlayer();
         if (player == null) return;
-        // Come per onLoadGame: marketController pronto prima della chiamata,
-        // perché con l'ultimo giocatore che si riconnette la partita riprende
-        // dentro la stessa chiamata.
+        // As with onLoadGame: marketController ready before the call,
+        // because when the last player reconnects the game resumes
+        // within the same call.
         playerDTO = player;
         marketController = new MarketController(clientHandler, serverStub, playerDTO);
         pendingAction = PendingAction.LOADING;
@@ -411,10 +402,10 @@ public class LobbyController implements GUIObserver {
 
     @FXML
     private void onShowRank() {
-        // 1. Reset di eventuali dati vecchi
+        // 1. Reset any stale data
         clientHandler.clearLeaderboards();
 
-        // 2. Costruisco un TabPane con un tab per numero di giocatori
+        // 2. Build a TabPane with one tab per player count
         rankTabBoxes = new java.util.HashMap<>();
         javafx.scene.control.TabPane tabPane = new javafx.scene.control.TabPane();
         tabPane.setTabClosingPolicy(javafx.scene.control.TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -423,18 +414,18 @@ public class LobbyController implements GUIObserver {
         for (int n = 2; n <= 5; n++) {
             VBox tabBox = new VBox(3);
             tabBox.setPadding(new Insets(10, 10, 10, 10));
-            tabBox.setStyle("-fx-background-color: transparent;");
+            tabBox.getStyleClass().add("rank-tab-box");
             ProgressIndicator tabSpinner = new ProgressIndicator();
             tabSpinner.setPrefSize(24, 24);
             Label tabLoading = new Label("Caricamento...");
-            tabLoading.setStyle("-fx-text-fill: #c9a66b; -fx-font-style: italic;");
+            tabLoading.getStyleClass().add("rank-loading");
             tabBox.getChildren().addAll(tabSpinner, tabLoading);
             rankTabBoxes.put(n, tabBox);
 
             ScrollPane tabScroll = new ScrollPane(tabBox);
             tabScroll.setFitToWidth(true);
             tabScroll.setPrefViewportHeight(360);
-            tabScroll.setStyle("-fx-background: #0d0805; -fx-background-color: #0d0805; -fx-border-color: transparent;");
+            tabScroll.getStyleClass().add("rank-scroll");
 
             javafx.scene.control.Tab tab = new javafx.scene.control.Tab(n + " giocatori");
             tab.setContent(tabScroll);
@@ -445,17 +436,10 @@ public class LobbyController implements GUIObserver {
         rankDialog.setTitle("Classifica");
 
         DialogPane dialogPane = rankDialog.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/FXML/Lobby.css").toExternalForm());
-        dialogPane.getStyleClass().add("root");
-        dialogPane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);" +
-            "-fx-border-color: #6b4a2a; -fx-border-width: 1.5;"
-        );
+        dialogPane.getStylesheets().add(CSS);
+        dialogPane.getStyleClass().addAll("root", "dialog-border");
         Label headerLabel = new Label("Classifica giocatori");
-        headerLabel.setStyle(
-            "-fx-font-family: 'Georgia'; -fx-font-size: 14px; -fx-font-weight: bold;" +
-            "-fx-text-fill: #f5dfa0; -fx-padding: 8 4 8 4;"
-        );
+        headerLabel.getStyleClass().add("rank-dialog-header");
         dialogPane.setHeader(headerLabel);
         dialogPane.setContent(tabPane);
         dialogPane.getButtonTypes().add(ButtonType.CLOSE);
@@ -466,7 +450,7 @@ public class LobbyController implements GUIObserver {
             rankTabBoxes = null;
         });
 
-        // 3. Mando la richiesta al server (la risposta arriverà su onRankReceived)
+        // 3. Send the request to the server (response will arrive via onRankReceived)
         try {
             serverStub.askForRank("5", clientHandler);
         } catch (Exception e) {
@@ -474,18 +458,17 @@ public class LobbyController implements GUIObserver {
             if (firstTab != null) {
                 firstTab.getChildren().clear();
                 Label err = new Label("Errore di rete: " + e.getMessage());
-                err.setStyle("-fx-text-fill: #ff6644;");
+                err.getStyleClass().add("rank-error");
                 firstTab.getChildren().add(err);
             }
         }
-
-        // 4. Mostro il dialog (non bloccante, useremo onRankReceived per riempirlo)
+        // 4. Show the dialog (non-blocking; onRankReceived will populate it)
         rankDialog.show();
     }
 
     /**
-     * Renderizza una sezione della classifica (header + entries) dentro il content
-     * del dialog. Una "sezione" è "Partite da N giocatori".
+     * Renders a leaderboard section into the dialog's content.
+     * One section corresponds to games played with a given player count.
      */
     private void renderRankSection(int playerCount, List<String> entries) {
         VBox target = rankTabBoxes.get(playerCount);
@@ -494,25 +477,21 @@ public class LobbyController implements GUIObserver {
 
         if (entries == null || entries.isEmpty()) {
             Label empty = new Label("Nessun dato disponibile.");
-            empty.setStyle("-fx-font-style: italic; -fx-text-fill: #7a6a55; -fx-padding: 8;");
+            empty.getStyleClass().add("rank-empty");
             target.getChildren().add(empty);
             return;
         }
 
-        // Le voci arrivano dal DB già numerate ("1. Nick - punteggio").
+        // Entries arrive from the DB already numbered (e.g. "1. Nick - score").
         for (int i = 0; i < entries.size(); i++) {
             Label entryLabel = new Label(entries.get(i));
-            String bg = (i % 2 == 0) ? "transparent" : "rgba(50,30,10,0.6)";
-            entryLabel.setStyle(
-                "-fx-text-fill: #f5dfa0; -fx-padding: 5 8 5 8;" +
-                "-fx-background-color: " + bg + ";"
-            );
+            entryLabel.getStyleClass().addAll("rank-entry", i % 2 == 0 ? "rank-entry-even" : "rank-entry-odd");
             entryLabel.setMaxWidth(Double.MAX_VALUE);
             target.getChildren().add(entryLabel);
         }
     }
 
-    // --- Observer callbacks (chiamate dal thread di rete!) ---
+    // --- Observer callbacks (called from the network thread!) ---
 
     /**
      * Called when a new player joins the lobby.
@@ -536,11 +515,11 @@ public class LobbyController implements GUIObserver {
     public void onError(String message) {
         Platform.runLater(() -> {
             if (pendingAction != PendingAction.NONE) {
-                // Errore relativo a un'azione di lobby in corso: con il trasporto
-                // Socket gli esiti negativi arrivano qui invece che come eccezione.
+                // Error related to a pending lobby action: with the Socket transport
+                // failures arrive here instead of as a synchronous exception.
                 handleLobbyError(message);
             } else {
-                label.setText("❌ " + message);
+                label.setText("Errore: " + message);
             }
         });
     }
@@ -558,14 +537,14 @@ public class LobbyController implements GUIObserver {
             clientHandler.startPongWatchdog();
             startHeartbeat();
             pendingAction = PendingAction.NONE;
-            Platform.runLater(() -> showStartingScreenThenGame());
+            Platform.runLater(this::showStartingScreenThenGame);
         }
     }
 
     /**
-     * Chiamato dal thread di rete quando il server risponde con la classifica.
-     * Riempie il dialog aperto da onShowRank con le quattro sezioni
-     * (partite da 2, 3, 4 e 5 giocatori).
+     * Called from the network thread when the server returns the leaderboard.
+     * Populates the dialog opened by onShowRank with sections
+     * for 2, 3, 4 and 5 player games.
      */
     @Override
     public void onRankReceived(Map<Integer, List<String>> leaderboards) {
@@ -579,32 +558,31 @@ public class LobbyController implements GUIObserver {
     }
 
     /**
-     * Mostra una breve schermata di transizione "La partita sta iniziando..."
-     * con effetto pulse, poi fade out e carica la schermata di gioco.
+     * Shows a brief "Game is starting..." transition screen with a pulse effect,
+     * then fades out and loads the game screen.
      */
     private void showStartingScreenThenGame() {
         Label title = new Label("MESOS");
-        title.setStyle(
-            "-fx-font-family: 'Georgia'; -fx-font-size: 64px; -fx-font-weight: bold; "
-          + "-fx-text-fill: #f5dfa0; "
-          + "-fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.7), 18, 0.5, 0, 3);"
-        );
+        title.getStyleClass().add("starting-title");
 
         Label subtitle = new Label("La partita sta iniziando...");
-        subtitle.setStyle(
-            "-fx-font-family: 'Georgia'; -fx-font-size: 24px; -fx-font-style: italic; "
-          + "-fx-text-fill: #c9a66b;"
-        );
+        subtitle.getStyleClass().add("starting-subtitle");
 
         VBox box = new VBox(28, title, subtitle);
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);");
 
         double w = stage.getWidth()  > 0 ? stage.getWidth()  : 720;
         double h = stage.getHeight() > 0 ? stage.getHeight() : 600;
-        stage.setScene(new Scene(box, w, h));
+        Scene startingScene = new Scene(box, w, h);
+        startingScene.getStylesheets().add(CSS);
+        stage.setScene(startingScene);
         stage.setTitle("MESOS — La partita inizia");
 
+        PauseTransition pause = getPauseTransition(subtitle, box);
+        pause.play();
+    }
+
+    private PauseTransition getPauseTransition(Label subtitle, VBox box) {
         FadeTransition pulse = new FadeTransition(Duration.millis(700), subtitle);
         pulse.setFromValue(0.3);
         pulse.setToValue(1.0);
@@ -621,10 +599,10 @@ public class LobbyController implements GUIObserver {
             fadeOut.setOnFinished(ev -> loadGameScene());
             fadeOut.play();
         });
-        pause.play();
+        return pause;
     }
 
-    /** Carica Market.fxml e lo mostra sullo stage. */
+    /** Loads Market.fxml and shows it on the stage. */
     private void loadGameScene() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/Market.fxml"));

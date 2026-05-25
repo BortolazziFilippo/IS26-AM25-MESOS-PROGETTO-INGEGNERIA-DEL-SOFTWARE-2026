@@ -38,18 +38,14 @@ public class GUIapp extends Application {
     @Override
     public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();
-        String serverIP = args.size() >= 1 ? args.get(0) : "127.0.0.1";
+        String serverIP = !args.isEmpty() ? args.get(0) : "127.0.0.1";
         String method   = args.size() >= 2 ? args.get(1) : "RMI";
 
         primaryStage.setOnCloseRequest(e -> System.exit(0));
         GUIEffects.applyIcon(primaryStage);
 
-        // 1. Mostra lo splash screen (immagine, respiro, particelle, prompt).
-        // 2. Quando l'utente clicca, fa fade out ed esegue il Runnable qui sotto:
-        //    connessione al server + apertura della lobby.
+
         MesosSplashScreen.show(primaryStage, () -> {
-            // Mentre la connessione è in corso, mostriamo una finestra di stato
-            // semplice. Se va bene la lobby la sostituirà subito.
             Label statusLabel = new Label("Connessione a " + serverIP + " via " + method + "...");
             VBox statusRoot = new VBox(10, statusLabel);
             statusRoot.setPadding(new Insets(20));
@@ -61,7 +57,6 @@ public class GUIapp extends Application {
             try {
                 connectionToServer(serverIP, method);
                 statusLabel.setText("✅ Connesso. Apro la lobby...");
-                // Apri la Lobby: riusa lo stesso Stage e sostituisce la scena.
                 new LobbyController(serverStub, clientHandler, primaryStage).showing();
             } catch (Exception e) {
                 e.printStackTrace();

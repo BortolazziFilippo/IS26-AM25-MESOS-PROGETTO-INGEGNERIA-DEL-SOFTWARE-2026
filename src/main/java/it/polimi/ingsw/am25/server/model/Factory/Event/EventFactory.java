@@ -9,7 +9,6 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.EventDTO;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,74 +31,46 @@ public class EventFactory {
      * @return a list of all event cards ordered by ERA.
      */
     public List<EventCard> createEvent() {
-        List<EventCard> templist = new ArrayList<>();
-        List<EventCard> listToReturn = new ArrayList<>();
         InputStream inputStream = EventFactory.class.getResourceAsStream("/CardResources/json/event.json");
         if (inputStream == null) {
-            throw new RuntimeException(getClass() + ": Errore apertura file building.json");
+            throw new RuntimeException(getClass() + ": Errore apertura file event.json");
         }
-        Reader reader = new InputStreamReader(inputStream);
-        Gson gson = new Gson();
-        EventDTO[] eventDTOS = gson.fromJson(reader, EventDTO[].class);
+        EventDTO[] eventDTOS = new Gson().fromJson(new InputStreamReader(inputStream), EventDTO[].class);
+        List<EventCard> listToReturn = new ArrayList<>();
         for (EventDTO event : eventDTOS) {
-            templist.add(new EventCard(event.getEra(), CARD_TYPE.EVENT, event.getEventID(), event.getEventType()));
-        }
-        for (EventCard temp : templist) {
-            temp.setEventEffect(eventBinder(temp));
-            listToReturn.add(temp);
+            EventCard card = new EventCard(event.getEra(), CARD_TYPE.EVENT, event.getEventID(), event.getEventType());
+            card.setEventEffect(eventBinder(card));
+            listToReturn.add(card);
         }
         return listToReturn;
     }
 
     /**
-     * Executes event binder.
+     * Binds the concrete {@link EventEffect} implementation to the given event card
+     * based on its event ID.
      *
-     * @param eventCard parameter eventCard.
-     * @return the result of the operation.
+     * @param eventCard the event card to bind.
+     * @return the matching {@link EventEffect}, or {@code null} for an unrecognised ID.
      */
     private EventEffect eventBinder(EventCard eventCard) {
-        EventEffect eventEffect = null;
-        switch (eventCard.getEventID()) {
-            case 1:
-                eventEffect = new HuntEvent(1, 1);
-                break;
-            case 2:
-                eventEffect = new SustenanceEvent(1, -1);
-                break;
-            case 3:
-                eventEffect = new ShamanEvent(5, -3);
-                break;
-            case 4:
-                eventEffect = new ArtistEvent(1, -2, 1);
-                break;
-            case 5:
-                eventEffect = new HuntEvent(1, 2);
-                break;
-            case 6:
-                eventEffect = new SustenanceEvent(1, -2);
-                break;
-            case 7:
-                eventEffect = new ShamanEvent(10, -5);
-                break;
-            case 8:
-                eventEffect = new ArtistEvent(2, -2, 2);
-                break;
-            case 9:
-                eventEffect = new HuntEvent(1, 3);
-                break;
-            case 10:
-                eventEffect = new ArtistEvent(3, -2, 3);
-                break;
-            case 11:
-                eventEffect = new SustenanceEvent(1, -3);
-                break;
-            case 12:
-                eventEffect = new ShamanEvent(15, -7);
-                break;
-            default:
+        return switch (eventCard.getEventID()) {
+            case 1  -> new HuntEvent(1, 1);
+            case 2  -> new SustenanceEvent(1, -1);
+            case 3  -> new ShamanEvent(5, -3);
+            case 4  -> new ArtistEvent(1, -2, 1);
+            case 5  -> new HuntEvent(1, 2);
+            case 6  -> new SustenanceEvent(1, -2);
+            case 7  -> new ShamanEvent(10, -5);
+            case 8  -> new ArtistEvent(2, -2, 2);
+            case 9  -> new HuntEvent(1, 3);
+            case 10 -> new ArtistEvent(3, -2, 3);
+            case 11 -> new SustenanceEvent(1, -3);
+            case 12 -> new ShamanEvent(15, -7);
+            default -> {
                 logServerError("Unrecognised event ID: " + eventCard.getEventID());
-        }
-        return eventEffect;
+                yield null;
+            }
+        };
     }
 
     /**

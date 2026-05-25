@@ -283,8 +283,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     }
 
     /**
-     * Skips the extra draw for the given player without selecting any card,
-     * releasing the server thread that was blocking on the extra-draw lock.
+     * Called when the player declines the extra draw granted by the draw-one-more building effect.
+     * The server does not block waiting for the player's response — {@code askExtraDraw} is
+     * fire-and-forget — so this method is a no-op at the controller level. It exists so the
+     * client has a symmetric call to make regardless of whether they pick a card or not.
      *
      * @param player the player declining the extra draw.
      */

@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction.shuffledFromYToXExclusive;
@@ -31,11 +30,15 @@ public class BuildingFactory {
     public BuildingFactory() {
     }
 
-    /**
-     * method use to build the right amount of building
-     * @param playerNumber number of players
-     * @return List ordered by ERA with the right amount of building
-     */
+    // Number of buildings to pick per era, indexed by (playerNumber - 2).
+    // Columns: Era 1 [0,6), Era 2 [6,13), Era 3 [13,21).
+    private static final int[][] ERA_COUNTS = {
+        {1, 2, 3},  // 2 players
+        {2, 2, 4},  // 3 players
+        {2, 3, 4},  // 4 players
+        {2, 3, 5},  // 5 players
+    };
+
     /**
      * Builds the building deck for the given player count, selecting the correct number of
      * buildings per era and binding each to its effect.
@@ -45,95 +48,48 @@ public class BuildingFactory {
      * @return list of {@link BuildingCard}s ordered by era.
      */
     public List<BuildingCard> createBuildingDeck(int playerNumber, BoardView boardView) {
-
         List<BuildingCard> tempList = new ArrayList<>();
         List<BuildingCard> listToReturn = new ArrayList<>();
-        List<Integer> randomNumber;
+
         InputStream inputStream = BuildingFactory.class.getResourceAsStream("/CardResources/json/building.json");
         if (inputStream == null) {
             throw new RuntimeException(getClass() + ": Errore apertura file building.json");
         }
-        Reader reader = new InputStreamReader(inputStream);
-        Gson gson = new Gson();
-        BuildingDTO[] tempCatalogue = gson.fromJson(reader, BuildingDTO[].class);
+        BuildingDTO[] tempCatalogue = new Gson().fromJson(new InputStreamReader(inputStream), BuildingDTO[].class);
         for (BuildingDTO dto : tempCatalogue) {
             tempList.add(new BuildingCard(dto.getEra(), CARD_TYPE.BUILDING, dto.getBuildingID(), dto.getFoodCost(), dto.getEndGamePP(), dto.getApplyOn()));
         }
 
-        switch (playerNumber) {
-            case 2:
-                //ERA 1
-                randomNumber = shuffledFromYToXExclusive(0, 6);
-                listToReturn.add(tempList.get(randomNumber.get(0)));
-                //ERA 2
-                randomNumber = shuffledFromYToXExclusive(6, 13);
-                for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 3
-                randomNumber = shuffledFromYToXExclusive(13, 21);
-                for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                break;
-            case 3:
-                //ERA 1
-                randomNumber = shuffledFromYToXExclusive(0, 6);
-                for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 2
-                randomNumber = shuffledFromYToXExclusive(6, 13);
-                for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 3
-                randomNumber = shuffledFromYToXExclusive(13, 21);
-                for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                break;
-            case 4:
-                //ERA 1
-                randomNumber = shuffledFromYToXExclusive(0, 6);
-                for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 2
-                randomNumber = shuffledFromYToXExclusive(6, 13);
-                for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 3
-                randomNumber = shuffledFromYToXExclusive(13, 21);
-                for (int i = 0; i < 4; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                break;
-            case 5:
-                //ERA 1
-                randomNumber = shuffledFromYToXExclusive(0, 6);
-                for (int i = 0; i < 2; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 2
-                randomNumber = shuffledFromYToXExclusive(6, 13);
-                for (int i = 0; i < 3; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                //ERA 3
-                randomNumber = shuffledFromYToXExclusive(13, 21);
-                for (int i = 0; i < 5; i++) {
-                    listToReturn.add(tempList.get(randomNumber.get(i)));
-                }
-                break;
-            default:
-                logServerError("Invalid player number: " + playerNumber);
+        if (playerNumber < 2 || playerNumber > 5) {
+            logServerError("Invalid player number: " + playerNumber);
+            return listToReturn;
         }
+        int[] counts = ERA_COUNTS[playerNumber - 2];
+        pickFromEra(tempList, listToReturn, 0,  6,  counts[0]);
+        pickFromEra(tempList, listToReturn, 6,  13, counts[1]);
+        pickFromEra(tempList, listToReturn, 13, 21, counts[2]);
+
         for (BuildingCard n : listToReturn) {
             n.setBuildingEffect(returnCorrectBuildingEffect(n, boardView));
         }
         return listToReturn;
+    }
+
+    /**
+     * Picks {@code count} buildings at random from {@code source} in the index range
+     * {@code [from, to)} and appends them to {@code dest}.
+     *
+     * @param source the full building catalogue.
+     * @param dest   the deck being assembled.
+     * @param from   inclusive start index in {@code source}.
+     * @param to     exclusive end index in {@code source}.
+     * @param count  number of buildings to pick.
+     */
+    private void pickFromEra(List<BuildingCard> source, List<BuildingCard> dest, int from, int to, int count) {
+        List<Integer> indices = shuffledFromYToXExclusive(from, to);
+        for (int i = 0; i < count; i++) {
+            dest.add(source.get(indices.get(i)));
+        }
     }
 
     /**
@@ -143,78 +99,38 @@ public class BuildingFactory {
      * @return return the Right Building effect for the building
      */
     private BuildingEffect returnCorrectBuildingEffect(BuildingCard buildingToSetEffect, BoardView boardView) {
-        BuildingEffect effectToReturn = null;
-        switch (buildingToSetEffect.getBuildingID()) {
-            case 1:
-                effectToReturn = new SixFoodCompletedSet();
-                break;
-            case 2:
-                effectToReturn = new DiscountFoodOnSustenance(CARD_TYPE.GATHERER);
-                break;
-            case 3:
-                effectToReturn = new DiscountFoodOnSustenance(CARD_TYPE.ARTIST);
-                break;
-            case 4:
-                effectToReturn = new NoPPLostOnShaman();
-                break;
-            case 5:
-                effectToReturn = new PlusOneFoodOnReturnDefaultTile();
-                ((PlusOneFoodOnReturnDefaultTile) effectToReturn).setBoardView(boardView);
-                break;
-            case 6:
-                effectToReturn = new FoodOnNewCoupleInventors();
-                break;
-            case 7:
-                effectToReturn = new DoublePPOnShamanEvent();
-                break;
-            case 8:
-                effectToReturn = new ThreeMoreShamanStar();
-                break;
-            case 9:
-                effectToReturn = new DiscountFoodOnSustenance(CARD_TYPE.INVENTOR);
-                break;
-            case 10:
-                effectToReturn = new OnEventHuntOneFoodAndOnePPPerHunter();
-                break;
-            case 11:
-                effectToReturn = new BuilderDoublePP();
-                break;
-            case 12:
-                effectToReturn = new OnEventPaintingsOneFoodPerArtist();
-                break;
-            case 13:
-                effectToReturn = new SetSixCard();
-                break;
-            case 14:
-                effectToReturn = new PPPerCharType(3, CARD_TYPE.HUNTER);
-                break;
-            case 15:
-                effectToReturn = new PPPerCharType(4, CARD_TYPE.GATHERER);
-                break;
-            case 16:
-                effectToReturn = new PPPerCharType(4, CARD_TYPE.SHAMAN);
-                break;
-            case 17:
-                effectToReturn = new PPPerCharType(4, CARD_TYPE.BUILDER);
-                break;
-            case 18:
-                effectToReturn = new PPPerCharType(4, CARD_TYPE.ARTIST);
-                break;
-            case 19:
-                effectToReturn = new PPPerCharType(2, CARD_TYPE.INVENTOR);
-                break;
-            case 20:
-                effectToReturn = new DrawOneMoreCard();
-                break;
-            case 21:
-                effectToReturn = new TwentyFivePPEndGame();
-                break;
-            default:
+        return switch (buildingToSetEffect.getBuildingID()) {
+            case 1  -> new SixFoodCompletedSet();
+            case 2  -> new DiscountFoodOnSustenance(CARD_TYPE.GATHERER);
+            case 3  -> new DiscountFoodOnSustenance(CARD_TYPE.ARTIST);
+            case 4  -> new NoPPLostOnShaman();
+            case 5  -> {
+                PlusOneFoodOnReturnDefaultTile e = new PlusOneFoodOnReturnDefaultTile();
+                e.setBoardView(boardView);
+                yield e;
+            }
+            case 6  -> new FoodOnNewCoupleInventors();
+            case 7  -> new DoublePPOnShamanEvent();
+            case 8  -> new ThreeMoreShamanStar();
+            case 9  -> new DiscountFoodOnSustenance(CARD_TYPE.INVENTOR);
+            case 10 -> new OnEventHuntOneFoodAndOnePPPerHunter();
+            case 11 -> new BuilderDoublePP();
+            case 12 -> new OnEventPaintingsOneFoodPerArtist();
+            case 13 -> new SetSixCard();
+            case 14 -> new PPPerCharType(3, CARD_TYPE.HUNTER);
+            case 15 -> new PPPerCharType(4, CARD_TYPE.GATHERER);
+            case 16 -> new PPPerCharType(4, CARD_TYPE.SHAMAN);
+            case 17 -> new PPPerCharType(4, CARD_TYPE.BUILDER);
+            case 18 -> new PPPerCharType(4, CARD_TYPE.ARTIST);
+            case 19 -> new PPPerCharType(2, CARD_TYPE.INVENTOR);
+            case 20 -> new DrawOneMoreCard();
+            case 21 -> new TwentyFivePPEndGame();
+            default -> {
                 // Unrecognised building ID — this should never happen if the JSON is correct.
                 logServerError("Unrecognised building ID: " + buildingToSetEffect.getBuildingID());
-                break;
-        }
-        return effectToReturn;
+                yield null;
+            }
+        };
     }
 
     /**
@@ -239,22 +155,6 @@ public class BuildingFactory {
             }
         }
         throw new IllegalArgumentException("Unknown building ID: " + id);
-    }
-
-    /**
-     *
-     * @param lowerBound lowerBound
-     * @param upperBound upperBound
-     * @return Return a shuffled list with numbers between the lower and upper bound
-     */
-    @Deprecated
-    private List<Integer> randomNumerList(int lowerBound, int upperBound) {
-        List<Integer> number = new ArrayList<>();
-        for (int i = lowerBound; i <= upperBound; i++) {
-            number.add(i);
-        }
-        Collections.shuffle(number);
-        return number;
     }
 
     /**

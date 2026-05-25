@@ -18,9 +18,7 @@ import java.util.Scanner;
  */
 public class LobbyTUI {
 
-    /**
-     * Message sent by the server when no game lobby exists yet.
-     */
+    /** Message sent by the server when no game lobby exists yet. */
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";
 
     private final static String LOGO = TUIUtils.BLUE +
@@ -31,6 +29,7 @@ public class LobbyTUI {
             "  ██║ ╚═╝ ██║███████╗███████║╚██████╔╝███████║\n" +
             "  ╚═╝     ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚══════╝\n" +
             TUIUtils.RESET + "\n";
+
     private final ServerRemoteInterface serverStub;
     private final ClientVirtualView clientHandler;
     private final Scanner scanner;
@@ -52,6 +51,16 @@ public class LobbyTUI {
         this.utils = utils;
     }
 
+    /** A server action (loadGame / joinGameLoaded) that may throw a checked exception. */
+    @FunctionalInterface
+    private interface ServerCall {
+        void call(PlayerDTO player) throws Exception;
+    }
+
+    // ==========================================================
+    // Public API
+    // ==========================================================
+
     /**
      * Connects the player to a game.
      * If a game is already in startup phase the player is automatically added to it.
@@ -71,39 +80,35 @@ public class LobbyTUI {
             System.out.print("Scelta: ");
             String choice = scanner.nextLine().trim().toUpperCase();
 
-            if (choice.equals("C")) {
-                showLeaderboard();
-                continue;
-            } else if (choice.equals("L")) {
-                PlayerDTO result = loadGame();
-                if (result != null) return result;
-                continue;
-            } else if (choice.equals("U")) {
-                PlayerDTO result = joinLoadedGame();
-                if (result != null) return result;
-                continue;
-            } else if (!choice.equals("J")) {
-                continue;
+            switch (choice) {
+                case "C" -> { showLeaderboard(); continue; }
+                case "L" -> {
+                    PlayerDTO r = reconnectGame(
+                            "--- CARICA PARTITA SALVATA ---",
+                            "Partita trovata! In attesa degli altri giocatori...",
+                            p -> serverStub.loadGame(p, clientHandler));
+                    if (r != null) return r;
+                    continue;
+                }
+                case "U" -> {
+                    PlayerDTO r = reconnectGame(
+                            "--- UNISCITI A PARTITA IN CARICAMENTO ---",
+                            "Richiesta inviata. In attesa degli altri giocatori...",
+                            p -> serverStub.joinGameLoaded(p, clientHandler));
+                    if (r != null) return r;
+                    continue;
+                }
+                case "J" -> { /* fall through to join/create flow */ }
+                default  -> { continue; }
             }
 
-            utils.clearScreen();
-            System.out.println(LOGO);
-            System.out.println("--- CONNESSIONE AL GIOCO ---");
-            System.out.println("(Q per tornare al menu)");
-            System.out.print("Inserisci nome giocatore: ");
-            String nickname = scanner.nextLine().trim();
-            if (nickname.equalsIgnoreCase("q")) continue;
-            if (nickname.isEmpty()) {
-                System.err.println("\n❌ Il nickname non può essere vuoto.");
-                utils.pauseAndClear();
-                continue;
-            }
+            // --- Join / Create flow ---
+            String nickname = readNicknameOrBack("--- CONNESSIONE AL GIOCO ---");
+            if (nickname == null) continue;
             COLOR colorTotem = utils.bindTotemColor();
             PlayerDTO player = new PlayerDTO(nickname, 0, 0, colorTotem);
 
-            clientHandler.connectionError = false;
-            clientHandler.isGameStarted = false;
-            clientHandler.lastErrorMessage = null;
+            resetClientState();
 
             // Try to join a game already in startup phase.
             boolean noLobbyExists = false;
@@ -112,7 +117,7 @@ public class LobbyTUI {
                 // RMI: no exception means the request was accepted.
                 // Socket: message sent; outcome arrives asynchronously below.
             } catch (GameFullException e) {
-                // No lobby currently open — we must create one.
+                // No lobby currently open — must create one.
                 noLobbyExists = true;
             } catch (Exception e) {
                 System.err.println("\n❌ " + utils.extractCleanError(e));
@@ -124,18 +129,10 @@ public class LobbyTUI {
                 // Wait for the game to start or for an error response (socket path).
                 utils.clearScreen();
                 System.out.println("Richiesta inviata. In attesa che si connettano gli altri giocatori...");
-                synchronized (clientHandler.gameStartLock) {
-                    while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
-                        try {
-                            clientHandler.gameStartLock.wait();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return null;
-                        }
-                    }
-                }
+                Boolean started = awaitGameStart();
+                if (started == null) return null; // interrupted
 
-                if (clientHandler.connectionError) {
+                if (!started) {
                     if (NO_LOBBY_MESSAGE.equals(clientHandler.lastErrorMessage)) {
                         // Socket path: server confirmed no lobby exists.
                         noLobbyExists = true;
@@ -156,8 +153,7 @@ public class LobbyTUI {
             System.out.println("Nessuna partita in attesa. Sei il primo giocatore!");
             int playerNumber = utils.numberOfPlayer();
 
-            clientHandler.connectionError = false;
-            clientHandler.isGameStarted = false;
+            resetClientState();
 
             try {
                 serverStub.createGame(player, playerNumber, clientHandler);
@@ -175,27 +171,21 @@ public class LobbyTUI {
             utils.clearScreen();
             System.out.println("Partita creata! In attesa degli altri giocatori...");
 
-            synchronized (clientHandler.gameStartLock) {
-                while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
-                    try {
-                        clientHandler.gameStartLock.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return null;
-                    }
-                }
-            }
-
-            if (clientHandler.connectionError) {
+            Boolean started = awaitGameStart();
+            if (started == null) return null; // interrupted
+            if (!started) {
                 System.err.println("\n❌ Errore durante la creazione della partita.");
                 utils.pauseAndClear();
                 continue;
             }
-
             System.out.println("\n✅ Tutti i giocatori connessi! La partita inizia!");
             return player;
         }
     }
+
+    // ==========================================================
+    // Leaderboard
+    // ==========================================================
 
     private void showLeaderboard() {
         utils.clearScreen();
@@ -229,8 +219,7 @@ public class LobbyTUI {
         }
 
         clientHandler.clearLeaderboards();
-        clientHandler.connectionError = false;
-        clientHandler.lastErrorMessage = null;
+        resetClientState();
         try {
             serverStub.askForRank(serverParam, clientHandler);
         } catch (RemoteException e) {
@@ -263,16 +252,13 @@ public class LobbyTUI {
         System.out.println("--- CLASSIFICA ---\n");
 
         if (showAll) {
-            for (int i = 2; i <= 5; i++) {
-                printLeaderboardSection(leaderboards, i);
-            }
+            for (int i = 2; i <= 5; i++) printLeaderboardSection(leaderboards, i);
         } else {
             printLeaderboardSection(leaderboards, Integer.parseInt(serverParam));
         }
 
         utils.pauseAndClear();
     }
-
 
     private void printLeaderboardSection(Map<Integer, List<String>> leaderboards, int playerCount) {
         System.out.println("  Partite da " + playerCount + " giocatori:");
@@ -285,33 +271,28 @@ public class LobbyTUI {
         System.out.println();
     }
 
-    /**
-     * Asks the user for their nickname and color, then tries to load the saved game.
-     * Blocks until the game starts (all players reconnected) or an error occurs.
-     *
-     * @return the local {@link PlayerDTO} if the game started, or {@code null} to retry.
-     */
-    private PlayerDTO loadGame() {
-        utils.clearScreen();
-        System.out.println(LOGO);
-        System.out.println("--- CARICA PARTITA SALVATA ---");
-        System.out.println("(Q per tornare al menu)");
-        System.out.print("Inserisci nome giocatore: ");
-        String nickname = scanner.nextLine().trim();
-        if (nickname.equalsIgnoreCase("q")) return null;
-        if (nickname.isEmpty()) {
-            System.err.println("\n❌ Il nickname non può essere vuoto.");
-            utils.pauseAndClear();
-            return null;
-        }
-        PlayerDTO player = new PlayerDTO(nickname, 0, 0, null);
+    // ==========================================================
+    // Shared helpers
+    // ==========================================================
 
-        clientHandler.connectionError = false;
-        clientHandler.isGameStarted = false;
-        clientHandler.lastErrorMessage = null;
+    /**
+     * Common flow for reconnecting to a saved / being-loaded game:
+     * reads the nickname, calls the given server action, then waits for game start.
+     *
+     * @param header  the section header shown on screen.
+     * @param waitMsg the message shown while waiting for other players.
+     * @param action  the server call to invoke ({@code loadGame} or {@code joinGameLoaded}).
+     * @return the local {@link PlayerDTO} if the game started, or {@code null} to go back.
+     */
+    private PlayerDTO reconnectGame(String header, String waitMsg, ServerCall action) {
+        String nickname = readNicknameOrBack(header);
+        if (nickname == null) return null;
+
+        PlayerDTO player = new PlayerDTO(nickname, 0, 0, null);
+        resetClientState();
 
         try {
-            serverStub.loadGame(player, clientHandler);
+            action.call(player);
         } catch (Exception e) {
             System.err.println("\n❌ " + utils.extractCleanError(e));
             utils.pauseAndClear();
@@ -319,18 +300,10 @@ public class LobbyTUI {
         }
 
         utils.clearScreen();
-        System.out.println("Partita trovata! In attesa degli altri giocatori...");
-        synchronized (clientHandler.gameStartLock) {
-            while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
-                try {
-                    clientHandler.gameStartLock.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return null;
-                }
-            }
-        }
-        if (clientHandler.connectionError) {
+        System.out.println(waitMsg);
+        Boolean started = awaitGameStart();
+        if (started == null) return null; // interrupted
+        if (!started) {
             System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
                     ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita."));
             utils.pauseAndClear();
@@ -341,15 +314,16 @@ public class LobbyTUI {
     }
 
     /**
-     * Asks the user for their nickname and color, then tries to join a game being loaded.
-     * Blocks until the game starts (all players reconnected) or an error occurs.
+     * Clears the screen, prints the logo and the given header, then reads and
+     * validates the nickname.
      *
-     * @return the local {@link PlayerDTO} if the game started, or {@code null} to retry.
+     * @param header the section title to display.
+     * @return the trimmed nickname, or {@code null} if the user typed "q" or left it empty.
      */
-    private PlayerDTO joinLoadedGame() {
+    private String readNicknameOrBack(String header) {
         utils.clearScreen();
         System.out.println(LOGO);
-        System.out.println("--- UNISCITI A PARTITA IN CARICAMENTO ---");
+        System.out.println(header);
         System.out.println("(Q per tornare al menu)");
         System.out.print("Inserisci nome giocatore: ");
         String nickname = scanner.nextLine().trim();
@@ -359,22 +333,25 @@ public class LobbyTUI {
             utils.pauseAndClear();
             return null;
         }
-        PlayerDTO player = new PlayerDTO(nickname, 0, 0, null);
+        return nickname;
+    }
 
+    /**
+     * Resets the shared connection-state flags before each server request.
+     */
+    private void resetClientState() {
         clientHandler.connectionError = false;
         clientHandler.isGameStarted = false;
         clientHandler.lastErrorMessage = null;
+    }
 
-        try {
-            serverStub.joinGameLoaded(player, clientHandler);
-        } catch (Exception e) {
-            System.err.println("\n❌ " + utils.extractCleanError(e));
-            utils.pauseAndClear();
-            return null;
-        }
-
-        utils.clearScreen();
-        System.out.println("Richiesta inviata. In attesa degli altri giocatori...");
+    /**
+     * Blocks on {@code gameStartLock} until the game starts or a connection error is signalled.
+     *
+     * @return {@code true} if the game started successfully, {@code false} on connection error,
+     *         {@code null} if the thread was interrupted.
+     */
+    private Boolean awaitGameStart() {
         synchronized (clientHandler.gameStartLock) {
             while (!clientHandler.isGameStarted && !clientHandler.connectionError) {
                 try {
@@ -385,13 +362,6 @@ public class LobbyTUI {
                 }
             }
         }
-        if (clientHandler.connectionError) {
-            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
-                    ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita."));
-            utils.pauseAndClear();
-            return null;
-        }
-        System.out.println("\n✅ Tutti i giocatori connessi! La partita riprende!");
-        return player;
+        return !clientHandler.connectionError;
     }
 }

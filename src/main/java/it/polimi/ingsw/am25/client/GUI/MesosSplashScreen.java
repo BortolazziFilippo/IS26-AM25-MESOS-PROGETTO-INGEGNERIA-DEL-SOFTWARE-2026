@@ -18,60 +18,40 @@ import javafx.util.Duration;
 
 /**
  * Splash screen for the MESOS board game — IS26-AM25.
- *
+ * <p>
  * Displays the game cover with:
- *  - a "breathing" effect (scale and brightness pulsing slowly)
- *  - overlaid fire particles (animated orange circles)
- *  - a blinking "touch to start" prompt
- *
+ * - a "breathing" effect (scale and brightness pulsing slowly)
+ * - overlaid fire particles (animated orange circles)
+ * - a blinking "touch to start" prompt
+ * <p>
  * USAGE:
- *   Call {@code MesosSplashScreen.show(stage, onFinished)} from your JavaFX main.
- *   When the player clicks, the {@code onFinished} Runnable is executed
- *   (typically: load the lobby and show the main window).
- *
+ * Call {@code MesosSplashScreen.show(stage, onFinished)} from your JavaFX main.
+ * When the player clicks, the {@code onFinished} Runnable is executed
+ * (typically: load the lobby and show the main window).
+ * <p>
  * REQUIRED RESOURCE:
- *   Place {@code frontScreen.png} in {@code src/main/resources/images/}
- *   (or adapt the path in {@code loadCoverImage()}).
+ * Place {@code frontScreen.png} in {@code src/main/resources/images/}
+ * (or adapt the path in {@code loadCoverImage()}).
  */
 public class MesosSplashScreen {
 
     // ---------------------------------------------------------------
-    // Costanti di layout
+    // Layout constants
     // ---------------------------------------------------------------
-    private static final int    WINDOW_W      = 900;
-    private static final int    WINDOW_H      = 900;
-    private static final double BREATHE_MIN   = 1.00; // scala minima
-    private static final double BREATHE_MAX   = 1.04; // scala massima (4% di "gonfiamento")
-    private static final int    BREATHE_MS    = 3200; // durata di un ciclo respiro (ms)
-    private static final int    BLINK_MS      = 900;  // lampeggio testo (ms)
-    private static final int    NUM_PARTICLES = 18;   // particelle di fuoco
+    private static final int WINDOW_W = 900;
+    private static final int WINDOW_H = 900;
+    private static final double BREATHE_MIN = 1.00; // minimum scale
+    private static final double BREATHE_MAX = 1.04; // maximum scale (4% "inflate")
+    private static final int BREATHE_MS = 3200; // duration of one breathe cycle (ms)
+    private static final int BLINK_MS = 900;  // text blink duration (ms)
+    private static final int NUM_PARTICLES = 18;   // fire particles
 
     // ---------------------------------------------------------------
-    // Entry point standalone (per test; rimuovi se integri nel progetto)
+    // Standalone entry point (for testing; remove when integrating into the project)
     // ---------------------------------------------------------------
     static void main(String[] args) {
         Application.launch(StandaloneApp.class, args);
     }
-
-    public static class StandaloneApp extends Application {
-        /**
-         * Launches the standalone splash screen to test the animation in isolation.
-         * When the splash screen closes, prints a message and closes the stage.
-         *
-         * @param stage the JavaFX stage provided by the runtime.
-         */
-        @Override
-        public void start(Stage stage) {
-            MesosSplashScreen.show(stage, () -> {
-                System.out.println("Splash terminata — carica la lobby!");
-                stage.close();
-            });
-        }
-    }
-
-    // ---------------------------------------------------------------
-    // Metodo principale da chiamare dall'esterno
-    // ---------------------------------------------------------------
 
     /**
      * Displays the splash screen on the provided {@code stage}.
@@ -87,40 +67,35 @@ public class MesosSplashScreen {
         StackPane root = new StackPane();
         root.setStyle("-fx-background-color: #0d0805;");
 
-        // --- Immagine di copertina ---
+        // --- Cover image ---
         ImageView cover = loadCoverImage();
         cover.setFitWidth(WINDOW_W);
         cover.setFitHeight(WINDOW_H);
         cover.setPreserveRatio(true);
         root.getChildren().add(cover);
 
-        // --- Overlay scuro ai bordi (vignette) ---
+        // --- Dark edge overlay (vignette) ---
         javafx.scene.shape.Rectangle vignette = new javafx.scene.shape.Rectangle(WINDOW_W, WINDOW_H);
         vignette.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        vignette.setStyle(
-            "-fx-fill: radial-gradient(center 50% 50%, radius 70%, " +
-            "transparent 0%, rgba(0,0,0,0.55) 100%);"
-        );
+        vignette.setStyle("-fx-fill: radial-gradient(center 50% 50%, radius 70%, " + "transparent 0%, rgba(0,0,0,0.55) 100%);");
         root.getChildren().add(vignette);
 
-        // --- Particelle fuoco ---
+        // --- Fire particles ---
         StackPane particleLayer = new StackPane();
         particleLayer.setPickOnBounds(false);
         addFireParticles(particleLayer);
         root.getChildren().add(particleLayer);
 
-        // --- Testo "Premi per iniziare" ---
+        // --- "Press to start" prompt ---
         Text prompt = new Text("— tocca per iniziare —");
         prompt.setFont(Font.font("Georgia", FontWeight.BOLD, 22));
         prompt.setFill(Color.web("#f5dfa0"));
-        prompt.setStyle(
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 8, 0.5, 0, 2);"
-        );
+        prompt.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 8, 0.5, 0, 2);");
         StackPane.setAlignment(prompt, Pos.BOTTOM_CENTER);
         StackPane.setMargin(prompt, new javafx.geometry.Insets(0, 0, 48, 0));
         root.getChildren().add(prompt);
 
-        // --- Scena & Stage ---
+        // --- Scene & Stage ---
         Scene scene = new Scene(root, WINDOW_W, WINDOW_H);
         stage.setScene(scene);
         stage.setTitle("MESOS — IS26-AM25");
@@ -130,10 +105,10 @@ public class MesosSplashScreen {
         stage.show();
 
         // =============================================================
-        // ANIMAZIONI
+        // ANIMATIONS
         // =============================================================
 
-        // 1. Respiro: scala leggermente l'immagine avanti e indietro
+        // 1. Breathe: gently scale the image back and forth
         ScaleTransition breathe = new ScaleTransition(Duration.millis(BREATHE_MS), cover);
         breathe.setFromX(BREATHE_MIN);
         breathe.setFromY(BREATHE_MIN);
@@ -144,21 +119,16 @@ public class MesosSplashScreen {
         breathe.setInterpolator(Interpolator.EASE_BOTH);
         breathe.play();
 
-        // 2. Luminosità pulsante sincrona col respiro (usa ColorAdjust)
+        // 2. Brightness pulsing in sync with the breathe animation (via ColorAdjust)
         javafx.scene.effect.ColorAdjust glow = new javafx.scene.effect.ColorAdjust();
         cover.setEffect(glow);
 
-        Timeline brightnessTimeline = new Timeline(
-            new KeyFrame(Duration.ZERO,
-                new KeyValue(glow.brightnessProperty(), -0.05, Interpolator.EASE_BOTH)),
-            new KeyFrame(Duration.millis(BREATHE_MS),
-                new KeyValue(glow.brightnessProperty(),  0.08, Interpolator.EASE_BOTH))
-        );
+        Timeline brightnessTimeline = new Timeline(new KeyFrame(Duration.ZERO, new KeyValue(glow.brightnessProperty(), -0.05, Interpolator.EASE_BOTH)), new KeyFrame(Duration.millis(BREATHE_MS), new KeyValue(glow.brightnessProperty(), 0.08, Interpolator.EASE_BOTH)));
         brightnessTimeline.setAutoReverse(true);
         brightnessTimeline.setCycleCount(Animation.INDEFINITE);
         brightnessTimeline.play();
 
-        // 3. Lampeggio testo
+        // 3. Text blink
         FadeTransition blink = new FadeTransition(Duration.millis(BLINK_MS), prompt);
         blink.setFromValue(1.0);
         blink.setToValue(0.25);
@@ -168,7 +138,7 @@ public class MesosSplashScreen {
         blink.play();
 
         // =============================================================
-        // CLICK → transizione fade-out ed esecuzione callback
+        // CLICK → fade-out transition and callback execution
         // =============================================================
         scene.setOnMouseClicked(e -> {
             breathe.stop();
@@ -184,17 +154,16 @@ public class MesosSplashScreen {
     }
 
     // ---------------------------------------------------------------
-    // Helper: carica l'immagine dal classpath
+    // Helper: loads the cover image from the classpath
     // ---------------------------------------------------------------
     private static ImageView loadCoverImage() {
         ImageView iv = new ImageView();
         try {
-            // Cerca prima nel classpath (jar), poi come file locale
-            java.io.InputStream stream =
-                MesosSplashScreen.class.getResourceAsStream("/images/frontScreen.png");
+            // Try the classpath first (jar), then as a local file
+            java.io.InputStream stream = MesosSplashScreen.class.getResourceAsStream("/images/frontScreen.png");
 
             if (stream == null) {
-                // Fallback: prova path relativo (utile in sviluppo)
+                // Fallback: try relative path (useful during development)
                 java.io.File f = new java.io.File("src/main/resources/images/frontScreen.png");
                 if (f.exists()) {
                     stream = new java.io.FileInputStream(f);
@@ -203,9 +172,8 @@ public class MesosSplashScreen {
             if (stream != null) {
                 iv.setImage(new Image(stream));
             } else {
-                System.err.println("[SplashScreen] frontScreen.png non trovata! " +
-                    "Mettila in src/main/resources/images/");
-                // Sfondo arancione di emergenza
+                System.err.println("[SplashScreen] frontScreen.png non trovata! " + "Mettila in src/main/resources/images/");
+                // Emergency orange background fallback
                 iv.setStyle("-fx-background-color: #c44020;");
             }
         } catch (Exception ex) {
@@ -215,18 +183,18 @@ public class MesosSplashScreen {
     }
 
     // ---------------------------------------------------------------
-    // Helper: particelle fuoco (cerchietti arancio/gialli animati)
+    // Helper: fire particles (animated orange/yellow circles)
     // ---------------------------------------------------------------
     private static void addFireParticles(StackPane layer) {
         java.util.Random rnd = new java.util.Random(42);
 
         for (int i = 0; i < NUM_PARTICLES; i++) {
-            // Posizione: concentrata nella metà inferiore (dove c'è il fuoco)
-            double startX = (rnd.nextDouble() - 0.5) * WINDOW_W * 0.35; // -175..+175 px dal centro
-            double startY =  rnd.nextDouble() * 180 + 180;               // 180..360 px dal centro
+            // Position: concentrated in the lower half (where the fire is)
+            double startX = (rnd.nextDouble() - 0.5) * WINDOW_W * 0.35; // -175..+175 px from center
+            double startY = rnd.nextDouble() * 180 + 180;               // 180..360 px from center
 
-            // Dimensione e colore casuali
-            double radius  = rnd.nextDouble() * 5 + 2;
+            // Random size and color
+            double radius = rnd.nextDouble() * 5 + 2;
             String[] colors = {"#ff8800", "#ffaa00", "#ffcc44", "#ff6600", "#ffdd88"};
             String color = colors[rnd.nextInt(colors.length)];
 
@@ -238,13 +206,13 @@ public class MesosSplashScreen {
             c.setPickOnBounds(false);
             layer.getChildren().add(c);
 
-            // Animazione: sali verso l'alto, dissolviti
+            // Animation: rise upward and fade out
             double duration = rnd.nextDouble() * 2000 + 1500; // 1.5–3.5 s
-            double delay    = rnd.nextDouble() * 2500;
+            double delay = rnd.nextDouble() * 2500;
 
             TranslateTransition rise = new TranslateTransition(Duration.millis(duration), c);
-            rise.setByY(-(rnd.nextDouble() * 220 + 120)); // sale 120–340 px
-            rise.setByX((rnd.nextDouble() - 0.5) * 60);   // leggera deriva laterale
+            rise.setByY(-(rnd.nextDouble() * 220 + 120)); // rises 120–340 px
+            rise.setByX((rnd.nextDouble() - 0.5) * 60);   // slight lateral drift
             rise.setCycleCount(Animation.INDEFINITE);
             rise.setInterpolator(Interpolator.EASE_IN);
             rise.setDelay(Duration.millis(delay));
@@ -255,7 +223,7 @@ public class MesosSplashScreen {
             fade.setCycleCount(Animation.INDEFINITE);
             fade.setDelay(Duration.millis(delay));
 
-            // Reset posizione ad ogni ciclo
+            // Reset position on each cycle
             rise.statusProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal == Animation.Status.RUNNING && oldVal == Animation.Status.STOPPED) {
                     c.setTranslateX(startX + (rnd.nextDouble() - 0.5) * 30);
@@ -266,6 +234,22 @@ public class MesosSplashScreen {
 
             rise.play();
             fade.play();
+        }
+    }
+
+    public static class StandaloneApp extends Application {
+        /**
+         * Launches the standalone splash screen to test the animation in isolation.
+         * When the splash screen closes, prints a message and closes the stage.
+         *
+         * @param stage the JavaFX stage provided by the runtime.
+         */
+        @Override
+        public void start(Stage stage) {
+            MesosSplashScreen.show(stage, () -> {
+                System.out.println("Splash terminata — carica la lobby!");
+                stage.close();
+            });
         }
     }
 }
