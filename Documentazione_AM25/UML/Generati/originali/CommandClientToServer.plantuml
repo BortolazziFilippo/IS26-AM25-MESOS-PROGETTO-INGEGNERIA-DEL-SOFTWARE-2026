@@ -1,0 +1,85 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class AddPlayerMessage {
+  - playerDTO: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+interface ClientToServerMessage << interface >> {
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class CreateGameMessage {
+  - playerNumber: int
+  - playerHostL: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class JoinGameLoadedMessage {
+  - playerDTO: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class LoadGameMessage {
+  - playerDTO: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class PingMessage {
+  - player: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class PlacingPlayerMessage {
+  - playerDTO: PlayerDTO
+  - position: int
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class PlayerDoNothingMessage {
+  - playerDTO: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class SelectCardFromBottomListMessage {
+  - playerDTO: PlayerDTO
+  - position: int
+  - cardType: CARD_TYPE
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class SelectCardFromTopListMessage {
+  - position: int
+  - playerDTO: PlayerDTO
+  - cardType: CARD_TYPE
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class SelectExtraCardMessage {
+  - playerDTO: PlayerDTO
+  - cardType: CARD_TYPE
+  - position: int
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class ServerListener {
+  - LOG_PREFIX: String
+  - clientHandler: ClientVirtualView
+  - in: ObjectInputStream
+  + run(): void
+}
+class SkipExtraDrawMessage {
+  - playerDTO: PlayerDTO
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+class askForRankMessage {
+  - playerNumber: String
+  + execute(ServerRemoteInterface, ClientRemoteInterface): void
+}
+
+AddPlayerMessage                 -[#008200,dashed]-^  ClientToServerMessage           
+CreateGameMessage                -[#008200,dashed]-^  ClientToServerMessage           
+JoinGameLoadedMessage            -[#008200,dashed]-^  ClientToServerMessage           
+LoadGameMessage                  -[#008200,dashed]-^  ClientToServerMessage           
+PingMessage                      -[#008200,dashed]-^  ClientToServerMessage           
+PlacingPlayerMessage             -[#008200,dashed]-^  ClientToServerMessage           
+PlayerDoNothingMessage           -[#008200,dashed]-^  ClientToServerMessage           
+SelectCardFromBottomListMessage  -[#008200,dashed]-^  ClientToServerMessage           
+SelectCardFromTopListMessage     -[#008200,dashed]-^  ClientToServerMessage           
+SelectExtraCardMessage           -[#008200,dashed]-^  ClientToServerMessage           
+SkipExtraDrawMessage             -[#008200,dashed]-^  ClientToServerMessage           
+askForRankMessage                -[#008200,dashed]-^  ClientToServerMessage           
+@enduml

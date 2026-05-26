@@ -1,0 +1,161 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+interface BoardObserver << interface >> {
+  + playerPlacedOnOffertile(Player, int): void
+  + onBoardChanged(List<OfferTile>, List<DefaultTile>): void
+  + playerToDefaultTile(List<Player>): void
+}
+interface GUIObserver << interface >> {
+  + onPlayerPPChanged(String, int): void
+  + onPlayerReconnected(String): void
+  + onGamePhaseChanged(GAME_PHASE): void
+  + onPlayerAdded(PlayerDTO): void
+  + onMarketInitialized(List<CardDTO>, List<CardDTO>, List<BuildingDTO>, List<BuildingDTO>): void
+  + onTopBuildingRefreshed(List<BuildingDTO>): void
+  + onPlayerPlacedOnOfferTile(String, int, int): void
+  + onPlayerFoodChanged(String, int): void
+  + onServerDead(): void
+  + onPlayerToPlayChanged(String): void
+  + onCardAddedToTribe(String, CardDTO): void
+  + onEventResolved(int, EVENT_TYPE): void
+  + onDefaultTileOrderChanged(List<PlayerDTO>): void
+  + onAskExtraDraw(List<CardDTO>, List<BuildingDTO>): void
+  + onTopCardRemoved(int): void
+  + onBoardInitialized(List<OffertileDTO>, List<DefaultTileDTO>): void
+  + onPlayerToPlaceChanged(String): void
+  + onRankReceived(Map<Integer, List<String>>): void
+  + onActionAvailableChanged(int, int): void
+  + onWinners(List<PlayerDTO>): void
+  + onTopCardRefreshed(List<CardDTO>): void
+  + onBottomCardRemoved(int): void
+  + onTopBuildRemoved(int): void
+  + onError(String): void
+  + onPlayerDisconnected(String): void
+  + onBottomBuildRemoved(int): void
+}
+class Game {
+  + removeFromTurnQueues(Player): void
+  + notifyCurrentState(): void
+  - notifyPlayerToPlayChanged(): void
+  - selectGenericCard(CARD_TYPE, int, Player, MarketAction, MarketAction, String, Runnable): void
+  + nextEra(): void
+  + restoreMemento(GameMemento): void
+  - checkPlayerOfferTile(Player): void
+  + getMarket(): Market
+  + reAddToTurnQueues(Player): void
+  + createMemento(): GameMemento
+  + advancePlayingPhase(): void
+  + addObserver(GameObserver): void
+  + notifyAllPlayerTribes(): void
+  + skipDisconnectedPlacingPlayer(): void
+  + canCurrentPlayingPlayerDoSomething(): boolean
+  + endGameIter(): void
+  - notify(Consumer<GameObserver>): void
+  + selectExtraCardFromTopList(CARD_TYPE, int, Player): void
+  - notifyPlayerAdded(Player): void
+  + linkObserver(ServerVirtualView): void
+  - logServerEvent(String): void
+  + getCurrentEra(): ERA
+  + getOffertilePlayerIsOn(): OfferTile
+  + getBoard(): Board
+  + gameStart(): void
+  + getPlayerToPlace(): Player
+  + goNextPlayingPlayer(): void
+  - notifyActionChanged(): void
+  + getPlayerNumber(): int
+  + getGamePhase(): GAME_PHASE
+  + nextRoundIter(): void
+  + getSpecificPlayer(Player): Player
+  - notifyGamePhaseChanged(): void
+  - notifyGameChanged(): void
+  + removeObserver(GameObserver): void
+  + addPlayer(Player): void
+  + selectGenericCardBottomLists(CARD_TYPE, int, Player): void
+  + getPlayerToPlay(): Player
+  + forceAdvancePlacing(): void
+  + selectGenericCardTopLists(CARD_TYPE, int, Player): void
+  + getPlayerList(): List<Player>
+  + checkWinner(): List<Player>
+  - notifyPlayerToPlaceChanged(): void
+  + placePlayer(Player, int): void
+  - notifyEraChanged(): void
+  - notifyWinners(List<Player>): void
+  + notifyChanges(): void
+}
+interface GameObserver << interface >> {
+  + onGameChanged(ERA, List<Player>, GAME_PHASE, Player, Player): void
+  + onGamePhaseChanged(GAME_PHASE): void
+  + onPlayerAdded(Player): void
+  + onEraChanged(ERA): void
+  + onPlayerToPlayChanged(Player): void
+  + actionOfferTileChanged(int, int): void
+  + onPlayerToPlaceChanged(Player): void
+  + gameWinners(List<Player>): void
+}
+interface MarketObserver << interface >> {
+  + onTopCardRefreshed(List<Card>): void
+  + onMarketChanged(List<Card>, List<Card>, List<BuildingCard>, List<BuildingCard>): void
+  + eventSolved(int, EVENT_TYPE): void
+  + onExtraDrawSnapshotReady(List<Card>, List<BuildingCard>): void
+  + onCardRemovedFromBottom(int, CARD_TYPE): void
+  + onTopBuildingRefreshed(List<BuildingCard>): void
+  + onCardRemovedFromTop(int, CARD_TYPE): void
+}
+interface PlayerObserver << interface >> {
+  + onPlayerChanged(String, Totem, int, int, List<Card>, List<BuildingCard>): void
+  + notifyCardAddedToTribe(String, Card): void
+  + notifyFoodChanged(String, int): void
+  + notifyPPChanged(String, int): void
+  + requestExtraDraw(String): void
+}
+class ServerVirtualView {
+  + getNickname(): String
+  + onTopBuildingRefreshed(List<BuildingCard>): void
+  + notifyCardAddedToTribe(String, Card): void
+  + incrementMissedPings(): int
+  + onGamePhaseChanged(GAME_PHASE): void
+  + markDisconnected(): void
+  + sendPong(): void
+  + pushPlayerAdded(PlayerDTO): void
+  + notifyFoodChanged(String, int): void
+  + playerToDefaultTile(List<Player>): void
+  + requestExtraDraw(String): void
+  + notifyPlayerReconnected(String): void
+  + isConnected(): boolean
+  + getClientStub(): ClientRemoteInterface
+  + forceInitialPlayersSync(List<PlayerDTO>): void
+  + onPlayerChanged(String, Totem, int, int, List<Card>, List<BuildingCard>): void
+  - logServerError(String): void
+  + onPlayerToPlaceChanged(Player): void
+  + onCardRemovedFromBottom(int, CARD_TYPE): void
+  + notifyPlayerDisconnected(String): void
+  + onMarketChanged(List<Card>, List<Card>, List<BuildingCard>, List<BuildingCard>): void
+  + onExtraDrawSnapshotReady(List<Card>, List<BuildingCard>): void
+  + onCardRemovedFromTop(int, CARD_TYPE): void
+  + playerPlacedOnOffertile(Player, int): void
+  - submitTask(ThrowingRunnable): void
+  + receivePing(): void
+  + reconnect(ClientRemoteInterface, Runnable): void
+  + onTopCardRefreshed(List<Card>): void
+  + actionOfferTileChanged(int, int): void
+  + resyncClient(): void
+  + onEraChanged(ERA): void
+  + eventSolved(int, EVENT_TYPE): void
+  + onBoardChanged(List<OfferTile>, List<DefaultTile>): void
+  + onGameChanged(ERA, List<Player>, GAME_PHASE, Player, Player): void
+  + onPlayerAdded(Player): void
+  + onPlayerToPlayChanged(Player): void
+  + notifyPPChanged(String, int): void
+  + gameWinners(List<Player>): void
+}
+
+Game              "1" *-[#595959,plain]-> "observers\n*" GameObserver      
+ServerVirtualView  -[#008200,dashed]-^  BoardObserver     
+ServerVirtualView  -[#008200,dashed]-^  GameObserver      
+ServerVirtualView  -[#008200,dashed]-^  MarketObserver    
+ServerVirtualView  -[#008200,dashed]-^  PlayerObserver    
+@enduml

@@ -1,0 +1,133 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class ActionDTO {
+  + ActionDTO(int, int): 
+  + ActionDTO(Action): 
+  ~ drawTop: int
+  ~ drawBot: int
+   drawTop: int
+   drawBot: int
+}
+class BoardDTO {
+  + BoardDTO(List<OffertileDTO>, List<DefaultTileDTO>): 
+  - defaultTileList: List<DefaultTileDTO>
+  - offerTileList: List<OffertileDTO>
+   defaultTileList: List<DefaultTileDTO>
+   offerTileList: List<OffertileDTO>
+}
+class BuildingDTO {
+  + BuildingDTO(BuildingCard): 
+  - endGamePP: int
+  - applyOn: EVENT_TYPE
+  - foodCost: int
+  - buildingID: int
+  + toString(): String
+   foodCost: int
+   buildingID: int
+   applyOn: EVENT_TYPE
+   endGamePP: int
+}
+class CardDTO {
+  + CardDTO(ArtistCard): 
+  + CardDTO(InventorCard): 
+  + CardDTO(ERA, CARD_TYPE): 
+  + CardDTO(BuilderCard): 
+  + CardDTO(HuntersCard): 
+  + CardDTO(ShamanCard): 
+  + CardDTO(ERA, int, CARD_TYPE): 
+  + CardDTO(GathererCard): 
+  - hasIcon: boolean
+  - cardType: CARD_TYPE
+  # eventID: int
+  - foodDiscount: int
+  - invIcon: INV_ICON
+  - finalPrestigePoint: int
+  - builderID: int
+  - starNumber: SHAMAN_STAR
+  - era: ERA
+  + toString(): String
+   era: ERA
+   eventID: int
+   cardType: CARD_TYPE
+   starNumber: SHAMAN_STAR
+   finalPrestigePoint: int
+   builderID: int
+   foodDiscount: int
+   invIcon: INV_ICON
+   hasIcon: boolean
+}
+entity DefaultTileDTO << record >> {
+  + DefaultTileDTO(int): 
+  + DefaultTileDTO(DefaultTile): 
+  + foodPerSlotPosition(): int
+}
+class EventDTO {
+  + EventDTO(int, ERA, EVENT_TYPE): 
+  + EventDTO(EventCard): 
+  - eventType: EVENT_TYPE
+  + toString(): String
+   eventID: int
+   eventType: EVENT_TYPE
+}
+class GameDTO {
+  + GameDTO(ERA, GAME_PHASE, String, String): 
+  - currentGamePhase: GAME_PHASE
+  - playerToPlay: String
+  - playerToPlace: String
+  - winners: List<PlayerDTO>
+  - currentEra: ERA
+   playerToPlace: String
+   currentEra: ERA
+   winners: List<PlayerDTO>
+   currentGamePhase: GAME_PHASE
+   playerToPlay: String
+}
+class MarketDTO {
+  + MarketDTO(List<CardDTO>, List<CardDTO>, List<BuildingDTO>, List<BuildingDTO>): 
+  - topBuildings: List<BuildingDTO>
+  - topCards: List<CardDTO>
+  - bottomCards: List<CardDTO>
+  - bottomBuildings: List<BuildingDTO>
+   topCards: List<CardDTO>
+   bottomCards: List<CardDTO>
+   topBuildings: List<BuildingDTO>
+   bottomBuildings: List<BuildingDTO>
+}
+class OffertileDTO {
+  + OffertileDTO(OfferTile): 
+  - offerTileID: char
+  - drawBot: int
+  - drawTop: int
+   drawTop: int
+   offerTileID: char
+   drawBot: int
+}
+class PlayerDTO {
+  + PlayerDTO(String, int, int, COLOR): 
+  + PlayerDTO(Player): 
+  - food: int
+  - cardDtoList: List<CardDTO>
+  - nickName: String
+  - colorTotem: COLOR
+  - prestigePoint: int
+  + addCardToTribe(CardDTO): void
+   cardDtoList: List<CardDTO>
+   colorTotem: COLOR
+   prestigePoint: int
+   nickName: String
+   food: int
+}
+
+BoardDTO       "1" *-[#595959,plain]-> "defaultTileList\n*" DefaultTileDTO 
+BoardDTO       "1" *-[#595959,plain]-> "offerTileList\n*" OffertileDTO   
+BuildingDTO     -[#000082,plain]-^  CardDTO        
+EventDTO        -[#000082,plain]-^  CardDTO        
+GameDTO        "1" *-[#595959,plain]-> "winners\n*" PlayerDTO      
+MarketDTO      "1" *-[#595959,plain]-> "topBuildings\n*" BuildingDTO    
+MarketDTO      "1" *-[#595959,plain]-> "topCards\n*" CardDTO        
+PlayerDTO      "1" *-[#595959,plain]-> "cardDtoList\n*" CardDTO        
+@enduml

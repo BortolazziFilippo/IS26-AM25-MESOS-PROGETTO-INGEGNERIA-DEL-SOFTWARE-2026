@@ -1,0 +1,198 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+interface ClientRemoteInterface << interface >> {
+  + gamePhaseChanged(GAME_PHASE): void
+  + showErrorMessage(String): void
+  + topCardRemoved(int): void
+  + boardInitialize(List<OffertileDTO>, List<DefaultTileDTO>): void
+  + orderOnDefaultTile(List<PlayerDTO>): void
+  + playerReconnected(String): void
+  + actionAvailableChanged(ActionDTO): void
+  + topBuildRemoved(int): void
+  + playerAdded(PlayerDTO): void
+  + playerUpdateFood(String, int): void
+  + bottomCardRemoved(int): void
+  + topBuildingRefreshed(List<BuildingDTO>): void
+  + playerToPlaceChanged(PlayerDTO): void
+  + askExtraDraw(List<CardDTO>, List<BuildingDTO>): void
+  + pong(): void
+  + gameWinners(List<PlayerDTO>): void
+  + playerDisconnected(String): void
+  + sendRank(Map<Integer, List<String>>): void
+  + addedCardToTribe(String, CardDTO): void
+  + playerUpdatePP(String, int): void
+  + topCardRefreshed(List<CardDTO>): void
+  + eventResolved(int, EVENT_TYPE): void
+  + eraChanged(ERA): void
+  + playerPlacedOnOffertile(String, int): void
+  + playerToPlayChanged(PlayerDTO): void
+  + bottomBuildRemoved(int): void
+  + initializeGame(ERA, GAME_PHASE, String, String): void
+  + initializeMarket(List<CardDTO>, List<CardDTO>, List<BuildingDTO>, List<BuildingDTO>): void
+}
+class ClientSocketProxy {
+  + actionAvailableChanged(ActionDTO): void
+  + playerReconnected(String): void
+  + playerDisconnected(String): void
+  + pong(): void
+  + initializeMarket(List<CardDTO>, List<CardDTO>, List<BuildingDTO>, List<BuildingDTO>): void
+  + sendRank(Map<Integer, List<String>>): void
+  + topCardRemoved(int): void
+  + playerAdded(PlayerDTO): void
+  + orderOnDefaultTile(List<PlayerDTO>): void
+  + addedCardToTribe(String, CardDTO): void
+  + bottomBuildRemoved(int): void
+  + eraChanged(ERA): void
+  + topBuildingRefreshed(List<BuildingDTO>): void
+  + playerUpdatePP(String, int): void
+  + playerToPlaceChanged(PlayerDTO): void
+  + gamePhaseChanged(GAME_PHASE): void
+  + gameWinners(List<PlayerDTO>): void
+  + showErrorMessage(String): void
+  + playerUpdateFood(String, int): void
+  + bottomCardRemoved(int): void
+  + playerToPlayChanged(PlayerDTO): void
+  + eventResolved(int, EVENT_TYPE): void
+  + topCardRefreshed(List<CardDTO>): void
+  + askExtraDraw(List<CardDTO>, List<BuildingDTO>): void
+  + initializeGame(ERA, GAME_PHASE, String, String): void
+  + closeConnection(): void
+  + topBuildRemoved(int): void
+  + playerPlacedOnOffertile(String, int): void
+  + boardInitialize(List<OffertileDTO>, List<DefaultTileDTO>): void
+}
+class ClientVirtualView {
+  + topCardRefreshed(List<CardDTO>): void
+  + getExtraDrawCards(): List<CardDTO>
+  + getBottomBuildings(): List<BuildingDTO>
+  + gamePhaseChanged(GAME_PHASE): void
+  + askExtraDraw(List<CardDTO>, List<BuildingDTO>): void
+  + initializeMarket(List<CardDTO>, List<CardDTO>, List<BuildingDTO>, List<BuildingDTO>): void
+  + playerReconnected(String): void
+  + getTopBuildingSize(): int
+  + playerDisconnected(String): void
+  + getDrawTop(): int
+  + getLeaderboards(): Map<Integer, List<String>>
+  + gameWinners(List<PlayerDTO>): void
+  + playerAdded(PlayerDTO): void
+  + bottomBuildRemoved(int): void
+  + getBottomCardSize(): int
+  + orderOnDefaultTile(List<PlayerDTO>): void
+  + isPlayerDisconnected(String): boolean
+  + playerUpdatePP(String, int): void
+  + getGamePhase(): GAME_PHASE
+  + getBottomBuildingSize(): int
+  + getDefaultTileList(): List<DefaultTileDTO>
+  + showErrorMessage(String): void
+  + playerPlacedOnOffertile(String, int): void
+  + getExtraDrawBuildings(): List<BuildingDTO>
+  + startPongWatchdog(): void
+  + getTopCardSize(): int
+  + eventResolved(int, EVENT_TYPE): void
+  + getPlayers(): List<PlayerDTO>
+  + getPlayerToPlay(): String
+  + removeGUIObserver(GUIObserver): void
+  + bottomCardRemoved(int): void
+  + playerUpdateFood(String, int): void
+  + getBottomCardType(int): CARD_TYPE
+  + getTopBuildings(): List<BuildingDTO>
+  + initializeGame(ERA, GAME_PHASE, String, String): void
+  + recordActivity(): void
+  + stopPongWatchdog(): void
+  + handleServerDeath(): void
+  + addGUIObserver(GUIObserver): void
+  + getWinners(): List<PlayerDTO>
+  + topBuildRemoved(int): void
+  + getOfferTileOccupants(): Map<Integer, String>
+  + clearLeaderboards(): void
+  + clearResolvedEvents(): void
+  + pong(): void
+  + getBottomCards(): List<CardDTO>
+  + getExtraDrawCardSize(): int
+  + actionAvailableChanged(ActionDTO): void
+  + getTopCards(): List<CardDTO>
+  + getTopCardType(int): CARD_TYPE
+  + isServerDead(): boolean
+  + getPlayerToPlace(): String
+  + eraChanged(ERA): void
+  + playerToPlaceChanged(PlayerDTO): void
+  + getDefaultTileOrder(): List<PlayerDTO>
+  + addedCardToTribe(String, CardDTO): void
+  + drainRecentDisconnections(): List<String>
+  + playerToPlayChanged(PlayerDTO): void
+  - updateObservers(Consumer<GUIObserver>): void
+  + getExtraDrawBuildingSize(): int
+  + getOfferTileSize(): int
+  + topCardRemoved(int): void
+  + getResolvedEvents(): List<String>
+  + topBuildingRefreshed(List<BuildingDTO>): void
+  + boardInitialize(List<OffertileDTO>, List<DefaultTileDTO>): void
+  + getOfferTileList(): List<OffertileDTO>
+  + getDrawBot(): int
+  + sendRank(Map<Integer, List<String>>): void
+  + drainRecentReconnections(): List<String>
+}
+class ServerNetworkHandler {
+  + skipExtraDraw(PlayerDTO): void
+  + joinGameLoaded(PlayerDTO, ClientRemoteInterface): void
+  - checkMissedPings(): void
+  + askForRank(String, ClientRemoteInterface): void
+  + placingPlayer(PlayerDTO, int): void
+  + selectCardFromTopList(PlayerDTO, CARD_TYPE, int): void
+  + selectExtraCard(PlayerDTO, CARD_TYPE, int): void
+  - sendPongs(): void
+  - startWatchdog(): void
+  - startLoadedGame(): void
+  + createGame(PlayerDTO, int, ClientRemoteInterface): void
+  - handleReconnection(String, ClientRemoteInterface): void
+  - setupAndStartGame(): void
+  + handleSocketClientDisconnection(ClientRemoteInterface): void
+  + addPlayer(PlayerDTO, ClientRemoteInterface): void
+  + ping(PlayerDTO): void
+  + notifyPlayerDisconnected(String): void
+  + loadGame(PlayerDTO, ClientRemoteInterface): void
+  + playerDoNothing(PlayerDTO): void
+  - logServerEvent(String): void
+  + selectCardFromBottomList(PlayerDTO, CARD_TYPE, int): void
+  - initiateShutdown(): void
+}
+interface ServerRemoteInterface << interface >> {
+  + addPlayer(PlayerDTO, ClientRemoteInterface): void
+  + placingPlayer(PlayerDTO, int): void
+  + skipExtraDraw(PlayerDTO): void
+  + ping(PlayerDTO): void
+  + createGame(PlayerDTO, int, ClientRemoteInterface): void
+  + askForRank(String, ClientRemoteInterface): void
+  + selectCardFromBottomList(PlayerDTO, CARD_TYPE, int): void
+  + loadGame(PlayerDTO, ClientRemoteInterface): void
+  + selectCardFromTopList(PlayerDTO, CARD_TYPE, int): void
+  + playerDoNothing(PlayerDTO): void
+  + selectExtraCard(PlayerDTO, CARD_TYPE, int): void
+  + joinGameLoaded(PlayerDTO, ClientRemoteInterface): void
+}
+class ServerSocketProxy {
+  + selectCardFromBottomList(PlayerDTO, CARD_TYPE, int): void
+  + ping(PlayerDTO): void
+  - send(ClientToServerMessage): void
+  + skipExtraDraw(PlayerDTO): void
+  + selectCardFromTopList(PlayerDTO, CARD_TYPE, int): void
+  + loadGame(PlayerDTO, ClientRemoteInterface): void
+  + joinGameLoaded(PlayerDTO, ClientRemoteInterface): void
+  + addPlayer(PlayerDTO, ClientRemoteInterface): void
+  + createGame(PlayerDTO, int, ClientRemoteInterface): void
+  + askForRank(String, ClientRemoteInterface): void
+  + placingPlayer(PlayerDTO, int): void
+  + playerDoNothing(PlayerDTO): void
+  + selectExtraCard(PlayerDTO, CARD_TYPE, int): void
+}
+
+ClientSocketProxy      -[#008200,dashed]-^  ClientRemoteInterface 
+ClientVirtualView      -[#008200,dashed]-^  ClientRemoteInterface 
+ServerNetworkHandler   -[#008200,dashed]-^  ServerRemoteInterface 
+ServerSocketProxy     "1" *-[#595959,plain]-> "clientHandler\n1" ClientVirtualView     
+ServerSocketProxy      -[#008200,dashed]-^  ServerRemoteInterface 
+@enduml

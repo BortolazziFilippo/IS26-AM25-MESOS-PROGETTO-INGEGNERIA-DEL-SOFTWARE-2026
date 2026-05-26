@@ -1,0 +1,36 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class BuildingFactory {
+  + createBuildingDeck(int, BoardView): List<BuildingCard>
+  - returnCorrectBuildingEffect(BuildingCard, BoardView): BuildingEffect?
+  - pickFromEra(List<BuildingCard>, List<BuildingCard>, int, int, int): void
+  + createBuildingById(int, BoardView): BuildingCard
+  - logServerError(String): void
+}
+class DeckFactory {
+  - cardBinder(CardDTO): Card
+  + createDeck(int): List<Card>
+  + loadDeck(List<CardDTO>): List<Card>
+  + loadBuildingDeck(List<Integer>, BoardView): List<BuildingCard>
+  - logServerError(String): void
+}
+class DefaultTileFactory {
+  - logServerError(String): void
+  + buildDefaultTiles(int): List<DefaultTile>
+}
+class EventFactory {
+  + createEventById(int): EventCard
+  - eventBinder(EventCard): EventEffect?
+  - logServerError(String): void
+  + createEvent(): List<EventCard>
+}
+class OfferTileFactory {
+  + offertileBuilder(int): List<OfferTile>
+  - logServerError(String): void
+}
+
+@enduml

@@ -1,0 +1,171 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class ActionAvailableChangedMessage {
+  - actionDTO: ActionDTO
+  + execute(ClientRemoteInterface): void
+}
+class AddedCardToTribeMessage {
+  - cardDTO: CardDTO
+  - nickname: String
+  + execute(ClientRemoteInterface): void
+}
+class AskExtraDrawMessage {
+  - snapshotBuildings: List<BuildingDTO>
+  - snapshotCards: List<CardDTO>
+  + execute(ClientRemoteInterface): void
+}
+class BoardInitializeMessages {
+  - defaultTileDTOS: List<DefaultTileDTO>
+  - offertileDTOS: List<OffertileDTO>
+  + execute(ClientRemoteInterface): void
+}
+class BottomBuildRemovedMessage {
+  - position: int
+  + execute(ClientRemoteInterface): void
+}
+class BottomCardRemovedMessage {
+  - position: int
+  + execute(ClientRemoteInterface): void
+}
+class EraChangedMessage {
+  - newEra: ERA
+  + execute(ClientRemoteInterface): void
+}
+class ErrorMessage {
+  - errorMessage: String
+  + execute(ClientRemoteInterface): void
+}
+class GamePhaseChangedMessage {
+  - gamePhase: GAME_PHASE
+  + execute(ClientRemoteInterface): void
+}
+class GameWinnersMessage {
+  - playerDTOList: List<PlayerDTO>
+  + execute(ClientRemoteInterface): void
+}
+class InitializeGameMessage {
+  - playerToPlace: String
+  - gamePhase: GAME_PHASE
+  - playerToPlay: String
+  - currentEra: ERA
+  + execute(ClientRemoteInterface): void
+}
+class InitializeMarketMessage {
+  - topCards: List<CardDTO>
+  - bottomBuildings: List<BuildingDTO>
+  - topBuildings: List<BuildingDTO>
+  - bottomCards: List<CardDTO>
+  + execute(ClientRemoteInterface): void
+}
+class OrderOnDefaultTileMessage {
+  - orderOnDefaultTile: List<PlayerDTO>
+  + execute(ClientRemoteInterface): void
+}
+class PlayerAddedMessage {
+  - playerAdded: PlayerDTO
+  + execute(ClientRemoteInterface): void
+}
+class PlayerDisconnectedMessage {
+  - nickname: String
+  + execute(ClientRemoteInterface): void
+}
+class PlayerDisconnectedMessage {
+  - nickname: String
+  + execute(ClientRemoteInterface): void
+}
+class PlayerPlacedOnOffertileMessage {
+  - position: int
+  - nickname: String
+  + execute(ClientRemoteInterface): void
+}
+class PlayerReconnectedMessage {
+  - nickname: String
+  + execute(ClientRemoteInterface): void
+}
+class PlayerToPlaceChangedMessage {
+  - playerDTO: PlayerDTO
+  + execute(ClientRemoteInterface): void
+}
+class PlayerToPlayChangedMessage {
+  - playerDTO: PlayerDTO
+  + execute(ClientRemoteInterface): void
+}
+class PlayerUpdateFoodMessage {
+  - nickname: String
+  - food: int
+  + execute(ClientRemoteInterface): void
+}
+class PlayerUpdatePPMessage {
+  - nickname: String
+  - PP: int
+  + execute(ClientRemoteInterface): void
+}
+class PongMessage {
+  + execute(ClientRemoteInterface): void
+}
+class ResolvedEventMessage {
+  - eventID: int
+  - eventType: EVENT_TYPE
+  + execute(ClientRemoteInterface): void
+}
+interface ServerToClientMessage << interface >> {
+  + execute(ClientRemoteInterface): void
+}
+class SocketClientHandler {
+  - socket: Socket
+  - out: ObjectOutputStream
+  - in: ObjectInputStream
+  - LOG_PREFIX: String
+  - serverLogic: ServerRemoteInterface
+  + run(): void
+}
+class TopBuildRemovedMessage {
+  - position: int
+  + execute(ClientRemoteInterface): void
+}
+class TopBuildingRefreshedMessage {
+  - topList: List<BuildingDTO>
+  + execute(ClientRemoteInterface): void
+}
+class TopCardRefreshedMessage {
+  - topCards: List<CardDTO>
+  + execute(ClientRemoteInterface): void
+}
+class TopCardRemovedMessage {
+  - position: int
+  + execute(ClientRemoteInterface): void
+}
+
+ActionAvailableChangedMessage   -[#008200,dashed]-^  ServerToClientMessage          
+AddedCardToTribeMessage         -[#008200,dashed]-^  ServerToClientMessage          
+AskExtraDrawMessage             -[#008200,dashed]-^  ServerToClientMessage          
+BoardInitializeMessages         -[#008200,dashed]-^  ServerToClientMessage          
+BottomBuildRemovedMessage       -[#008200,dashed]-^  ServerToClientMessage          
+BottomCardRemovedMessage        -[#008200,dashed]-^  ServerToClientMessage          
+EraChangedMessage               -[#008200,dashed]-^  ServerToClientMessage          
+ErrorMessage                    -[#008200,dashed]-^  ServerToClientMessage          
+GamePhaseChangedMessage         -[#008200,dashed]-^  ServerToClientMessage          
+GameWinnersMessage              -[#008200,dashed]-^  ServerToClientMessage          
+InitializeGameMessage           -[#008200,dashed]-^  ServerToClientMessage          
+InitializeMarketMessage         -[#008200,dashed]-^  ServerToClientMessage          
+OrderOnDefaultTileMessage       -[#008200,dashed]-^  ServerToClientMessage          
+PlayerAddedMessage              -[#008200,dashed]-^  ServerToClientMessage          
+PlayerDisconnectedMessage       -[#008200,dashed]-^  ServerToClientMessage          
+PlayerDisconnectedMessage       -[#008200,dashed]-^  ServerToClientMessage          
+PlayerPlacedOnOffertileMessage  -[#008200,dashed]-^  ServerToClientMessage          
+PlayerReconnectedMessage        -[#008200,dashed]-^  ServerToClientMessage          
+PlayerToPlaceChangedMessage     -[#008200,dashed]-^  ServerToClientMessage          
+PlayerToPlayChangedMessage      -[#008200,dashed]-^  ServerToClientMessage          
+PlayerUpdateFoodMessage         -[#008200,dashed]-^  ServerToClientMessage          
+PlayerUpdatePPMessage           -[#008200,dashed]-^  ServerToClientMessage          
+PongMessage                     -[#008200,dashed]-^  ServerToClientMessage          
+ResolvedEventMessage            -[#008200,dashed]-^  ServerToClientMessage          
+TopBuildRemovedMessage          -[#008200,dashed]-^  ServerToClientMessage          
+TopBuildingRefreshedMessage     -[#008200,dashed]-^  ServerToClientMessage          
+TopCardRefreshedMessage         -[#008200,dashed]-^  ServerToClientMessage          
+TopCardRemovedMessage           -[#008200,dashed]-^  ServerToClientMessage          
+@enduml

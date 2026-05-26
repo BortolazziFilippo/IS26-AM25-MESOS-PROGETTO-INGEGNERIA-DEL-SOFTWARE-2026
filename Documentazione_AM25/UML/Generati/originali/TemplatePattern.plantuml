@@ -1,0 +1,114 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class ArtistCard {
+  + ArtistCard(ERA, CARD_TYPE): 
+  + addCardToPlayer(Player): void
+  + equals(Object): boolean
+  + matchesDTO(CardDTO): boolean
+  + toDTO(): CardDTO
+}
+class BuilderCard {
+  + BuilderCard(ERA, CARD_TYPE, int, int, int): 
+  - finalPrestigePoint: int
+  - builderID: int
+  - foodDiscount: int
+  + matchesDTO(CardDTO): boolean
+  + toDTO(): CardDTO
+  + addCardToPlayer(Player): void
+  + equals(Object): boolean
+   foodDiscount: int
+   builderID: int
+   finalPrestigePoint: int
+}
+class BuildingCard {
+  + BuildingCard(ERA, CARD_TYPE, int, int, int, EVENT_TYPE): 
+  - buildingEffect: BuildingEffect
+  - endgamePP: int
+  - foodCost: int
+  - buildingID: int
+  - applyOn: EVENT_TYPE
+  + toDTO(): CardDTO
+  + equals(Object): boolean
+  + matchesDTO(CardDTO): boolean
+  + applyBuildingEffect(Player): void
+  + addCardToPlayer(Player): void
+   foodCost: int
+   buildingID: int
+   buildingEffect: BuildingEffect
+   endgamePP: int
+   applyOn: EVENT_TYPE
+}
+class Card {
+  + Card(): 
+  # era: ERA
+  # cardType: CARD_TYPE
+  + addCardToPlayer(Player): void
+  + toDTO(): CardDTO
+  + matchesDTO(CardDTO): boolean
+   era: ERA
+   cardType: CARD_TYPE
+}
+class EventCard {
+  + EventCard(ERA, CARD_TYPE, int, EVENT_TYPE): 
+  + EventCard(ERA, CARD_TYPE, int, EVENT_TYPE, EventEffect): 
+  - eventEffect: EventEffect
+  - eventType: EVENT_TYPE
+  - eventID: int
+  + equals(Object): boolean
+  + applyEventEffect(List<Player>): void
+  + addCardToPlayer(Player): void
+  + matchesDTO(CardDTO): boolean
+  + toDTO(): CardDTO
+   eventEffect: EventEffect
+   eventID: int
+   eventType: EVENT_TYPE
+}
+class GathererCard {
+  + GathererCard(ERA, CARD_TYPE): 
+  + addCardToPlayer(Player): void
+  + toDTO(): CardDTO
+  + matchesDTO(CardDTO): boolean
+  + equals(Object): boolean
+}
+class HuntersCard {
+  + HuntersCard(ERA, CARD_TYPE, boolean): 
+  - hasICON: boolean
+  + addCardToPlayer(Player): void
+  + toDTO(): CardDTO
+  + matchesDTO(CardDTO): boolean
+  + equals(Object): boolean
+   hasICON: boolean
+}
+class InventorCard {
+  + InventorCard(ERA, CARD_TYPE, INV_ICON): 
+  - invIcon: INV_ICON
+  + addCardToPlayer(Player): void
+  + equals(Object): boolean
+  + toDTO(): CardDTO
+  + matchesDTO(CardDTO): boolean
+   invIcon: INV_ICON
+}
+class ShamanCard {
+  + ShamanCard(ERA, CARD_TYPE, SHAMAN_STAR): 
+  - starNumber: SHAMAN_STAR
+  + equals(Object): boolean
+  + matchesDTO(CardDTO): boolean
+  + addCardToPlayer(Player): void
+  + toDTO(): CardDTO
+   shamanStar: SHAMAN_STAR
+   starNumber: int
+}
+
+ArtistCard    -[#000082,plain]-^  Card         
+BuilderCard   -[#000082,plain]-^  Card         
+BuildingCard  -[#000082,plain]-^  Card         
+EventCard     -[#000082,plain]-^  Card         
+GathererCard  -[#000082,plain]-^  Card         
+HuntersCard   -[#000082,plain]-^  Card         
+InventorCard  -[#000082,plain]-^  Card         
+ShamanCard    -[#000082,plain]-^  Card         
+@enduml

@@ -1,0 +1,114 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class Board {
+  - observers: List<BoardObserver>
+  - LOG_PREFIX: String
+  - offerTiles: List<OfferTile>
+  - defaultTiles: List<DefaultTile>
+  - liftDisconnectedFromDefaultTiles(): List<Player>
+  - fillDefaultTilesFromFront(List<Player>): int
+  + getCopyTilePlayerIsOn(Player): OfferTile
+  + notifyBoardChanged(): void
+  - notify(Consumer<BoardObserver>): void
+  + placePlayerOnOffertile(Player, int): void
+  + getOrderedPlayerOnOfferTile(): List<Player>
+  + placePlayerOnDefaultTile(Player, int): void
+  - notifyPlayerToDefaultTile(): void
+  + isPlayerOnAnEligibleDefaultTile(Player): boolean
+  - packDisconnectedAtBack(List<Player>, int): void
+  - validateTileAccess(List<Tile>, int): void
+  - getOccupants(List<Tile>): List<Player>
+  - logServerEvent(String): void
+  + restoreMemento(BoardMemento): void
+  - collectOfferTilePlayers(): List<Player>
+  - notifyPlayerToOfferTile(Player, int): void
+  + getOfferTiles(): List<OfferTile>
+  + createMemento(): BoardMemento
+  + returnOnDefaultTiles(): void
+  + getDefaultTiles(): List<DefaultTile>
+  + addObserver(BoardObserver): void
+  + removeObserver(BoardObserver): void
+  + getOrderedPlayerOnDefaultTile(): List<Player>
+}
+interface BoardView << interface >> {
+  + getCopyTilePlayerIsOn(Player): OfferTile
+  + isPlayerOnAnEligibleDefaultTile(Player): boolean
+  + getOrderedPlayerOnOfferTile(): List<Player>
+  + getOrderedPlayerOnDefaultTile(): List<Player>
+}
+class Game {
+  - observers: List<GameObserver>
+  - currentEra: ERA
+  - playerToPlace: Player
+  - offertilePlayerIsOn: OfferTile
+  - LOG_PREFIX: String
+  - turnManager: TurnManager
+  - players: Map<String, Player>
+  - playerToPlay: Player
+  - board: Board
+  - market: Market
+  - playerNumber: int
+  - boardView: BoardView
+  - gamePhase: GAME_PHASE
+  + removeFromTurnQueues(Player): void
+  + notifyCurrentState(): void
+  - notifyPlayerToPlayChanged(): void
+  - selectGenericCard(CARD_TYPE, int, Player, MarketAction, MarketAction, String, Runnable): void
+  + nextEra(): void
+  + restoreMemento(GameMemento): void
+  - checkPlayerOfferTile(Player): void
+  + getMarket(): Market
+  + reAddToTurnQueues(Player): void
+  + createMemento(): GameMemento
+  + advancePlayingPhase(): void
+  + addObserver(GameObserver): void
+  + notifyAllPlayerTribes(): void
+  + skipDisconnectedPlacingPlayer(): void
+  + canCurrentPlayingPlayerDoSomething(): boolean
+  + endGameIter(): void
+  - notify(Consumer<GameObserver>): void
+  + selectExtraCardFromTopList(CARD_TYPE, int, Player): void
+  - notifyPlayerAdded(Player): void
+  + linkObserver(ServerVirtualView): void
+  - logServerEvent(String): void
+  + getCurrentEra(): ERA
+  + getOffertilePlayerIsOn(): OfferTile
+  + getBoard(): Board
+  + gameStart(): void
+  + getPlayerToPlace(): Player
+  + goNextPlayingPlayer(): void
+  - notifyActionChanged(): void
+  + getPlayerNumber(): int
+  + getGamePhase(): GAME_PHASE
+  + nextRoundIter(): void
+  + getSpecificPlayer(Player): Player
+  - notifyGamePhaseChanged(): void
+  - notifyGameChanged(): void
+  + removeObserver(GameObserver): void
+  + addPlayer(Player): void
+  + selectGenericCardBottomLists(CARD_TYPE, int, Player): void
+  + getPlayerToPlay(): Player
+  + forceAdvancePlacing(): void
+  + selectGenericCardTopLists(CARD_TYPE, int, Player): void
+  + getPlayerList(): List<Player>
+  + checkWinner(): List<Player>
+  - notifyPlayerToPlaceChanged(): void
+  + placePlayer(Player, int): void
+  - notifyEraChanged(): void
+  - notifyWinners(List<Player>): void
+  + notifyChanges(): void
+}
+interface GameView << interface >> {
+  + getPlayerNumber(): int
+  + getPlayerList(): List<Player>
+  + getCurrentEra(): ERA
+  + nextEra(): void
+}
+
+Board      -[#008200,dashed]-^  BoardView 
+Game       -[#008200,dashed]-^  GameView  
+@enduml

@@ -1,0 +1,57 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class ArtistEvent {
+  - artistNeeded: int
+  - PPtoMultiply: int
+  - LOG_PREFIX: String
+  - PPLost: int
+  + solveEvent(List<Player>): void
+}
+class EventCard {
+  - eventEffect: EventEffect
+  - eventType: EVENT_TYPE
+  - LOG_PREFIX: String
+  - eventID: int
+  + equals(Object): boolean
+  + getEventID(): int
+  + applyEventEffect(List<Player>): void
+  + addCardToPlayer(Player): void
+  + setEventEffect(EventEffect): void
+  + getEventType(): EVENT_TYPE
+  + matchesDTO(CardDTO): boolean
+  + toDTO(): CardDTO
+}
+class EventEffect
+interface EventEffectInterface << interface >> {
+  + solveEvent(List<Player>): void
+}
+class HuntEvent {
+  - PPtoMultiply: int
+  - food: int
+  - LOG_PREFIX: String
+  + solveEvent(List<Player>): void
+}
+class ShamanEvent {
+  - PPToMost: int
+  - LOG_PREFIX: String
+  - PPToLeast: int
+  + solveEvent(List<Player>): void
+}
+class SustenanceEvent {
+  - LOG_PREFIX: String
+  - foodPerCharacter: int
+  - PPLost: int
+  + solveEvent(List<Player>): void
+}
+
+ArtistEvent           -[#000082,plain]-^  EventEffect          
+EventCard            "1" *-[#595959,plain]-> "eventEffect\n1" EventEffect          
+EventEffect           -[#008200,dashed]-^  EventEffectInterface 
+HuntEvent             -[#000082,plain]-^  EventEffect          
+ShamanEvent           -[#000082,plain]-^  EventEffect          
+SustenanceEvent       -[#000082,plain]-^  EventEffect          
+@enduml

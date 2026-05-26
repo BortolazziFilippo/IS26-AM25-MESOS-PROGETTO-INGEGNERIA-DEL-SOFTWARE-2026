@@ -1,0 +1,203 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class Board {
+  - liftDisconnectedFromDefaultTiles(): List<Player>
+  - fillDefaultTilesFromFront(List<Player>): int
+  + getCopyTilePlayerIsOn(Player): OfferTile
+  + notifyBoardChanged(): void
+  - notify(Consumer<BoardObserver>): void
+  + placePlayerOnOffertile(Player, int): void
+  + getOrderedPlayerOnOfferTile(): List<Player>
+  + placePlayerOnDefaultTile(Player, int): void
+  - notifyPlayerToDefaultTile(): void
+  + isPlayerOnAnEligibleDefaultTile(Player): boolean
+  - packDisconnectedAtBack(List<Player>, int): void
+  - validateTileAccess(List<Tile>, int): void
+  - getOccupants(List<Tile>): List<Player>
+  - logServerEvent(String): void
+  + restoreMemento(BoardMemento): void
+  - collectOfferTilePlayers(): List<Player>
+  - notifyPlayerToOfferTile(Player, int): void
+  + getOfferTiles(): List<OfferTile>
+  + createMemento(): BoardMemento
+  + returnOnDefaultTiles(): void
+  + getDefaultTiles(): List<DefaultTile>
+  + addObserver(BoardObserver): void
+  + removeObserver(BoardObserver): void
+  + getOrderedPlayerOnDefaultTile(): List<Player>
+}
+entity BoardMemento << record >> {
+  + orderedNicknamesOnDefaultTiles(): List<String>
+}
+class Game {
+  + removeFromTurnQueues(Player): void
+  + notifyCurrentState(): void
+  - notifyPlayerToPlayChanged(): void
+  - selectGenericCard(CARD_TYPE, int, Player, MarketAction, MarketAction, String, Runnable): void
+  + nextEra(): void
+  + restoreMemento(GameMemento): void
+  - checkPlayerOfferTile(Player): void
+  + getMarket(): Market
+  + reAddToTurnQueues(Player): void
+  + createMemento(): GameMemento
+  + advancePlayingPhase(): void
+  + addObserver(GameObserver): void
+  + notifyAllPlayerTribes(): void
+  + skipDisconnectedPlacingPlayer(): void
+  + canCurrentPlayingPlayerDoSomething(): boolean
+  + endGameIter(): void
+  - notify(Consumer<GameObserver>): void
+  + selectExtraCardFromTopList(CARD_TYPE, int, Player): void
+  - notifyPlayerAdded(Player): void
+  + linkObserver(ServerVirtualView): void
+  - logServerEvent(String): void
+  + getCurrentEra(): ERA
+  + getOffertilePlayerIsOn(): OfferTile
+  + getBoard(): Board
+  + gameStart(): void
+  + getPlayerToPlace(): Player
+  + goNextPlayingPlayer(): void
+  - notifyActionChanged(): void
+  + getPlayerNumber(): int
+  + getGamePhase(): GAME_PHASE
+  + nextRoundIter(): void
+  + getSpecificPlayer(Player): Player
+  - notifyGamePhaseChanged(): void
+  - notifyGameChanged(): void
+  + removeObserver(GameObserver): void
+  + addPlayer(Player): void
+  + selectGenericCardBottomLists(CARD_TYPE, int, Player): void
+  + getPlayerToPlay(): Player
+  + forceAdvancePlacing(): void
+  + selectGenericCardTopLists(CARD_TYPE, int, Player): void
+  + getPlayerList(): List<Player>
+  + checkWinner(): List<Player>
+  - notifyPlayerToPlaceChanged(): void
+  + placePlayer(Player, int): void
+  - notifyEraChanged(): void
+  - notifyWinners(List<Player>): void
+  + notifyChanges(): void
+}
+entity GameMemento << record >> {
+  + board(): BoardMemento
+  + currentEra(): ERA
+  + playerToPlayNickname(): String
+  + players(): List<PlayerMemento>
+  + playerToPlaceNickname(): String
+  + playerNumber(): int
+  + gamePhase(): GAME_PHASE
+  + market(): MarketMemento
+}
+class Market {
+  + getBottomCardList(): List<Card>
+  + getBottomBuildingList(): List<BuildingCard>
+  + selectExtraCardFromSnapshot(int, Player): void
+  - notifyResolvedEvent(int, EVENT_TYPE): void
+  - shiftBuildingTopToBottom(): void
+  - initializeBothTopList(): void
+  - shiftCardTopToBottomList(): void
+  - notifyTopCardRefreshed(): void
+  - solveEvents(): void
+  - notifyTopBuildingRefreshed(): void
+  - notifyCardRemovedFromBottom(int, CARD_TYPE): void
+  - organizeDeck(): void
+  + selectCardFromTopList(int, Player): void
+  + buyExtraBuildingFromSnapshot(int, Player): void
+  + solveFinalEvents(): void
+  + createMemento(): MarketMemento
+  + snapshotForExtraDraw(): void
+  + buyBuildingTopList(int, Player): void
+  + endOfRoundMarketActions(): void
+  + removeObserver(MarketObserver): void
+  - notifyCardRemoveFromTop(int, CARD_TYPE): void
+  + restoreMemento(MarketMemento): void
+  + getTopCardList(): List<Card>
+  + selectCardFromBottomList(int, Player): void
+  - notifyExtraDrawSnapshotReady(): void
+  + addObserver(MarketObserver): void
+  - clearBottomBuildingList(): void
+  - refillTopCardList(): void
+  + buyBuildingBottomList(int, Player): void
+  + getTopBuildingList(): List<BuildingCard>
+  - refillTopBuildingList(): void
+  - notify(Consumer<MarketObserver>): void
+  + notifyMarketChanged(): void
+  - initializeBottomList(): void
+  + clearBottomCardList(): void
+}
+entity MarketMemento << record >> {
+  + bottomBuildingIDs(): List<Integer>
+  + topBuildingIDs(): List<Integer>
+  + buildingPoolIDs(): List<Integer>
+  + bottomCards(): List<CardDTO>
+  + deck(): List<CardDTO>
+  + topCards(): List<CardDTO>
+}
+interface MementoManager<T> << interface >> {
+  + createMemento(): T
+  + restoreMemento(T): void
+}
+class PersistanceLogger {
+  + load(): Optional<GameMemento>
+  + save(GameMemento): void
+  + deleteFile(): void
+}
+class Player {
+  + getNumberOfCard(): int
+  + getGatherDiscount(): int
+  + getNickname(): String
+  + getFood(): int
+  - notify(Consumer<PlayerObserver>): void
+  + getHunterNumber(): int
+  + addBuilding(BuildingCard): void
+  + getTribe(): List<Card>
+  + manageFoodAndPP(int): void
+  + getTotem(): Totem
+  + restoreBuildings(List<BuildingCard>): void
+  + equals(Object): boolean
+  - notifyCardAdded(Card): void
+  - logServerEvent(String): void
+  + getObservers(): List<PlayerObserver>
+  + checkpoints(): int
+  + requestExtraDraw(): void
+  - notifyPPChanged(): void
+  + triggerEndGameBuilding(): void
+  + createMemento(): PlayerMemento
+  + getBuilderDiscount(): int
+  + removeObserver(PlayerObserver): void
+  - notifyPlayerChanged(): void
+  - formatCardForLog(Card): String
+  + restoreMemento(PlayerMemento): void
+  + getBuildingCards(): List<BuildingCard>
+  + triggerEndRoundBuilding(): void
+  + getArtistNumber(): int
+  + notifyCurrentTribe(): void
+  + managePP(int): void
+  + addCardToTribe(Card): void
+  + tryBuyBuilding(BuildingCard): void
+  + getConnection(): CONNECTION_STATUS
+  + setConnection(CONNECTION_STATUS): void
+  + getNumberOfDifferentInventorIcon(): int
+  - notifyFoodChanged(): void
+  + getPrestigePoint(): int
+  + getShamanStarTotal(): int
+  + addObserver(PlayerObserver): void
+}
+entity PlayerMemento << record >> {
+  + food(): int
+  + prestigePoints(): int
+  + tribe(): List<CardDTO>
+  + nickname(): String
+  + totemColor(): COLOR
+  + buildingIDs(): List<Integer>
+}
+
+Board              -[#008200,dashed]-^  MementoManager    
+Game               -[#008200,dashed]-^  MementoManager    
+Market             -[#008200,dashed]-^  MementoManager    
+Player             -[#008200,dashed]-^  MementoManager    
+@enduml

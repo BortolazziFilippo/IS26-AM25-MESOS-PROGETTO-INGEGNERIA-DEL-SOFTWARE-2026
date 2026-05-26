@@ -1,0 +1,122 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class BuilderDoublePP {
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class BuildingCard {
+  - LOG_PREFIX: String
+  - buildingEffect: BuildingEffect
+  - endgamePP: int
+  - foodCost: int
+  - buildingID: int
+  - applyOn: EVENT_TYPE
+  + getEndgamePP(): int
+  + getBuildingID(): int
+  + setBuildingEffect(BuildingEffect): void
+  + toDTO(): CardDTO
+  + getApplyOn(): EVENT_TYPE
+  + equals(Object): boolean
+  + matchesDTO(CardDTO): boolean
+  + getFoodCost(): int
+  + applyBuildingEffect(Player): void
+  + addCardToPlayer(Player): void
+}
+class BuildingEffect {
+  + applyEffect(Player): void
+}
+interface BuildingEffectInterface << interface >> {
+  + applyEffect(Player): void
+}
+class DiscountFoodOnSustenance {
+  - LOG_PREFIX: String
+  - cardType: CARD_TYPE
+  + applyEffect(Player): void
+}
+class DoublePPOnShamanEvent {
+  - LOG_PREFIX: String
+  - flag: boolean
+  - prevPP: int
+  + applyEffect(Player): void
+}
+class DrawOneMoreCard {
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class FoodOnNewCoupleInventors {
+  - pairsCards: List<InventorCard>
+  - beforeTurnCards: List<Card>
+  - LOG_PREFIX: String
+  - logServerEvent(String): void
+  + applyEffect(Player): void
+}
+class NoPPLostOnShaman {
+  - prevPP: int
+  - flag: boolean
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class OnEventHuntOneFoodAndOnePPPerHunter {
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class OnEventPaintingsOneFoodPerArtist {
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class PPPerCharType {
+  - LOG_PREFIX: String
+  - PrestigePoint: int
+  - cardType: CARD_TYPE
+  + applyEffect(Player): void
+}
+class PlusOneFoodOnReturnDefaultTile {
+  - LOG_PREFIX: String
+  - boardView: BoardView
+  + setBoardView(BoardView): void
+  + applyEffect(Player): void
+}
+class SetSixCard {
+  - oldCards: List<Card>
+  - foodToGive: int
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class SixFoodCompletedSet {
+  - LOG_PREFIX: String
+  - listOldCard: List<Card>
+  - alreadyUsed: boolean
+  - setCard: List<Integer>
+  + applyEffect(Player): void
+}
+class ThreeMoreShamanStar {
+  - flag: boolean
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+class TwentyFivePPEndGame {
+  - LOG_PREFIX: String
+  + applyEffect(Player): void
+}
+
+BuilderDoublePP                      -[#000082,plain]-^  BuildingEffect                      
+BuildingCard                        "1" *-[#595959,plain]-> "buildingEffect\n1" BuildingEffect                      
+BuildingEffect                       -[#008200,dashed]-^  BuildingEffectInterface             
+DiscountFoodOnSustenance             -[#000082,plain]-^  BuildingEffect                      
+DoublePPOnShamanEvent                -[#000082,plain]-^  BuildingEffect                      
+DrawOneMoreCard                      -[#000082,plain]-^  BuildingEffect                      
+FoodOnNewCoupleInventors             -[#000082,plain]-^  BuildingEffect                      
+NoPPLostOnShaman                     -[#000082,plain]-^  BuildingEffect                      
+OnEventHuntOneFoodAndOnePPPerHunter  -[#000082,plain]-^  BuildingEffect                      
+OnEventPaintingsOneFoodPerArtist     -[#000082,plain]-^  BuildingEffect                      
+PPPerCharType                        -[#000082,plain]-^  BuildingEffect                      
+PlusOneFoodOnReturnDefaultTile       -[#000082,plain]-^  BuildingEffect                      
+SetSixCard                           -[#000082,plain]-^  BuildingEffect                      
+SixFoodCompletedSet                  -[#000082,plain]-^  BuildingEffect                      
+ThreeMoreShamanStar                  -[#000082,plain]-^  BuildingEffect                      
+TwentyFivePPEndGame                  -[#000082,plain]-^  BuildingEffect                      
+@enduml
