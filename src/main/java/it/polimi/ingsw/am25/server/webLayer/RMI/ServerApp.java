@@ -48,6 +48,7 @@ public class ServerApp {
                     }
                 } catch (IOException e) {
                     UtilitiesFunction.logError(LOG_PREFIX, "Fatal socket server error: " + e.getMessage());
+                    System.exit(1);
                 }
             }).start();
             logServerEvent("RMI server listening on port 1099");
