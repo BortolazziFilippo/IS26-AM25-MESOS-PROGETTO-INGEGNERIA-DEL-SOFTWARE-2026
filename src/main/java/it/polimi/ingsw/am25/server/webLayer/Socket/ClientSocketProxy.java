@@ -481,7 +481,7 @@ public class ClientSocketProxy implements ClientRemoteInterface {
     public void showErrorMessage(String errorMessage) throws RemoteException {
         try {
             synchronized (out) {
-                out.writeObject(new it.polimi.ingsw.am25.client.webLayer.Socket.messages.ErrorMessage(errorMessage));
+                out.writeObject(new it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages.ErrorMessage(errorMessage));
                 out.flush();
                 out.reset();
             }

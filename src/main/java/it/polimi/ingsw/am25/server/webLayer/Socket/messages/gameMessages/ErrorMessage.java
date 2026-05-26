@@ -1,4 +1,4 @@
-package it.polimi.ingsw.am25.client.webLayer.Socket.messages;
+package it.polimi.ingsw.am25.server.webLayer.Socket.messages.gameMessages;
 
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
