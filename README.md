@@ -44,12 +44,12 @@ Per compilare il progetto e generare i JAR eseguibili:
 ./mvnw package -DskipTests
 ```
 
-I JAR vengono prodotti nella cartella `target/`:
+I JAR vengono prodotti nella cartella `jar/`:
 
 | File | Descrizione |
 |------|-------------|
-| `target/am25-Server-1.0-SNAPSHOT.jar` | Eseguibile del server |
-| `target/am25-Client-1.0-SNAPSHOT.jar` | Eseguibile del client |
+| `jar/am25-Server-1.0-SNAPSHOT.jar` | Eseguibile del server |
+| `jar/am25-Client-1.0-SNAPSHOT.jar` | Eseguibile del client |
 
 ---
 
