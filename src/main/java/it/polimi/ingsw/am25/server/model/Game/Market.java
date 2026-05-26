@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -126,6 +127,9 @@ public class Market implements MementoManager<MarketMemento> {
     /**
      * Draws a tribe card from the end-of-round snapshot (not the current top row) and adds it
      * to the player's tribe.
+     *
+     * @param position zero-based index of the card to draw from the snapshot.
+     * @param player   the player who receives the card.
      */
     public void selectExtraCardFromSnapshot(int position, Player player)
             throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
@@ -166,6 +170,9 @@ public class Market implements MementoManager<MarketMemento> {
     /**
      * Buys a building from the end-of-round snapshot (not the current top row) and adds it
      * to the player's buildings.
+     *
+     * @param position zero-based index of the building to buy from the snapshot.
+     * @param player   the player who purchases the building.
      */
     public void buyExtraBuildingFromSnapshot(int position, Player player)
             throws NotEnoughFoodException, IndexOutOfBoundsException, EmptyMarketException {
@@ -303,24 +310,7 @@ public class Market implements MementoManager<MarketMemento> {
      * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     public void selectCardFromTopList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
-        if (topCardList == null || player == null) {
-            throw new IllegalArgumentException("topCardList is null or player is null");
-        }
-
-        if (topCardList.isEmpty() || topCardList.stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT)) {
-            throw new EmptyMarketException("No cards available top list");
-        }
-        if (position < 0 || position >= topCardList.size()) {
-            throw new IndexOutOfBoundsException("Invalid position");
-        }
-        Card selectedCard = this.topCardList.get(position);
-        try {
-            selectedCard.addCardToPlayer(player);
-        } catch (NotSelectableCardException e) {
-            throw new NotSelectableCardException("Cannot Select EventCard");
-        }
-        this.topCardList.remove(position);
-        notifyCardRemoveFromTop(position, selectedCard.getCardType());
+        selectCardFromList(position, player, topCardList, "top list", this::notifyCardRemoveFromTop);
     }
 
     /**
@@ -359,25 +349,51 @@ public class Market implements MementoManager<MarketMemento> {
      * @throws IndexOutOfBoundsException  if {@code position} is out of range.
      */
     public void selectCardFromBottomList(int position, Player player) throws NotSelectableCardException, IndexOutOfBoundsException, EmptyMarketException {
-        if (bottomCardList == null || player == null) {
-            throw new IllegalArgumentException("bottomCardList is null or player is null");
-        }
-        if (bottomCardList.isEmpty() || bottomCardList.stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT)) {
-            throw new EmptyMarketException("No Card Available bottom list");
-        }
+        selectCardFromList(position, player, bottomCardList, "bottom list", this::notifyCardRemovedFromBottom);
+    }
 
-        if (position < 0 || position >= bottomCardList.size()) {
+    /**
+     * Shared implementation for top- and bottom-row tribe card selection.
+     * Validates inputs, draws the card at {@code position} from {@code cardList},
+     * adds it to the player's tribe, removes it from the list, and fires the
+     * supplied notification callback.
+     *
+     * <p>This method is intentionally {@code private}: callers should use the
+     * public {@link #selectCardFromTopList} and {@link #selectCardFromBottomList}
+     * entry points, which bind the correct list and notification callback.
+     *
+     * @param position      zero-based index of the card to select.
+     * @param player        the player who will receive the card.
+     * @param cardList      the market row to draw from ({@code topCardList} or
+     *                      {@code bottomCardList}).
+     * @param rowLabel      human-readable row name used in exception messages
+     *                      (e.g. {@code "top list"} or {@code "bottom list"}).
+     * @param notifyRemoved callback invoked with {@code (position, cardType)}
+     *                      after the card has been removed from the list.
+     * @throws IllegalArgumentException   if {@code cardList} or {@code player} is {@code null}.
+     * @throws EmptyMarketException       if the row is empty or contains only event cards.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
+     * @throws NotSelectableCardException if the card at {@code position} is an event card.
+     */
+    private void selectCardFromList(int position, Player player, List<Card> cardList,
+            String rowLabel, BiConsumer<Integer, CARD_TYPE> notifyRemoved) {
+        if (cardList == null || player == null) {
+            throw new IllegalArgumentException("cardList or player is null");
+        }
+        if (cardList.isEmpty() || cardList.stream().allMatch(card -> card.getCardType() == CARD_TYPE.EVENT)) {
+            throw new EmptyMarketException("No cards available in " + rowLabel);
+        }
+        if (position < 0 || position >= cardList.size()) {
             throw new IndexOutOfBoundsException("Invalid position");
         }
-
-        Card selectedCard = this.bottomCardList.get(position);
+        Card selectedCard = cardList.get(position);
         try {
             selectedCard.addCardToPlayer(player);
         } catch (NotSelectableCardException e) {
             throw new NotSelectableCardException("Cannot select EventCard");
         }
-        this.bottomCardList.remove(position);
-        notifyCardRemovedFromBottom(position, selectedCard.getCardType());
+        cardList.remove(position);
+        notifyRemoved.accept(position, selectedCard.getCardType());
     }
 
     /**

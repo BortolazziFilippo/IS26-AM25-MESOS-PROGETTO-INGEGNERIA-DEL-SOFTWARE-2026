@@ -11,7 +11,9 @@ import java.util.List;
  * Socket message that sends the initial board state (offer tiles and default tiles) to the client at game start.
  */
 public class BoardInitializeMessages implements ServerToClientMessage {
+    /** The initial list of offer tiles on the board. */
     private final List<OffertileDTO> offertileDTOS;
+    /** The initial list of default tiles on the board. */
     private final List<DefaultTileDTO> defaultTileDTOS;
 
     /**

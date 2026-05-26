@@ -7,7 +7,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client of an updated prestige-point total for a player.
  */
 public class PlayerUpdatePPMessage implements ServerToClientMessage {
+    /** The nickname of the player whose prestige points changed. */
     private final String nickname;
+    /** The new prestige-point total for the player. */
     private final int PP;
 
     /**

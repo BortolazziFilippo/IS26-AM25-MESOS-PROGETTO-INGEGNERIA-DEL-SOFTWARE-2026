@@ -9,6 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * TUI component that renders the end-game screen. Shows the winner(s),
+ * the global leaderboard fetched from the server, and optionally all
+ * players' final statuses on request.
+ */
 public class EndGameTUI {
     private final ClientVirtualView clientVirtualView;
     private final TUIUtils tuiUtils;

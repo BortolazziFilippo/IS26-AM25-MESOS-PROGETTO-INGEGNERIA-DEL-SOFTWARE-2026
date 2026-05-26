@@ -14,18 +14,37 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Factory utility that creates pre-configured {@link ImageView} instances for every
+ * visual asset used in the Mesos GUI (cards, buildings, totems, tiles, events).
+ * All images are loaded once and stored in a thread-safe cache keyed by resource path.
+ */
 public class CardImageFactory {
 
     private static final Map<String, Image> IMAGE_CACHE = new ConcurrentHashMap<>();
 
+    /** Utility class — not instantiable. */
     private CardImageFactory() {
     }
 
+    /**
+     * Returns the cached {@link Image} for the given classpath resource, loading it on first access.
+     *
+     * @param path the classpath-relative path of the image resource.
+     * @return the cached {@link Image}.
+     */
     private static Image cached(String path) {
         return IMAGE_CACHE.computeIfAbsent(path,
                 p -> new Image(Objects.requireNonNull(CardImageFactory.class.getResourceAsStream(p))));
     }
 
+    /**
+     * Creates an {@link ImageView} for the default tile of the given player count.
+     *
+     * @param playerCount the number of players (determines which tile image to use).
+     * @param fitHeight   the display height in pixels; aspect ratio is preserved.
+     * @return a configured {@link ImageView} for the default tile.
+     */
     public static ImageView defaultTileImageView(int playerCount, double fitHeight) {
         ImageView iv = new ImageView(cached("/images/Tiles/defaultTile/" + playerCount + "plDefTile.png"));
         iv.setFitHeight(fitHeight);
@@ -33,6 +52,13 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for the offer tile with the given identifier.
+     *
+     * @param tileID    the single-character identifier of the offer tile.
+     * @param fitHeight the display height in pixels; aspect ratio is preserved.
+     * @return a configured {@link ImageView} for the offer tile.
+     */
     public static ImageView offerTileImageView(char tileID, double fitHeight) {
         ImageView iv = new ImageView(cached("/images/Tiles/offertiles/" + tileID + "offertile.png"));
         iv.setFitHeight(fitHeight);
@@ -40,6 +66,15 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for a tribe-member or event card described by the given DTO.
+     * The correct image is selected from the card type and its role-specific attributes.
+     * The DTO is stored in the view's {@code userData} for later retrieval.
+     *
+     * @param card      the card data-transfer object describing the card to render.
+     * @param fitHeight the display height in pixels; aspect ratio is preserved.
+     * @return a configured {@link ImageView} for the card.
+     */
     public static ImageView cardImageView(CardDTO card, double fitHeight) {
         String path = switch (card.getCardType()) {
             case GATHERER -> "/images/Card/gatherer/Gatherer.png";
@@ -62,6 +97,15 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Creates an {@link ImageView} for a building card described by the given DTO.
+     * The era is inferred from the building ID range (1–6 era I, 7–13 era II, 14+ era III).
+     * The DTO is stored in the view's {@code userData} for later retrieval.
+     *
+     * @param bld       the building data-transfer object describing the building to render.
+     * @param fitHeight the display height in pixels; aspect ratio is preserved.
+     * @return a configured {@link ImageView} for the building.
+     */
     public static ImageView buildingImageView(BuildingDTO bld, double fitHeight) {
         int id = bld.getBuildingID();
         String era = id <= 6 ? "eraOne" : id <= 13 ? "eraTwo" : "eraThree";
@@ -72,10 +116,22 @@ public class CardImageFactory {
         return iv;
     }
 
+    /**
+     * Returns the cached totem {@link Image} for the given color.
+     *
+     * @param color the totem color.
+     * @return the {@link Image} corresponding to the given color.
+     */
     public static Image totemImage(COLOR color) {
         return cached(totemPath(color));
     }
 
+    /**
+     * Returns the classpath-relative image path for the totem of the given color.
+     *
+     * @param color the totem color.
+     * @return the resource path string for the totem image.
+     */
     public static String totemPath(COLOR color) {
         return switch (color) {
             case RED -> "/images/totems/pedine_specs_redTotem.png";
@@ -86,10 +142,21 @@ public class CardImageFactory {
         };
     }
 
+    /**
+     * Returns the cached event card {@link Image} for the given event ID and type.
+     *
+     * @param eventID   the unique identifier of the event.
+     * @param eventType the category of the event (hunt, sustenance, shaman, paintings).
+     * @return the {@link Image} for the specified event card.
+     */
     public static Image eventImage(int eventID, EVENT_TYPE eventType) {
         return cached("/images/Card/events/" + eventID + eventTypePath(eventType) + "Event.png");
     }
 
+    /**
+     * Pre-loads all twelve event card images into the cache.
+     * Should be called once at startup to avoid UI stutter during the first event reveal.
+     */
     public static void preloadEventImages() {
         String[] paths = {
             "/images/Card/events/1huntEvent.png",
@@ -108,6 +175,12 @@ public class CardImageFactory {
         for (String p : paths) cached(p);
     }
 
+    /**
+     * Returns the filename segment that identifies the event type in the image path.
+     *
+     * @param type the event type.
+     * @return the path segment string for the given event type.
+     */
     public static String eventTypePath(EVENT_TYPE type) {
         return switch (type) {
             case PAINTINGS -> "painting";

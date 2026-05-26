@@ -23,6 +23,8 @@ public class BuildingCard extends Card {
     private final EVENT_TYPE applyOn;
 
     /**
+     * Creates a new BuildingCard with the given attributes.
+     *
      * @param era        the era this card belongs to.
      * @param cardType   the card type (should be {@code CARD_TYPE.BUILDING}).
      * @param buildingID unique identifier for this building.
@@ -50,28 +52,36 @@ public class BuildingCard extends Card {
     }
 
     /**
-     * @return the unique identifier of this building.
+     * Returns the unique identifier of this building.
+     *
+     * @return the building ID.
      */
     public int getBuildingID() {
         return buildingID;
     }
 
     /**
-     * @return the food cost required to purchase this building.
+     * Returns the food cost required to purchase this building.
+     *
+     * @return the food cost.
      */
     public int getFoodCost() {
         return foodCost;
     }
 
     /**
-     * @return the prestige points this building awards at the end of the game.
+     * Returns the prestige points this building awards at the end of the game.
+     *
+     * @return the end-game prestige points.
      */
     public int getEndgamePP() {
         return endgamePP;
     }
 
     /**
-     * @return the event type that triggers this building's effect.
+     * Returns the event type that triggers this building's effect.
+     *
+     * @return the triggering event type.
      */
     public EVENT_TYPE getApplyOn() {
         return applyOn;

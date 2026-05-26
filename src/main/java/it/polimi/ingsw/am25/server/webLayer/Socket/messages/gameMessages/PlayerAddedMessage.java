@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client a new player has joined the lobby.
  */
 public class PlayerAddedMessage implements ServerToClientMessage {
+    /** The player who just joined the lobby. */
     private final PlayerDTO playerAdded;
 
     /**

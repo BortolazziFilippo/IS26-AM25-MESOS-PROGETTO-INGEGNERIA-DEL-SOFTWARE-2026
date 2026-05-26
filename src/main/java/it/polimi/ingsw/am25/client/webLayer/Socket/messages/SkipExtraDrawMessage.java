@@ -10,6 +10,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * granted by the draw-one-more building effect without selecting any card.
  */
 public class SkipExtraDrawMessage implements ClientToServerMessage {
+    /** The player who declines the extra draw. */
     private final PlayerDTO playerDTO;
 
     /**

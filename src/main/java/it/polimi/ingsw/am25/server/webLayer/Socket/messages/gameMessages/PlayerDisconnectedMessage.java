@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies all clients when a player disconnects.
  */
 public class PlayerDisconnectedMessage implements ServerToClientMessage {
+    /** The nickname of the disconnected player. */
     private final String nickname;
 
     /**

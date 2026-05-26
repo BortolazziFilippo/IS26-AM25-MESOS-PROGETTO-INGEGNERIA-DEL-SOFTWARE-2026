@@ -111,9 +111,10 @@ public interface ServerRemoteInterface extends Remote {
     void skipExtraDraw(PlayerDTO player) throws RemoteException;
 
     /**
-     * asks the server for the ranks
+     * Asks the server for the global leaderboard for the given player count.
      *
-     * @param playerNumber number of player
+     * @param playerNumber           the number of players in the finished game, as a string.
+     * @param clientRemoteInterface  the client reference to which the server will send the leaderboard.
      * @throws RemoteException if the RMI call fails.
      */
     void askForRank(String playerNumber, ClientRemoteInterface clientRemoteInterface) throws RemoteException;

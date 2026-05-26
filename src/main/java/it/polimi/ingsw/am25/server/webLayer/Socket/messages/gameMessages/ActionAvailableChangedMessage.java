@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Socket message that notifies the client that the available actions for the current turn have changed.
  */
 public class ActionAvailableChangedMessage implements ServerToClientMessage {
+    /** The updated action descriptor for the current turn. */
     private final ActionDTO actionDTO;
 
     /**

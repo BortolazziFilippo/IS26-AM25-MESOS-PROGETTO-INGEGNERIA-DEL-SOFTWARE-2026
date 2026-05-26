@@ -7,7 +7,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client of an updated food total for a player.
  */
 public class PlayerUpdateFoodMessage implements ServerToClientMessage {
+    /** The nickname of the player whose food total changed. */
     private final String nickname;
+    /** The new food total for the player. */
     private final int food;
 
     /**

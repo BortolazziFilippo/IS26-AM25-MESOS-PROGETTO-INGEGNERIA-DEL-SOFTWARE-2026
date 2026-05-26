@@ -12,6 +12,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class PongWatchdog {
 
+    /**
+     * Creates a new PongWatchdog in the idle state (no scheduler running).
+     * Call {@link #start(Runnable)} to begin monitoring.
+     */
+    public PongWatchdog() {}
+
     /** Interval between consecutive server pings/pongs, in seconds. */
     public static final int INTERVAL_S = 1;
     /** Number of consecutive missed pongs before the server is declared dead. */

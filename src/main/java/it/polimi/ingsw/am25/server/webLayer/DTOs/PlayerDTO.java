@@ -15,10 +15,15 @@ import java.util.List;
 public class PlayerDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 3L;
+    /** The player's unique display name. */
     private String nickName;
+    /** The player's current food supply. */
     private int food;
+    /** The player's accumulated prestige points. */
     private int prestigePoint;
+    /** The color of the player's totem. */
     private COLOR colorTotem;
+    /** The list of tribe-member card DTOs in the player's hand. */
     private List<CardDTO> cardDtoList = new ArrayList<>();
 
     /**
@@ -34,6 +39,8 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
+     * Creates a PlayerDTO with explicit field values.
+     *
      * @param nickName      the player's display name.
      * @param food          the player's current food total.
      * @param prestigePoint the player's current prestige-point total.
@@ -47,13 +54,17 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * @return the player's display name.
+     * Returns the player's display name.
+     *
+     * @return the player's nickname.
      */
     public String getNickName() {
         return nickName;
     }
 
     /**
+     * Sets the player's display name.
+     *
      * @param nickName the player's display name.
      */
     public void setNickName(String nickName) {
@@ -61,13 +72,17 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * @return the player's current food total.
+     * Returns the player's current food total.
+     *
+     * @return the food total.
      */
     public int getFood() {
         return food;
     }
 
     /**
+     * Sets the player's current food total.
+     *
      * @param food the player's current food total.
      */
     public void setFood(int food) {
@@ -75,13 +90,17 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * @return the player's current prestige-point total.
+     * Returns the player's current prestige-point total.
+     *
+     * @return the prestige-point total.
      */
     public int getPrestigePoint() {
         return prestigePoint;
     }
 
     /**
+     * Sets the player's current prestige-point total.
+     *
      * @param prestigePoint the player's current prestige-point total.
      */
     public void setPrestigePoint(int prestigePoint) {
@@ -89,13 +108,17 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * @return the color of the player's totem.
+     * Returns the color of the player's totem.
+     *
+     * @return the totem color.
      */
     public COLOR getColorTotem() {
         return colorTotem;
     }
 
     /**
+     * Sets the color of the player's totem.
+     *
      * @param colorTotem the color of the player's totem.
      */
     public void setColorTotem(COLOR colorTotem) {
@@ -103,13 +126,17 @@ public class PlayerDTO implements Serializable {
     }
 
     /**
-     * @return the list of tribe cards belonging to this player.
+     * Returns the list of tribe cards belonging to this player.
+     *
+     * @return the tribe card list.
      */
     public List<CardDTO> getCardDtoList() {
         return cardDtoList;
     }
 
     /**
+     * Appends a card DTO to this player's tribe list.
+     *
      * @param cardDTO the card to append to the player's tribe list.
      */
     public void addCardToTribe(CardDTO cardDTO) {

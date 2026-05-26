@@ -4,7 +4,12 @@ import it.polimi.ingsw.am25.client.webLayer.RMI.ServerRemoteInterface;
 import it.polimi.ingsw.am25.client.webLayer.Socket.ClientToServerMessage;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 
+/**
+ * Socket message that requests the global leaderboard from the server
+ * for the specified player count.
+ */
 public class askForRankMessage implements ClientToServerMessage {
+    /** The number of players in the just-finished game, used to select the correct leaderboard. */
     private final String playerNumber;
 
     /**

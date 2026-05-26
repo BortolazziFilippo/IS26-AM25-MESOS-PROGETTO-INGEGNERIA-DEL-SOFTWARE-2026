@@ -38,6 +38,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * JavaFX controller for the market panel. Displays the current top and bottom rows of
+ * cards and buildings, handles draw/buy actions, and keeps the view in sync with server updates.
+ */
 public class MarketController implements GUIObserver {
 
     // --- data buffered when observer callbacks arrive before the FXML is ready ---

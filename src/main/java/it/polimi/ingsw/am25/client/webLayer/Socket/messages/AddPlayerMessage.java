@@ -9,6 +9,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Socket message sent by a client to join the current Mesos lobby.
  */
 public class AddPlayerMessage implements ClientToServerMessage {
+    /** The player who requests to join the current lobby. */
     private final PlayerDTO playerDTO;
 
     /**

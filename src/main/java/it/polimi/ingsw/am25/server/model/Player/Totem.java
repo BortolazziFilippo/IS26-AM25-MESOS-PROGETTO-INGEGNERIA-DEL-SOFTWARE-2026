@@ -4,20 +4,22 @@ import it.polimi.ingsw.am25.server.model.Enums.COLOR;
 
 /**
  * Immutable value object representing a player's totem, identified by its {@link COLOR}.
+ *
+ * @param color the color identifying this totem.
  */
 public record Totem(COLOR color) {
     /**
-     * Creates a new totem instance.
+     * Creates a new totem instance with the specified color.
      *
-     * @param color parameter color.
+     * @param color the color identifying this totem.
      */
     public Totem {
     }
 
     /**
-     * Returns color.
+     * Returns the color of this totem.
      *
-     * @return the result of the operation.
+     * @return the color identifying this totem.
      */
     @Override
     public COLOR color() {
@@ -25,10 +27,11 @@ public record Totem(COLOR color) {
     }
 
     /**
-     * Executes equals.
+     * Checks whether this totem is equal to another object.
+     * Two totems are equal if they share the same color.
      *
-     * @param o parameter o.
-     * @return the result of the operation.
+     * @param o the object to compare against.
+     * @return {@code true} if {@code o} is a {@link Totem} with the same color.
      */
     @Override
     public boolean equals(Object o) {

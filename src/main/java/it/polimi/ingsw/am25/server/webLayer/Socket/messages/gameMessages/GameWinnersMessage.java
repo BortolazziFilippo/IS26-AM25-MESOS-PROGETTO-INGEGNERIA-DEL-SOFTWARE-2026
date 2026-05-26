@@ -10,6 +10,7 @@ import java.util.List;
  * Server-to-client Socket message that delivers the final list of game winners.
  */
 public class GameWinnersMessage implements ServerToClientMessage {
+    /** The list of players who won the game. */
     private final List<PlayerDTO> playerDTOList;
 
     /**

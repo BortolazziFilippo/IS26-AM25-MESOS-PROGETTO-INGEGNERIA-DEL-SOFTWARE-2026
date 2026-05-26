@@ -14,14 +14,24 @@ import javax.imageio.ImageIO;
 import java.awt.Taskbar;
 import java.net.URL;
 
+/**
+ * Utility class providing shared visual effects for the Mesos GUI
+ * (icons, glow effects, anchor helpers, and error dialogs).
+ */
 public class GUIEffects {
 
+    /** A {@link ColorAdjust} effect used to grey out disabled or unselectable elements. */
     public static final ColorAdjust GRAY = new ColorAdjust(0, -0.45, -0.1, 0);
 
+    /** Utility class — not instantiable. */
     private GUIEffects() {
     }
 
-    /** Sets the application icon on the given stage and on the OS taskbar. */
+    /**
+     * Sets the application icon on the given stage and, where supported, on the OS taskbar.
+     *
+     * @param stage the JavaFX stage to apply the icon to.
+     */
     public static void applyIcon(Stage stage) {
         URL url = GUIEffects.class.getResource("/images/frontScreen.png");
         if (url == null) return;
@@ -61,6 +71,8 @@ public class GUIEffects {
     /**
      * Anchors {@code node} to all four sides of its parent {@link AnchorPane},
      * making it fill the entire pane.
+     *
+     * @param node the node to stretch; its parent must be an {@link AnchorPane}.
      */
     public static void stretchToFill(Node node) {
         AnchorPane.setTopAnchor(node, 0.0);

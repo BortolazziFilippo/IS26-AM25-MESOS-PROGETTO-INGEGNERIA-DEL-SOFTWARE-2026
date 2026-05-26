@@ -9,9 +9,13 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that pushes the initial game state to the client at game start.
  */
 public class InitializeGameMessage implements ServerToClientMessage {
+    /** The era in which the game starts. */
     private final ERA currentEra;
+    /** The game phase at game start. */
     private final GAME_PHASE gamePhase;
+    /** Nickname of the first player to place their totem. */
     private final String playerToPlace;
+    /** Nickname of the first player to resolve actions. */
     private final String playerToPlay;
 
     /**

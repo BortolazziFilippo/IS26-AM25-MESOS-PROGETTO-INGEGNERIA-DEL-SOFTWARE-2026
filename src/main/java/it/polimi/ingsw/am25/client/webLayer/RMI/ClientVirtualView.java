@@ -38,9 +38,11 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     /** Remaining bottom-row draw count for the current player's offer tile. */
     private volatile int drawBot;
 
+    /** Global leaderboards received from the server at game end, keyed by player count. */
     private Map<Integer, List<String>> leaderboards;
     /** Map of all players in the game, keyed by nickname. */
     private final Map<String,PlayerDTO> playersMap= new ConcurrentHashMap<>();
+    /** Ordered list of event descriptions resolved so far in the current era. */
     private final List<String> resolvedEvents =  new ArrayList<>();
 
     // MARKET DTO
@@ -72,6 +74,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public volatile boolean connectionError = false;
     /** The last error message received from the server, or {@code null} if none. */
     public volatile String lastErrorMessage = null;
+    /** Internal lock for synchronising concurrent state reads and writes. */
     private final Object stateLock = new Object();
     /** Lock used to pause the TUI between turns; notified on phase change, turn change, or error. */
     public final Object turnLock = new Object();
@@ -88,17 +91,29 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
 //  The GUI observer is responsible for switching to the JavaFX thread
 //  (Platform.runLater) before touching any scene-graph nodes.
 // ----------------------------------------------------------------------
+    /** Thread-safe list of registered GUI observers notified on every game-state update. */
     private final java.util.concurrent.CopyOnWriteArrayList<GUIObserver> guiObservers = new java.util.concurrent.CopyOnWriteArrayList<>();
+    /** Single-threaded executor used to dispatch GUI observer callbacks off the RMI thread. */
     private final java.util.concurrent.ExecutorService observerExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "gui-observer");
         t.setDaemon(true);
         return t;
     });
 
+    /**
+     * Registers a GUI observer that will be notified of game-state updates.
+     *
+     * @param observer the observer to add.
+     */
     public void addGUIObserver(GUIObserver observer) {
         guiObservers.add(observer);
     }
 
+    /**
+     * Unregisters a previously registered GUI observer.
+     *
+     * @param observer the observer to remove.
+     */
     public void removeGUIObserver(GUIObserver observer) {
         guiObservers.remove(observer);
     }
@@ -132,6 +147,7 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
     public volatile boolean serverDead = false;
     /** {@code true} once the heartbeat scheduler has started; enables pong-timeout counting in ServerListener. */
     public volatile boolean heartbeatActive = false;
+    /** Watchdog that detects server silence and triggers the disconnection handler. */
     private final PongWatchdog pongWatchdog = new PongWatchdog();
 
     /**
@@ -536,28 +552,44 @@ public class ClientVirtualView extends UnicastRemoteObject implements ClientRemo
         updateObservers(obs -> obs.onAskExtraDraw(cardsCopy, buildingsCopy));
     }
 
-    /** Returns the top card row snapshot for the current extra draw request. */
+    /**
+     * Returns the top card row snapshot for the current extra draw request.
+     *
+     * @return a defensive copy of the top card snapshot, or an empty list if none is pending.
+     */
     public List<CardDTO> getExtraDrawCards() {
         synchronized (stateLock) {
             return extraDrawCards == null ? new ArrayList<>() : new ArrayList<>(extraDrawCards);
         }
     }
 
-    /** Returns the top building row snapshot for the current extra draw request. */
+    /**
+     * Returns the top building row snapshot for the current extra draw request.
+     *
+     * @return a defensive copy of the building snapshot, or an empty list if none is pending.
+     */
     public List<BuildingDTO> getExtraDrawBuildings() {
         synchronized (stateLock) {
             return extraDrawBuildings == null ? new ArrayList<>() : new ArrayList<>(extraDrawBuildings);
         }
     }
 
-    /** Returns the size of the extra draw card snapshot. */
+    /**
+     * Returns the size of the extra draw card snapshot.
+     *
+     * @return the number of cards in the top-row snapshot, or {@code 0} if none is pending.
+     */
     public int getExtraDrawCardSize() {
         synchronized (stateLock) {
             return extraDrawCards == null ? 0 : extraDrawCards.size();
         }
     }
 
-    /** Returns the size of the extra draw building snapshot. */
+    /**
+     * Returns the size of the extra draw building snapshot.
+     *
+     * @return the number of buildings in the top-row snapshot, or {@code 0} if none is pending.
+     */
     public int getExtraDrawBuildingSize() {
         synchronized (stateLock) {
             return extraDrawBuildings == null ? 0 : extraDrawBuildings.size();

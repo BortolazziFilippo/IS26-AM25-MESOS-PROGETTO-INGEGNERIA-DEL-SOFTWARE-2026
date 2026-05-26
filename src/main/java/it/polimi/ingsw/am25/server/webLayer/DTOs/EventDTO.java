@@ -15,9 +15,12 @@ import java.io.Serializable;
 public class EventDTO extends CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+    /** The category of this event (hunt, sustenance, shamanic ritual, or paintings). */
     private final EVENT_TYPE eventType;
 
     /**
+     * Creates an EventDTO with the given attributes.
+     *
      * @param eventID   the unique event identifier.
      * @param era       the era this event belongs to.
      * @param eventType the category of event (hunt, sustenance, etc.).
@@ -39,14 +42,18 @@ public class EventDTO extends CardDTO implements Serializable {
     }
 
     /**
-     * @return the unique event identifier.
+     * Returns the unique event identifier.
+     *
+     * @return the event ID.
      */
     public int getEventID() {
         return eventID;
     }
 
     /**
-     * @return the category of event (hunt, sustenance, shamanic ritual, paintings).
+     * Returns the category of this event.
+     *
+     * @return the event type (hunt, sustenance, shamanic ritual, or paintings).
      */
     public EVENT_TYPE getEventType() {
         return eventType;

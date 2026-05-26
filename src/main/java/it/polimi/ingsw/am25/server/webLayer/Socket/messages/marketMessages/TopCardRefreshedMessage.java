@@ -10,6 +10,7 @@ import java.util.List;
  * Server-to-client Socket message that notifies the client the top card row has been refreshed.
  */
 public class TopCardRefreshedMessage implements ServerToClientMessage {
+    /** The refreshed top card row. */
     private final List<CardDTO> topCards;
 
     /**

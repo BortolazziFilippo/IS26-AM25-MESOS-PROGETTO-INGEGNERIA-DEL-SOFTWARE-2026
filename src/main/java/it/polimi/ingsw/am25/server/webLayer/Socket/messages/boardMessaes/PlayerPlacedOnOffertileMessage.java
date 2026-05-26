@@ -7,7 +7,9 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client that a player placed their totem on an offer tile.
  */
 public class PlayerPlacedOnOffertileMessage implements ServerToClientMessage {
+    /** The nickname of the player who placed on an offer tile. */
     private final String nickname;
+    /** The position of the offer tile chosen by the player. */
     private final int position;
 
     /**

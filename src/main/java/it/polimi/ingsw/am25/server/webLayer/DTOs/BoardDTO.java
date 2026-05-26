@@ -10,7 +10,9 @@ import java.util.List;
 public class BoardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+    /** The list of offer tiles on the board. */
     private List<OffertileDTO> offerTileList;
+    /** The list of default tiles on the board. */
     private List<DefaultTileDTO> defaultTileList;
 
     /**

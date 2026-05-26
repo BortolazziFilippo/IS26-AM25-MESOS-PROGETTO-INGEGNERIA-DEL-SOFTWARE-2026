@@ -3,6 +3,11 @@ package it.polimi.ingsw.am25.client.TUI;
 import it.polimi.ingsw.am25.client.webLayer.RMI.ClientVirtualView;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 
+/**
+ * TUI screen for the event-resolution phase.
+ * Blocks the terminal until all events for the current era have been resolved,
+ * printing each resolved event in real time as notifications arrive.
+ */
 public class SolvingEventsTUI {
     private final ClientVirtualView clientVirtualView;
     private final TUIUtils tuiUtils;

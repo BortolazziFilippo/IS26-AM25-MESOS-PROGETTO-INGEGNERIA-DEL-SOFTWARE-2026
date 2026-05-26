@@ -14,6 +14,8 @@ public class ShamanCard extends Card {
     private final SHAMAN_STAR starNumber;
 
     /**
+     * Creates a new ShamanCard with the given era, card type, and star rating.
+     *
      * @param era        the era this card belongs to.
      * @param cardType   the card type (should be {@code CARD_TYPE.SHAMAN}).
      * @param starNumber the star rating of this shaman.
@@ -25,6 +27,8 @@ public class ShamanCard extends Card {
     }
 
     /**
+     * Returns the {@link SHAMAN_STAR} enum value representing this card's star rating.
+     *
      * @return the {@link SHAMAN_STAR} enum value of this card.
      */
     public SHAMAN_STAR getShamanStar() {
@@ -32,6 +36,8 @@ public class ShamanCard extends Card {
     }
 
     /**
+     * Returns the numeric star count corresponding to this card's {@link SHAMAN_STAR} rating.
+     *
      * @return the numeric star count of this card (1, 2, or 3).
      */
     public int getStarNumber() {

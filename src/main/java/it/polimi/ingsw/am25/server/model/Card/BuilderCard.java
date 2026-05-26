@@ -15,6 +15,8 @@ public class BuilderCard extends Card {
     private final int builderID;
 
     /**
+     * Creates a new BuilderCard with the given attributes.
+     *
      * @param era                the era this card belongs to.
      * @param cardType           the card type (should be {@code CARD_TYPE.BUILDER}).
      * @param foodDiscount       food discount applied when buying a building.
@@ -30,7 +32,9 @@ public class BuilderCard extends Card {
     }
 
     /**
-     * @return the food discount this builder provides when buying a building.
+     * Returns the food discount this builder provides when buying a building.
+     *
+     * @return the food discount.
      */
     public int getFoodDiscount() {
         return foodDiscount;
@@ -46,14 +50,18 @@ public class BuilderCard extends Card {
     }
 
     /**
-     * @param finalPrestigePoint the new end-game prestige-point value (used by doubling effects).
+     * Sets the end-game prestige-point value, used when a doubling building effect is applied.
+     *
+     * @param finalPrestigePoint the new end-game prestige-point value.
      */
     public void setFinalPrestigePoint(int finalPrestigePoint) {
         this.finalPrestigePoint = finalPrestigePoint;
     }
 
     /**
-     * @return the prestige points this builder awards at end of game.
+     * Returns the prestige points this builder awards at end of game.
+     *
+     * @return the end-game prestige points.
      */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;

@@ -11,9 +11,13 @@ import java.util.List;
  * Server-to-client Socket message that pushes the initial market state (top/bottom card and building rows).
  */
 public class InitializeMarketMessage implements ServerToClientMessage {
+    /** The top row of tribe cards in the initial market state. */
     private final List<CardDTO> topCards;
+    /** The bottom row of tribe cards in the initial market state. */
     private final List<CardDTO> bottomCards;
+    /** The top row of buildings in the initial market state. */
     private final List<BuildingDTO> topBuildings;
+    /** The bottom row of buildings in the initial market state. */
     private final List<BuildingDTO> bottomBuildings;
 
     /**

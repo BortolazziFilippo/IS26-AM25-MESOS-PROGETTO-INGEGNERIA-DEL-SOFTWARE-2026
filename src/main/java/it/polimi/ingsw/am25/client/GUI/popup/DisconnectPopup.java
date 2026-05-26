@@ -10,7 +10,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 
+/**
+ * Floating overlay panel that notifies players about disconnection and reconnection events
+ * during a game. The panel stacks multiple entries and dismisses on click or ESC.
+ */
 public class DisconnectPopup {
+
+    /** Creates a new DisconnectPopup. The overlay is not shown until the first event is added. */
+    public DisconnectPopup() {}
 
     private static final String PANEL_BG   = "-fx-background-color: #12121e; -fx-background-radius: 10;";
     private static final String DISCONNECT = "#e74c3c";
@@ -20,10 +27,24 @@ public class DisconnectPopup {
     private VBox entries = null;
     private EventHandler<KeyEvent> escHandler = null;
 
+    /**
+     * Adds a disconnection entry for the given player to the overlay panel,
+     * creating the panel if it does not yet exist.
+     *
+     * @param nickname  the nickname of the disconnected player.
+     * @param sceneRoot the root pane of the current scene, used to anchor the overlay.
+     */
     public void addDisconnection(String nickname, Pane sceneRoot) {
         addEntry("⚠  " + nickname + " si è disconnesso", DISCONNECT, sceneRoot);
     }
 
+    /**
+     * Adds a reconnection entry for the given player to the overlay panel,
+     * creating the panel if it does not yet exist.
+     *
+     * @param nickname  the nickname of the reconnected player.
+     * @param sceneRoot the root pane of the current scene, used to anchor the overlay.
+     */
     public void addReconnection(String nickname, Pane sceneRoot) {
         addEntry("✔  " + nickname + " si è riconnesso", RECONNECT, sceneRoot);
     }

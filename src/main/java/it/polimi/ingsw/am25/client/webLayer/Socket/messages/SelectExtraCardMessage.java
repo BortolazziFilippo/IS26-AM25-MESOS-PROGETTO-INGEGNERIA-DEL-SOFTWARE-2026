@@ -10,8 +10,11 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Client-to-server Socket message requesting an extra card draw triggered by the draw-one-more building effect.
  */
 public class SelectExtraCardMessage implements ClientToServerMessage {
+    /** The acting player. */
     private final PlayerDTO playerDTO;
+    /** The type of card selected for the extra draw. */
     private final CARD_TYPE cardType;
+    /** The position index of the selected card in the snapshot list. */
     private final int position;
 
     /**

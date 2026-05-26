@@ -9,6 +9,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Socket message sent by the first reconnecting player to load a saved game.
  */
 public class LoadGameMessage implements ClientToServerMessage {
+    /** The DTO of the first player requesting the game load. */
     private final PlayerDTO playerDTO;
 
     /**

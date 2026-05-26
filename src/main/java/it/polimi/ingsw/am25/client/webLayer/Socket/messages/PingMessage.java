@@ -11,6 +11,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * On receipt the server resets the missed-ping counter for this player.
  */
 public class PingMessage implements ClientToServerMessage {
+    /** The player sending the heartbeat. */
     private final PlayerDTO player;
 
     /**

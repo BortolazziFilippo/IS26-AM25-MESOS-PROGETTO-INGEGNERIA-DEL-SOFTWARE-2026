@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client a card was removed from the top market row.
  */
 public class TopCardRemovedMessage implements ServerToClientMessage {
+    /** The index of the card removed from the top market row. */
     private final int position;
 
     /**

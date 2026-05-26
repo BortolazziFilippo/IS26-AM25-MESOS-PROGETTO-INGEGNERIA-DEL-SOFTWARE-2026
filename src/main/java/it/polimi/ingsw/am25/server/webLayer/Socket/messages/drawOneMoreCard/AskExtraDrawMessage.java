@@ -12,11 +12,16 @@ import java.util.List;
  * triggered by the draw-one-more building effect.
  */
 public class AskExtraDrawMessage implements ServerToClientMessage {
+    /** The end-of-round top card row snapshot available for the extra draw. */
     private final List<CardDTO> snapshotCards;
+    /** The end-of-round top building row snapshot available for the extra draw. */
     private final List<BuildingDTO> snapshotBuildings;
 
     /**
      * Creates an ask-extra-draw notification carrying the end-of-round market snapshot.
+     *
+     * @param snapshotCards     the top card row available for the extra draw.
+     * @param snapshotBuildings the top building row available for the extra draw.
      */
     public AskExtraDrawMessage(List<CardDTO> snapshotCards, List<BuildingDTO> snapshotBuildings) {
         this.snapshotCards = snapshotCards;

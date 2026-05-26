@@ -38,6 +38,12 @@ public interface MarketObserver {
      */
     void onTopBuildingRefreshed(List<BuildingCard> topCards);
 
+    /**
+     * Called when an event card is resolved and removed from the market.
+     *
+     * @param eventID   the unique identifier of the resolved event.
+     * @param eventType the category of the resolved event.
+     */
     void eventSolved(int eventID, EVENT_TYPE eventType);
 
     /**

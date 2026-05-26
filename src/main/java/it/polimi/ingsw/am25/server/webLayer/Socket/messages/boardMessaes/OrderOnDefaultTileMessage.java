@@ -10,6 +10,7 @@ import java.util.List;
  * Server-to-client Socket message that notifies the client of the updated player order on the default tiles.
  */
 public class OrderOnDefaultTileMessage implements ServerToClientMessage {
+    /** The updated ordered list of players on the default tile. */
     private final List<PlayerDTO> orderOnDefaultTile;
 
     /**

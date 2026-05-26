@@ -12,6 +12,8 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 public class GathererCard extends Card {
 
     /**
+     * Creates a new GathererCard for the specified era and card type.
+     *
      * @param era      the era this card belongs to.
      * @param cardType the card type (should be {@code CARD_TYPE.GATHERER}).
      */

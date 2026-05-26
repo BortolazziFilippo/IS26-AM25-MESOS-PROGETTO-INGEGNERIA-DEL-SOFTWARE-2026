@@ -423,10 +423,11 @@ public class ServerVirtualView implements BoardObserver, GameObserver, MarketObs
     }
 
     /**
-     * Variante di {@link #onPlayerAdded(Player)} che accetta direttamente un
-     * {@link PlayerDTO}. Usata dal {@code ServerNetworkHandler} per
-     * notificare i client durante la fase di lobby (quando ancora non
-     * esistono oggetti {@link Player} del modello).
+     * Variant of {@link #onPlayerAdded(Player)} that accepts a {@link PlayerDTO} directly.
+     * Used by {@code ServerNetworkHandler} to notify clients during the lobby phase,
+     * before any {@link Player} model objects exist.
+     *
+     * @param player the DTO of the player who just joined the lobby.
      */
     public void pushPlayerAdded(PlayerDTO player) {
         playersMap.put(player.getNickName(), player);

@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 
 /**
  * MVC controller for a Mesos game session. Validates player actions against the current
@@ -25,10 +26,10 @@ import java.util.Optional;
  * transitions (placing → resolve-action → next round → end game).
  */
 public class Controller {
+    private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
+    private final List<Player> players;
     PersistanceLogger persistanceLogger = new PersistanceLogger();
     private Game game;
-    private final List<Player> players;
-    private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
 
     /**
      * Creates the MVC controller for a Mesos game session.
@@ -121,7 +122,7 @@ public class Controller {
      * Must be called after all players have joined and all observers have been linked.
      */
     public void controllerGameStar() {
-        Thread DBthread= new Thread(() -> {
+        Thread DBthread = new Thread(() -> {
             try {
                 DBManager.getConnection();
             } catch (IOException e) {
@@ -184,16 +185,67 @@ public class Controller {
      * @throws EmptyMarketException       if the top row has no selectable cards.
      */
     public void selectCardFromTopList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
+        selectCardFromList(player, cardType, position, () -> game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop(), "top", game::selectGenericCardTopLists);
+    }
+
+    /**
+     * Lets the player pick a tribe member or building from the previous-round (bottom) market row.
+     * When the player exhausts all remaining actions, the turn automatically advances to the
+     * next player. If no more players remain in this round, the round is advanced via
+     * {@link Game#nextRoundIter()}.
+     *
+     * @param player   the player who will receive the selected card.
+     * @param cardType the type of card to be selected (tribe member or {@link CARD_TYPE#BUILDING}).
+     * @param position the index of the card within the bottom row.
+     * @throws ActionNotAvailable         if the game is not in a resolve-action phase, it is not this player's turn,
+     *                                    or their offer tile grants no bottom-row draws.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
+     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
+     * @throws NotSelectableCardException if the card at that position is an event card.
+     * @throws EmptyMarketException       if the bottom row has no selectable cards.
+     */
+    public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
+        selectCardFromList(player, cardType, position, () -> game.getOffertilePlayerIsOn().getActionAvailable().getDrawFromBottom(), "bottom", game::selectGenericCardBottomLists);
+    }
+
+    /**
+     * Shared implementation for top- and bottom-row card selection.
+     * Validates the game phase, the acting player's turn, and the number of remaining draws
+     * for the requested row. Then delegates to the supplied {@code gameAction}, re-throws any
+     * market exception with a clean message, and advances the turn when all actions are used up.
+     *
+     * <p>This method is intentionally {@code private}: callers should use the public
+     * {@link #selectCardFromTopList} and {@link #selectCardFromBottomList} entry points,
+     * which bind the correct action-count supplier and game action.
+     *
+     * @param player         the player selecting a card.
+     * @param cardType       the type of card to select.
+     * @param position       zero-based index of the card within the market row.
+     * @param getActionCount supplies the number of remaining draws for this row
+     *                       (e.g. {@code getDrawTop()} or {@code getDrawFromBottom()}).
+     * @param rowLabel       human-readable row label ({@code "top"} or {@code "bottom"})
+     *                       used in log and exception messages.
+     * @param gameAction     the game-model method to invoke
+     *                       ({@link Game#selectGenericCardTopLists} or
+     *                       {@link Game#selectGenericCardBottomLists}).
+     * @throws ActionNotAvailable         if the phase is wrong, it is not this player's turn,
+     *                                    or the row has no remaining draws.
+     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
+     * @throws NotEnoughFoodException     if the player lacks food to buy a building.
+     * @throws NotSelectableCardException if the selected card is an event card.
+     * @throws EmptyMarketException       if the row has no selectable cards.
+     */
+    private void selectCardFromList(Player player, CARD_TYPE cardType, int position, IntSupplier getActionCount, String rowLabel, GameSelectAction gameAction) {
         requireResolveActionPhase();
         if (!checkIsPlayerPlayingTurn(player)) {
             throw new ActionNotAvailable("It is not " + player.getNickname() + "'s turn to play");
         }
-        if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawTop() <= 0) {
-            UtilitiesFunction.logError(LOG_PREFIX, player.getNickname() + " tried to draw a card from top list but has no action for it");
-            throw new ActionNotAvailable("Cannot draw top card: no top-list draws remaining on this offer tile");
+        if (getActionCount.getAsInt() <= 0) {
+            UtilitiesFunction.logError(LOG_PREFIX, player.getNickname() + " tried to draw a card from " + rowLabel + " list but has no action for it");
+            throw new ActionNotAvailable("Cannot draw " + rowLabel + " card: no " + rowLabel + "-list draws remaining on this offer tile");
         }
         try {
-            game.selectGenericCardTopLists(cardType, position, player);
+            gameAction.execute(cardType, position, player);
         } catch (IndexOutOfBoundsException e) {
             throw new IndexOutOfBoundsException("Invalid index");
         } catch (NotEnoughFoodException e) {
@@ -225,46 +277,6 @@ public class Controller {
                 persistanceLogger.deleteFile();
             }
 
-        }
-    }
-
-    /**
-     * Lets the player pick a tribe member or building from the previous-round (bottom) market row.
-     * When the player exhausts all remaining actions, the turn automatically advances to the
-     * next player. If no more players remain in this round, the round is advanced via
-     * {@link Game#nextRoundIter()}.
-     *
-     * @param player   the player who will receive the selected card.
-     * @param cardType the type of card to be selected (tribe member or {@link CARD_TYPE#BUILDING}).
-     * @param position the index of the card within the bottom row.
-     * @throws ActionNotAvailable         if the game is not in a resolve-action phase, it is not this player's turn,
-     *                                    or their offer tile grants no bottom-row draws.
-     * @throws IndexOutOfBoundsException  if {@code position} is out of range.
-     * @throws NotEnoughFoodException     if the player lacks the food to buy a building.
-     * @throws NotSelectableCardException if the card at that position is an event card.
-     * @throws EmptyMarketException       if the bottom row has no selectable cards.
-     */
-    public void selectCardFromBottomList(Player player, CARD_TYPE cardType, int position) throws IndexOutOfBoundsException, NotEnoughFoodException, NotSelectableCardException, EmptyMarketException {
-        requireResolveActionPhase();
-        if (!checkIsPlayerPlayingTurn(player)) {
-            throw new ActionNotAvailable("It is not " + player.getNickname() + "'s turn to play");
-        }
-        if (game.getOffertilePlayerIsOn().getActionAvailable().getDrawFromBottom() <= 0) {
-            UtilitiesFunction.logError(LOG_PREFIX, player.getNickname() + " tried to draw a card from bottom list but has no action for it");
-            throw new ActionNotAvailable("Cannot draw bottom card: no bottom-list draws remaining on this offer tile");
-        }
-        try {
-            game.selectGenericCardBottomLists(cardType, position, player);
-        } catch (IndexOutOfBoundsException e) {
-            throw new IndexOutOfBoundsException("Invalid index");
-        } catch (NotEnoughFoodException e) {
-            throw new NotEnoughFoodException("Not enough food");
-        } catch (NotSelectableCardException e) {
-            throw new NotSelectableCardException("Cannot select an event card");
-        } catch (EmptyMarketException e) {
-            throw new EmptyMarketException();
-        } catch (NoMoreActionToDo e) {
-            advanceTurnOrRound();
         }
     }
 
@@ -371,12 +383,8 @@ public class Controller {
      * @return the matching {@link Player}, or {@code null} if not found.
      */
     private Player findPlayerByNickname(String nickname) {
-        return game.getPlayerList().stream()
-                .filter(p -> p.getNickname().equals(nickname))
-                .findFirst().orElse(null);
+        return game.getPlayerList().stream().filter(p -> p.getNickname().equals(nickname)).findFirst().orElse(null);
     }
-
-    // --- DISCONNECTION ---
 
     /**
      * Handles a player disconnection at the game-logic level.
@@ -401,9 +409,7 @@ public class Controller {
         game.removeFromTurnQueues(disconnectedPlayer);
 
         // 3. Count remaining connected players
-        long connectedCount = game.getPlayerList().stream()
-                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
-                .count();
+        long connectedCount = game.getPlayerList().stream().filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED).count();
         if (connectedCount <= 1) {
             if (game.getGamePhase() != GAME_PHASE.END_GAME) {
                 forceEndGame();
@@ -430,8 +436,12 @@ public class Controller {
         }
     }
 
+    // --- DISCONNECTION ---
+
     /**
      * Returns {@code true} if the game has reached the {@link GAME_PHASE#END_GAME} phase.
+     *
+     * @return {@code true} if the game is over, {@code false} otherwise.
      */
     public boolean isGameOver() {
         return game != null && game.getGamePhase() == GAME_PHASE.END_GAME;
@@ -472,29 +482,29 @@ public class Controller {
      * @throws GameAlreadyLoadedException if an active game instance already exists.
      * @throws NoGameToLoadException      if no save file exists.
      */
-    public synchronized void loadGame(Player player) throws IllegalStateException,GameAlreadyLoadedException,NoGameToLoadException {
-        if(game != null){
+    public synchronized void loadGame(Player player) throws IllegalStateException, GameAlreadyLoadedException, NoGameToLoadException {
+        if (game != null) {
             throw new GameAlreadyLoadedException("Game already initialized");
         }
-        boolean playerWasPlaying=false;
-        Optional<GameMemento> gameMemento= persistanceLogger.load();
-        if(gameMemento.isPresent()) {
-            for(PlayerMemento playerDTO: gameMemento.get().players()){
+        boolean playerWasPlaying = false;
+        Optional<GameMemento> gameMemento = persistanceLogger.load();
+        if (gameMemento.isPresent()) {
+            for (PlayerMemento playerDTO : gameMemento.get().players()) {
                 Player p = new Player(playerDTO.nickname(), playerDTO.totemColor());
                 players.add(p);
-                if(p.getNickname().equals(player.getNickname())) {
+                if (p.getNickname().equals(player.getNickname())) {
                     p.setConnection(CONNECTION_STATUS.CONNECTED);
-                    playerWasPlaying=true;
-                }else {
+                    playerWasPlaying = true;
+                } else {
                     p.setConnection(CONNECTION_STATUS.DISCONNECTED);
                 }
             }
-            if(!playerWasPlaying){
+            if (!playerWasPlaying) {
                 throw new IllegalStateException("Nickname not found");
             }
-            this.game= new Game(gameMemento.get().playerNumber());
+            this.game = new Game(gameMemento.get().playerNumber());
             game.restoreMemento(gameMemento.get());
-        }else {
+        } else {
             throw new NoGameToLoadException("No game to load");
         }
     }
@@ -509,18 +519,18 @@ public class Controller {
      * @throws GameReadyToStartException if all players are now connected and the game is ready to resume.
      */
     public synchronized void reconnectLoadedPlayer(Player player) throws IllegalStateException, GameReadyToStartException {
-        if(game == null){
+        if (game == null) {
             throw new IllegalStateException("Game not loaded");
         }
-        Player playerToAdd= this.players.stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
-        if(playerToAdd == null){
+        Player playerToAdd = this.players.stream().filter(p -> p.getNickname().equals(player.getNickname())).findFirst().orElse(null);
+        if (playerToAdd == null) {
             throw new IllegalStateException("Nickname not found");
         }
-        if(playerToAdd.getConnection() == CONNECTION_STATUS.CONNECTED){
+        if (playerToAdd.getConnection() == CONNECTION_STATUS.CONNECTED) {
             throw new IllegalStateException("Player already connected");
         }
         playerToAdd.setConnection(CONNECTION_STATUS.CONNECTED);
-        if(players.stream().allMatch(p -> p.getConnection() == CONNECTION_STATUS.CONNECTED)){
+        if (players.stream().allMatch(p -> p.getConnection() == CONNECTION_STATUS.CONNECTED)) {
             throw new GameReadyToStartException("Game ready to start");
         }
     }
@@ -534,6 +544,23 @@ public class Controller {
         game.notifyChanges();
         game.notifyAllPlayerTribes();
         game.notifyCurrentState();
+    }
+
+    /**
+     * Functional interface for a game-level market selection action (top or bottom row).
+     * Implementations wrap either {@link Game#selectGenericCardTopLists} or
+     * {@link Game#selectGenericCardBottomLists}.
+     */
+    @FunctionalInterface
+    private interface GameSelectAction {
+        /**
+         * Executes a market card selection on the game model.
+         *
+         * @param cardType the type of card to select.
+         * @param position zero-based index within the market row.
+         * @param player   the player performing the selection.
+         */
+        void execute(CARD_TYPE cardType, int position, Player player);
     }
 
 }

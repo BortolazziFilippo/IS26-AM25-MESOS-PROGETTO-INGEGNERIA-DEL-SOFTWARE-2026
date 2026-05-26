@@ -9,6 +9,11 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  */
 public class PongMessage implements ServerToClientMessage {
 
+    /**
+     * Creates a new PongMessage heartbeat response.
+     */
+    public PongMessage() {}
+
     @Override
     public void execute(ClientRemoteInterface clientRemoteInterface) throws Exception {
         clientRemoteInterface.pong();

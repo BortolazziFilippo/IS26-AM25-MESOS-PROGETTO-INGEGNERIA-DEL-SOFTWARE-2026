@@ -19,7 +19,15 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 
+/**
+ * Entry point for the Mesos client. Prompts the user for the network protocol
+ * (RMI/Socket), the server IP address, and the UI mode (GUI/TUI), then launches
+ * the selected interface.
+ */
 public class ClientLauncher {
+
+    /** Default constructor (instances are not needed; use {@link #main(String[])} directly). */
+    public ClientLauncher() {}
 
     private static final String RESET  = "\033[0m";
     private static final String BOLD   = "\033[1m";

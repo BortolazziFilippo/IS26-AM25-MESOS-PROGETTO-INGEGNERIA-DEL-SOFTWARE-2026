@@ -10,6 +10,7 @@ import java.util.List;
  * Server-to-client Socket message that notifies the client the top building row has been refreshed.
  */
 public class TopBuildingRefreshedMessage implements ServerToClientMessage {
+    /** The refreshed top building row. */
     private final List<BuildingDTO> topList;
 
     /**

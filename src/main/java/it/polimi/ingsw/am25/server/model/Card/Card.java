@@ -11,6 +11,9 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
  */
 public abstract class Card {
 
+    /** Default constructor for subclasses. */
+    protected Card() {}
+
     /**
      * The era in which this card was introduced.
      */
@@ -21,14 +24,18 @@ public abstract class Card {
     protected CARD_TYPE cardType;
 
     /**
-     * @return the era this card belongs to.
+     * Returns the era this card belongs to.
+     *
+     * @return the era of this card.
      */
     public ERA getEra() {
         return era;
     }
 
     /**
-     * @return the type of this card (tribe role, building, or event).
+     * Returns the type of this card (tribe role, building, or event).
+     *
+     * @return the card type.
      */
     public CARD_TYPE getCardType() {
         return cardType;
@@ -43,6 +50,8 @@ public abstract class Card {
     public abstract void addCardToPlayer(Player player) throws NotSelectableCardException;
 
     /**
+     * Converts this card to a data-transfer object for network transport.
+     *
      * @return a {@link CardDTO} carrying the data needed by the client.
      */
     public abstract CardDTO toDTO();

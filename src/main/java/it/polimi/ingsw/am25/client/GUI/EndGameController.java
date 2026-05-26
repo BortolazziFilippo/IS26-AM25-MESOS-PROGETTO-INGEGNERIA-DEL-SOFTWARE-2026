@@ -16,7 +16,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * JavaFX controller for the end-game screen. Displays the final ranking table
+ * and the global leaderboard fetched from the server.
+ */
 public class EndGameController {
+
+    /** Default constructor used by the JavaFX FXML loader. */
+    public EndGameController() {}
 
     @FXML private Label winnersLabel;
     @FXML private TableView<PlayerRankEntry> rankingTable;
@@ -121,6 +128,9 @@ public class EndGameController {
         System.exit(0);
     }
 
+    /**
+     * Immutable row model for the end-game ranking table.
+     */
     public static class PlayerRankEntry {
         private final int rank;
         private final String name;
@@ -145,15 +155,30 @@ public class EndGameController {
             this.food  = food;
         }
 
-        /** @return the ranking position (1-based). */
+        /**
+         * Returns the ranking position (1-based).
+         * @return the ranking position.
+         */
         public int    getRank()  { return rank;  }
-        /** @return the player's nickname. */
+        /**
+         * Returns the player's nickname.
+         * @return the player's nickname.
+         */
         public String getName()  { return name;  }
-        /** @return the name of the player's totem color. */
+        /**
+         * Returns the name of the player's totem color.
+         * @return the totem color name.
+         */
         public String getColor() { return color; }
-        /** @return the Prestige Points earned by the player. */
+        /**
+         * Returns the Prestige Points earned by the player.
+         * @return the prestige points.
+         */
         public int    getPp()    { return pp;    }
-        /** @return the player's final food reserve. */
+        /**
+         * Returns the player's final food reserve.
+         * @return the final food amount.
+         */
         public int    getFood()  { return food;  }
     }
 }

@@ -12,12 +12,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * to {@code client.log}; output is silently dropped if the log has not been initialised.
  */
 public interface ClientUtilitiesFunction {
-    /**
-     * Log tag prepended to all messages written by this utility.
-     */
+    /** Socket read timeout in milliseconds; sockets are closed if the server is silent this long. */
     int SOCKET_TIMEOUT_MS = 1000;
+    /** RMI call timeout in milliseconds; RMI calls are aborted if no response arrives within this window. */
     int RMI_RESPONSE_TIMEOUT_MS = 1000;
 
+    /** Log tag prepended to all messages written by this utility. */
     String LOG_PREFIX = "[CLIENT][UTILS]";
     /**
      * Path of the client log file.

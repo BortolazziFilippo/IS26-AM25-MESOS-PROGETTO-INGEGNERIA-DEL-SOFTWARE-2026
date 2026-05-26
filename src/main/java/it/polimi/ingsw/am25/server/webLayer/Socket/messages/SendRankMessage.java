@@ -6,7 +6,11 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Server-to-client Socket message that delivers the global leaderboard to the client at the end of a game.
+ */
 public class SendRankMessage implements ServerToClientMessage {
+    /** Map from player count to the corresponding ordered leaderboard list. */
     private final Map<Integer, List<String>> leaderboards;
 
     /**

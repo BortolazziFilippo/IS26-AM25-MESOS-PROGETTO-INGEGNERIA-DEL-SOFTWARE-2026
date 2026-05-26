@@ -11,6 +11,7 @@ import it.polimi.ingsw.am25.server.model.Utilities.UtilitiesFunction;
 public class DrawOneMoreCard extends BuildingEffect {
     private static final String LOG_PREFIX = "[SERVER][EFFECT]";
 
+    /** Creates a new DrawOneMoreCard building effect. */
     public DrawOneMoreCard() {
     }
 

@@ -36,6 +36,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * JavaFX controller for the lobby screen. Handles player login, game creation/joining,
+ * and transitions to the game screen once the match starts.
+ */
 public class LobbyController implements GUIObserver {
 
     private static final String NO_LOBBY_MESSAGE = "Nessuna partita creata!";

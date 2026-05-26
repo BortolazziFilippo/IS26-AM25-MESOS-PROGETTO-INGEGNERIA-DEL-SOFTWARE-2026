@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client which player must place their totem next.
  */
 public class PlayerToPlaceChangedMessage implements ServerToClientMessage {
+    /** The player who must place their totem next. */
     private final PlayerDTO playerDTO;
 
     /**

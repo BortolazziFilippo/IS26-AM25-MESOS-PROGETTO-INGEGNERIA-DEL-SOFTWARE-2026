@@ -32,16 +32,23 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private static final int HEARTBEAT_WATCHDOG_INTERVAL_S = 1;
     private static final int HEARTBEAT_WATCHDOG_INITIAL_DELAY_S = 4;
     private static final int HEARTBEAT_MISSED_PING_THRESHOLD = 5;
+    /** List of server-side virtual views for players currently in the lobby. */
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
     /**
      * Fast nickname → view lookup used by ping() without holding the global lock.
      */
     private final ConcurrentHashMap<String, ServerVirtualView> viewsByNickname = new ConcurrentHashMap<>();
+    /** Snapshot DTOs of all players in the current game, used for lobby notifications. */
     private final List<PlayerDTO> playerDTOS = new ArrayList<>();
+    /** The game controller managing game logic once the game has started. */
     private Controller controller;
+    /** The number of players required to start the current game. */
     private int requiredPlayers = 0;
+    /** Whether the game has already started (i.e. moved past the lobby phase). */
     private boolean isGameStarted = false;
+    /** Guards against multiple concurrent shutdown sequences. */
     private final AtomicBoolean shutdownInitiated = new AtomicBoolean(false);
+    /** The scheduled executor that periodically checks for missed heartbeats. */
     private volatile ScheduledExecutorService watchdogScheduler;
 
     /**

@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies all clients when a player reconnects.
  */
 public class PlayerReconnectedMessage implements ServerToClientMessage {
+    /** The nickname of the reconnected player. */
     private final String nickname;
 
     /**

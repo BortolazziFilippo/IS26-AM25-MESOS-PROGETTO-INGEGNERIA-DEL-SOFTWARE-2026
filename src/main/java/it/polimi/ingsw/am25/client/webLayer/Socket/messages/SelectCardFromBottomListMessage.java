@@ -10,8 +10,11 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Client-to-server Socket message requesting that a card be drawn from the bottom market row.
  */
 public class SelectCardFromBottomListMessage implements ClientToServerMessage {
+    /** The acting player. */
     private final PlayerDTO playerDTO;
+    /** The type of card to draw from the bottom row. */
     private final CARD_TYPE cardType;
+    /** The position index in the bottom market row. */
     private final int position;
 
     /**

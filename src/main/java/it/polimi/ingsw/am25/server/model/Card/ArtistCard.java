@@ -12,6 +12,8 @@ import it.polimi.ingsw.am25.server.webLayer.DTOs.CardDTO;
 public class ArtistCard extends Card {
 
     /**
+     * Creates a new ArtistCard for the specified era and card type.
+     *
      * @param era      the era this card belongs to.
      * @param cardType the card type (should be {@code CARD_TYPE.ARTIST}).
      */

@@ -10,10 +10,14 @@ import java.io.Serializable;
  */
 public class ActionDTO implements Serializable {
     private static final long serialVersionUID = 1L;
+    /** Number of top-row draws available to the current player. */
     int drawTop;
+    /** Number of bottom-row draws available to the current player. */
     int drawBot;
 
     /**
+     * Creates an ActionDTO by copying the draw counts from the given {@link Action}.
+     *
      * @param action the Action whose draw counts to copy.
      */
     public ActionDTO(Action action) {
@@ -22,6 +26,8 @@ public class ActionDTO implements Serializable {
     }
 
     /**
+     * Creates an ActionDTO with explicit draw counts.
+     *
      * @param drawTop number of top-row draws available.
      * @param drawBot number of bottom-row draws available.
      */
@@ -31,14 +37,18 @@ public class ActionDTO implements Serializable {
     }
 
     /**
-     * @return the number of top-row draws available.
+     * Returns the number of top-row draws available to the current player.
+     *
+     * @return the number of top-row draws.
      */
     public int getDrawTop() {
         return drawTop;
     }
 
     /**
-     * @return the number of bottom-row draws available.
+     * Returns the number of bottom-row draws available to the current player.
+     *
+     * @return the number of bottom-row draws.
      */
     public int getDrawBot() {
         return drawBot;

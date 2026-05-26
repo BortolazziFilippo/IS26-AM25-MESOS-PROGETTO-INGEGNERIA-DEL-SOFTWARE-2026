@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Server-to-client Socket message that notifies the client which player must resolve their actions next.
  */
 public class PlayerToPlayChangedMessage implements ServerToClientMessage {
+    /** The player whose turn it is to resolve actions. */
     private final PlayerDTO playerDTO;
 
     /**

@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * (e.g. invalid action, wrong turn, lobby full).
  */
 public class ErrorMessage implements ServerToClientMessage {
+    /** The human-readable error description to display to the player. */
     private final String errorMessage;
 
     /**

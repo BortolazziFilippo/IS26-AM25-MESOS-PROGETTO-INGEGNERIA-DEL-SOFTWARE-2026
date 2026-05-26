@@ -14,12 +14,18 @@ import java.io.Serializable;
 public class BuildingDTO extends CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 2L;
+    /** Unique identifier of this building. */
     private final int buildingID;
+    /** Food cost required to purchase this building. */
     private final int foodCost;
+    /** Prestige points awarded at end of game for owning this building. */
     private final int endGamePP;
+    /** Event type that triggers this building's effect; {@code null} if end-game only. */
     private EVENT_TYPE applyOn;
 
     /**
+     * Creates a BuildingDTO from the given {@link BuildingCard}.
+     *
      * @param buildingCard the source BuildingCard to snapshot.
      */
     public BuildingDTO(BuildingCard buildingCard) {
@@ -30,28 +36,36 @@ public class BuildingDTO extends CardDTO implements Serializable {
     }
 
     /**
-     * @return the food cost required to purchase this building.
+     * Returns the food cost required to purchase this building.
+     *
+     * @return the food cost.
      */
     public int getFoodCost() {
         return foodCost;
     }
 
     /**
-     * @return the prestige points this building awards at the end of the game.
+     * Returns the prestige points this building awards at the end of the game.
+     *
+     * @return the end-game prestige points.
      */
     public int getEndGamePP() {
         return endGamePP;
     }
 
     /**
-     * @return the event type that triggers this building's effect, or {@code null} if end-game only.
+     * Returns the event type that triggers this building's effect.
+     *
+     * @return the triggering event type, or {@code null} if the effect fires only at end of game.
      */
     public EVENT_TYPE getApplyOn() {
         return applyOn;
     }
 
     /**
-     * @return the unique identifier of this building.
+     * Returns the unique identifier of this building.
+     *
+     * @return the building ID.
      */
     public int getBuildingID() {
         return buildingID;

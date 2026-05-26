@@ -31,7 +31,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
+/**
+ * JavaFX controller that renders a player's tribe cards as thumbnail images.
+ * Used inside the player-status panel and the player list in the main game view.
+ */
 public class PlayerCardController {
+
+    /** Default constructor used by the JavaFX FXML loader. */
+    public PlayerCardController() {}
 
     private static final double CARD_THUMB_H = 62.0;
     private static final int MAX_THUMBS = 8;

@@ -186,6 +186,13 @@ public interface UtilitiesFunction {
         return numbers;
     }
 
+    /**
+     * Returns the prestige-point score for a given final position in a game with the specified player count.
+     *
+     * @param playerCount the number of players in the game (2–5).
+     * @param position    the final ranking position (1-based).
+     * @return the prestige-point score for that position.
+     */
     static int getScore(int playerCount, int position) {
         List<Integer> table = switch (playerCount) {
             case 2 -> SCORE_TWO_PLAYERS;
@@ -197,6 +204,13 @@ public interface UtilitiesFunction {
         return table.get(position - 1);
     }
 
+    /**
+     * Converts a string representation of a player count ("2"–"5") to its integer value.
+     *
+     * @param number the string to convert.
+     * @return the corresponding integer player count.
+     * @throws IllegalStateException if the string does not represent a valid player count.
+     */
     static int stringToIntegerBinder(String number) throws IllegalStateException {
         switch (number) {
             case "2":

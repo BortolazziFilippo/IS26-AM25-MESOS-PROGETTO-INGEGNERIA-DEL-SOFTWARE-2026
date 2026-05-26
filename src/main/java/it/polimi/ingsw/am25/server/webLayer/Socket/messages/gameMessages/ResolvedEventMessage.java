@@ -4,8 +4,13 @@ import it.polimi.ingsw.am25.server.model.Enums.EVENT_TYPE;
 import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
 import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
 
+/**
+ * Server-to-client Socket message that notifies the client that a specific event has been resolved.
+ */
 public class ResolvedEventMessage implements ServerToClientMessage {
+    /** The unique identifier of the resolved event. */
     private final int eventID;
+    /** The type of the resolved event. */
     private final EVENT_TYPE eventType;
 
     /**

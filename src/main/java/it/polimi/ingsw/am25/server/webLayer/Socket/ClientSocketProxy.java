@@ -33,6 +33,9 @@ public class ClientSocketProxy implements ClientRemoteInterface {
     private static final String LOG_PREFIX = "[SERVER][SOCKET]";
     private final ObjectOutputStream out;
 
+    /**
+     * Closes the underlying output stream, ending the socket connection to the client.
+     */
     public void closeConnection() {
         try { out.close(); } catch (java.io.IOException ignored) {}
     }

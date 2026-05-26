@@ -14,6 +14,8 @@ public class InventorCard extends Card {
     private final INV_ICON invIcon;
 
     /**
+     * Creates a new InventorCard for the specified era, card type, and icon.
+     *
      * @param era      the era this card belongs to.
      * @param cardType the card type (should be {@code CARD_TYPE.INVENTOR}).
      * @param invIcon  the invention icon carried by this card.
@@ -25,7 +27,9 @@ public class InventorCard extends Card {
     }
 
     /**
-     * @return the invention icon carried by this card.
+     * Returns the invention icon carried by this card.
+     *
+     * @return the invention icon.
      */
     public INV_ICON getInvIcon() {
         return invIcon;

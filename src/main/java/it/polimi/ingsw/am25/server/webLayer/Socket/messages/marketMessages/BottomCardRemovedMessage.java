@@ -7,6 +7,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * Socket message that notifies the client that a tribe card was removed from the previous-round (bottom) market row.
  */
 public class BottomCardRemovedMessage implements ServerToClientMessage {
+    /** The index of the card removed from the bottom market row. */
     private final int position;
 
     /**

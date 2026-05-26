@@ -24,6 +24,8 @@ public class EventCard extends Card {
     private EventEffect eventEffect;
 
     /**
+     * Creates a new EventCard with a pre-bound effect strategy.
+     *
      * @param era         the era this card belongs to.
      * @param cardType    the card type (should be {@code CARD_TYPE.EVENT}).
      * @param eventID     the unique event identifier.
@@ -63,14 +65,18 @@ public class EventCard extends Card {
     }
 
     /**
-     * @return the unique event identifier.
+     * Returns the unique event identifier.
+     *
+     * @return the event ID.
      */
     public int getEventID() {
         return eventID;
     }
 
     /**
-     * @return the category of event (hunt, sustenance, shamanic ritual, paintings).
+     * Returns the category of this event.
+     *
+     * @return the event type (hunt, sustenance, shamanic ritual, or paintings).
      */
     public EVENT_TYPE getEventType() {
         return eventType;

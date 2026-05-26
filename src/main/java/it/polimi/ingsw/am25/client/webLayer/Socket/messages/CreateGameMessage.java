@@ -9,7 +9,9 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Client-to-server Socket message that requests creation of a new game lobby.
  */
 public class CreateGameMessage implements ClientToServerMessage {
+    /** The player who will host the new game. */
     private final PlayerDTO playerHostL;
+    /** The required number of players to start the game. */
     private final int playerNumber;
 
     /**

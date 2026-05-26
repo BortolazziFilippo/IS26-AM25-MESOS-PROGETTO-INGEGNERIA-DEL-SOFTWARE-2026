@@ -23,7 +23,16 @@ import java.rmi.registry.Registry;
 import java.util.List;
 
 
+/**
+ * JavaFX {@link Application} entry point for the Mesos GUI client.
+ * Displays the splash screen, establishes the server connection, and launches the lobby.
+ */
 public class GUIapp extends Application {
+
+    /**
+     * Creates a new GUIapp instance. JavaFX instantiates this class reflectively via {@link Application#launch}.
+     */
+    public GUIapp() {}
 
     private ClientVirtualView clientHandler;
     private ServerRemoteInterface serverStub;

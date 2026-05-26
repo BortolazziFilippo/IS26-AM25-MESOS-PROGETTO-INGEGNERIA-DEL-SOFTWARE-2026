@@ -9,7 +9,9 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * Client-to-server Socket message that requests a totem placement on an offer tile.
  */
 public class PlacingPlayerMessage implements ClientToServerMessage {
+    /** The player who is placing their totem. */
     private final PlayerDTO playerDTO;
+    /** The offer tile position chosen by the player. */
     private final int position;
 
     /**

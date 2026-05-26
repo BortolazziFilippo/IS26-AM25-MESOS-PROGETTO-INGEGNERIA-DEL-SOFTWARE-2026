@@ -14,7 +14,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 
+/**
+ * Floating overlay panel that displays the resolved event cards during a round.
+ * Events are laid out in columns and the overlay dismisses on click or ESC.
+ */
 public class EventPopup {
+
+    /** Creates a new EventPopup. The overlay is not shown until the first event is added. */
+    public EventPopup() {}
 
     private static final int MAX_PER_COLUMN = 2;
 
@@ -30,6 +37,11 @@ public class EventPopup {
      * Adds a resolved event to the overlay, creating it if not yet visible.
      * The overlay is injected directly into {@code sceneRoot} to avoid the
      * rendering overhead of a second JavaFX Stage.
+     *
+     * @param eventID       the unique identifier of the resolved event.
+     * @param eventType     the category of the resolved event.
+     * @param cardFitHeight the display height of the event card image in pixels.
+     * @param sceneRoot     the root pane of the current scene used to anchor the overlay.
      */
     public void addEvent(int eventID, EVENT_TYPE eventType, double cardFitHeight, Pane sceneRoot) {
         if (sceneRoot == null) return;

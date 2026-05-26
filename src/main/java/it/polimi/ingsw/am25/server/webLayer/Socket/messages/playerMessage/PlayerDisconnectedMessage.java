@@ -8,6 +8,7 @@ import it.polimi.ingsw.am25.server.webLayer.Socket.ServerToClientMessage;
  * The client uses this to mark the player as DISCONNESSO in the PlayerStatusTUI.
  */
 public class PlayerDisconnectedMessage implements ServerToClientMessage {
+    /** The nickname of the player who disconnected. */
     private final String nickname;
 
     /**

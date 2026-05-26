@@ -224,8 +224,21 @@ public interface ClientRemoteInterface extends Remote {
      */
     void showErrorMessage(String errorMessage) throws RemoteException;
 
+    /**
+     * Notifies the client that an event has been resolved.
+     *
+     * @param eventID   the unique identifier of the resolved event.
+     * @param eventType the category of the resolved event.
+     * @throws RemoteException if the RMI call fails.
+     */
     void eventResolved(int eventID, EVENT_TYPE eventType) throws RemoteException;
 
+    /**
+     * Sends the global leaderboard to the client, keyed by player count.
+     *
+     * @param Leaderboard a map from player count to the ordered list of leaderboard row strings.
+     * @throws RemoteException if the RMI call fails.
+     */
     void sendRank(Map<Integer, List<String>> Leaderboard) throws RemoteException;
 
     /**

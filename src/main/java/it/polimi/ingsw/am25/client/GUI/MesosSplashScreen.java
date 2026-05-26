@@ -35,6 +35,11 @@ import javafx.util.Duration;
  */
 public class MesosSplashScreen {
 
+    /**
+     * Private constructor — all methods are static; this class is not meant to be instantiated.
+     */
+    private MesosSplashScreen() {}
+
     // ---------------------------------------------------------------
     // Layout constants
     // ---------------------------------------------------------------
@@ -237,7 +242,17 @@ public class MesosSplashScreen {
         }
     }
 
+    /**
+     * Standalone JavaFX application used to test the splash screen animation in isolation,
+     * without launching the full Mesos client.
+     */
     public static class StandaloneApp extends Application {
+
+        /**
+         * Creates a new StandaloneApp instance. JavaFX instantiates this class reflectively via {@link Application#launch}.
+         */
+        public StandaloneApp() {}
+
         /**
          * Launches the standalone splash screen to test the animation in isolation.
          * When the splash screen closes, prints a message and closes the stage.

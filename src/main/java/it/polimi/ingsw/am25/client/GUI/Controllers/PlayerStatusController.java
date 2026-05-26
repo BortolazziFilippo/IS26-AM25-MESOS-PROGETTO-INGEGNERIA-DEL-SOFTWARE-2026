@@ -43,13 +43,25 @@ public class PlayerStatusController implements GUIObserver {
     /** Maps each player's nickname to their Tab. */
     private final Map<String, Tab> playerTabs = new HashMap<>();
 
+    /** Creates a new PlayerStatusController (required by the FXML loader). */
     public PlayerStatusController() {}
 
+    /**
+     * Provides the controller with the client handler and the local player's DTO.
+     * Must be called before the FXML {@code initialize()} lifecycle method runs.
+     *
+     * @param clientHandler the client view holding live game state.
+     * @param myPlayer      the DTO of the local player, used to highlight their own tab.
+     */
     public void init(ClientVirtualView clientHandler, PlayerDTO myPlayer) {
         this.clientHandler = clientHandler;
         this.myPlayer = myPlayer;
     }
 
+    /**
+     * Removes this controller from the list of GUI observers.
+     * Should be called when the player-status window is closed.
+     */
     public void unregister() {
         if (clientHandler != null) clientHandler.removeGUIObserver(this);
     }
@@ -58,6 +70,10 @@ public class PlayerStatusController implements GUIObserver {
     // FXML lifecycle
     // =========================================================
 
+    /**
+     * FXML lifecycle callback. Registers this controller as a GUI observer,
+     * builds the leaderboard, and populates one tab per player.
+     */
     @FXML
     public void initialize() {
         if (clientHandler == null) return;

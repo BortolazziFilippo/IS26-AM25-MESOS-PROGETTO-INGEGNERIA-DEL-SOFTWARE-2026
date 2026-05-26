@@ -10,6 +10,7 @@ import it.polimi.ingsw.am25.server.webLayer.RMI.ClientRemoteInterface;
  * (used when no valid market action is available).
  */
 public class PlayerDoNothingMessage implements ClientToServerMessage {
+    /** The player who skips their turn. */
     private final PlayerDTO playerDTO;
 
     /**

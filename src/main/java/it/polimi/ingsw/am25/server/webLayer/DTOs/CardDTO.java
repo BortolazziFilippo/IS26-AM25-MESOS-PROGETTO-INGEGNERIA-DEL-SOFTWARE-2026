@@ -16,14 +16,23 @@ import java.io.Serializable;
 public class CardDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+    /** The type of this card (tribe role, building, or event). */
     private final CARD_TYPE cardType;
+    /** The era this card belongs to. */
     private final ERA era;
+    /** The invention icon; set only for inventor cards. */
     private INV_ICON invIcon;
+    /** The shaman star value; set only for shaman cards. */
     private SHAMAN_STAR starNumber;
+    /** Food discount when buying a building; set only for builder cards. */
     private int foodDiscount;
+    /** End-game prestige points; set only for builder cards. */
     private int finalPrestigePoint;
+    /** Whether this hunter card carries an icon granting an immediate food bonus. */
     private boolean hasIcon;
+    /** The builder ID shared by cards with the same effect; set only for builder cards. */
     private int builderID;
+    /** The unique event identifier; only meaningful for {@link it.polimi.ingsw.am25.server.model.Card.EventCard} DTOs. */
     protected int eventID;
 
     /**
@@ -48,9 +57,10 @@ public class CardDTO implements Serializable {
     }
 
     /**
-     * Constructs a CardDTO from {@link EventCard}
+     * Constructs a CardDTO from {@link EventCard}.
      *
      * @param era      the era this card belongs to.
+     * @param eventID  the unique event identifier.
      * @param cardType the type of this card.
      */
     public CardDTO(ERA era, int eventID,CARD_TYPE cardType) {
@@ -118,27 +128,35 @@ public class CardDTO implements Serializable {
     }
 
     /**
-     * @return the type of this card (tribe role, building, or event).
+     * Returns the type of this card (tribe role, building, or event).
+     *
+     * @return the card type.
      */
     public CARD_TYPE getCardType() {
         return cardType;
     }
 
     /**
-     * @return the era this card belongs to.
+     * Returns the era this card belongs to.
+     *
+     * @return the era.
      */
     public ERA getEra() {
         return era;
     }
 
     /**
-     * @return the invention icon on this card, or {@code null} if not an inventor card.
+     * Returns the invention icon on this card.
+     *
+     * @return the invention icon, or {@code null} if not an inventor card.
      */
     public INV_ICON getInvIcon() {
         return invIcon;
     }
 
     /**
+     * Returns the shaman star value of this card.
+     *
      * @return the shaman star value, or {@code null} if not a shaman card.
      */
     public SHAMAN_STAR getStarNumber() {
@@ -146,14 +164,18 @@ public class CardDTO implements Serializable {
     }
 
     /**
-     * @return the food discount this builder provides when buying a building.
+     * Returns the food discount this builder provides when buying a building.
+     *
+     * @return the food discount, or {@code 0} if not a builder card.
      */
     public int getFoodDiscount() {
         return foodDiscount;
     }
 
     /**
-     * @return the prestige points this builder awards at end of game.
+     * Returns the prestige points this builder awards at end of game.
+     *
+     * @return the end-game prestige points, or {@code 0} if not a builder card.
      */
     public int getFinalPrestigePoint() {
         return finalPrestigePoint;
@@ -178,7 +200,9 @@ public class CardDTO implements Serializable {
     }
 
     /**
-     * @return whether this hunter card carries an icon (granting an immediate food bonus).
+     * Returns whether this hunter card carries an icon, which grants an immediate food bonus.
+     *
+     * @return {@code true} if this hunter card has an icon, {@code false} otherwise.
      */
     public boolean isHasIcon() {
         return hasIcon;

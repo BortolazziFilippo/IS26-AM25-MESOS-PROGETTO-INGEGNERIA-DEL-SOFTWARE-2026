@@ -15,6 +15,8 @@ public class HuntersCard extends Card {
     private final boolean hasICON;
 
     /**
+     * Creates a new HuntersCard for the specified era and card type.
+     *
      * @param era      the era this card belongs to.
      * @param cardType the card type (should be {@code CARD_TYPE.HUNTER}).
      * @param hasICON  whether this card carries an icon granting an immediate food bonus.
@@ -26,7 +28,9 @@ public class HuntersCard extends Card {
     }
 
     /**
-     * @return whether this card carries an icon granting an immediate food bonus.
+     * Returns whether this card carries an icon granting an immediate food bonus.
+     *
+     * @return {@code true} if this card has an icon, {@code false} otherwise.
      */
     public boolean getHasICON() {
         return hasICON;

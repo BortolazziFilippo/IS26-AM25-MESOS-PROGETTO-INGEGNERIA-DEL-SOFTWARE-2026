@@ -13,6 +13,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Lightweight JavaFX game controller used during the main game loop.
+ * Receives GUI observer callbacks and updates the on-screen phase/turn labels.
+ */
 public class GameController implements GUIObserver {
     private final Stage stage;
     private final ClientVirtualView clientHandler;
@@ -38,6 +42,10 @@ public class GameController implements GUIObserver {
         clientHandler.addGUIObserver(this);
     }
 
+    /**
+     * Builds and displays the main game scene on the primary stage.
+     * Should be called once after the controller is created.
+     */
     public void showing() {
         phaseLabel = new Label("Fase: " + clientHandler.getGamePhase());
         turnLabel = new Label("Turno: -");
