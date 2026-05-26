@@ -18,7 +18,7 @@ Implementazione del gioco da tavolo **Mesos** realizzata come progetto universit
 
 Il progetto implementa una versione digitale di **Mesos** con architettura **Client/Server**:
 
-- **Server** — gestisce la logica di gioco e le partite in corso
+- **Server** — gestisce la logica di gioco e la partita in corso
 - **Client** — si connette al server e permette di giocare tramite:
   - **GUI** (interfaccia grafica JavaFX)
   - **TUI** (interfaccia testuale da terminale)
