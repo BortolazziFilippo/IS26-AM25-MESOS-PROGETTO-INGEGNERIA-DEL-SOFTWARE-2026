@@ -31,7 +31,7 @@ La comunicazione tra client e server avviene tramite due protocolli a scelta del
 
 ## Requisiti
 
-- **Java 25** o superiore ([Eclipse Temurin](https://adoptium.net/) consigliato)
+- **Java 25** o superiore
 - **Maven** (in alternativa usare il wrapper `./mvnw` incluso nel progetto)
 
 ---
