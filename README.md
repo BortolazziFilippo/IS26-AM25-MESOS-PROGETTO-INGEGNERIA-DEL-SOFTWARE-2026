@@ -60,7 +60,7 @@ I JAR vengono prodotti nella cartella `jar/`:
 Avviare il server **prima** di qualsiasi client:
 
 ```bash
-java -jar target/am25-Server-1.0-SNAPSHOT.jar
+java -jar jar/am25-Server-1.0-SNAPSHOT.jar
 ```
 
 Il server si mette in ascolto sulla porta `1099` (RMI) e `6969` (Socket).
@@ -68,7 +68,7 @@ Il server si mette in ascolto sulla porta `1099` (RMI) e `6969` (Socket).
 ### 2. Avvio del Client
 
 ```bash
-java -jar target/am25-Client-1.0-SNAPSHOT.jar
+java -jar jar/am25-Client-1.0-SNAPSHOT.jar
 ```
 
 All'avvio il client chiederà di scegliere:
