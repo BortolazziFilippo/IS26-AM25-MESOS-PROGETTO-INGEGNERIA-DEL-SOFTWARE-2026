@@ -137,6 +137,8 @@ public class MarketController implements GUIObserver {
     private List<BuildingDTO> pendingBottomBuildings = null;
     private final DisconnectPopup disconnectPopup = new DisconnectPopup();
     private it.polimi.ingsw.am25.client.GUI.EndGameController endGameController;
+    /** Stage della finestra "Stato dei giocatori"; null se non ancora aperta o già chiusa. */
+    private Stage playerStatusStage;
 
     @FXML
     private HBox topCardHbox;
@@ -306,6 +308,11 @@ public class MarketController implements GUIObserver {
 
     @FXML
     private void showPlayerStatus() {
+        // Se la finestra è già aperta, portala semplicemente in primo piano
+        if (playerStatusStage != null && playerStatusStage.isShowing()) {
+            playerStatusStage.toFront();
+            return;
+        }
         try {
             PlayerStatusController controller = new PlayerStatusController();
             controller.init(clientHandler, playerDTO);
@@ -314,13 +321,17 @@ public class MarketController implements GUIObserver {
             loader.setController(controller);
             Parent root = loader.load();
 
-            Stage stage = new Stage();
-            GUIEffects.applyIcon(stage);
-            stage.setTitle("Stato dei giocatori");
-            stage.setScene(new Scene(root));
-            stage.setOnHidden(e -> controller.unregister());
-            stage.show();
+            playerStatusStage = new Stage();
+            GUIEffects.applyIcon(playerStatusStage);
+            playerStatusStage.setTitle("Stato dei giocatori");
+            playerStatusStage.setScene(new Scene(root));
+            playerStatusStage.setOnHidden(e -> {
+                controller.unregister();
+                playerStatusStage = null;
+            });
+            playerStatusStage.show();
         } catch (Exception e) {
+            playerStatusStage = null;
             GUIEffects.showError("Impossibile aprire lo stato giocatori: " + e.getMessage());
         }
     }
