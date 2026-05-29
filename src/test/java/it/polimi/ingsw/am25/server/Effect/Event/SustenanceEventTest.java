@@ -55,7 +55,7 @@ class SustenanceEventTest {
     }
 
     @Test
-    void solveEvent() {
+    void solveEvent_insufficientFood_deductsPP() {
         eventCard.applyEventEffect(players);
         assertEquals(8,p1.getFood());//p1 should pay 2 food
         assertEquals(4,p2.getFood()); //p2 food amount should pay only one food since it has one gatherer (-3 food discount)
@@ -72,7 +72,7 @@ class SustenanceEventTest {
     }
 
     @Test
-    void buildingShouldAlsoGiveDiscount(){
+    void solveEvent_withDiscountBuilding_reducesFoodCost(){
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_III,CARD_TYPE.BUILDING,1,10,10,EVENT_TYPE.SUSTENANCE);
         buildingCard.setBuildingEffect(new DiscountFoodOnSustenance(CARD_TYPE.ARTIST));
         p1.addBuilding(buildingCard);

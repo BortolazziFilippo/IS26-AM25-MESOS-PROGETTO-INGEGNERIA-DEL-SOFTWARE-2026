@@ -36,12 +36,12 @@ class GameTest {
     }
 
     @Test
-    void testGetPlayerNumber() {
+    void getPlayerNumber_afterSetup_returnsExpectedCount() {
         assertEquals(3, game.getPlayerNumber());
     }
 
     @Test
-    void testGetCurrentEra() {
+    void getCurrentEra_afterProgressions_transitionsCorrectly() {
 
         //checks the current era, which depends on when the method is called; divided into 3 cases,
         //though testing only the initial ERA_I state may be sufficient
@@ -55,7 +55,7 @@ class GameTest {
     }
 
     @Test
-    void testGetPlayerList() {
+    void getPlayerList_afterAdditions_containsAllPlayers() {
         //similar to testGetCurrentEra: first verifies the host is present, then adds more players
         assertEquals(1, game.getPlayerList().size());
         assertTrue(game.getPlayerList().contains(host));
@@ -66,7 +66,7 @@ class GameTest {
     }
 
     @Test
-    void testGetGamePhase() {
+    void getGamePhase_afterStart_transitionsToPlacingPhase() {
         //a newly created game must be in the SETUP phase
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
 
@@ -80,7 +80,7 @@ class GameTest {
     }
 
     @Test
-    void testGetPlayerToPlace() {
+    void getPlayerToPlace_afterStart_returnsValidPlayer() {
         //before the game starts, there is no player to place yet
         assertNull(game.getPlayerToPlace());
 
@@ -97,7 +97,7 @@ class GameTest {
     }
 
     @Test
-    void testGetPlayerToPlay() {
+    void getPlayerToPlay_afterPlacingComplete_returnsValidPlayer() {
         //before the game starts, the playing player should be null
         assertNull(game.getPlayerToPlay());
 
@@ -125,7 +125,7 @@ class GameTest {
     }
 
     @Test
-    void testGetMarket() {
+    void getMarket_alwaysInitialized_isNotNull() {
         //the market is created in the Game constructor and must never be null
         assertNotNull(game.getMarket());
 
@@ -134,7 +134,7 @@ class GameTest {
     }
 
     @Test
-    void testAddPlayer() {
+    void addPlayer_multipleAdds_addsToPlayerList() {
         //test the player count, which should initially be 1 (host only)
         assertEquals(1, game.getPlayerList().size());
         assertTrue(game.getPlayerList().contains(host));
@@ -153,7 +153,7 @@ class GameTest {
     }
 
     @Test
-    void testGetBoard() {
+    void getBoard_alwaysInitialized_isNotNull() {
         Board board = game.getBoard();
 
         //verify that the board is not null
@@ -163,7 +163,7 @@ class GameTest {
     }
 
     @Test
-    void testNextEra() {
+    void nextEra_calledTwice_transitionsToEraThree() {
         //test all 3 eras
 
         assertEquals(ERA.ERA_I, game.getCurrentEra());
@@ -184,7 +184,7 @@ class GameTest {
     }
 
     @Test
-    void testGameStart() {
+    void gameStart_initializesPlacingPhaseAndPlacesAllPlayersOnDefaultTiles() {
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
@@ -206,7 +206,7 @@ class GameTest {
     }
 
     @Test
-    void testPlacePlayer() {
+    void placePlayer_allThreePlayers_advancesPhase() {
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
 
@@ -244,7 +244,7 @@ class GameTest {
     }
 
     @Test
-    void testCheckWinner() {
+    void checkWinner_handlesHighestPP_foodTiebreak_andFullTie() {
         //set up a 3-player game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
@@ -313,7 +313,7 @@ class GameTest {
     }
 
     @Test
-    void testGoNextPlayingPlayer() {
+    void goNextPlayingPlayer_multipleAdvances_cyclesThroughPlayers() {
         //no playing player yet at the start
         assertNull(game.getPlayerToPlay());
 
@@ -352,7 +352,7 @@ class GameTest {
     }
 
     @Test
-    void testGetOffertilePlayerIsOn() {
+    void getOffertilePlayerIsOn_afterPlacing_returnsCurrentTile() {
         //no offer tile is associated yet at the start
         assertNull(game.getOffertilePlayerIsOn());
 
@@ -380,7 +380,7 @@ class GameTest {
     }
 
     @Test
-    void testCanCurrentPlayingPlayerDoSomething() {
+    void canCurrentPlayingPlayerDoSomething_variousStates_returnsBool() {
         //prepara partita
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
@@ -407,7 +407,7 @@ class GameTest {
     }
 
     @Test
-    void testAdvancePlayingPhase() {
+    void advancePlayingPhase_fromPlacing_transitionsToResolveAction() {
         //at the start, the game is not yet in the RESOLVE_ACTION phase
         assertNotEquals(GAME_PHASE.RESOLVE_ACTION, game.getGamePhase());
         assertNull(game.getPlayerToPlay());
@@ -442,7 +442,7 @@ class GameTest {
     }
 
     @Test
-    void testNextRoundIter() {
+    void nextRoundIter_endOfRound_resetsToPlacingPhase() {
         //set up the game as usual
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
@@ -551,7 +551,7 @@ class GameTest {
 //    }
 
     @Test
-    void testSelectGenericCardTopLists() {
+    void selectGenericCardTopList_eventCard_throwsNotSelectableException() {
         //set up the game in the usual way
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
@@ -575,7 +575,7 @@ class GameTest {
     }
 
     @Test
-    void testSelectGenericCardBottomLists() {
+    void selectGenericCardBottomList_eventCard_throwsNotSelectableException() {
         //set up the game (standard two-player setup assertions)
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));
@@ -605,7 +605,7 @@ class GameTest {
     //see comment below
 
     @Test
-    void testEndGameIter() {
+    void endGameIter_endOfGame_preservesPlayerList() {
         //set up a complete game
         assertDoesNotThrow(() -> game.addPlayer(player2));
         assertThrows(GameReadyToStartException.class, () -> game.addPlayer(player3));

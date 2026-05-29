@@ -18,9 +18,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArtistEventTest {
-    //FIXME:sistemare numeri
     @Test
-    void solveEvent() {
+    void solveEvent_insufficientArtists_deductsPP() {
 
         //tests the logic: if the player has more artists than required, they earn PPtoMultiply per artist; otherwise they lose two PP
         List<Player> playerList= new ArrayList<>();
@@ -51,7 +50,7 @@ class ArtistEventTest {
     }
 
     @Test
-    void playerWithBuildingShouldGetFood(){
+    void solveEvent_withBuildingBonus_awardsFoodBonus(){
         List<Player> playerList= new ArrayList<>();
         Player player1 = new Player("Lorem Ipsum", COLOR.RED);
         Player player2 = new Player("Lorem Ipsum", COLOR.RED);

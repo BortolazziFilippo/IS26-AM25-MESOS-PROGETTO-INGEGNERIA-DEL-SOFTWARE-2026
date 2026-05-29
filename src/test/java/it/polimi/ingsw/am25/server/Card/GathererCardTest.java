@@ -26,42 +26,42 @@ class GathererCardTest {
     }
 
     @Test
-    void testEraIsCorrect() {
+    void getEra_gathererCard_returnsCorrectEra() {
         assertEquals(ERA.ERA_I, gathererCard.getEra());
         assertEquals(CARD_TYPE.GATHERER, gathererCard.getCardType());
     }
 
     @Test
-    void testAddCardToPlayer() {
+    void addCard_gathererCard_addsToTribeAndAppliesDiscount() {
         gathererCard.addCardToPlayer(player);
         assertEquals(List.of(gathererCard), player.getTribe());
         assertEquals(3, player.getGatherDiscount());
     }
 
     @Test
-    void testMultipleGatherersDiscountSummed() {
+    void addCard_multipleGatherers_sumsDiscounts() {
         gathererCard.addCardToPlayer(player);
         new GathererCard(ERA.ERA_II, CARD_TYPE.GATHERER).addCardToPlayer(player);
         assertEquals(6, player.getGatherDiscount());
     }
 
     @Test
-    void testEquals() {
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
         GathererCard card1 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
 
-        // same era and type → equal
+        // same era and type -> equal
         GathererCard card2 = new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);
         assertEquals(card1, card2);
 
-        // different era → not equal
+        // different era -> not equal
         GathererCard card3 = new GathererCard(ERA.ERA_II, CARD_TYPE.GATHERER);
         assertNotEquals(card1, card3);
 
-        // different type → not equal
+        // different type -> not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(card1, artist);
 
-        // null → not equal
+        // null -> not equal
         assertNotEquals(null, card1);
     }
 

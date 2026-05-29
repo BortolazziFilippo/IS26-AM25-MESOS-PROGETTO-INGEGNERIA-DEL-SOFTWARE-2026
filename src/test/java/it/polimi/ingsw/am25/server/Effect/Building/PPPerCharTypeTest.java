@@ -19,7 +19,7 @@ class PPPerCharTypeTest {
     }
 
     @Test
-    void testSet1() {
+    void threeHunters_ppPerHunterEffect_awardsNinePP() {
         HuntersCard card1 = new HuntersCard(ERA.ERA_I, CARD_TYPE.HUNTER, true);
         playerP1.addCardToTribe(card1);
         BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
@@ -42,7 +42,7 @@ class PPPerCharTypeTest {
     }
 
     @Test
-    void testSet2() {
+    void twoBuilders_ppPerBuilderEffect_awardsEightPP() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
         BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
@@ -92,7 +92,7 @@ class PPPerCharTypeTest {
     }
 
     @Test
-    void test3(){
+    void noTargetCards_ppPerBuilderEffect_awardsZeroPP() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
         GathererCard card3= new GathererCard(ERA.ERA_I, CARD_TYPE.GATHERER);

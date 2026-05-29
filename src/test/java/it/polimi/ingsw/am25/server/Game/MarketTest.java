@@ -45,7 +45,7 @@ class MarketTest {
 
 
     @Test
-    void testGetBottomBuildingList() {
+    void getBottomBuildingList_initialState_isEmpty() {
         List<BuildingCard> bottomBuildings = market.getBottomBuildingList();
 
         // the list must not be null
@@ -56,7 +56,7 @@ class MarketTest {
     }
 
     @Test
-    void testGetTopBuildingList() {
+    void getTopBuildingList_initialState_isNotEmpty() {
         List<BuildingCard> topBuildings = market.getTopBuildingList();
 
         // the list must not be null
@@ -67,7 +67,7 @@ class MarketTest {
     }
 
     @Test
-    void testGetBottomCardList() {
+    void getBottomCardList_initialState_isNotEmpty() {
         List<Card> bottomCards = market.getBottomCardList();
 
         // the list must not be null
@@ -78,7 +78,7 @@ class MarketTest {
     }
 
     @Test
-    void testGetTopCardList() {
+    void getTopCardList_initialState_isNotEmpty() {
         List<Card> topCards = market.getTopCardList();
 
         // the list must not be null
@@ -89,7 +89,7 @@ class MarketTest {
     }
 
     @Test
-    void testClearBottomCardList() {
+    void clearBottomCardList_afterClear_isEmpty() {
 
         //the bottomCardList == null exception cannot be tested
         // because the constructor always initializes the list
@@ -101,7 +101,7 @@ class MarketTest {
     }
 
     @Test
-    void testEndOfRoundMarketActions() {
+    void endOfRoundMarketActions_normalRound_swapsAndRefillsLists() {
         //TODO: add point 5.a
 
         //save the state of the top list before calling the method
@@ -153,7 +153,7 @@ class MarketTest {
 
     //this test needs to be reviewed
     @Test
-    void testEndOfRoundMarketActionsChangedEra() {
+    void endOfRoundMarketActions_multipleRounds_changesEra() {
         boolean eraChanged = false;
 
         for (int i = 0; i < 20; i++) {
@@ -176,7 +176,7 @@ class MarketTest {
     }
 
     @Test
-    void testBuyBuildingTopList() {
+    void buyBuildingTopList_variousConditions_buysOrThrows() {
         assertFalse(market.getTopBuildingList().isEmpty(), "The top building list must not be empty");
 
         //failure case: not enough food
@@ -213,7 +213,7 @@ class MarketTest {
     }
 
     @Test
-    void testBuyBuildingBottomList() {
+    void buyBuildingBottomList_variousConditions_buysOrThrows() {
         if (market.getBottomBuildingList().isEmpty()) {
             List<BuildingCard> buildings = new BuildingFactory()
                     .createBuildingDeck(game.getPlayerNumber(), game.getBoard());
@@ -256,7 +256,7 @@ class MarketTest {
     }
 
     @Test
-    void testSelectCardFromTopList() {
+    void selectCardFromTopList_variousConditions_selectsOrThrows() {
         assertFalse(market.getTopCardList().isEmpty(), "The topCardList must not be empty");
 
         int validPosition = -1;
@@ -316,7 +316,7 @@ class MarketTest {
     }
 
     @Test
-    void testSelectCardFromBottomList() {
+    void selectCardFromBottomList_variousConditions_selectsOrThrows() {
         assertFalse(market.getBottomCardList().isEmpty(), "The bottomCardList must not be empty");
 
         int validPosition = -1;
@@ -385,7 +385,7 @@ class MarketTest {
     }
 
     @Test
-    void testEmptyMarketExceptions() {
+    void emptyMarket_allMethods_throwsEmptyMarketException() {
 
         market.getTopCardList().clear();
         assertThrows(EmptyMarketException.class, () -> market.selectCardFromTopList(0, host));
@@ -422,7 +422,7 @@ class MarketTest {
 
 
     @Test
-    void testSnapshotAndSelectExtraCardFromSnapshot() throws Exception {
+    void snapshotForExtraDraw_selectFromSnapshot_addsToTribe() throws Exception {
         market.snapshotForExtraDraw();
 
         int tribeBefore = host.getTribe().size();
@@ -440,7 +440,7 @@ class MarketTest {
     }
 
     @Test
-    void testSelectExtraCardFromSnapshotEmptyThrows() {
+    void selectExtraCardFromSnapshot_emptySnapshot_throwsEmptyMarketException() {
         market.snapshotForExtraDraw();
         market.getTopCardList().clear();
         // clear the snapshot by calling snapshotForExtraDraw on an all-event or empty top list
@@ -451,7 +451,7 @@ class MarketTest {
     }
 
     @Test
-    void testBuyExtraBuildingFromSnapshot() throws Exception {
+    void buyExtraBuildingFromSnapshot_sufficientFood_buysBuilding() throws Exception {
         market.snapshotForExtraDraw();
 
         assertFalse(market.getTopBuildingList().isEmpty(), "snapshot must contain buildings");
@@ -464,13 +464,13 @@ class MarketTest {
     }
 
     @Test
-    void testBuyExtraBuildingFromSnapshotNotEnoughFood() {
+    void buyExtraBuildingFromSnapshot_insufficientFood_throwsException() {
         market.snapshotForExtraDraw();
         assertThrows(NotEnoughFoodException.class, () -> market.buyExtraBuildingFromSnapshot(0, host));
     }
 
     @Test
-    void testBuyExtraBuildingFromSnapshotEmptyThrows() {
+    void buyExtraBuildingFromSnapshot_emptySnapshot_throwsEmptyMarketException() {
         market.snapshotForExtraDraw();
         market.getTopBuildingList().clear();
         market.snapshotForExtraDraw();

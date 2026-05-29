@@ -20,7 +20,7 @@ class FoodOnNewCoupleInventorsTest {
     }
 
     @Test
-    void OneCoupleOfInventorsTest() {
+    void applyEffect_coupleOfInventors_awardsFoodBonus() {
 
         InventorCard card1 = new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
         playerP1.addCardToTribe(card1);

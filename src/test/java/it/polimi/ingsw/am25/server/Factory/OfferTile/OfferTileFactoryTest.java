@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class OfferTileFactoryTest {
 
     @Test
-    void shouldCreateTheRightOfferTiles(){
+    void buildOfferTiles_variousPlayerCounts_createsCorrectTiles(){
         OfferTileFactory offerTileFactory= new OfferTileFactory();
 
         //TWO PLAYER

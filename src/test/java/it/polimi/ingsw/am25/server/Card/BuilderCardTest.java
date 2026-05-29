@@ -25,7 +25,7 @@ class BuilderCardTest {
     }
 
     @Test
-    void testIsBuilderCorrect(){
+    void builderCard_getters_returnConstructorValues(){
 
         assertEquals(ERA.ERA_I, builderCard.getEra());
         assertEquals(CARD_TYPE.BUILDER, builderCard.getCardType());
@@ -34,25 +34,25 @@ class BuilderCardTest {
     }
 
     @Test
-    void testSetterFinalPP(){
+    void setFinalPrestigePoint_newValue_updatesCorrectly(){
         builderCard.setFinalPrestigePoint(10);
         assertEquals(10, builderCard.getFinalPrestigePoint());
     }
 
     @Test
-    void testAddCardToPlayer(){
+    void addCard_builderCard_addsToTribe(){
         builderCard.addCardToPlayer(player);
         assertEquals(1, player.getTribe().size());
         assertEquals(List.of(builderCard), player.getTribe());
     }
 
     @Test
-    void testBuilderDiscountAppliedToPlayer(){
+    void addCard_builderCard_appliesDiscountToPlayer(){
         builderCard.addCardToPlayer(player);
         assertEquals(2, player.getBuilderDiscount());
     }
 
-    @Test void testMultipleBuildersDisc(){
+    @Test void addCard_multipleBuilders_sumsDiscounts(){
         builderCard.addCardToPlayer(player);
         new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 1, 3, 0)
                 .addCardToPlayer(player);
@@ -61,7 +61,7 @@ class BuilderCardTest {
     }
 
     @Test
-    void testEquals() {
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
         BuilderCard card1 = new BuilderCard(ERA.ERA_I, CARD_TYPE.BUILDER, 2, 5, 0);
 
         // same fields → equal

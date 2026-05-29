@@ -17,7 +17,7 @@ class DiscountFoodOnSustenanceTest {
 
     @Test
     //at the end the player should have a discounted cost on end of sustenance
-    void applyEffectTest() {
+    void applyEffect_discountBuilding_reducesSustenanceCost() {
         Player player=new Player("Lorem Ipsum", COLOR.RED);
         player.manageFoodAndPP(15);
         player.addCardToTribe(new GathererCard(ERA.ERA_III, CARD_TYPE.GATHERER));

@@ -4,10 +4,12 @@ import it.polimi.ingsw.am25.server.model.Card.Card;
 import it.polimi.ingsw.am25.server.model.Controller.Controller;
 import it.polimi.ingsw.am25.server.model.Enums.CARD_TYPE;
 import it.polimi.ingsw.am25.server.model.Enums.COLOR;
+import it.polimi.ingsw.am25.server.model.Enums.CONNECTION_STATUS;
 import it.polimi.ingsw.am25.server.model.Enums.GAME_PHASE;
 import it.polimi.ingsw.am25.server.model.Game.Game;
 import it.polimi.ingsw.am25.server.model.Player.Player;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.ActionNotAvailable;
+import it.polimi.ingsw.am25.server.model.Utilities.Exception.EmptyMarketException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.NotSelectableCardException;
 import it.polimi.ingsw.am25.server.model.Utilities.Exception.TileOccupiedException;
 import org.junit.jupiter.api.BeforeEach;
@@ -513,5 +515,233 @@ class ControllerTest {
                     controller.selectCardFromBottomList(firstToPlay, CARD_TYPE.ARTIST, finalIdx));
             assertNotEquals(firstToPlay, game.getPlayerToPlay());
         }
+    }
+
+    // ─────────────────────────── createGame ───────────────────────────
+
+    @Test
+    void createGameTwiceThrowsIllegalStateException() {
+        assertThrows(IllegalStateException.class, () ->
+                controller.createGame(new Player("Another", COLOR.WHITE), 2));
+    }
+
+    // ─────────────────────────── getAllPlayers ───────────────────────────
+
+    @Test
+    void getAllPlayersContainsAllJoinedPlayers() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+
+        List<Player> players = controller.getAllPlayers();
+        assertEquals(3, players.size());
+        assertTrue(players.stream().anyMatch(p -> p.getNickname().equals("Primo")));
+        assertTrue(players.stream().anyMatch(p -> p.getNickname().equals("Secondo")));
+        assertTrue(players.stream().anyMatch(p -> p.getNickname().equals("Terzo")));
+    }
+
+    // ─────────────────────────── isGameOver / forceEndGame ───────────────────────────
+
+    @Test
+    void isGameOverReturnsFalseBeforeEnd() throws Exception {
+        assertFalse(controller.isGameOver());
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        assertFalse(controller.isGameOver());
+    }
+
+    @Test
+    void forceEndGameTransitionsToEndGamePhase() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        controller.forceEndGame();
+
+        assertEquals(GAME_PHASE.END_GAME, game.getGamePhase());
+        assertTrue(controller.isGameOver());
+    }
+
+    // ─────────────────────────── skipExtraDraw / selectExtraCard ───────────────────────────
+
+    @Test
+    void skipExtraDrawIsNoOp() {
+        assertDoesNotThrow(() -> controller.skipExtraDraw(host));
+    }
+
+    @Test
+    void selectExtraCardEventTypeThrowsNotSelectableCardException() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+
+        assertThrows(NotSelectableCardException.class, () ->
+                controller.selectExtraCard(host, CARD_TYPE.EVENT, 0));
+    }
+
+    @Test
+    void selectExtraCardFromEmptySnapshotThrowsEmptyMarketException() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+
+        // The extra-draw snapshot is empty until a DrawOneMoreCard building triggers it
+        assertThrows(EmptyMarketException.class, () ->
+                controller.selectExtraCard(host, CARD_TYPE.ARTIST, 0));
+    }
+
+    // ─────────────────────────── notifyPlayerDisconnected ───────────────────────────
+
+    @Test
+    void notifyPlayerDisconnectedWhenGameNullDoesNotThrow() {
+        Controller fresh = new Controller();
+        assertDoesNotThrow(() -> fresh.notifyPlayerDisconnected("anyone"));
+    }
+
+    @Test
+    void notifyPlayerDisconnectedUnknownNicknameIsIgnored() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        GAME_PHASE phaseBefore = game.getGamePhase();
+        assertDoesNotThrow(() -> controller.notifyPlayerDisconnected("NonExistentPlayer"));
+        assertEquals(phaseBefore, game.getGamePhase());
+    }
+
+    @Test
+    void notifyPlayerDisconnectedMarksPlayerAsDisconnected() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        // Disconnect a player who is NOT currently placing, so we only test the status change
+        Player currentPlacer = game.getPlayerToPlace();
+        Player notPlacing = game.getPlayerList().stream()
+                .filter(p -> !p.getNickname().equals(currentPlacer.getNickname()))
+                .findFirst().orElseThrow();
+
+        controller.notifyPlayerDisconnected(notPlacing.getNickname());
+
+        assertEquals(CONNECTION_STATUS.DISCONNECTED, notPlacing.getConnection());
+    }
+
+    @Test
+    void notifyPlayerDisconnectedDuringPlacingNotTheirTurnDoesNotChangePlacer() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        Player currentPlacer = game.getPlayerToPlace();
+        Player otherPlayer = game.getPlayerList().stream()
+                .filter(p -> !p.getNickname().equals(currentPlacer.getNickname()))
+                .findFirst().orElseThrow();
+
+        controller.notifyPlayerDisconnected(otherPlayer.getNickname());
+
+        assertEquals(currentPlacer.getNickname(), game.getPlayerToPlace().getNickname());
+    }
+
+    @Test
+    void notifyPlayerDisconnectedDuringPlacingTheirTurnAdvancesToNextPlayer() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        Player currentPlacer = game.getPlayerToPlace();
+        controller.notifyPlayerDisconnected(currentPlacer.getNickname());
+
+        // Turn must have advanced: either the new placer is different, or placing phase ended
+        Player newPlacer = game.getPlayerToPlace();
+        boolean advanced = newPlacer == null
+                || !newPlacer.getNickname().equals(currentPlacer.getNickname());
+        assertTrue(advanced);
+    }
+
+    @Test
+    void notifyPlayerDisconnectedDuringResolveActionNotTheirTurnDoesNotChangePlaying() throws Exception {
+        Game game = advanceToResolveAction();
+
+        Player currentPlaying = game.getPlayerToPlay();
+        Player otherPlayer = game.getPlayerList().stream()
+                .filter(p -> !p.getNickname().equals(currentPlaying.getNickname()))
+                .findFirst().orElseThrow();
+
+        controller.notifyPlayerDisconnected(otherPlayer.getNickname());
+
+        assertEquals(currentPlaying.getNickname(), game.getPlayerToPlay().getNickname());
+    }
+
+    @Test
+    void notifyPlayerDisconnectedDuringResolveActionTheirTurnAdvancesToNextPlayer() throws Exception {
+        Game game = advanceToResolveAction();
+
+        Player currentPlaying = game.getPlayerToPlay();
+        controller.notifyPlayerDisconnected(currentPlaying.getNickname());
+
+        // The game must have advanced: different player is now playing, or phase changed
+        boolean advanced = game.getGamePhase() != GAME_PHASE.RESOLVE_ACTION
+                || !game.getPlayerToPlay().getNickname().equals(currentPlaying.getNickname());
+        assertTrue(advanced);
+    }
+
+    @Test
+    void notifyPlayerDisconnectedWhenOnlyOneConnectedPlayerRemainsEndsGame() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        List<Player> allPlayers = game.getPlayerList();
+        String nickToKeep = allPlayers.get(0).getNickname();
+        for (Player p : allPlayers) {
+            if (!p.getNickname().equals(nickToKeep)) {
+                controller.notifyPlayerDisconnected(p.getNickname());
+                if (game.getGamePhase() == GAME_PHASE.END_GAME) break;
+            }
+        }
+
+        assertEquals(GAME_PHASE.END_GAME, game.getGamePhase());
+        assertTrue(controller.isGameOver());
+    }
+
+    // ─────────────────────────── notifyPlayerReconnected ───────────────────────────
+
+    @Test
+    void notifyPlayerReconnectedWhenGameNullDoesNotThrow() {
+        Controller fresh = new Controller();
+        assertDoesNotThrow(() -> fresh.notifyPlayerReconnected("anyone"));
+    }
+
+    @Test
+    void notifyPlayerReconnectedMarksPlayerAsConnected() throws Exception {
+        controller.addPlayer(player2);
+        controller.addPlayer(player3);
+        controller.controllerGameStar();
+        Game game = getGame(controller);
+
+        Player notPlacing = game.getPlayerList().stream()
+                .filter(p -> !p.getNickname().equals(game.getPlayerToPlace().getNickname()))
+                .findFirst().orElseThrow();
+
+        controller.notifyPlayerDisconnected(notPlacing.getNickname());
+        assertEquals(CONNECTION_STATUS.DISCONNECTED, notPlacing.getConnection());
+
+        controller.notifyPlayerReconnected(notPlacing.getNickname());
+        assertEquals(CONNECTION_STATUS.CONNECTED, notPlacing.getConnection());
+    }
+
+    // ─────────────────────────── reconnectLoadedPlayer ───────────────────────────
+
+    @Test
+    void reconnectLoadedPlayerWhenGameNotLoadedThrowsIllegalStateException() {
+        Controller fresh = new Controller();
+        assertThrows(IllegalStateException.class, () ->
+                fresh.reconnectLoadedPlayer(host));
     }
 }

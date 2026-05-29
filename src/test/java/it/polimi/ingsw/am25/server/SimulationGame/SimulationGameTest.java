@@ -28,7 +28,7 @@ public class SimulationGameTest {
     }
 
     @Test
-    void testSimulationGame() {
+    void simulationGame_randomActions_completesWithoutException() {
         Board board = new Board(new GameView() {
             @Override
             public int getPlayerNumber() {

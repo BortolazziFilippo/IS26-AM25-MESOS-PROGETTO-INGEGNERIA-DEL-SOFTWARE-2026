@@ -38,7 +38,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testMaggioranzaVince(){
+    void solveEvent_majorityWins_awardsPrestigeAndDeductsPP(){
         addShamanStars(p1, 3);
         addShamanStars(p2, 1);
 
@@ -49,7 +49,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testParitaMax(){
+    void solveEvent_tieAllHighestStars_bothWin(){
         addShamanStars(p1, 3);
         addShamanStars(p2, 3);
         addShamanStars(p3, 1);
@@ -62,7 +62,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testParitaMin(){
+    void solveEvent_tieAllLowestStars_bothLose(){
         addShamanStars(p1, 3);
         addShamanStars(p2, 1);
         addShamanStars(p3, 1);
@@ -75,7 +75,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testParita(){
+    void solveEvent_perfectTieAllEqual_allWinSamePP(){
         addShamanStars(p1, 2);
         addShamanStars(p2, 2);
         addShamanStars(p3, 2);
@@ -87,7 +87,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testThreeMoreShamanStar(){
+    void solveEvent_withBuildingBonus_increasesEffectiveStarCount(){
         addShamanStars(p1, 1);
         addShamanStars(p2, 3);
 
@@ -101,7 +101,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testDoublePPOnShamanEvent(){
+    void solveEvent_withDoublePPBuilding_doublesPrestigePoints(){
         addShamanStars(p1, 3);
         addShamanStars(p2, 1);
         p1.managePP(-20);
@@ -115,7 +115,7 @@ class ShamanEventTest {
     }
 
     @Test
-    void testNoPPLostOnShaman(){
+    void solveEvent_withNoPPLossBuilding_preventsPrestigeLoss(){
         addShamanStars(p1, 1);
         addShamanStars(p2, 3);
         p1.managePP(5);

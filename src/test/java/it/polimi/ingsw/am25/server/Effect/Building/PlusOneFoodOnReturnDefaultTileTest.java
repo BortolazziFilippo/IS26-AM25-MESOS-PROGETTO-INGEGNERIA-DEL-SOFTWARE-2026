@@ -26,7 +26,7 @@ class PlusOneFoodOnReturnDefaultTileTest {
     }
 
     @Test
-    void Test1() {
+    void playerOnDefaultTile_effectApplied_grantsOneFood() {
 
         Board board = new Board(new GameView() {
             @Override

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EventFactoryTest {
     @Test
-    void numberOfCardShouldBeRight(){
+    void createEventDeck_standardGame_returnsCorrectDistribution(){
         EventFactory eventFactory = new EventFactory();
         List<EventCard> eventList= eventFactory.createEvent();
         assertEquals(12,  eventList.size());

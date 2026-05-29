@@ -27,27 +27,27 @@ class EventCardTest {
     }
 
     @Test
-    void testEraIsCorrect() {
+    void getEra_eventCard_returnsCorrectEra() {
         assertEquals(ERA.ERA_I, eventCard.getEra());
     }
 
     @Test
-    void testCardTypeIsCorrect() {
+    void getCardType_eventCard_returnsEventType() {
         assertEquals(CARD_TYPE.EVENT, eventCard.getCardType());
     }
 
     @Test
-    void testEventIDIsCorrect() {
+    void getEventID_eventCard_returnsCorrectID() {
         assertEquals(1, eventCard.getEventID());
     }
 
     @Test
-    void testEventTypeIsCorrect() {
+    void getEventType_eventCard_returnsCorrectEventType() {
         assertEquals(EVENT_TYPE.HUNT, eventCard.getEventType());
     }
 
     @Test
-    void testApplyEventEffect() {
+    void applyEffect_huntEvent_awardsFood() {
         // HuntEvent(1,2): 1 food for all players, 2 PP per hunter
         // player with no hunters → 1 food, 0 PP
         eventCard.applyEventEffect(List.of(player));
@@ -56,28 +56,28 @@ class EventCardTest {
     }
 
     @Test
-    void testAddCardToPlayerThrowsException() {
+    void addCard_eventCard_throwsNotSelectableException() {
         assertThrows(NotSelectableCardException.class, () -> eventCard.addCardToPlayer(player));
     }
 
     @Test
-    void testSetEventEffect() {
+    void setEffect_newEvent_updatesEffect() {
         eventCard.setEventEffect(new HuntEvent(1, 3));
         eventCard.applyEventEffect(List.of(player));
         assertEquals(0, player.getPrestigePoint()); // still 0 hunters
     }
 
     @Test
-    void testEquals() {
-        // same eventID → equal (era and type differences don't matter)
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
+        // same eventID -> equal (era and type differences don't matter)
         EventCard card2 = new EventCard(ERA.ERA_II, CARD_TYPE.EVENT, 1, EVENT_TYPE.SUSTENANCE);
         assertEquals(eventCard, card2);
 
-        // eventID diverso → not equal
+        // eventID diverso ->not equal
         EventCard card3 = new EventCard(ERA.ERA_I, CARD_TYPE.EVENT, 2, EVENT_TYPE.HUNT);
         assertNotEquals(eventCard, card3);
 
-        // different type → not equal
+        // different type -> not equal
         ArtistCard artist = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         assertNotEquals(eventCard, artist);
 

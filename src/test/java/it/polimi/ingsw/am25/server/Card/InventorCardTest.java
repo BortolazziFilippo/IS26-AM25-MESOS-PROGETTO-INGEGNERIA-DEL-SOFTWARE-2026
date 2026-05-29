@@ -27,37 +27,37 @@ class InventorCardTest {
     }
 
     @Test
-    void testInventorIsCorrect() {
+    void inventorCard_getters_returnConstructorValues() {
         assertEquals(ERA.ERA_I, inventorCard.getEra());
         assertEquals(CARD_TYPE.INVENTOR, inventorCard.getCardType());
         assertEquals(INV_ICON.BREAD, inventorCard.getInvIcon());
     }
 
     @Test
-    void testAddCardToPlayer() {
+    void addCard_inventorCard_addsToTribe() {
         inventorCard.addCardToPlayer(player);
         assertEquals(List.of(inventorCard), player.getTribe());
     }
 
     @Test
-    void testMultipleInventorsDifferentIcons() {
+    void addCard_inventorsDifferentIcons_countsDifferentIcons() {
         inventorCard.addCardToPlayer(player);
         new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.STONE).addCardToPlayer(player);
         assertEquals(2, player.getTribe().size());
     }
 
     @Test
-    void testMultipleInventorsSameIcon() {
+    void addCard_inventorsSameIcon_countsSingleIcon() {
         inventorCard.addCardToPlayer(player);
         new InventorCard(ERA.ERA_II, CARD_TYPE.INVENTOR, INV_ICON.BREAD).addCardToPlayer(player);
         assertEquals(2, player.getTribe().size());
     }
 
     @Test
-    void testEquals() {
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
         InventorCard card1 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
 
-        // same fields → equal
+        // same fields  equal
         InventorCard card2 = new InventorCard(ERA.ERA_I, CARD_TYPE.INVENTOR, INV_ICON.BREAD);
         assertEquals(card1, card2);
 

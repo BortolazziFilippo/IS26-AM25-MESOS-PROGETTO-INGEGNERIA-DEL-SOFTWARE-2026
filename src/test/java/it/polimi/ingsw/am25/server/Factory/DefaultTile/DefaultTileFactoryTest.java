@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DefaultTileFactoryTest {
 
     @Test
-    void shouldCreateTheRightAmountOfDefaultTiles() {
+    void buildDefaultTiles_variousPlayerCounts_createsCorrectCount() {
         DefaultTileFactory factory = new DefaultTileFactory();
 
         //twoPlayer

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BuildingFactoryTest {
 
     @Test
-    void testShouldCreateRightAmountOfBuilding(){
+    void createBuildingDeck_variousPlayerCounts_returnsCorrectCount(){
 
         Game game= new Game(new Player("player",COLOR.RED),3);
         Board board= new Board(game);

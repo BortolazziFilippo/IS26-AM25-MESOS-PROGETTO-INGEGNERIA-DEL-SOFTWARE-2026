@@ -26,7 +26,7 @@ class ArtistCardTest {
     }
 
     @Test
-    void testAddCardToPlayer() {
+    void addCard_singleArtist_incrementsArtistCount() {
 
         artistCard.addCardToPlayer(player);
 
@@ -36,7 +36,7 @@ class ArtistCardTest {
     }
 
     @Test
-    void testAddMultipleArtists(){
+    void addCard_multipleArtists_countIncrementsCorrectly(){
 
         artistCard.addCardToPlayer(player);
         new ArtistCard(ERA.ERA_II, CARD_TYPE.ARTIST).addCardToPlayer(player);
@@ -45,14 +45,14 @@ class ArtistCardTest {
     }
 
     @Test
-    void testRibeContainsArtist(){
+    void addCard_artistCard_appearsInTribe(){
         artistCard.addCardToPlayer(player);
         List<Card> expectedTribe = List.of(artistCard);
 
         assertEquals(expectedTribe, player.getTribe());
     }
     @Test
-    void testEquals(){
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual(){
         // same era and type → equal
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         ArtistCard card2 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);

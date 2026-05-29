@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SixFoodCompletedSetTest {
     @Test
-    public void TestApplyEffect() {
+    public void applyEffect_completedSet_awardsSixFood() {
         Player player = new Player("Lorem Ipsum", COLOR.RED);
         player.manageFoodAndPP(5);
         BuildingCard buildingCard= new BuildingCard(ERA.ERA_III, CARD_TYPE.BUILDING,1,10,10, EVENT_TYPE.END_ROUND);

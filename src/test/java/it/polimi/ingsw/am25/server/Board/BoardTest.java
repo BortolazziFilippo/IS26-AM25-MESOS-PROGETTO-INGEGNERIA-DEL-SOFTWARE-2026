@@ -30,7 +30,7 @@ class BoardTest {
     }
 
     @Test
-    void placePlayer() {
+    void placePlayer_onAllTiles_movesPlayerCorrectly() {
         Board board= game.getBoard();
         board.placePlayerOnDefaultTile(p1,0);
         board.placePlayerOnDefaultTile(p2,1);
@@ -58,7 +58,7 @@ class BoardTest {
         assertEquals(p4,board.getOfferTiles().get(3).getPlayerOn());
     }
     @Test
-    void returnDefaultTileTest(){
+    void returnOnDefaultTiles_afterOfferTilePlacement_givesRewardsAndClearsOfferTiles(){
         Board board= game.getBoard();
         board.placePlayerOnDefaultTile(p1,0);
         board.placePlayerOnDefaultTile(p2,1);
@@ -89,7 +89,7 @@ class BoardTest {
     }
     @Test
 
-    void theOrderShouldBeCorrect(){
+    void returnOnDefaultTiles_sortsPlayersByOfferTilePosition(){
         Board board= game.getBoard();
         board.placePlayerOnDefaultTile(p1,0);
         board.placePlayerOnDefaultTile(p2,1);
@@ -109,7 +109,7 @@ class BoardTest {
         assertEquals(p2,board.getDefaultTiles().get(3).getPlayerOn());
     }
     @Test
-    void shouldLaunchCorrectedException(){
+    void placePlayer_invalidConditions_throwsExpectedExceptions(){
         Board board= game.getBoard();
         board.placePlayerOnDefaultTile(p1,0);
         assertThrows(TileOccupiedException.class, () -> board.placePlayerOnDefaultTile(p2, 0));

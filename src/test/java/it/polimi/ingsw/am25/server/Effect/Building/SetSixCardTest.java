@@ -20,7 +20,7 @@ class SetSixCardTest {
     }
 
     @Test
-    void Set1() {
+    void applyEffect_oneCompleteSet_awardsPrestigePoints() {
             ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
             playerP1.addCardToTribe(card1);
             BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
@@ -43,7 +43,7 @@ class SetSixCardTest {
     }
 
     @Test
-    void Set2() {
+    void applyEffect_twoCompleteSets_awardsTwiceBonus() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
         BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);
@@ -92,7 +92,7 @@ class SetSixCardTest {
     }
 
     @Test
-    void SetIncompleted() {
+    void applyEffect_incompleteSet_awardsNoBonus() {
         ArtistCard card1 = new ArtistCard(ERA.ERA_I, CARD_TYPE.ARTIST);
         playerP1.addCardToTribe(card1);
         BuilderCard card2 = new BuilderCard(ERA.ERA_II, CARD_TYPE.BUILDER, 2, 12, 0);

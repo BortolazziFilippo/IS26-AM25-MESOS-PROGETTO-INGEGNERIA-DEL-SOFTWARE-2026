@@ -25,50 +25,50 @@ class ShamanCardTest {
     }
 
     @Test
-    void testEraIsCorrect() {
+    void getEra_shamanCard_returnsCorrectEra() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.ONE);
         assertEquals(ERA.ERA_I, card.getEra());
     }
 
     @Test
-    void testCardTypeIsCorrect() {
+    void getCardType_shamanCard_returnsShamanType() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.ONE);
         assertEquals(CARD_TYPE.SHAMAN, card.getCardType());
     }
 
     @Test
-    void testStarNumberOne() {
+    void getStarNumber_shamanWithOneStar_returnsOne() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.ONE);
         assertEquals(1, card.getStarNumber());
     }
 
     @Test
-    void testStarNumberTwo() {
+    void getStarNumber_shamanWithTwoStars_returnsTwo() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
         assertEquals(2, card.getStarNumber());
     }
 
     @Test
-    void testStarNumberThree() {
+    void getStarNumber_shamanWithThreeStars_returnsThree() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE);
         assertEquals(3, card.getStarNumber());
     }
 
     @Test
-    void testAddCardToPlayer() {
+    void addCard_shamanCard_addsToTribe() {
         ShamanCard card = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
         card.addCardToPlayer(player);
         assertEquals(List.of(card), player.getTribe());
     }
 
     @Test
-    void testShamanStarTotalSingleCard() {
+    void getShamanStarTotal_singleCard_returnsStarValue() {
         new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE).addCardToPlayer(player);
         assertEquals(3, player.getShamanStarTotal());
     }
 
     @Test
-    void testShamanStarTotalMultipleCards() {
+    void getShamanStarTotal_multipleCards_sumsStarValues() {
         new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.ONE).addCardToPlayer(player);
         new ShamanCard(ERA.ERA_II, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO).addCardToPlayer(player);
         new ShamanCard(ERA.ERA_III, CARD_TYPE.SHAMAN, SHAMAN_STAR.THREE).addCardToPlayer(player);
@@ -76,7 +76,7 @@ class ShamanCardTest {
     }
 
     @Test
-    void testEquals() {
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
         ShamanCard card1 = new ShamanCard(ERA.ERA_I, CARD_TYPE.SHAMAN, SHAMAN_STAR.TWO);
 
         // same fields → equal

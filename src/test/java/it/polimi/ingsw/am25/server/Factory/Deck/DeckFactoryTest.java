@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DeckFactoryTest {
     @Test
-    void numberOfCardShouldBeRight() {
+    void createDeck_variousPlayerCounts_returnsCorrectDistribution() {
         DeckFactory deckFactory = new DeckFactory();
         List<Card> cardList;
 

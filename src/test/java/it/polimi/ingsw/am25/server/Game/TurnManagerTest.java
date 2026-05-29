@@ -38,7 +38,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testGetNextPlayingPlayer() throws TileOccupiedException {
+    void getNextPlayingPlayer_sequentialCalls_cyclesThroughAllPlayers() throws TileOccupiedException {
         board.placePlayerOnOffertile(host, 0);
         board.placePlayerOnOffertile(player2, 1);
         board.placePlayerOnOffertile(player3, 2);
@@ -56,7 +56,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testGetNextPlacingPlayer() throws TileOccupiedException {
+    void getNextPlacingPlayer_sequentialCalls_cyclesThroughAllPlayers() throws TileOccupiedException {
         board.placePlayerOnDefaultTile(host, 0);
         board.placePlayerOnDefaultTile(player2, 1);
         board.placePlayerOnDefaultTile(player3, 2);
@@ -74,7 +74,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testGetPlacingOrder() throws TileOccupiedException {
+    void getPlacingOrder_afterUpdate_returnsCorrectOrder() throws TileOccupiedException {
         assertNotNull(turnManager.getPlacingOrder());
         assertTrue(turnManager.getPlacingOrder().isEmpty());
 
@@ -91,7 +91,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testGetPlayingOrder() throws TileOccupiedException {
+    void getPlayingOrder_afterUpdate_returnsCorrectOrder() throws TileOccupiedException {
         assertNotNull(turnManager.getPlayingOrder());
         assertTrue(turnManager.getPlayingOrder().isEmpty());
 
@@ -108,7 +108,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testUpdatePlayingOrder() throws TileOccupiedException {
+    void updatePlayingOrder_fromOfferTiles_sortsCorrectly() throws TileOccupiedException {
         board.placePlayerOnOffertile(player2, 0);
         board.placePlayerOnOffertile(host, 1);
         board.placePlayerOnOffertile(player3, 2);
@@ -122,7 +122,7 @@ class TurnManagerTest {
     }
 
     @Test
-    void testUpdatePlacingOrder() throws TileOccupiedException {
+    void updatePlacingOrder_fromDefaultTiles_sortsCorrectly() throws TileOccupiedException {
         board.placePlayerOnDefaultTile(player3, 0);
         board.placePlayerOnDefaultTile(host, 1);
         board.placePlayerOnDefaultTile(player2, 2);
@@ -141,13 +141,13 @@ class TurnManagerTest {
     //TODO:these last two tests still need to be reviewed
 
     @Test
-    void testGetNextPlayingPlayerEmptyOrder() {
+    void getNextPlayingPlayer_emptyOrder_throwsEndOfPlayingPhaseException() {
         assertTrue(turnManager.getPlayingOrder().isEmpty());
         assertThrows(EndOfPlayingPhaseException.class, () -> turnManager.getNextPlayingPlayer());
     }
 
     @Test
-    void testGetNextPlacingPlayerEmptyOrder() {
+    void getNextPlacingPlayer_emptyOrder_throwsEndOfPlacingPhaseException() {
         assertTrue(turnManager.getPlacingOrder().isEmpty());
         assertThrows(EndOfPlacingPhaseException.class, () -> turnManager.getNextPlacingPlayer());
     }

@@ -28,7 +28,7 @@ class BuildingCardTest {
     }
 
     @Test
-    void testIsBuilderOK(){
+    void buildingCard_getters_returnConstructorValues(){
         assertEquals(ERA.ERA_I, buildingCard.getEra());
         assertEquals(CARD_TYPE.BUILDING, buildingCard.getCardType());
         assertEquals(1, buildingCard.getBuildingID());
@@ -38,20 +38,20 @@ class BuildingCardTest {
     }
 
     @Test
-    void testAddCardToPlayer() {
+    void addCard_buildingCard_addsToPlayerBuildingList() {
         buildingCard.addCardToPlayer(player);
         assertEquals(List.of(buildingCard), player.getBuildingCards());
     }
 
     @Test
-    void testApplyBuildingEffect() {
+    void applyEffect_buildingCard_awardsPrestigePoints() {
         buildingCard.addCardToPlayer(player);
         buildingCard.applyBuildingEffect(player);
         assertEquals(25, player.getPrestigePoint());
     }
 
     @Test
-    void testEquals() {
+    void equals_sameFieldsAreEqual_differentFieldsOrTypeAreNotEqual() {
         BuildingCard card1 = new BuildingCard(ERA.ERA_I, CARD_TYPE.BUILDING, 1, 4, 3, EVENT_TYPE.END_GAME);
 
         // same buildingID → equal

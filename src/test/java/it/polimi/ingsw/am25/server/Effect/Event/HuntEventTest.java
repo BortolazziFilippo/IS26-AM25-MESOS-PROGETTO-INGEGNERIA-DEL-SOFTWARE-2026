@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class HuntEventTest {
 
     @Test
-    void solveEvent() {
+    void solveEvent_huntersPresent_awardsFoodAndPP() {
         List<Player> playerList=new ArrayList<>();
         Player player1=new Player("Lorem Ipsum", COLOR.RED);
         Player player2=new Player("Lorem Ipsum", COLOR.RED);
@@ -56,7 +56,7 @@ class HuntEventTest {
     }
 
     @Test
-    void playerWithBuildingShouldGetMorePP(){
+    void solveEvent_withBuildingBonus_increasesPPBonus(){
         List<Player> playerList=new ArrayList<>();
         Player player1=new Player("Lorem Ipsum", COLOR.RED);
         Player player2=new Player("Lorem Ipsum", COLOR.RED);
