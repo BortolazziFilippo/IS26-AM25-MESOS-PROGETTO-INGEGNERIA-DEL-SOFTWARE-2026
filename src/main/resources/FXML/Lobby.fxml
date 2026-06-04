@@ -26,11 +26,11 @@
             </children>
         </VBox>
 
-        <!-- Pannello del form -->
+        <!--  form panel -->
         <VBox styleClass="panel" spacing="12.0">
             <children>
 
-                <!-- Nickname + colore -->
+                <!-- Nickname + color -->
                 <HBox spacing="14.0" alignment="CENTER_LEFT">
                     <children>
                         <Label styleClass="field-label" text="Nickname:"/>
@@ -41,14 +41,14 @@
                     </children>
                 </HBox>
 
-                <!-- Sezione: Nuova partita -->
+                <!-- Section new game -->
                 <Label styleClass="section-divider" text="Nuova partita" maxWidth="Infinity"/>
                 <Button fx:id="enterButton"
                         text="Crea partita / Unisciti"
                         onAction="#onEnter"
                         maxWidth="Infinity"/>
 
-                <!-- Sezione: Partita salvata -->
+                <!-- Section game saved -->
                 <Label styleClass="section-divider" text="Partita salvata" maxWidth="Infinity"/>
                 <HBox spacing="14.0">
                     <children>
@@ -65,7 +65,7 @@
                     </children>
                 </HBox>
 
-                <!-- Classifica (secondario, in fondo a destra) -->
+                <!--Rank (Secondary bottom right)-->
                 <HBox alignment="CENTER_RIGHT">
                     <children>
                         <Button fx:id="rankButton"
@@ -78,11 +78,11 @@
             </children>
         </VBox>
 
-        <!-- Lista giocatori -->
+        <!-- Players list -->
         <Label styleClass="section-title" text="Giocatori in lobby"/>
         <ListView fx:id="playerList" prefHeight="200.0" VBox.vgrow="ALWAYS"/>
 
-        <!-- Status / errori -->
+        <!-- Status / errors -->
         <Label fx:id="label" styleClass="status" wrapText="true"/>
 
     </children>

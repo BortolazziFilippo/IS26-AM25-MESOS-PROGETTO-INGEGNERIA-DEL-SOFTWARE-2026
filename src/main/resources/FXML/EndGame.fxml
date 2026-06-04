@@ -20,12 +20,12 @@
           AnchorPane.rightAnchor="150.0"
           AnchorPane.topAnchor="40.0">
 
-        <!-- Titolo -->
+        <!-- Title -->
         <Label text="FINE PARTITA" styleClass="title-label">
             <font><Font name="System Bold" size="52.0"/></font>
         </Label>
 
-        <!-- Sezione vincitore -->
+        <!-- Winner section -->
         <StackPane styleClass="winner-box">
             <VBox alignment="CENTER" spacing="8.0" style="-fx-padding: 20 40 20 40;">
                 <Label text="🏆" styleClass="trophy-label">
@@ -37,7 +37,7 @@
             </VBox>
         </StackPane>
 
-        <!-- Classifica -->
+        <!-- Rank -->
         <Label text="CLASSIFICA" styleClass="section-label">
             <font><Font name="System Bold" size="18.0"/></font>
         </Label>
@@ -53,7 +53,7 @@
             </columns>
         </TableView>
 
-        <!-- Classifica globale dal database -->
+        <!--Global rank from DB-->
         <Label text="CLASSIFICA GLOBALE (storico)" styleClass="section-label">
             <font><Font name="System Bold" size="18.0"/></font>
         </Label>

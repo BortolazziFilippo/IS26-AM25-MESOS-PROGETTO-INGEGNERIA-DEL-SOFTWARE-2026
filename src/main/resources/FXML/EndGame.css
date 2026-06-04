@@ -1,4 +1,4 @@
-/* === EndGame — tema MESOS === */
+/* === EndGame — Theme MESOS === */
 
 .root {
     -fx-background-color: linear-gradient(to bottom, #1a0f08, #0d0805);
@@ -12,13 +12,13 @@
     -fx-background-color: transparent;
 }
 
-/* Titolo */
+/* Title */
 .title-label {
     -fx-text-fill: #f5dfa0;
     -fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.65), 16, 0.5, 0, 2);
 }
 
-/* Box vincitore */
+/* Box winner */
 .winner-box {
     -fx-background-color: rgba(34, 22, 14, 0.85);
     -fx-background-radius: 12;
@@ -37,14 +37,14 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 140, 50, 0.35), 10, 0.3, 0, 1);
 }
 
-/* Titoli sezione */
+/* title section */
 .section-label {
     -fx-text-fill: #c9a66b;
     -fx-font-style: italic;
     -fx-padding: 10 0 0 0;
 }
 
-/* Tabella classifica */
+/* table rank */
 .ranking-table {
     -fx-background-color: transparent;
     -fx-table-cell-border-color: transparent;
@@ -93,7 +93,7 @@
     -fx-alignment: CENTER;
 }
 
-/* Classifica globale */
+/* Global rank */
 .global-list {
     -fx-background-color: rgba(20, 12, 8, 0.85);
     -fx-border-color: #6b4a2a;
@@ -132,7 +132,7 @@
     -fx-font-weight: bold;
 }
 
-/* Bottone esci */
+/* Exit button */
 .exit-button {
     -fx-background-color: linear-gradient(to bottom, #d97a2a, #a04a14);
     -fx-text-fill: #fff5d8;
