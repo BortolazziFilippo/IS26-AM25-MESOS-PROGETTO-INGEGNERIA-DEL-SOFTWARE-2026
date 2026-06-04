@@ -18,29 +18,31 @@ import static it.polimi.ingsw.am25.server.model.Utilities.UtilitiesConstant.*;
  * Logging utilities for the Mesos server. All methods write timestamped entries
  * to {@value #LOG_FILE}; output is silently dropped if the log has not been initialised.
  */
-public interface UtilitiesFunction {
+public final class UtilitiesFunction {
+    private UtilitiesFunction() {}
+
     /**
      * Log tag prepended to all messages written by this utility.
      */
-    String LOG_PREFIX = "[SERVER][UTILS]";
+    private static final String LOG_PREFIX = "[SERVER][UTILS]";
     /**
      * Path of the server log file.
      */
-    String LOG_FILE = "server.log";
+    static final String LOG_FILE = "server.log";
     /**
      * Timestamp format used in every log entry.
      */
-    DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     /**
      * Shared reference to the active log writer; {@code null} until {@link #initLog()} is called.
      */
-    AtomicReference<PrintWriter> LOG_WRITER = new AtomicReference<>(null);
+    private static final AtomicReference<PrintWriter> LOG_WRITER = new AtomicReference<>(null);
 
     /**
      * Initialises (or resets) the log file. Call once at server startup.
      * Every call truncates the previous content.
      */
-    static void initLog() {
+    public static void initLog() {
         try {
             PrintWriter old = LOG_WRITER.getAndSet(new PrintWriter(new FileWriter(LOG_FILE, false)));
             if (old != null) {
@@ -57,7 +59,7 @@ public interface UtilitiesFunction {
      * @param prefix  parameter prefix.
      * @param message parameter message.
      */
-    static void logInfo(String prefix, String message) {
+    public static void logInfo(String prefix, String message) {
         String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + " " + message;
         System.out.println(line);
         PrintWriter writer = LOG_WRITER.get();
@@ -73,7 +75,7 @@ public interface UtilitiesFunction {
      * @param prefix  parameter prefix.
      * @param message parameter message.
      */
-    static void logError(String prefix, String message) {
+    public static void logError(String prefix, String message) {
         String line = "[" + LocalDateTime.now().format(TIMESTAMP_FMT) + "]" + prefix + "[ERROR] " + message;
         System.err.println(line);
         PrintWriter writer = LOG_WRITER.get();
@@ -88,7 +90,7 @@ public interface UtilitiesFunction {
      *
      * @param message parameter message.
      */
-    static void logError(String message) {
+    public static void logError(String message) {
         logError(LOG_PREFIX, message);
     }
 
@@ -98,7 +100,7 @@ public interface UtilitiesFunction {
      * @param playerNumber parameter playerNumber.
      * @return the result of the operation.
      */
-    static int bindCorrectNumberOfTopListCard(int playerNumber) {
+    public static int bindCorrectNumberOfTopListCard(int playerNumber) {
         return switch (playerNumber) {
             case 2 -> UtilitiesConstant.TWO_PLAYER_TOP_CARD;
             case 3 -> UtilitiesConstant.THREE_PLAYER_TOP_CARD;
@@ -117,7 +119,7 @@ public interface UtilitiesFunction {
      * @param playerNumber parameter playerNumber.
      * @return the result of the operation.
      */
-    static int bindCorrectNumberOfBottomListCard(int playerNumber) {
+    public static int bindCorrectNumberOfBottomListCard(int playerNumber) {
         return switch (playerNumber) {
             case 2 -> UtilitiesConstant.TWO_PLAYER_BOTTOM_CARD;
             case 3 -> UtilitiesConstant.THREE_PLAYER_BOTTOM_CARD;
@@ -136,7 +138,7 @@ public interface UtilitiesFunction {
      * @param listToParse parameter listToParse.
      * @param setCards    parameter setCards.
      */
-    static void countOccurrence(List<Card> listToParse, List<Integer> setCards) {
+    public static void countOccurrence(List<Card> listToParse, List<Integer> setCards) {
         int quantity = 6;
         for (Card card : listToParse) {
             switch (card.getCardType()) {
@@ -172,7 +174,7 @@ public interface UtilitiesFunction {
      * @param x upper bound
      * @return list of integers
      */
-    static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
+    public static ArrayList<Integer> shuffledFromYToXExclusive(int y, int x) {
         if (y > x) {
             throw new IllegalArgumentException("y must be <= x");
         }
@@ -193,7 +195,7 @@ public interface UtilitiesFunction {
      * @param position    the final ranking position (1-based).
      * @return the prestige-point score for that position.
      */
-    static int getScore(int playerCount, int position) {
+    public static int getScore(int playerCount, int position) {
         List<Integer> table = switch (playerCount) {
             case 2 -> SCORE_TWO_PLAYERS;
             case 3 -> SCORE_THREE_PLAYERS;
@@ -211,7 +213,7 @@ public interface UtilitiesFunction {
      * @return the corresponding integer player count.
      * @throws IllegalStateException if the string does not represent a valid player count.
      */
-    static int stringToIntegerBinder(String number) throws IllegalStateException {
+    public static int stringToIntegerBinder(String number) throws IllegalStateException {
         switch (number) {
             case "2":
                 return 2;
