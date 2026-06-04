@@ -308,7 +308,6 @@ public class MarketController implements GUIObserver {
 
     @FXML
     private void showPlayerStatus() {
-        // Se la finestra è già aperta, portala semplicemente in primo piano
         if (playerStatusStage != null && playerStatusStage.isShowing()) {
             playerStatusStage.toFront();
             return;

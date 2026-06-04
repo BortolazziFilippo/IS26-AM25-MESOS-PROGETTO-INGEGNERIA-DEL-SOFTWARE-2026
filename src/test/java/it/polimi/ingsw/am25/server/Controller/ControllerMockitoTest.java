@@ -85,7 +85,7 @@ class ControllerMockitoTest {
     void linkObserverRegistersViewWithGame() throws Exception {
         controller.createGame(host, 2);
         controller.addPlayer(player2);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         // linkObserver must not throw and must wire the view into the game's observer list
         assertDoesNotThrow(() -> controller.linkObserver(mockView));
@@ -97,7 +97,7 @@ class ControllerMockitoTest {
     void crossRegisterPlayerObserversAddsEveryViewToEveryPlayer() throws Exception {
         controller.createGame(host, 2);
         controller.addPlayer(player2);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         controller.crossRegisterPlayerObservers(List.of(mockView, mockView2));
 
@@ -110,7 +110,7 @@ class ControllerMockitoTest {
     void crossRegisterPlayerObserversWithEmptyListIsHarmless() throws Exception {
         controller.createGame(host, 2);
         controller.addPlayer(player2);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         assertDoesNotThrow(() -> controller.crossRegisterPlayerObservers(List.of()));
     }
@@ -218,7 +218,7 @@ class ControllerMockitoTest {
     void resumeGame_withLinkedObserver_doesNotThrow() throws Exception {
         controller.createGame(host, 2);
         controller.addPlayer(player2);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         controller.linkObserver(mockView);
 
         assertDoesNotThrow(() -> controller.resumeGame());
@@ -253,7 +253,7 @@ class ControllerMockitoTest {
         Controller tmp = new Controller();
         tmp.createGame(players[0], count);
         for (int i = 1; i < count; i++) tmp.addPlayer(players[i]);
-        tmp.controllerGameStar();
+        tmp.controllerGameStart();
 
         Game g = getGame(tmp);
         GameMemento snap = g.createMemento();

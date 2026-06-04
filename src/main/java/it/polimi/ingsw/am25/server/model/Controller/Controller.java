@@ -121,7 +121,7 @@ public class Controller {
      * Starts the Mesos game and pushes the initial state snapshot to all connected clients.
      * Must be called after all players have joined and all observers have been linked.
      */
-    public void controllerGameStar() {
+    public void controllerGameStart() {
         Thread DBthread = new Thread(() -> {
             try {
                 DBManager.getConnection();

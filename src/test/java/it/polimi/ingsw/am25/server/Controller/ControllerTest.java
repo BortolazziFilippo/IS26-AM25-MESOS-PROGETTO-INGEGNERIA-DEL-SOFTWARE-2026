@@ -51,7 +51,7 @@ class ControllerTest {
     private Game advanceToResolveAction() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         controller.placingPlayer(game.getPlayerToPlace(), 1);
@@ -69,7 +69,7 @@ class ControllerTest {
         assertEquals(GAME_PHASE.SETUP, game.getGamePhase());
 
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         assertEquals(GAME_PHASE.PLACING_PHASE, game.getGamePhase());
     }
 
@@ -91,7 +91,7 @@ class ControllerTest {
     void placingPlayerInPlacingPhase() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -103,7 +103,7 @@ class ControllerTest {
     void placingWrongPlayerInPlacingPhaseShouldBeIgnored() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -121,7 +121,7 @@ class ControllerTest {
     void placingPlayerOutOfBoundsThrowsIndexOutOfBoundsException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player playerToPlace = game.getPlayerToPlace();
@@ -133,7 +133,7 @@ class ControllerTest {
     void placingPlayerOnOccupiedTileThrowsTileOccupiedException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player first = game.getPlayerToPlace();
@@ -156,7 +156,7 @@ class ControllerTest {
     void fullPlacingPhaseTransitionsToResolveAction() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
 
@@ -196,7 +196,7 @@ class ControllerTest {
     void selectCardFromTopListWhenTileHasNoTopActionThrowsActionNotAvailable() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player p1 = game.getPlayerToPlace();
@@ -240,7 +240,7 @@ class ControllerTest {
     void selectCardFromTopListWithRightPlayerAddsCardToTribe() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
 
@@ -301,7 +301,7 @@ class ControllerTest {
     void selectCardFromBottomListWhenTileHasNoBottomActionThrowsActionNotAvailable() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player p1 = game.getPlayerToPlace();
@@ -345,7 +345,7 @@ class ControllerTest {
     void selectCardFromBottomListWithRightPlayerAddsCardToTribe() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         controller.placingPlayer(game.getPlayerToPlace(), 0); // tile B: drawBot=1
@@ -426,7 +426,7 @@ class ControllerTest {
     void playerDoNothingLastPlayerEndsRound() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         controller.placingPlayer(game.getPlayerToPlace(), 0);
@@ -453,7 +453,7 @@ class ControllerTest {
     void selectCardFromTopListLastActionAdvancesToNextPlayer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player firstPlacer = game.getPlayerToPlace();
@@ -488,7 +488,7 @@ class ControllerTest {
     void selectCardFromBottomListLastActionAdvancesToNextPlayer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         Game game = getGame(controller);
         Player firstPlacer = game.getPlayerToPlace();
@@ -546,7 +546,7 @@ class ControllerTest {
         assertFalse(controller.isGameOver());
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         assertFalse(controller.isGameOver());
     }
 
@@ -554,7 +554,7 @@ class ControllerTest {
     void forceEndGameTransitionsToEndGamePhase() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         controller.forceEndGame();
@@ -574,7 +574,7 @@ class ControllerTest {
     void selectExtraCardEventTypeThrowsNotSelectableCardException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         assertThrows(NotSelectableCardException.class, () ->
                 controller.selectExtraCard(host, CARD_TYPE.EVENT, 0));
@@ -584,7 +584,7 @@ class ControllerTest {
     void selectExtraCardFromEmptySnapshotThrowsEmptyMarketException() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
 
         // The extra-draw snapshot is empty until a DrawOneMoreCard building triggers it
         assertThrows(EmptyMarketException.class, () ->
@@ -603,7 +603,7 @@ class ControllerTest {
     void notifyPlayerDisconnectedUnknownNicknameIsIgnored() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         GAME_PHASE phaseBefore = game.getGamePhase();
@@ -615,7 +615,7 @@ class ControllerTest {
     void notifyPlayerDisconnectedMarksPlayerAsDisconnected() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         // Disconnect a player who is NOT currently placing, so we only test the status change
@@ -633,7 +633,7 @@ class ControllerTest {
     void notifyPlayerDisconnectedDuringPlacingNotTheirTurnDoesNotChangePlacer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         Player currentPlacer = game.getPlayerToPlace();
@@ -650,7 +650,7 @@ class ControllerTest {
     void notifyPlayerDisconnectedDuringPlacingTheirTurnAdvancesToNextPlayer() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         Player currentPlacer = game.getPlayerToPlace();
@@ -694,7 +694,7 @@ class ControllerTest {
     void notifyPlayerDisconnectedWhenOnlyOneConnectedPlayerRemainsEndsGame() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         List<Player> allPlayers = game.getPlayerList();
@@ -722,7 +722,7 @@ class ControllerTest {
     void notifyPlayerReconnectedMarksPlayerAsConnected() throws Exception {
         controller.addPlayer(player2);
         controller.addPlayer(player3);
-        controller.controllerGameStar();
+        controller.controllerGameStart();
         Game game = getGame(controller);
 
         Player notPlacing = game.getPlayerList().stream()

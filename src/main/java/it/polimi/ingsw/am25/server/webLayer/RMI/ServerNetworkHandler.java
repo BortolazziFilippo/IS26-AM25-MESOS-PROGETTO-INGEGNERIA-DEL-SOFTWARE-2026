@@ -155,54 +155,42 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     private void setupAndStartGame() {
         logServerEvent("All players ready. Setting up the game...");
-        Controller controller = new Controller();
+        this.controller = new Controller();
 
-        // CRUCIAL SAVE: We save the controller so other RMI methods
-        // (like selectCard, placingPlayer, etc.) can use it to perform actions!
-        this.controller = controller;
-
-        // 1. Extract the Host data (they are always at position 0)
         PlayerDTO hostDTO = playerDTOS.getFirst();
-        ServerVirtualView hostView = waitingPlayers.getFirst();
-
-        // 2. Create the Host player and initialize the game in the Model
-        Player playerHost = new Player(hostDTO.getNickName(), hostDTO.getColorTotem(), hostView);
-        controller.createGame(playerHost, requiredPlayers);
-
-        // 3. Link ALL VirtualViews (including the Host!) to the Controller's global observers
+        Player host = new Player(hostDTO.getNickName(), hostDTO.getColorTotem(), waitingPlayers.getFirst());
+        controller.createGame(host, requiredPlayers);
+        // linkObserver must precede addNonHostPlayers so that observer notifications
+        // fired during addPlayer are delivered to all views immediately.
         waitingPlayers.forEach(controller::linkObserver);
+        addNonHostPlayers();
+        registerObserversAndSyncClients();
 
-        // 4. Add the other players.
-        // We use a classic "for" loop STARTING FROM 1, so we skip the Host (who is at index 0)
-        for (int i = 1; i < playerDTOS.size(); i++) {
-            PlayerDTO currentDTO = playerDTOS.get(i);
-            ServerVirtualView currentView = waitingPlayers.get(i);
-
-            // Create and add the new player by pairing their DTO with their View
-            Player newPlayer = new Player(currentDTO.getNickName(), currentDTO.getColorTotem(), currentView);
-            controller.addPlayer(newPlayer);
-        }
-
-        // ----------------------------------------------------------------
-        // 5. CROSS-REGISTER: every view observes every player's tribe changes.
-        //    By default each Player only notifies its own ServerVirtualView, so
-        //    other clients would never receive addedCardToTribe events for cards
-        //    drawn by other players. After this call every draw is broadcast to
-        //    all connected clients.
-        // ----------------------------------------------------------------
-        controller.crossRegisterPlayerObservers(waitingPlayers);
-
-        logServerEvent("All players added to the model. Synchronizing initial state to clients...");
-        // ----------------------------------------------------------------
-        // 6. MASS INITIAL SYNCHRONIZATION ON CLIENTS
-        // ----------------------------------------------------------------
-        for (ServerVirtualView view : waitingPlayers) {
-            // Pass the complete list of PlayerDTOs to EVERY VirtualView
-            view.forceInitialPlayersSync(this.playerDTOS);
-        }
-        logServerEvent("All clients synced. The game is ready!");
         startWatchdog();
-        controller.controllerGameStar();
+        controller.controllerGameStart();
+    }
+
+    /**
+     * Adds all non-host players to the game model, pairing each {@link PlayerDTO}
+     * with its corresponding {@link ServerVirtualView}. Skips index 0 (the host).
+     */
+    private void addNonHostPlayers() {
+        for (int i = 1; i < playerDTOS.size(); i++) {
+            PlayerDTO dto = playerDTOS.get(i);
+            controller.addPlayer(new Player(dto.getNickName(), dto.getColorTotem(), waitingPlayers.get(i)));
+        }
+    }
+
+    /**
+     * Cross-registers player observers so every view receives tribe-card events for all
+     * players, then pushes the full initial game state to every connected client.
+     * Called at the end of both fresh-game setup and loaded-game resumption.
+     */
+    private void registerObserversAndSyncClients() {
+        controller.crossRegisterPlayerObservers(waitingPlayers);
+        logServerEvent("Synchronizing initial state to clients...");
+        waitingPlayers.forEach(v -> v.forceInitialPlayersSync(playerDTOS));
+        logServerEvent("All clients synced.");
     }
 
     /**
@@ -217,7 +205,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
      */
     @Override
     public synchronized void placingPlayer(PlayerDTO playerToPlace, int position) throws RemoteException, IndexOutOfBoundsException, TileOccupiedException {
-        Player playerTemp = new Player(playerToPlace.getNickName(), playerToPlace.getColorTotem());
+        Player playerTemp = new Player(playerToPlace);
         controller.placingPlayer(playerTemp, position);
     }
 
@@ -410,7 +398,6 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         // 2. Update game model and advance turn / end game if necessary
         controller.notifyPlayerDisconnected(nickname);
 
-        // 3. Se non ci sono più giocatori connessi, spegni il server.
         if (waitingPlayers.stream().noneMatch(ServerVirtualView::isConnected)) {
             initiateShutdown();
         }
@@ -608,10 +595,7 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private void startLoadedGame() {
         logServerEvent("All players reconnected. Resuming loaded game...");
         waitingPlayers.forEach(controller::linkObserver);
-        controller.crossRegisterPlayerObservers(waitingPlayers);
-        for (ServerVirtualView view : waitingPlayers) {
-            view.forceInitialPlayersSync(playerDTOS);
-        }
+        registerObserversAndSyncClients();
         startWatchdog();
         controller.resumeGame();
     }
