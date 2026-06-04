@@ -93,7 +93,7 @@ public class PlayerCardController {
 
         // Header labels
         nameLabel.setText(player.getNickName());
-        colorLabel.setText(colorName(player.getColorTotem()));
+        colorLabel.setText(player.getColorTotem().toString());
         if (disconnected) {
             statusLabel.setText("DISCONNESSO");
             statusLabel.getStyleClass().remove("player-status-online");
@@ -405,17 +405,6 @@ public class PlayerCardController {
             case FLUTE -> "flute";
             case BOWL -> "bowl";
             default -> "bread";
-        };
-    }
-
-    private String colorName(COLOR color) {
-        if (color == null) return "?";
-        return switch (color) {
-            case RED -> "ROSSO";
-            case BLUE -> "BLU";
-            case YELLOW -> "GIALLO";
-            case WHITE -> "BIANCO";
-            case PURPLE -> "VIOLA";
         };
     }
 

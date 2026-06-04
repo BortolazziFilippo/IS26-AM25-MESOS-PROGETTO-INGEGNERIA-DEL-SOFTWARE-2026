@@ -118,7 +118,7 @@ public class TUIUtils {
                 case "5":
                     return COLOR.PURPLE;
                 default:
-                    System.err.println("\n❌ Input non valido");
+                    System.err.println("\n Input non valido");
             }
         }
     }
