@@ -112,7 +112,7 @@ public class MarketTUI {
             } else if (input.equals("2")) {
                 isDrawn = drawCardFromMarket("Edificio", layer, buildingCards, buildingSize, buildingCall);
             } else {
-                System.err.println("\n❌ Errore: Inserisci 1 o 2.");
+                System.err.println(TUIUtils.RED+"\nErrore: Inserisci 1 o 2."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 utils.clearScreen();
                 System.out.println(header);
@@ -172,17 +172,17 @@ public class MarketTUI {
             try {
                 int position = Integer.parseInt(input) - 1;
                 if (position < 0 || position >= size.get()) {
-                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    System.err.println(TUIUtils.RED+"\n Errore: Posizione fuori limite."+TUIUtils.RESET);
                     utils.pauseAndClear();
                     continue;
                 }
                 serverCall.call(myPlayer, position);
             } catch (NumberFormatException e) {
-                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                System.err.println(TUIUtils.RED+"\nErrore: Inserisci un NUMERO valido."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             } catch (Exception e) {
-                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                System.err.println(TUIUtils.RED+"\nImpossibile pescare: " + utils.extractCleanError(e)+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             }
@@ -191,7 +191,7 @@ public class MarketTUI {
 
             if (waitForActionChange(prevTop, prevBot)) return false;
 
-            System.out.println("\n✅ Carta " + displayName + " pescata con successo o turno concluso!");
+            System.out.println(TUIUtils.GREEN+"\nCarta " + displayName + " pescata con successo o turno concluso!"+TUIUtils.RESET);
             utils.pauseAndClear();
             return true;
         }
@@ -212,7 +212,7 @@ public class MarketTUI {
         try {
             serverStub.playerDoNothing(myPlayer);
         } catch (Exception e) {
-            System.err.println("\n❌ Impossibile passare il turno: " + utils.extractCleanError(e));
+            System.err.println(TUIUtils.RED+"\nImpossibile passare il turno: " + utils.extractCleanError(e)+TUIUtils.RESET);
             utils.pauseAndClear();
             return;
         }
@@ -231,10 +231,10 @@ public class MarketTUI {
         }
 
         if (clientHandler.connectionError) {
-            System.err.println("\n❌ Impossibile passare il turno.");
+            System.err.println(TUIUtils.RED+"\n Impossibile passare il turno."+TUIUtils.RESET);
             utils.pauseAndClear();
         } else {
-            System.out.println("\n✅ Turno terminato.");
+            System.out.println(TUIUtils.GREEN+"\nTurno terminato."+TUIUtils.RESET);
             // Do not call pauseAndClear() here: blocking the thread on scanner.nextLine()
             // would cause missed turnLock.notifyAll() calls from SOLVING_EVENTS
             // (eventResolved, gamePhaseChanged). Returning immediately to waitForMyTurn()
@@ -248,7 +248,7 @@ public class MarketTUI {
      */
     public void handleExtraDraw() {
         utils.clearScreen();
-        System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+        System.out.println(TUIUtils.YELLOW+"EFFETTO ATTIVATO: Draw One More Card! "+TUIUtils.RESET);
 
         boolean isDrawn = false;
         while (!isDrawn) {
@@ -266,10 +266,10 @@ public class MarketTUI {
                     clientHandler.needsExtraDraw = false;
                     return;
                 } catch (Exception e) {
-                    System.err.println("\n❌ Non puoi saltare: " + utils.extractCleanError(e));
+                    System.err.println(TUIUtils.RED+"\n Non puoi saltare: " + utils.extractCleanError(e)+TUIUtils.RESET);
                     utils.pauseAndClear();
                     utils.clearScreen();
-                    System.out.println(" EFFETTO ATTIVATO: Draw One More Card! ");
+                    System.out.println(TUIUtils.YELLOW+" EFFETTO ATTIVATO: Draw One More Card! "+TUIUtils.RESET);
                     continue;
                 }
             }
@@ -282,10 +282,10 @@ public class MarketTUI {
                 printCardList("CARTE EDIFICIO DISPONIBILI", clientHandler.getExtraDrawBuildings());
                 maxLimit = clientHandler.getExtraDrawBuildingSize();
             } else {
-                System.err.println("\n❌ Scelta mazzo non valida. Digita 0, 1 o 2.");
+                System.err.println(TUIUtils.RED+"\nScelta mazzo non valida. Digita 0, 1 o 2."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 utils.clearScreen();
-                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                System.out.println(TUIUtils.YELLOW+" EFFETTO ATTIVATO: Draw One More Card! "+TUIUtils.RESET);
                 continue;
             }
 
@@ -295,17 +295,17 @@ public class MarketTUI {
 
             if (inputPos.equalsIgnoreCase("q")) {
                 utils.clearScreen();
-                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                System.out.println(TUIUtils.YELLOW+"EFFETTO ATTIVATO: Draw One More Card!"+TUIUtils.RESET);
                 continue;
             }
 
             try {
                 int position = Integer.parseInt(inputPos) - 1;
                 if (position < 0 || position >= maxLimit) {
-                    System.err.println("\n❌ Errore: Posizione fuori limite.");
+                    System.err.println(TUIUtils.RED+"\n Errore: Posizione fuori limite."+TUIUtils.RESET);
                     utils.pauseAndClear();
                     utils.clearScreen();
-                    System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                    System.out.println(TUIUtils.YELLOW+"EFFETTO ATTIVATO: Draw One More Card!"+TUIUtils.RESET);
                     continue;
                 }
 
@@ -316,20 +316,20 @@ public class MarketTUI {
                     serverStub.selectExtraCard(myPlayer, CARD_TYPE.BUILDING, position);
                 }
 
-                System.out.println("\n✅ Carta extra pescata con successo!");
+                System.out.println(TUIUtils.GREEN+"\nCarta extra pescata con successo!"+TUIUtils.RESET);
                 utils.pauseAndClear();
                 isDrawn = true;
 
             } catch (NumberFormatException e) {
-                System.err.println("\n❌ Errore: Inserisci un NUMERO valido.");
+                System.err.println(TUIUtils.RED+"\n Errore: Inserisci un NUMERO valido."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 utils.clearScreen();
-                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                System.out.println(TUIUtils.YELLOW+" EFFETTO ATTIVATO: Draw One More Card!"+TUIUtils.RESET);
             } catch (Exception e) {
-                System.err.println("\n❌ Impossibile pescare: " + utils.extractCleanError(e));
+                System.err.println(TUIUtils.RED+"\nImpossibile pescare: " + utils.extractCleanError(e)+TUIUtils.RESET);
                 utils.pauseAndClear();
                 utils.clearScreen();
-                System.out.println("✨ EFFETTO ATTIVATO: Draw One More Card! ✨");
+                System.out.println(TUIUtils.YELLOW+"EFFETTO ATTIVATO: Draw One More Card!"+TUIUtils.RESET);
             }
         }
 
@@ -345,7 +345,7 @@ public class MarketTUI {
      */
     public void printMarket() {
         System.out.println("\n=============================================================");
-        System.out.println("                       🏪 IL MERCATO 🏪                      ");
+        System.out.println("                       IL MERCATO                      ");
         System.out.println("=============================================================");
 
         printCardList("CARTE NORMALI (SOPRA)", clientHandler.getTopCards());
@@ -421,7 +421,7 @@ public class MarketTUI {
         }
 
         if (clientHandler.connectionError) {
-            System.err.println("\n❌ Impossibile pescare.");
+            System.err.println(TUIUtils.RED+"\nImpossibile pescare."+TUIUtils.RESET);
             utils.pauseAndClear();
             return true;
         }

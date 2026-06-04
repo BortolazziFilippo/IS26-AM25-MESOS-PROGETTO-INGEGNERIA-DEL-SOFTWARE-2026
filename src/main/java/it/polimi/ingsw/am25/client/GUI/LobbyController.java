@@ -140,7 +140,7 @@ public class LobbyController implements GUIObserver {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    setText(item.name());
+                    setText(item.toString());
                     Image img = totemImages.get(item);
                     iv.setImage(img);
                     setGraphic(img != null ? iv : null);
@@ -162,7 +162,7 @@ public class LobbyController implements GUIObserver {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    setText(item.name());
+                    setText(item.toString());
                     Image img = totemImages.get(item);
                     iv.setImage(img);
                     setGraphic(img != null ? iv : null);

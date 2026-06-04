@@ -92,14 +92,14 @@ public class PlayerStatusTUI {
     private void printPlayerCard(PlayerDTO player) {
         boolean isMe = myPlayer != null && myPlayer.getNickName().equals(player.getNickName());
         boolean isDisconnected = clientHandler.isPlayerDisconnected(player.getNickName());
-        String colorCode = colorToAnsi(player.getColorTotem());
+        String colorCode = player.getColorTotem().toString();
         String tag = isMe ? "  << TU >>" : "";
         String statusTag = isDisconnected ? "  [DISCONNESSO]" : "  [ONLINE]";
 
         System.out.println(SEPARATOR);
         System.out.println(colorCode
                 + "  Giocatore: " + player.getNickName()
-                + "  [" + colorName(player.getColorTotem()) + "]"
+                + "  [" + player.getColorTotem().toString() + "]"
                 + statusTag
                 + tag
                 + TUIUtils.RESET);
@@ -216,7 +216,7 @@ public class PlayerStatusTUI {
         for (int i = 0; i < icons.size(); i += ROW_SIZE) {
             List<INV_ICON> row = icons.subList(i, Math.min(i + ROW_SIZE, icons.size()));
             String rowStr = row.stream()
-                    .map(ic -> ic == null ? "?" : iconName(ic))
+                    .map(ic -> ic == null ? "?" : ic.toString())
                     .collect(Collectors.joining("  "));
             System.out.println("                   " + rowStr);
         }
@@ -300,77 +300,6 @@ public class PlayerStatusTUI {
         };
     }
 
-    /**
-     * Italian display name for an invention icon.
-     */
-    private String iconName(INV_ICON icon) {
-        switch (icon) {
-            case BREAD:
-                return "PANE";
-            case STONE:
-                return "PIETRA";
-            case NECKLACE:
-                return "COLLANA";
-            case BAIT:
-                return "ESCA";
-            case GHOST:
-                return "SPIRITO";
-            case ARROW:
-                return "FRECCIA";
-            case LEATHER:
-                return "CUOIO";
-            case ROPE:
-                return "CORDA";
-            case FLUTE:
-                return "FLAUTO";
-            case BOWL:
-                return "CIOTOLA";
-            default:
-                return icon.name();
-        }
-    }
-
-    /**
-     * ANSI color code for a totem color.
-     */
-    private String colorToAnsi(COLOR color) {
-        if (color == null) return TUIUtils.RESET;
-        switch (color) {
-            case RED:
-                return TUIUtils.RED;
-            case BLUE:
-                return TUIUtils.BLUE;
-            case YELLOW:
-                return TUIUtils.YELLOW;
-            case WHITE:
-                return TUIUtils.RESET;
-            case PURPLE:
-                return TUIUtils.PURPLE;
-            default:
-                return TUIUtils.RESET;
-        }
-    }
-
-    /**
-     * Italian display name for a totem color.
-     */
-    private String colorName(COLOR color) {
-        if (color == null) return "?";
-        switch (color) {
-            case RED:
-                return "ROSSO";
-            case BLUE:
-                return "BLU";
-            case YELLOW:
-                return "GIALLO";
-            case WHITE:
-                return "BIANCO";
-            case PURPLE:
-                return "VIOLA";
-            default:
-                return color.name();
-        }
-    }
 
     /**
      * Centers {@code text} within {@link #BOX_WIDTH} columns (ignores ANSI codes).

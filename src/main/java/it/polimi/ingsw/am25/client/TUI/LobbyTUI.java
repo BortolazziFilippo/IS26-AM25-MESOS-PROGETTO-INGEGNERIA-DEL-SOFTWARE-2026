@@ -120,7 +120,7 @@ public class LobbyTUI {
                 // No lobby currently open — must create one.
                 noLobbyExists = true;
             } catch (Exception e) {
-                System.err.println("\n❌ " + utils.extractCleanError(e));
+                System.err.println("\n" +TUIUtils.RED+ utils.extractCleanError(e)+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             }
@@ -137,13 +137,13 @@ public class LobbyTUI {
                         // Socket path: server confirmed no lobby exists.
                         noLobbyExists = true;
                     } else {
-                        System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
-                                ? clientHandler.lastErrorMessage : "Errore sconosciuto"));
+                        System.err.println("\n"+TUIUtils.RED + (clientHandler.lastErrorMessage != null
+                                ? clientHandler.lastErrorMessage : "Errore sconosciuto") +TUIUtils.RESET);
                         utils.pauseAndClear();
                         continue;
                     }
                 } else {
-                    System.out.println("\n✅ Tutti i giocatori connessi! La partita inizia!");
+                    System.out.println(TUIUtils.GREEN+"\n Tutti i giocatori connessi! La partita inizia!"+TUIUtils.RESET);
                     return player;
                 }
             }
@@ -158,12 +158,12 @@ public class LobbyTUI {
             try {
                 serverStub.createGame(player, playerNumber, clientHandler);
             } catch (RemoteException e) {
-                System.err.println("\n❌ Errore di comunicazione col server.");
+                System.err.println(TUIUtils.RED+"\n Errore di comunicazione col server."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             } catch (IllegalStateException e) {
                 // Another player created a lobby between our check and this call; retry.
-                System.err.println("\n❌ Una lobby è appena stata creata da un altro giocatore. Riprova.");
+                System.err.println(TUIUtils.RED+"\n Una lobby è appena stata creata da un altro giocatore. Riprova."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             }
@@ -174,11 +174,11 @@ public class LobbyTUI {
             Boolean started = awaitGameStart();
             if (started == null) return null; // interrupted
             if (!started) {
-                System.err.println("\n❌ Errore durante la creazione della partita.");
+                System.err.println(TUIUtils.RED+"\nErrore durante la creazione della partita."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             }
-            System.out.println("\n✅ Tutti i giocatori connessi! La partita inizia!");
+            System.out.println(TUIUtils.GREEN+"\nTutti i giocatori connessi! La partita inizia!"+TUIUtils.RESET);
             return player;
         }
     }
@@ -205,14 +205,14 @@ public class LobbyTUI {
             try {
                 int n = Integer.parseInt(input);
                 if (n < 2 || n > 5) {
-                    System.err.println("\n❌ Inserisci un numero tra 2 e 5.");
+                    System.err.println(TUIUtils.RED+"\nInserisci un numero tra 2 e 5."+TUIUtils.RESET);
                     utils.pauseAndClear();
                     return;
                 }
                 serverParam = input;
                 showAll = false;
             } catch (NumberFormatException e) {
-                System.err.println("\n❌ Input non valido.");
+                System.err.println(TUIUtils.RED+"\nInput non valido."+TUIUtils.RESET);
                 utils.pauseAndClear();
                 return;
             }
@@ -223,7 +223,7 @@ public class LobbyTUI {
         try {
             serverStub.askForRank(serverParam, clientHandler);
         } catch (RemoteException e) {
-            System.err.println("\n❌ Errore di comunicazione col server.");
+            System.err.println(TUIUtils.RED+"\n Errore di comunicazione col server."+TUIUtils.RESET);
             utils.pauseAndClear();
             return;
         }
@@ -240,8 +240,8 @@ public class LobbyTUI {
         }
 
         if (clientHandler.connectionError) {
-            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
-                    ? clientHandler.lastErrorMessage : "Errore nel recupero della classifica."));
+            System.err.println("\n"+TUIUtils.RED + (clientHandler.lastErrorMessage != null
+                    ? clientHandler.lastErrorMessage : "Errore nel recupero della classifica.")+TUIUtils.RESET);
             utils.pauseAndClear();
             return;
         }
@@ -294,7 +294,7 @@ public class LobbyTUI {
         try {
             action.call(player);
         } catch (Exception e) {
-            System.err.println("\n❌ " + utils.extractCleanError(e));
+            System.err.println("\n "+TUIUtils.RED + utils.extractCleanError(e)+TUIUtils.RESET);
             utils.pauseAndClear();
             return null;
         }
@@ -304,12 +304,12 @@ public class LobbyTUI {
         Boolean started = awaitGameStart();
         if (started == null) return null; // interrupted
         if (!started) {
-            System.err.println("\n❌ " + (clientHandler.lastErrorMessage != null
-                    ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita."));
+            System.err.println("\n "+TUIUtils.RED + (clientHandler.lastErrorMessage != null
+                    ? clientHandler.lastErrorMessage : "Errore nel caricamento della partita.")+TUIUtils.RESET);
             utils.pauseAndClear();
             return null;
         }
-        System.out.println("\n✅ Tutti i giocatori connessi! La partita riprende!");
+        System.out.println(TUIUtils.GREEN+"\nTutti i giocatori connessi! La partita riprende!"+TUIUtils.RESET);
         return player;
     }
 
@@ -329,7 +329,7 @@ public class LobbyTUI {
         String nickname = scanner.nextLine().trim();
         if (nickname.equalsIgnoreCase("q")) return null;
         if (nickname.isEmpty()) {
-            System.err.println("\n❌ Il nickname non può essere vuoto.");
+            System.err.println(TUIUtils.RED+"\n Il nickname non può essere vuoto."+TUIUtils.RESET);
             utils.pauseAndClear();
             return null;
         }

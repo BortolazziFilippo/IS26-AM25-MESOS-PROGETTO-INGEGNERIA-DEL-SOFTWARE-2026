@@ -22,7 +22,6 @@
         <VBox alignment="CENTER" spacing="2.0">
             <children>
                 <Label styleClass="titolo" text="MESOS — Lobby"/>
-                <Label styleClass="sottotitolo" text="prepara la tua tribù prima che il fuoco si spenga"/>
             </children>
         </VBox>
 

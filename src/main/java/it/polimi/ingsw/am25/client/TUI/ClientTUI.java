@@ -116,10 +116,10 @@ public class ClientTUI {
             if (!disconnected.isEmpty() || !reconnected.isEmpty()) {
                 utils.clearScreen();
                 for (String dc : disconnected) {
-                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso dalla partita.");
+                    System.out.println(TUIUtils.RED + dc + "' si è disconnesso dalla partita." + TUIUtils.RESET);
                 }
                 for (String rc : reconnected) {
-                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso alla partita.");
+                    System.out.println(TUIUtils.GREEN + rc + "' si è riconnesso alla partita."+TUIUtils.RESET);
                 }
                 utils.pauseAndClear();
             }
@@ -199,7 +199,7 @@ public class ClientTUI {
                             clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_PLACING_PHASE) {
                         placementTUI.placePlayer();
                     } else {
-                        System.err.println("\n❌ Azione non permessa: non siamo nella fase di piazzamento.");
+                        System.err.println( TUIUtils.RED + "\nAzione non permessa: non siamo nella fase di piazzamento."+TUIUtils.RESET);
                         utils.pauseAndClear();
                     }
                     break;
@@ -208,7 +208,7 @@ public class ClientTUI {
                             clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
                         marketTUI.drawTopCard();
                     } else {
-                        System.err.println("\n❌ Azione non permessa in questa fase del gioco.");
+                        System.err.println(TUIUtils.RED+ "\n Azione non permessa in questa fase del gioco."+TUIUtils.RESET);
                         utils.pauseAndClear();
                     }
                     break;
@@ -217,7 +217,7 @@ public class ClientTUI {
                             clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
                         marketTUI.drawBottomCard();
                     } else {
-                        System.err.println("\n❌ Azione non permessa in questa fase del gioco.");
+                        System.err.println(TUIUtils.RED+ "\nAzione non permessa in questa fase del gioco."+TUIUtils.RESET);
                         utils.pauseAndClear();
                     }
                     break;
@@ -226,12 +226,12 @@ public class ClientTUI {
                             clientHandler.getGamePhase() == GAME_PHASE.LAST_ROUND_RESOLVE_ACTION) {
                         marketTUI.passTurn();
                     } else {
-                        System.err.println("\n❌ Azione non permessa in questa fase del gioco.");
+                        System.err.println(TUIUtils.RED+"\n Azione non permessa in questa fase del gioco."+TUIUtils.RESET);
                         utils.pauseAndClear();
                     }
                     break;
                 default:
-                    System.err.println("\n❌ Scelta non valida. Inserisci un numero tra quelli proposti.");
+                    System.err.println(TUIUtils.RED+"\nScelta non valida. Inserisci un numero tra quelli proposti." + TUIUtils.RESET);
                     utils.pauseAndClear();
                     break;
             }
@@ -275,10 +275,10 @@ public class ClientTUI {
             if (!dcWhileWaiting.isEmpty() || !rcWhileWaiting.isEmpty()) {
                 utils.clearScreen();
                 for (String dc : dcWhileWaiting) {
-                    System.out.println("⚠️  Il giocatore '" + dc + "' si è disconnesso.");
+                    System.out.println(TUIUtils.RED+" Il giocatore '" + dc + "' si è disconnesso."+TUIUtils.RESET);
                 }
                 for (String rc : rcWhileWaiting) {
-                    System.out.println("✅  Il giocatore '" + rc + "' si è riconnesso.");
+                    System.out.println(TUIUtils.GREEN+"Il giocatore '" + rc + "' si è riconnesso."+TUIUtils.RESET);
                 }
                 if (!isMyTurn()) {
                     utils.pauseAndClear();
@@ -305,7 +305,7 @@ public class ClientTUI {
         }
 
         utils.clearScreen();
-        System.out.println("🔔 È IL TUO TURNO!");
+        System.out.println(TUIUtils.YELLOW+" È IL TUO TURNO!"+TUIUtils.RESET);
         if (clientHandler.getGamePhase() != GAME_PHASE.SOLVING_EVENTS) {
             utils.pauseAndClear();
         }

@@ -58,7 +58,7 @@ public class PlacementTUI {
             try {
                 serverStub.placingPlayer(myPlayer, position);
             } catch (Exception e) {
-                System.err.println("\n❌ Errore RMI: " + utils.extractCleanError(e));
+                System.err.println(TUIUtils.RED+"\nErrore: " + utils.extractCleanError(e)+TUIUtils.RESET);
                 utils.pauseAndClear();
                 continue;
             }
@@ -81,10 +81,10 @@ public class PlacementTUI {
             }
 
             if (clientHandler.connectionError) {
-                System.err.println("❌ Casella già occupata");
+                System.err.println(TUIUtils.RED+"Casella già occupata"+TUIUtils.RESET);
                 utils.pauseAndClear();
             } else {
-                System.out.println("\n✅ Totem posizionato con successo nella casella " + (position + 1) + "!");
+                System.out.println(TUIUtils.GREEN+"\nTotem posizionato con successo nella casella " + (position + 1) + "!"+TUIUtils.RESET);
                 utils.pauseAndClear();
                 isPlaced = true;
             }
@@ -100,7 +100,7 @@ public class PlacementTUI {
         while (true) {
             utils.clearScreen();
             boardTUI.printBoard();
-            System.out.println("\n📍 Posiziona giocatore: [1]-[" + clientHandler.getOfferTileSize() + "]");
+            System.out.println("\n Posiziona giocatore: [1]-[" + clientHandler.getOfferTileSize() + "]");
             System.out.println("[I] - Stato giocatori   [M] - Mercato   [Q] - Annulla");
             System.out.print("Scelta: ");
             String input = scanner.nextLine().trim();
@@ -127,10 +127,10 @@ public class PlacementTUI {
                 if (index >= 0 && index < clientHandler.getOfferTileSize()) {
                     return index;
                 }
-                System.err.println("\n❌ Errore: L'indice deve essere tra 1 e " + clientHandler.getOfferTileSize() + ".");
+                System.err.println(TUIUtils.RED+"\nErrore: L'indice deve essere tra 1 e " + clientHandler.getOfferTileSize() + "."+TUIUtils.RESET);
                 utils.pauseAndClear();
             } catch (NumberFormatException e) {
-                System.err.println("\n❌ Errore: Devi inserire un NUMERO intero valido.");
+                System.err.println(TUIUtils.RED+"\nErrore: Devi inserire un NUMERO intero valido."+TUIUtils.RESET);
                 utils.pauseAndClear();
             }
         }

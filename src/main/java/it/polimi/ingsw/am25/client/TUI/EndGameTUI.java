@@ -99,7 +99,7 @@ public class EndGameTUI {
         if (winners == null || winners.isEmpty()) {
             System.out.println("  Nessun vincitore disponibile.");
         } else if (winners.size() == 1) {
-            PlayerDTO w = winners.get(0);
+            PlayerDTO w = winners.getFirst();
             System.out.println("  Il vincitore e': " + w.getNickName()
                     + "  (" + w.getPrestigePoint() + " PP)");
         } else {

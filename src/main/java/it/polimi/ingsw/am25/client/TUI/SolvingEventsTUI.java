@@ -32,16 +32,16 @@ public class SolvingEventsTUI {
     public void solveEvents() {
 
         tuiUtils.clearScreen();
-        System.out.println("⚙️  --- RISOLUZIONE EVENTI ---");
+        System.out.println(" --- RISOLUZIONE EVENTI ---");
         System.out.println("Gli eventi dell'era sono in corso di risoluzione...");
-        System.out.println("⏳ Attendi la fine della risoluzione...");
+        System.out.println("Attendi la fine della risoluzione...");
 
         synchronized (clientVirtualView.turnLock) {
             while (clientVirtualView.getGamePhase() == GAME_PHASE.SOLVING_EVENTS) {
                 System.out.println("Eventi risolti finora: ");
                 clientVirtualView.getResolvedEvents().forEach(System.out::println);
                 System.out.println();
-                System.out.println(" ⏳ Risoluzione in corso... ");
+                System.out.println(" Risoluzione in corso... ");
                 try {
                     clientVirtualView.turnLock.wait();
                 } catch (InterruptedException e) {
@@ -52,7 +52,7 @@ public class SolvingEventsTUI {
         }
 
         tuiUtils.clearScreen();
-        System.out.println("✅ Gli eventi sono stati risolti:");
+        System.out.println("Gli eventi sono stati risolti:");
         clientVirtualView.getResolvedEvents().forEach(System.out::println);
         clientVirtualView.clearResolvedEvents();
 

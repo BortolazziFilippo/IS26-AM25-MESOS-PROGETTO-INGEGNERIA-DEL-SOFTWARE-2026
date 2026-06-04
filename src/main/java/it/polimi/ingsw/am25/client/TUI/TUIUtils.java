@@ -88,9 +88,9 @@ public class TUIUtils {
             try {
                 int num = Integer.parseInt(scanner.nextLine());
                 if (num >= 2 && num <= 5) return num;
-                System.err.println("\n❌ Errore: Il numero deve essere compreso tra 2 e 5.");
+                System.err.println(TUIUtils.RED+"\n Errore: Il numero deve essere compreso tra 2 e 5."+TUIUtils.RESET);
             } catch (NumberFormatException e) {
-                System.err.println("\n❌ Errore: Devi inserire un NUMERO.");
+                System.err.println(TUIUtils.RED+"\n Errore: Devi inserire un NUMERO."+TUIUtils.RESET);
             }
         }
     }
