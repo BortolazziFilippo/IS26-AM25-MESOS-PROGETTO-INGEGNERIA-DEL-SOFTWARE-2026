@@ -35,7 +35,7 @@ public class TUIUtils {
     /**
      * ANSI bold-purple color sequence.
      */
-    public static final String PURPLE = "\033[35;49;1m";
+    public static final String PURPLE = "\033[38;5;129m";
 
     /**
      * Creates a new TUIUtils instance.
