@@ -3,7 +3,7 @@
 ## IS25-AM25
 
 **Gruppo:** AM25  
-**Membri del Team:**
+**Membri del Team:**<br>
 Filippo Bortolazzi<br> 
 Daniele Delgrossi<br> 
 Sara Caliment <br>
