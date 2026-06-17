@@ -4,10 +4,10 @@
 
 **Gruppo:** AM25  
 **Membri del Team:**<br>
-Filippo Bortolazzi<br> 
-Daniele Delgrossi<br> 
-Sara Caliment <br>
-Robert Gabriel Anton <br>
+- Filippo Bortolazzi<br> 
+- Daniele Delgrossi<br> 
+- Sara Caliment <br>
+- Robert Gabriel Anton <br>
 
 ---
 
