@@ -1,6 +1,6 @@
 # Mesos — Progetto di Ingegneria del Software (AM25)
 
-Implementazione del gioco da tavolo **Mesos** realizzata come progetto universitario per il corso di Ingegneria del Software al Politecnico di Milano (A.A. 2024–2025), gruppo **AM25**.
+Implementazione del gioco da tavolo **Mesos** realizzata come progetto universitario per il corso di Ingegneria del Software al Politecnico di Milano (A.A. 2025–2026), gruppo **AM25**.
 
 ---
 
