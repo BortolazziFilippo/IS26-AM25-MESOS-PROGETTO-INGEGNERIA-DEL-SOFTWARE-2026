@@ -4,13 +4,10 @@
 
 **Gruppo:** AM25  
 **Membri del Team:**
-
 Filippo Bortolazzi<br> 
 Daniele Delgrossi<br> 
 Sara Caliment <br>
 Robert Gabriel Anton <br>
-
-**Valutazione target:** 30L
 
 ---
 
