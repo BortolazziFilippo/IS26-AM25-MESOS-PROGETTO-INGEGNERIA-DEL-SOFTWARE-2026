@@ -31,7 +31,11 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
     private static final String LOG_PREFIX = "[SERVER][NETWORK]";
     private static final int HEARTBEAT_WATCHDOG_INTERVAL_S = 1;
     private static final int HEARTBEAT_WATCHDOG_INITIAL_DELAY_S = 4;
+    /** Consecutive missed pings before a player is declared disconnected during normal gameplay. */
     private static final int HEARTBEAT_MISSED_PING_THRESHOLD = 5;
+    /** Consecutive missed pings before a player is declared disconnected after the game ends.
+     *  Higher than the in-game threshold to allow clients time to view the end-game screen. */
+    private static final int HEARTBEAT_MISSED_PING_ENDGAME_THRESHOLD = 30;
     /** List of server-side virtual views for players currently in the lobby. */
     private final List<ServerVirtualView> waitingPlayers = new ArrayList<>();
     /**
@@ -405,8 +409,10 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
 
     /**
      * Starts the counter-based heartbeat watchdog. Every second each view's
-     * missed-ping counter is incremented. When a view reaches 3 consecutive missed pings
-     * (~3 seconds total) the player is declared disconnected.
+     * missed-ping counter is incremented. When a view reaches
+     * {@link #HEARTBEAT_MISSED_PING_THRESHOLD} consecutive missed pings during normal gameplay,
+     * or {@link #HEARTBEAT_MISSED_PING_ENDGAME_THRESHOLD} after the game ends,
+     * the player is declared disconnected.
      */
     private void startWatchdog() {
         if (watchdogScheduler != null) return;
@@ -435,15 +441,20 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
         }
     }
 
+    /**
+     * Checks each connected view for consecutive missed pings and declares players
+     * disconnected when the threshold is exceeded. During normal gameplay the threshold is
+     * {@link #HEARTBEAT_MISSED_PING_THRESHOLD}; after the game ends it rises to
+     * {@link #HEARTBEAT_MISSED_PING_ENDGAME_THRESHOLD} to give clients time to view the
+     * end-game screen before being removed.
+     */
     private void checkMissedPings() {
         for (ServerVirtualView view : new ArrayList<>(waitingPlayers)) {
             if (!view.isConnected()) continue;
             int missed = view.incrementMissedPings();
-            if (missed >= HEARTBEAT_MISSED_PING_THRESHOLD) {
-                // After the game ends, don't kick clients for missed pings: the
-                // EndGame screen may cause a brief pause in ping sending. Physical
-                // disconnects are detected via socket IOException / RMI RemoteException.
-                if (controller != null && controller.isGameOver()) continue;
+            boolean gameOver = controller != null && controller.isGameOver();
+            int threshold = gameOver ? HEARTBEAT_MISSED_PING_ENDGAME_THRESHOLD : HEARTBEAT_MISSED_PING_THRESHOLD;
+            if (missed >= threshold) {
                 logServerEvent("Player '" + view.getNickname()
                         + "' missed " + missed + " consecutive pings — declaring disconnected.");
                 notifyPlayerDisconnected(view.getNickname());

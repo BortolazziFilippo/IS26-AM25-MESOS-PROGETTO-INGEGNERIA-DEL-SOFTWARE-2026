@@ -554,6 +554,9 @@ public class ClientSocketProxy implements ClientRemoteInterface {
 
     /**
      * Sends a heartbeat pong response to the client.
+     *
+     * @throws RemoteException if the socket write fails, signalling a dead connection so
+     *                         the caller can trigger disconnection handling.
      */
     @Override
     public void pong() throws RemoteException {
@@ -564,7 +567,7 @@ public class ClientSocketProxy implements ClientRemoteInterface {
                 out.reset();
             }
         } catch (java.io.IOException e) {
-            UtilitiesFunction.logError(LOG_PREFIX, "Error sending pong to client");
+            throw new RemoteException("Pong failed: socket dead", e);
         }
     }
 

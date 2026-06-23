@@ -28,7 +28,7 @@ import java.util.function.IntSupplier;
 public class Controller {
     private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
     private final List<Player> players;
-    private PersistanceLogger persistanceLogger = new PersistanceLogger();
+    private final PersistanceLogger persistanceLogger = new PersistanceLogger();
     private Game game;
 
     /**
@@ -454,7 +454,14 @@ public class Controller {
     public void forceEndGame() {
         if (game == null) return;
         game.endGameIter();
-        game.checkWinner();
+        Optional<Player> lastConnected = game.getPlayerList().stream()
+                .filter(p -> p.getConnection() != CONNECTION_STATUS.DISCONNECTED)
+                .findFirst();
+        if (lastConnected.isPresent()) {
+            game.forceWinner(lastConnected.get());
+        } else {
+            game.checkWinner();
+        }
     }
 
     /**

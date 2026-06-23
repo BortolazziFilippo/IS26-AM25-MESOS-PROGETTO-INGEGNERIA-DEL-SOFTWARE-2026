@@ -267,8 +267,36 @@ public class Game implements GameView, MementoManager<GameMemento> {
         dbThread.start();
         this.notifyWinners(winningPlayers);
         return winningPlayers;
+    }
 
-
+    /**
+     * Declares the given player as the winner, bypassing PP-based ranking.
+     * Used when the game is force-ended because all other players disconnected.
+     * Logs the match to the DB with the forced winner first, then the rest sorted by PP.
+     *
+     * @param winner the player to declare as winner.
+     */
+    public void forceWinner(Player winner) {
+        List<Player> dbList = new ArrayList<>();
+        dbList.add(winner);
+        players.values().stream()
+                .filter(p -> !p.getNickname().equals(winner.getNickname()))
+                .sorted(Comparator.comparing(Player::getPrestigePoint).thenComparing(Player::getFood).reversed())
+                .forEach(dbList::add);
+        Thread dbThread = new Thread(() -> {
+            try {
+                DBManager.logMatch(dbList);
+            } catch (IOException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Error reading database credentials file");
+            } catch (SQLException e) {
+                UtilitiesFunction.logError(LOG_PREFIX + "Error communicating with database");
+            }
+        });
+        dbThread.setDaemon(true);
+        dbThread.setName("db-log-match");
+        dbThread.start();
+        List<Player> winningPlayers = new ArrayList<>(List.of(winner));
+        this.notifyWinners(winningPlayers);
     }
 
     /**

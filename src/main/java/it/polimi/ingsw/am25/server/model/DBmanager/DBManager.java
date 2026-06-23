@@ -80,14 +80,22 @@ public class DBManager {
      * in the {@code player} table, and records each player's score in the {@code result}
      * table. The list must contain all players ordered by final ranking (1st to last),
      * so that the correct score table is applied via {@link UtilitiesFunction#getScore}.
+     * If any SQL operation fails the cached connection is reset to {@code null} so that
+     * the next call attempts a fresh connection rather than reusing a stale TCP socket.
      *
-     * @param players all players sorted by finishing position ( the best first).
+     * @param players all players sorted by finishing position (the best first).
      * @throws SQLException if any database operation fails.
      * @throws IOException  if the credentials file cannot be read.
      */
     public static void logMatch(List<Player> players) throws SQLException, IOException {
         UtilitiesFunction.logInfo(LOG_PREFIX, "Saving game with " + players.size() + " players...");
-        Connection conn = getConnection();
+        Connection conn;
+        try {
+            conn = getConnection();
+        } catch (SQLException e) {
+            connection = null;
+            throw e;
+        }
 
         String insertGame = "INSERT INTO game (played_at, player_count) VALUES (NOW(), ?)";
         int gameId;
@@ -97,6 +105,9 @@ public class DBManager {
             ResultSet rs = ps.getGeneratedKeys();
             rs.next();
             gameId = rs.getInt(1);
+        } catch (SQLException e) {
+            connection = null;
+            throw e;
         }
         UtilitiesFunction.logInfo(LOG_PREFIX, "Game inserted with ID=" + gameId + ".");
 
