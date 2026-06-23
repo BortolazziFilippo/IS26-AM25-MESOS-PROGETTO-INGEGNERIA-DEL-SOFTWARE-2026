@@ -3,16 +3,11 @@
 ## IS25-AM25
 
 **Gruppo:** AM25  
-**Membri del Team:**
-
-| Nome | Email |
-|------|-------|
-| Filippo Bortolazzi | filippo.bortolazzi@mail.polimi.it |
-| Daniele Delgrossi | daniele.delgrossi@mail.polimi.it |
-| Sara Calimenti | sara.calimenti@mail.polimi.it |
-| Robert Gabriel Anton | robertgabriel.anton@mail.polimi.it |
-
-**Valutazione target:** 30L
+**Membri del Team:**<br>
+- Filippo Bortolazzi<br> 
+- Daniele Delgrossi<br> 
+- Sara Caliment <br>
+- Robert Gabriel Anton <br>
 
 ---
 
