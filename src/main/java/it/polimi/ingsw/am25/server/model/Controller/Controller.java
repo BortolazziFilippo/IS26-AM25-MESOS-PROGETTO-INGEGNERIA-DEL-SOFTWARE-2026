@@ -28,7 +28,7 @@ import java.util.function.IntSupplier;
 public class Controller {
     private static final String LOG_PREFIX = "[SERVER][CONTROLLER]";
     private final List<Player> players;
-    PersistanceLogger persistanceLogger = new PersistanceLogger();
+    private PersistanceLogger persistanceLogger = new PersistanceLogger();
     private Game game;
 
     /**

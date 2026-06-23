@@ -109,7 +109,7 @@ Tutta la documentazione tecnica si trova nella cartella [`Documentazione_AM25/`]
 
 ### Test
 
-Il progetto include una suite di **36 classi di test** (JUnit 5 + Mockito) con copertura di:
+Il progetto include una suite di **35 classi di test** (JUnit 5 + Mockito) con copertura di:
 
 - Logica delle carte (Shaman, Builder, Hunter, Artist, Inventor, Gatherer, Event, Building)
 - Flusso di gioco (Game, Market, TurnManager, Controller)

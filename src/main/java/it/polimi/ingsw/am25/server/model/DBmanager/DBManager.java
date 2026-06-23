@@ -27,13 +27,13 @@ public class DBManager {
      * Default constructor. An instance is not required to use this class
      * since all methods are static.
      */
-    public DBManager() {
+    private DBManager() {
     }
 
     private static Map<String, String> loadCredentials() throws IOException {
         Map<String, String> creds = new HashMap<>();
         try (InputStream inputStream = DBManager.class.getClassLoader().getResourceAsStream("DBcred")) {
-            if (inputStream == null) throw new IOException("File DBcred non trovato nel classpath");
+            if (inputStream == null) throw new IOException("File DBcred not found in classpath");
             for (String line : new String(inputStream.readAllBytes()).lines().toList()) {
                 String[] parts = line.split("=", 2);
                 if (parts.length == 2) {
@@ -51,12 +51,12 @@ public class DBManager {
      * @throws SQLException if the JDBC driver cannot establish the connection.
      * @throws IOException  if the {@code DBcred} credentials file cannot be read.
      */
-    public static Connection getConnection() throws SQLException, IOException {
+    public static synchronized Connection getConnection() throws SQLException, IOException {
         if (connection == null || connection.isClosed()) {
-            UtilitiesFunction.logInfo(LOG_PREFIX, "Apertura connessione al database...");
+            UtilitiesFunction.logInfo(LOG_PREFIX, "Opening connection to database...");
             Map<String, String> creds = loadCredentials();
             connection = DriverManager.getConnection(URL, creds.get("DB_USER"), creds.get("DB_PASSWORD"));
-            UtilitiesFunction.logInfo(LOG_PREFIX, "Connessione stabilita.");
+            UtilitiesFunction.logInfo(LOG_PREFIX, "Connection established.");
         }
         return connection;
     }
@@ -70,7 +70,7 @@ public class DBManager {
     public static void closeConnection() throws SQLException {
         if (connection != null && !connection.isClosed()) {
             connection.close();
-            UtilitiesFunction.logInfo(LOG_PREFIX, "Connessione chiusa.");
+            UtilitiesFunction.logInfo(LOG_PREFIX, "Connection closed.");
         }
     }
 
@@ -81,12 +81,12 @@ public class DBManager {
      * table. The list must contain all players ordered by final ranking (1st to last),
      * so that the correct score table is applied via {@link UtilitiesFunction#getScore}.
      *
-     * @param players all players sorted by finishing position (best first).
+     * @param players all players sorted by finishing position ( the best first).
      * @throws SQLException if any database operation fails.
      * @throws IOException  if the credentials file cannot be read.
      */
     public static void logMatch(List<Player> players) throws SQLException, IOException {
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Salvataggio partita con " + players.size() + " giocatori...");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Saving game with " + players.size() + " players...");
         Connection conn = getConnection();
 
         String insertGame = "INSERT INTO game (played_at, player_count) VALUES (NOW(), ?)";
@@ -98,7 +98,7 @@ public class DBManager {
             rs.next();
             gameId = rs.getInt(1);
         }
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Partita inserita con ID=" + gameId + ".");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Game inserted with ID=" + gameId + ".");
 
         String insertPlayer = "INSERT IGNORE INTO player (nickname) VALUES (?)";
         String insertResult = "INSERT INTO result (game_id, player_nick, score) VALUES (?, ?, ?)";
@@ -116,10 +116,10 @@ public class DBManager {
                 ps.setInt(3, score);
                 ps.executeUpdate();
             }
-            UtilitiesFunction.logInfo(LOG_PREFIX, "  Posizione " + (i + 1) + ": " + nick + " → " + score + " punti");
+            UtilitiesFunction.logInfo(LOG_PREFIX, "  Position " + (i + 1) + ": " + nick + " → " + score + " points");
         }
 
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Partita salvata correttamente.");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Game saved successfully.");
     }
 
     /**
@@ -133,7 +133,7 @@ public class DBManager {
      * @throws IOException  if the credentials file cannot be read.
      */
     public static List<String> getLeaderboard(int playerCount) throws SQLException, IOException {
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Recupero classifica per " + playerCount + " giocatori...");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Retrieving scoreboard for " + playerCount + " players...");
         Connection conn = getConnection();
         String query = """
                 SELECT player_nick, SUM(score) AS total_score
@@ -153,7 +153,7 @@ public class DBManager {
                 position++;
             }
         }
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Classifica recuperata: " + leaderboard.size() + " voci.");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Scoreboard retrieved: " + leaderboard.size() + " entries.");
         return leaderboard;
     }
 
@@ -171,11 +171,11 @@ public class DBManager {
         List<String> leaderboard = getLeaderboard(playerCount);
         for (int i = 0; i < leaderboard.size(); i++) {
             if (leaderboard.get(i).contains(nickname)) {
-                UtilitiesFunction.logInfo(LOG_PREFIX, "Posizione di '" + nickname + "': " + (i + 1));
+                UtilitiesFunction.logInfo(LOG_PREFIX, "Position of '" + nickname + "': " + (i + 1));
                 return i + 1;
             }
         }
-        UtilitiesFunction.logInfo(LOG_PREFIX, "Giocatore '" + nickname + "' non trovato in classifica.");
+        UtilitiesFunction.logInfo(LOG_PREFIX, "Player '" + nickname + "' not found in scoreboard.");
         return -1;
     }
 

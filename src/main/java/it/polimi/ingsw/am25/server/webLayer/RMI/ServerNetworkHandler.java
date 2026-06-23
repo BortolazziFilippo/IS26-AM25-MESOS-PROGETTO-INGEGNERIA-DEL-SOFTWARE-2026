@@ -315,14 +315,14 @@ public class ServerNetworkHandler extends UnicastRemoteObject implements ServerR
                 try {
                     leaderboards.put(i, DBManager.getLeaderboard(i));
                 } catch (SQLException | IOException e) {
-                    logServerEvent("DB non raggiungibile per classifica " + i + " giocatori: " + e.getMessage());
+                    logServerEvent("DB not reachable for " + i + " players: " + e.getMessage());
                     leaderboards.put(i, List.of("Classifica non disponibile"));
                 }
             }
             try {
                 clientRemoteInterface.sendRank(leaderboards);
             } catch (RemoteException e) {
-                logServerEvent("Errore nell'invio della classifica al client: " + e.getMessage());
+                logServerEvent("Error sending scoreboard to client: " + e.getMessage());
             }
         }, "rank-fetcher");
         rankThread.setDaemon(true);
